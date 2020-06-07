@@ -1,0 +1,15 @@
+* Resources
+** Rust
+- The Rust book :: https://doc.rust-lang.org/book/
+** LLVM
+- Brief overview of LLVM :: https://www.infoworld.com/article/3247799/what-is-llvm-the-power-behind-swift-rust-clang-and-more.html
+- A bit in depth details on LLVM :: https://aosabook.org/en/llvm.html
+- Rust binding :: https://crates.io/crates/llvm-sys
+- Official LLVM tutorial C++ :: https://llvm.org/docs/tutorial/
+- Rust LLVM tutorial :: https://github.com/jauhien/iron-kaleidoscope
+
+** Data structures
+- Pure functional datastructures papaer :: https://www.cs.cmu.edu/~rwh/theses/okasaki.pdf
+
+** Cranelift
+- Source tree :: https://github.com/bytecodealliance/wasmtime/tree/master/cranelift
