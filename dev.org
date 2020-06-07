@@ -1,6 +1,6 @@
 * Resources
 ** Rust
-- The Rust book :: https://doc.rust-lang.org/book/
+- The Rust book :: https://doc.rust-lang.org/book/ https://www.reddit.com/r/rust/comments/2s1zj2/the_rust_programming_language_book_as_epub/
 ** LLVM
 - Brief overview of LLVM :: https://www.infoworld.com/article/3247799/what-is-llvm-the-power-behind-swift-rust-clang-and-more.html
 - A bit in depth details on LLVM :: https://aosabook.org/en/llvm.html
@@ -16,5 +16,7 @@
 ** Parser
 *** Rust
 - https://github.com/Geal/nom/ Rust parser combinator framework
+- https://github.com/lalrpop/lalrpop LR(1) parser generator for Rust
 - https://github.com/Marwes/combine A parser combinator library for Rust
 - https://github.com/kevinmehall/rust-peg Parsing Expression Grammar (PEG) parser generator for Rust
+- https://pest.rs/ General purpose parser
