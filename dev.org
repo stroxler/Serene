@@ -1,3 +1,10 @@
+* Parser
+- Rust parser combinator framework :: https://github.com/Geal/nom/
+- LR(1) parser generator for Rust :: https://github.com/lalrpop/lalrpop
+- A parser combinator library for Rust :: https://github.com/Marwes/combine
+- Parsing Expression Grammar (PEG) parser generator for Rust :: https://github.com/kevinmehall/rust-peg
+- General purpose parser :: https://pest.rs/
+
 * Resources
 ** Rust
 - The Rust book :: https://doc.rust-lang.org/book/ https://www.reddit.com/r/rust/comments/2s1zj2/the_rust_programming_language_book_as_epub/
@@ -13,10 +20,3 @@
 
 ** Cranelift
 - Source tree :: https://github.com/bytecodealliance/wasmtime/tree/master/cranelift
-** Parser
-*** Rust
-- https://github.com/Geal/nom/ Rust parser combinator framework
-- https://github.com/lalrpop/lalrpop LR(1) parser generator for Rust
-- https://github.com/Marwes/combine A parser combinator library for Rust
-- https://github.com/kevinmehall/rust-peg Parsing Expression Grammar (PEG) parser generator for Rust
-- https://pest.rs/ General purpose parser
