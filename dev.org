@@ -1,4 +1,6 @@
 * Parser
+First of all you need to read [[https://tomassetti.me/guide-parsing-algorithms-terminology/][All you need to know about Parser algorithms]].
+Then here is the list or parsers that we have considered
 - Rust parser combinator framework :: https://github.com/Geal/nom/
 - LR(1) parser generator for Rust :: https://github.com/lalrpop/lalrpop
 - A parser combinator library for Rust :: https://github.com/Marwes/combine
