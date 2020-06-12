@@ -1,0 +1,16 @@
+* Serene lang
+** Setup development environment
+*** Emacs
+[[https://github.com/brotzeit/rustic][Rustic]] is highly recommended. Just install it and install the dependencies necessary
+on the Rust side. If you're using *FG42*, It already ships with Rustic installed.
+
+**** Requirements on the Rust side
+To setup the dev envrionment you need to have *Clippy* and *RLS* installed. Run the
+following commands to install them:
+
+#+BEGIN_SRC bash
+rustup component add rls --toolchain stable-x86_64-unknown-linux-gnu
+rustup component add --toolchain stable-x86_64-unknown-linux-gnu clippy
+#+END_SRC
+
+Use your desired toolchain instead of *stable-x86_64-unknown-linux-gnu*
