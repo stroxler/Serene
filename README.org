@@ -11,6 +11,7 @@ following commands to install them:
 #+BEGIN_SRC bash
 rustup component add rls --toolchain stable-x86_64-unknown-linux-gnu
 rustup component add --toolchain stable-x86_64-unknown-linux-gnu clippy
+rustup component add rustfmt
 #+END_SRC
 
 Use your desired toolchain instead of *stable-x86_64-unknown-linux-gnu*
