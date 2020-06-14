@@ -6,8 +6,8 @@
 // What about usize and isize ?
 #[derive(Debug, Clone)]
 pub enum Number {
-    Integer(i32),
-    Float(f32),
+    Integer(i64),
+    Float(f64),
 }
 
 impl PartialEq for Number {
@@ -17,8 +17,8 @@ impl PartialEq for Number {
         match comb {
             (Number::Integer(x), Number::Integer(y)) => *x == *y,
             (Number::Float(x), Number::Float(y)) => *x == *y,
-            (Number::Integer(x), Number::Float(y)) => *x as f32 == *y,
-            (Number::Float(x), Number::Integer(y)) => *x == *y as f32,
+            (Number::Integer(x), Number::Float(y)) => *x as f64 == *y,
+            (Number::Float(x), Number::Integer(y)) => *x == *y as f64,
         }
     }
 }
@@ -34,4 +34,12 @@ pub enum Expr {
     Num(Number),
     Comment,
     Error(String),
+    Cons(Box<Expr>, Box<Expr>),
+    Nil,
+    NoMatch,
+}
+
+#[derive(Debug, Eq, PartialEq, Clone)]
+pub enum Error {
+    SyntaxError
 }
