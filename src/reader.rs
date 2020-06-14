@@ -185,8 +185,14 @@ impl ExprReader {
     }
 
     fn read_number<T: Read>(&mut self, reader: &mut BufReader<T>, neg: bool) -> ReadResult {
+
         let mut is_double = false;
-        let mut string = "".to_string();
+        let mut string = (if neg {
+            "-"
+        } else {
+            ""
+        }).to_string();
+
         loop {
             match self.get_char(reader, false) {
                 Some(e) if e == '.' && is_double => return Err("A double with more that one '.' ???".to_string()),
@@ -216,7 +222,23 @@ impl ExprReader {
                 c if c.is_digit(10) => self.read_number(reader, false),
 
                 // ':' => self.read_keyword(reader),
-                // '-' => {
+                '-' => {
+                    // Read the '-' char
+                    let _ = self.get_char(reader, true);
+                    match self.peek_char(reader, true) {
+                        Some(ch) => match ch {
+                            ch if ch.is_digit(10) => self.read_number(reader, true),
+                            _ => {
+                                self.unget_char(c);
+                                self._read_symbol(reader)
+                            }
+                        },
+                        None => {
+                            self.unget_char(c);
+                            self._read_symbol(reader)
+                        }
+                    }
+                }
                 // Neg number
                 // }
                 _ => self._read_symbol(reader)

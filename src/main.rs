@@ -7,7 +7,7 @@ pub mod collections;
 
 
 fn main() {
-    let input = String::from("(println \">>>>>\" (+ 2 3))");
+    let input = String::from("(println \">>>>>\" '(+ 2 -3))");
 
     println!("{:?}",
              reader::read_string(&input).unwrap());
