@@ -1,44 +1,42 @@
 use crate::ast::{Expr, Number};
-use std::io::{Read, BufReader};
+use std::io::{BufReader, Read};
 
 pub type ReadResult = Result<Expr, String>;
 
 pub struct ExprReader {
-    read_stack: Vec<char>
+    read_stack: Vec<char>,
 }
 
 impl ExprReader {
-
     fn new() -> ExprReader {
-        ExprReader {
-            read_stack: vec![]
-        }
+        ExprReader { read_stack: vec![] }
     }
 
-    fn get_char<T: Read>(&mut self, reader: &mut BufReader<T>, skip_whitespace: bool) -> Option<char> {
+    fn get_char<T: Read>(
+        &mut self,
+        reader: &mut BufReader<T>,
+        skip_whitespace: bool,
+    ) -> Option<char> {
         loop {
             match self.read_stack.pop() {
-                Some(c) if !c.is_whitespace() || !skip_whitespace =>
-                {
-                    return Some(c)
-                },
+                Some(c) if !c.is_whitespace() || !skip_whitespace => return Some(c),
                 Some(_) => continue,
-                None => ()
+                None => (),
             };
 
             // Rust is weird, it doesn't provide a way to read from a buffer char by char.
             let mut single_char_buff = [0];
             let bytes_read = reader.read(&mut single_char_buff);
             match bytes_read {
-                Ok(n) if n > 0 => {},
+                Ok(n) if n > 0 => {}
                 Ok(_) => return None,
-                Err(_) => return None
+                Err(_) => return None,
             };
             let ch = single_char_buff[0] as char;
 
             match ch {
                 c if !c.is_whitespace() || !skip_whitespace => return Some(c),
-                _  => (),
+                _ => (),
             };
         }
     }
@@ -49,19 +47,26 @@ impl ExprReader {
 
     // Look ahead. AFAIK Rust doesn't provide any unread functoinality like Java input streams which
     // sucks.
-    fn peek_char<T: Read>(&mut self, reader: &mut BufReader<T>, skip_whitespace: bool) -> Option<char> {
+    fn peek_char<T: Read>(
+        &mut self,
+        reader: &mut BufReader<T>,
+        skip_whitespace: bool,
+    ) -> Option<char> {
         match self.get_char(reader, skip_whitespace) {
             Some(c) => {
                 self.unget_char(c);
                 Some(c)
-            },
-            None => None
+            }
+            None => None,
         }
     }
 
     fn read_quoted_expr<T: Read>(&mut self, reader: &mut BufReader<T>) -> ReadResult {
         let rest = self.read_expr(reader)?;
-        Ok(Expr::Cons(Box::new(Expr::Symbol("quote".to_string())), Box::new(rest)))
+        Ok(Expr::Cons(
+            Box::new(Expr::Symbol("quote".to_string())),
+            Box::new(rest),
+        ))
     }
 
     fn read_unquoted_expr<T: Read>(&mut self, reader: &mut BufReader<T>) -> ReadResult {
@@ -70,21 +75,27 @@ impl ExprReader {
                 // Move forward in the buffer since we peeked it
                 let _ = self.get_char(reader, true);
                 let rest = self.read_expr(reader)?;
-                Ok(Expr::Cons(Box::new(Expr::Symbol("unquote-splicing".to_string())),
-                              Box::new(rest)))
-            },
+                Ok(Expr::Cons(
+                    Box::new(Expr::Symbol("unquote-splicing".to_string())),
+                    Box::new(rest),
+                ))
+            }
             _ => {
                 let rest = self.read_expr(reader)?;
-                Ok(Expr::Cons(Box::new(Expr::Symbol("unquote".to_string())),
-                              Box::new(rest)))
+                Ok(Expr::Cons(
+                    Box::new(Expr::Symbol("unquote".to_string())),
+                    Box::new(rest),
+                ))
             }
         }
     }
 
     fn read_quasiquoted_expr<T: Read>(&mut self, reader: &mut BufReader<T>) -> ReadResult {
         let rest = self.read_expr(reader)?;
-        Ok(Expr::Cons(Box::new(Expr::Symbol("quasiquote".to_string())),
-                      Box::new(rest)))
+        Ok(Expr::Cons(
+            Box::new(Expr::Symbol("quasiquote".to_string())),
+            Box::new(rest),
+        ))
     }
 
     // TODO: We might want to replace Cons with an actual List struct
@@ -95,15 +106,15 @@ impl ExprReader {
                 // is it an empty list ?
                 // TODO: we might want to return an actual empty list here
                 Some(')') => return Ok(Expr::Nil),
-                _ => return Err(e)
-            }
+                _ => return Err(e),
+            },
         };
         let rest = match self.get_char(reader, true) {
             Some(e) => {
                 self.unget_char(e);
                 self.read_list(reader)?
-            },
-            None => return Err("Unexpected EOF, expected . or symbol".to_string())
+            }
+            None => return Err("Unexpected EOF, expected . or symbol".to_string()),
         };
 
         Ok(Expr::Cons(Box::new(first), Box::new(rest)))
@@ -111,10 +122,28 @@ impl ExprReader {
 
     fn is_valid_for_identifier(&self, c: char) -> bool {
         match c {
-            '!' | '$' | '%' | '&' | '*' | '+' | '-' | '.' | '~' |
-            '/' | ':' | '<' | '=' | '>' | '?' | '@' | '^' | '_' |
-            'a'..='z' | 'A'..='Z' | '0'..='9' => true,
-            _ => false
+            '!'
+            | '$'
+            | '%'
+            | '&'
+            | '*'
+            | '+'
+            | '-'
+            | '.'
+            | '~'
+            | '/'
+            | ':'
+            | '<'
+            | '='
+            | '>'
+            | '?'
+            | '@'
+            | '^'
+            | '_'
+            | 'a'..='z'
+            | 'A'..='Z'
+            | '0'..='9' => true,
+            _ => false,
         }
     }
 
@@ -126,11 +155,14 @@ impl ExprReader {
                 let mut s = String::new();
                 s.push(ch);
                 s
-            },
+            }
             Some(e) => {
-                return Err(format!("Unexpected character: got {}, expected a symbol", e))
-            },
-            None => return Err("Unexpected EOF".to_string())
+                return Err(format!(
+                    "Unexpected character: got {}, expected a symbol",
+                    e
+                ))
+            }
+            None => return Err("Unexpected EOF".to_string()),
         };
 
         loop {
@@ -139,8 +171,8 @@ impl ExprReader {
                 Some(v) => {
                     self.unget_char(v);
                     break;
-                },
-                None => break
+                }
+                None => break,
             }
         }
 
@@ -156,9 +188,9 @@ impl ExprReader {
                 'n' => Some('\n'),
                 'r' => Some('\r'),
                 't' => Some('\t'),
-                _ => None
+                _ => None,
             },
-            None => None
+            None => None,
         }
     }
 
@@ -173,29 +205,26 @@ impl ExprReader {
                     '\"' => break,
                     '\\' => match self.read_escape_char(reader) {
                         Some(v) => string.push(v),
-                        None => return Err(format!("Unexpected char to escape, got {}", e))
+                        None => return Err(format!("Unexpected char to escape, got {}", e)),
                     },
                     //'\n' => return Err("Unescaped newlines are not allowed in string literals".to_string()),
-                    _ => string.push(e)
+                    _ => string.push(e),
                 },
-                None => return Err("Unexpected EOF while scanning a string".to_string())
+                None => return Err("Unexpected EOF while scanning a string".to_string()),
             }
         }
         Ok(Expr::Str(string))
     }
 
     fn read_number<T: Read>(&mut self, reader: &mut BufReader<T>, neg: bool) -> ReadResult {
-
         let mut is_double = false;
-        let mut string = (if neg {
-            "-"
-        } else {
-            ""
-        }).to_string();
+        let mut string = (if neg { "-" } else { "" }).to_string();
 
         loop {
             match self.get_char(reader, false) {
-                Some(e) if e == '.' && is_double => return Err("A double with more that one '.' ???".to_string()),
+                Some(e) if e == '.' && is_double => {
+                    return Err("A double with more that one '.' ???".to_string())
+                }
                 Some(e) if e == '.' => {
                     is_double = true;
                     string.push(e);
@@ -205,7 +234,7 @@ impl ExprReader {
                     self.unget_char(e);
                     break;
                 }
-                None => break
+                None => break,
             }
         }
         if is_double {
@@ -239,11 +268,10 @@ impl ExprReader {
                         }
                     }
                 }
-                // Neg number
-                // }
-                _ => self._read_symbol(reader)
+
+                _ => self._read_symbol(reader),
             },
-            None => Err("Unexpected EOF while scanning atom".to_string())
+            None => Err("Unexpected EOF while scanning atom".to_string()),
         }
     }
 
@@ -257,23 +285,26 @@ impl ExprReader {
                     '(' => self.read_list(reader),
                     //'[' => self.read_vector(reader),
                     //'{' => self.read_map(reader),
-                    _  => {
+                    _ => {
                         self.unget_char(c);
                         self.read_symbol(reader)
                     }
                 }
-            },
-            None => Ok(Expr::NoMatch)
+            }
+            None => Ok(Expr::NoMatch),
         }
     }
 
-    pub fn read_from_buffer<T: Read>(&mut self, reader: &mut BufReader<T>) -> Result<Vec<Expr>, String> {
+    pub fn read_from_buffer<T: Read>(
+        &mut self,
+        reader: &mut BufReader<T>,
+    ) -> Result<Vec<Expr>, String> {
         let mut ast = vec![];
         loop {
             match self.read_expr(reader) {
                 Ok(Expr::NoMatch) => break,
                 Err(v) => return Err(v),
-                Ok(v) => ast.push(v)
+                Ok(v) => ast.push(v),
             }
         }
         Ok(ast)
@@ -284,9 +315,7 @@ impl ExprReader {
         let mut buf_reader = BufReader::new(reader);
         self.read_from_buffer(&mut buf_reader)
     }
-
 }
-
 
 pub fn read_string(input: &str) -> Result<Vec<Expr>, String> {
     let mut reader = ExprReader::new();
