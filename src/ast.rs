@@ -41,5 +41,5 @@ pub enum Expr {
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Error {
-    SyntaxError
+    SyntaxError,
 }
