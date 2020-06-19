@@ -27,7 +27,7 @@ impl Eq for Number {}
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Expr {
-    List(Vec<Expr>),
+    List(Box<Expr>),
     Symbol(String),
     Str(String),
     Quote(Box<Expr>),

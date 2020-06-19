@@ -4,14 +4,25 @@ use std::io::{BufReader, Read};
 pub type ReadResult = Result<Expr, String>;
 
 pub struct ExprReader {
+    location: i32,
     read_stack: Vec<char>,
 }
 
 impl ExprReader {
     fn new() -> ExprReader {
-        ExprReader { read_stack: vec![] }
+        ExprReader {
+            location: 0,
+            read_stack: vec![],
+        }
     }
 
+    /// Retun a single character by reading from the `reader`. ,
+    ///
+    /// # Arguments:
+    ///
+    /// * `reader`: The buffer to read from.
+    /// * `skip_whitespace`: Whether or not to skip whitespace chars. *Bear in mind that
+    ///   if you care about the newline char you should not skip the whitespaces*.
     fn get_char<T: Read>(
         &mut self,
         reader: &mut BufReader<T>,
@@ -28,7 +39,7 @@ impl ExprReader {
             let mut single_char_buff = [0];
             let bytes_read = reader.read(&mut single_char_buff);
             match bytes_read {
-                Ok(n) if n > 0 => {}
+                Ok(n) if n > 0 => self.location = self.location + 1,
                 Ok(_) => return None,
                 Err(_) => return None,
             };
@@ -114,7 +125,7 @@ impl ExprReader {
                 self.unget_char(e);
                 self.read_list(reader)?
             }
-            None => return Err("Unexpected EOF, expected . or symbol".to_string()),
+            None => return Err("Unexpected EOF while parsing a list.".to_string()),
         };
 
         Ok(Expr::Cons(Box::new(first), Box::new(rest)))
@@ -158,8 +169,8 @@ impl ExprReader {
             }
             Some(e) => {
                 return Err(format!(
-                    "Unexpected character: got {}, expected a symbol",
-                    e
+                    "Unexpected character: got '{}', expected a symbol at {}",
+                    e, self.location
                 ))
             }
             None => return Err("Unexpected EOF".to_string()),
@@ -275,6 +286,16 @@ impl ExprReader {
         }
     }
 
+    pub fn ignore_comments<T: Read>(&mut self, reader: &mut BufReader<T>) -> ReadResult {
+        match self.get_char(reader, false) {
+            Some(c) => match c {
+                '\n' => Ok(Expr::Comment),
+                _ => self.ignore_comments(reader),
+            },
+            None => Ok(Expr::Comment),
+        }
+    }
+
     pub fn read_expr<T: Read>(&mut self, reader: &mut BufReader<T>) -> ReadResult {
         match self.get_char(reader, true) {
             Some(c) => {
@@ -283,6 +304,7 @@ impl ExprReader {
                     '~' => self.read_unquoted_expr(reader),
                     '`' => self.read_quasiquoted_expr(reader),
                     '(' => self.read_list(reader),
+                    ';' => self.ignore_comments(reader),
                     //'[' => self.read_vector(reader),
                     //'{' => self.read_map(reader),
                     _ => {
@@ -304,6 +326,7 @@ impl ExprReader {
             match self.read_expr(reader) {
                 Ok(Expr::NoMatch) => break,
                 Err(v) => return Err(v),
+                Ok(Expr::Comment) => continue,
                 Ok(v) => ast.push(v),
             }
         }
