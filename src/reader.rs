@@ -1,4 +1,8 @@
 use crate::ast::{Expr, Number};
+// Lst::List is the actual list implementation while
+// ast::Expr::List is a variant holding the actual
+// implementation.
+use crate::collections::list as lst;
 use std::io::{BufReader, Read};
 
 pub type ReadResult = Result<Expr, String>;
@@ -74,10 +78,10 @@ impl ExprReader {
 
     fn read_quoted_expr<T: Read>(&mut self, reader: &mut BufReader<T>) -> ReadResult {
         let rest = self.read_expr(reader)?;
-        Ok(Expr::Cons(
+        Ok(Expr::Cons(lst::List::<Expr>::new(
             Box::new(Expr::Symbol("quote".to_string())),
             Box::new(rest),
-        ))
+        )))
     }
 
     fn read_unquoted_expr<T: Read>(&mut self, reader: &mut BufReader<T>) -> ReadResult {
@@ -86,27 +90,27 @@ impl ExprReader {
                 // Move forward in the buffer since we peeked it
                 let _ = self.get_char(reader, true);
                 let rest = self.read_expr(reader)?;
-                Ok(Expr::Cons(
+                Ok(Expr::Cons(lst::List::<Expr>::new(
                     Box::new(Expr::Symbol("unquote-splicing".to_string())),
                     Box::new(rest),
-                ))
+                )))
             }
             _ => {
                 let rest = self.read_expr(reader)?;
-                Ok(Expr::Cons(
+                Ok(Expr::Cons(lst::List::<Expr>::new(
                     Box::new(Expr::Symbol("unquote".to_string())),
                     Box::new(rest),
-                ))
+                )))
             }
         }
     }
 
     fn read_quasiquoted_expr<T: Read>(&mut self, reader: &mut BufReader<T>) -> ReadResult {
         let rest = self.read_expr(reader)?;
-        Ok(Expr::Cons(
+        Ok(Expr::Cons(lst::List::<Expr>::new(
             Box::new(Expr::Symbol("quasiquote".to_string())),
             Box::new(rest),
-        ))
+        )))
     }
 
     // TODO: We might want to replace Cons with an actual List struct
@@ -120,6 +124,7 @@ impl ExprReader {
                 _ => return Err(e),
             },
         };
+
         let rest = match self.get_char(reader, true) {
             Some(e) => {
                 self.unget_char(e);
@@ -128,7 +133,10 @@ impl ExprReader {
             None => return Err("Unexpected EOF while parsing a list.".to_string()),
         };
 
-        Ok(Expr::Cons(Box::new(first), Box::new(rest)))
+        Ok(Expr::Cons(lst::List::<Expr>::new(
+            Box::new(first),
+            Box::new(rest),
+        )))
     }
 
     fn is_valid_for_identifier(&self, c: char) -> bool {

@@ -7,6 +7,7 @@ use std::string::String;
 
 pub mod ast;
 pub mod collections;
+pub mod expr;
 pub mod reader;
 
 fn main() -> io::Result<()> {

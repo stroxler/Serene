@@ -1,3 +1,6 @@
+use crate::collections::list;
+use crate::expr::Expression;
+
 // Note: I kept the number implementation simple for now
 // but we need to decide on our approach to numbers, are
 // we going to only support the 64bit variants? or should
@@ -27,19 +30,26 @@ impl Eq for Number {}
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Expr {
-    List(Box<Expr>),
+    //List(list::List<Expr>),
     Symbol(String),
     Str(String),
     Quote(Box<Expr>),
     Num(Number),
     Comment,
     Error(String),
-    Cons(Box<Expr>, Box<Expr>),
+    //    Cons(Box<Expr>, Box<Expr>),
+    Cons(list::List<Expr>),
     Nil,
     NoMatch,
 }
 
-#[derive(Debug, Eq, PartialEq, Clone)]
-pub enum Error {
-    SyntaxError,
+impl Expr {
+    pub fn make_list(first: Expr, rest: Expr) -> Expr {
+        Expr::Cons(list::List::<Expr>::new(Box::new(first), Box::new(rest)))
+    }
+}
+
+impl Expression for Expr {
+    fn eval() {}
+    fn code_gen() {}
 }
