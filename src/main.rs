@@ -1,4 +1,4 @@
-extern crate llvm_sys;
+extern crate inkwell;
 
 use clap::{load_yaml, App};
 use std::fs::File;
@@ -7,9 +7,9 @@ use std::io::prelude::*;
 use std::string::String;
 
 pub mod ast;
-pub mod collections;
-pub mod expr;
+pub mod compiler;
 pub mod reader;
+pub mod types;
 
 fn main() -> io::Result<()> {
     let yaml = load_yaml!("cli.yml");

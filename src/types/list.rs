@@ -1,4 +1,4 @@
-use crate::expr::Expression;
+use crate::types::core::Expression;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct List<T: Expression> {

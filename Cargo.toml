@@ -7,5 +7,5 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-llvm-sys = "100"
 clap = { version = "3.0.0-beta.1", features = ["yaml"] }
+inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "llvm10-0" }
