@@ -33,7 +33,6 @@ pub enum Expr {
     //List(list::List<Expr>),
     Symbol(String),
     Str(String),
-    Quote(Box<Expr>),
     Num(Number),
     Comment,
     Error(String),
@@ -46,6 +45,18 @@ pub enum Expr {
 impl Expr {
     pub fn make_list(first: Expr, rest: Expr) -> Expr {
         Expr::Cons(list::List::<Expr>::new(Box::new(first), Box::new(rest)))
+    }
+
+    pub fn make_symbol(v: String) -> Expr {
+        Expr::Symbol(v)
+    }
+
+    pub fn make_string(v: String) -> Expr {
+        Expr::Str(v)
+    }
+
+    pub fn make_number(n: Number) -> Expr {
+        Expr::Num(n)
     }
 }
 

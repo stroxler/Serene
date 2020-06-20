@@ -1,8 +1,4 @@
 use crate::ast::{Expr, Number};
-// Lst::List is the actual list implementation while
-// ast::Expr::List is a variant holding the actual
-// implementation.
-use crate::collections::list as lst;
 use std::io::{BufReader, Read};
 
 pub type ReadResult = Result<Expr, String>;
@@ -78,10 +74,10 @@ impl ExprReader {
 
     fn read_quoted_expr<T: Read>(&mut self, reader: &mut BufReader<T>) -> ReadResult {
         let rest = self.read_expr(reader)?;
-        Ok(Expr::Cons(lst::List::<Expr>::new(
-            Box::new(Expr::Symbol("quote".to_string())),
-            Box::new(rest),
-        )))
+        Ok(Expr::make_list(
+            Expr::make_symbol("quote".to_string()),
+            rest,
+        ))
     }
 
     fn read_unquoted_expr<T: Read>(&mut self, reader: &mut BufReader<T>) -> ReadResult {
@@ -90,27 +86,27 @@ impl ExprReader {
                 // Move forward in the buffer since we peeked it
                 let _ = self.get_char(reader, true);
                 let rest = self.read_expr(reader)?;
-                Ok(Expr::Cons(lst::List::<Expr>::new(
-                    Box::new(Expr::Symbol("unquote-splicing".to_string())),
-                    Box::new(rest),
-                )))
+                Ok(Expr::make_list(
+                    Expr::make_symbol("unquote-splicing".to_string()),
+                    rest,
+                ))
             }
             _ => {
                 let rest = self.read_expr(reader)?;
-                Ok(Expr::Cons(lst::List::<Expr>::new(
-                    Box::new(Expr::Symbol("unquote".to_string())),
-                    Box::new(rest),
-                )))
+                Ok(Expr::make_list(
+                    Expr::make_symbol("unquote".to_string()),
+                    rest,
+                ))
             }
         }
     }
 
     fn read_quasiquoted_expr<T: Read>(&mut self, reader: &mut BufReader<T>) -> ReadResult {
         let rest = self.read_expr(reader)?;
-        Ok(Expr::Cons(lst::List::<Expr>::new(
-            Box::new(Expr::Symbol("quasiquote".to_string())),
-            Box::new(rest),
-        )))
+        Ok(Expr::make_list(
+            Expr::make_symbol("quasiquote".to_string()),
+            rest,
+        ))
     }
 
     // TODO: We might want to replace Cons with an actual List struct
@@ -133,10 +129,7 @@ impl ExprReader {
             None => return Err("Unexpected EOF while parsing a list.".to_string()),
         };
 
-        Ok(Expr::Cons(lst::List::<Expr>::new(
-            Box::new(first),
-            Box::new(rest),
-        )))
+        Ok(Expr::make_list(first, rest))
     }
 
     fn is_valid_for_identifier(&self, c: char) -> bool {
@@ -195,7 +188,7 @@ impl ExprReader {
             }
         }
 
-        Ok(Expr::Symbol(symbol))
+        Ok(Expr::make_symbol(symbol))
     }
 
     fn read_escape_char<T: Read>(&mut self, reader: &mut BufReader<T>) -> Option<char> {
@@ -232,7 +225,7 @@ impl ExprReader {
                 None => return Err("Unexpected EOF while scanning a string".to_string()),
             }
         }
-        Ok(Expr::Str(string))
+        Ok(Expr::make_string(string))
     }
 
     fn read_number<T: Read>(&mut self, reader: &mut BufReader<T>, neg: bool) -> ReadResult {
@@ -257,9 +250,13 @@ impl ExprReader {
             }
         }
         if is_double {
-            Ok(Expr::Num(Number::Float(string.parse::<f64>().unwrap())))
+            Ok(Expr::make_number(Number::Float(
+                string.parse::<f64>().unwrap(),
+            )))
         } else {
-            Ok(Expr::Num(Number::Integer(string.parse::<i64>().unwrap())))
+            Ok(Expr::make_number(Number::Integer(
+                string.parse::<i64>().unwrap(),
+            )))
         }
     }
 
