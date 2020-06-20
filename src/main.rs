@@ -1,5 +1,6 @@
 extern crate llvm_sys;
 
+use clap::{load_yaml, App};
 use std::fs::File;
 use std::io;
 use std::io::prelude::*;
@@ -11,18 +12,20 @@ pub mod expr;
 pub mod reader;
 
 fn main() -> io::Result<()> {
-    // let input = String::from("(println \">>>>>\" '(+ 2 -3))");
+    let yaml = load_yaml!("cli.yml");
+    let args = App::from(yaml).get_matches();
 
-    // println!("{:?}", reader::read_string(&input).unwrap());
-    let mut f = File::open(
-        "/home/lxsameer/src/serene/serene/resources/benchmarks/parsers/example_code.srn",
-    )?;
+    if let Some(input) = args.value_of("INPUT") {
+        let mut f = File::open(input)?;
 
-    let mut buf = String::new();
-    f.read_to_string(&mut buf)?;
-    match reader::read_string(&buf) {
-        Ok(v) => println!("{:?}", v),
-        Err(e) => println!(">> error {:?}", e),
+        let mut buf = String::new();
+        f.read_to_string(&mut buf)?;
+        match reader::read_string(&buf) {
+            Ok(v) => println!("{:?}", v),
+            Err(e) => println!(">> error {:?}", e),
+        }
+    } else {
+        println!("Input file is missing.")
     }
     Ok(())
 }

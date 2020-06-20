@@ -1,0 +1,17 @@
+name: myapp
+version: "0.1.0"
+author: Sameer Rahmani <lxsameer@gnu.org>
+about: Serene's compiler
+args:
+    - debug-parser:
+        long: debug-parser
+        about: Prints out the AST only.
+        takes_value: false
+    - INPUT:
+        about: Sets the input file to use
+        required: true
+        index: 1
+    - verbose:
+        short: v
+        multiple: true
+        about: Sets the level of verbosity
