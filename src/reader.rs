@@ -1,4 +1,5 @@
-use crate::ast::{Expr, Number};
+use crate::ast::Expr;
+use crate::types::Number;
 use std::io::{BufReader, Read};
 
 pub type ReadResult = Result<Expr, String>;
@@ -249,6 +250,9 @@ impl ExprReader {
                 None => break,
             }
         }
+
+        // TODO: Move this to ast module and use the `new` function on
+        // Number struct
         if is_double {
             Ok(Expr::make_number(Number::Float(
                 string.parse::<f64>().unwrap(),

@@ -3,7 +3,7 @@ use inkwell::context::Context;
 use inkwell::module::Module;
 use inkwell::values::{BasicValue, BasicValueEnum, FloatValue, FunctionValue, PointerValue};
 
-use crate::expr::Expression;
+use crate::types::Expression;
 use std::collections::HashMap;
 
 pub struct Compiler<'a, 'ctx> {

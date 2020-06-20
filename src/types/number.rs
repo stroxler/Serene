@@ -14,6 +14,7 @@ pub enum Number {
 
 impl PartialEq for Number {
     fn eq(&self, other: &Self) -> bool {
+        // TODO: Eval other
         let comb = (&self, &other);
 
         match comb {

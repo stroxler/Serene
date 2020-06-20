@@ -1,8 +1,8 @@
-use crate::types::{Expression, List, Number};
+use crate::types::{Expression, List, Number, Symbol};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Expr {
-    Symbol(String),
+    Sym(Symbol),
     Str(String),
     Num(Number),
     Comment,
@@ -18,7 +18,7 @@ impl Expr {
     }
 
     pub fn make_symbol(v: String) -> Expr {
-        Expr::Symbol(v)
+        Expr::Sym(Symbol::new(v))
     }
 
     pub fn make_string(v: String) -> Expr {
