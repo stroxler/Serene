@@ -8,6 +8,7 @@ use std::string::String;
 
 pub mod ast;
 pub mod compiler;
+pub mod namespace;
 pub mod reader;
 pub mod types;
 

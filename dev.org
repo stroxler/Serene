@@ -24,6 +24,8 @@ Then here is the list or parsers that we have considered
 
 ** Data structures
 - Pure functional datastructures papaer :: https://www.cs.cmu.edu/~rwh/theses/okasaki.pdf
-
+- Dynamic typing: syntax and proof theory :: https://reader.elsevier.com/reader/sd/pii/0167642394000042?token=CEFF5C5D1B03FD680762FC4889A14C0CA2BB28FE390EC51099984536E12AC358F3D28A5C25C274296ACBBC32E5AE23CD
+- Representing Type Information in Dynamically Typed Languages :: https://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.39.4394
+- An empirical study on the impact of static typing on software maintainability :: https://www.researchgate.net/publication/259634489_An_empirical_study_on_the_impact_of_static_typing_on_software_maintainability
 ** Cranelift
 - Source tree :: https://github.com/bytecodealliance/wasmtime/tree/master/cranelift
