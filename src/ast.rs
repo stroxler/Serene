@@ -1,4 +1,5 @@
-use crate::types::{Expression, List, Number, Symbol};
+use crate::namespace::Namespace;
+use crate::types::{ExprResult, Expression, List, Number, Symbol};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Expr {
@@ -12,7 +13,7 @@ pub enum Expr {
     NoMatch,
 }
 
-impl Expr {
+impl<'a> Expr {
     pub fn make_list(first: Expr, rest: Expr) -> Expr {
         Expr::Cons(List::<Expr>::new(Box::new(first), Box::new(rest)))
     }
@@ -30,7 +31,12 @@ impl Expr {
     }
 }
 
-impl Expression for Expr {
+impl<'a> Expression<'a> for Expr {
     fn eval() {}
-    fn code_gen() {}
+    fn code_gen(&self, ns: &Namespace) -> ExprResult<'a> {
+        match self {
+            Expr::Sym(s) => s.code_gen(ns),
+            _ => Err("NotImplemented".to_string()),
+        }
+    }
 }

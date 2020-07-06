@@ -2,7 +2,7 @@ use crate::ast::Expr;
 use crate::types::Number;
 use std::io::{BufReader, Read};
 
-pub type ReadResult = Result<Expr, String>;
+pub type ReadResult<'a> = Result<Expr, String>;
 
 pub struct ExprReader {
     location: i32,

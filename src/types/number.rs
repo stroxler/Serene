@@ -1,5 +1,5 @@
-use crate::types::Expression;
-
+use crate::namespace::Namespace;
+use crate::types::core::{ExprResult, Expression};
 // Note: I kept the number implementation simple for now
 // but we need to decide on our approach to numbers, are
 // we going to only support the 64bit variants? or should
@@ -28,7 +28,9 @@ impl PartialEq for Number {
 
 impl Eq for Number {}
 
-impl Expression for Number {
+impl<'a> Expression<'a> for Number {
     fn eval() {}
-    fn code_gen() {}
+    fn code_gen(&self, ns: &Namespace) -> ExprResult<'a> {
+        Err("Not implemented on numbers".to_string())
+    }
 }

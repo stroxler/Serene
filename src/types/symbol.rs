@@ -1,4 +1,6 @@
-use crate::types::Expression;
+use crate::namespace::Namespace;
+use crate::types::core::{ExprResult, Expression};
+use inkwell::values::PointerValue;
 
 #[derive(Debug, Clone)]
 pub struct Symbol {
@@ -13,9 +15,11 @@ impl PartialEq for Symbol {
 
 impl Eq for Symbol {}
 
-impl Expression for Symbol {
+impl<'a> Expression<'a> for Symbol {
     fn eval() {}
-    fn code_gen() {}
+    fn code_gen(&self, ns: &Namespace) -> ExprResult<'a> {
+        Err("Not implemented on symbol".to_string())
+    }
 }
 
 impl Symbol {
