@@ -13,12 +13,10 @@ pub mod reader;
 pub mod scope;
 pub mod types;
 
-use crate::compiler::create_compiler;
-
 fn main() -> io::Result<()> {
     let yaml = load_yaml!("cli.yml");
     let args = App::from(yaml).get_matches();
-    let compiler = create_compiler();
+    //let compiler = create_compiler();
 
     if let Some(input) = args.value_of("INPUT") {
         let mut f = File::open(input)?;
