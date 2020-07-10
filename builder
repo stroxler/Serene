@@ -27,6 +27,14 @@ function build() {
     popd
 }
 
+function build-release() {
+    pushd $BUILD_DIR
+    cmake -G Ninja -DCMAKE_BUILD_TYPE=Release $ROOT_DIR
+    #make -j 4
+    ninja
+    popd
+}
+
 function clean() {
     rm -rf $BUILD_DIR
 }
@@ -62,8 +70,13 @@ case "$command" in
         mkdir -p $BUILD_DIR
         build
         ;;
+    "build-release")
+        clean
+        mkdir -p $BUILD_DIR
+        build
+        ;;
     "compile")
-        compile
+        compilep
         ;;
     "run")
         run "$@"
@@ -96,7 +109,8 @@ case "$command" in
     *)
         echo "Commands: "
         echo "full-build - Build and test Serene."
-        echo "build - Build Serene from scratch"
+        echo "build - Build Serene from scratch in DEBUG mode."
+        echo "build-release - Build Serene from scratch in RELEASE mode."
         echo "compile - reCompiles the project using the already exist cmake configuration"
         echo "run - Runs the serene executable"
         echo "scan-build - Compiles serene with static analyzer"
