@@ -22,16 +22,14 @@ function compile() {
 function build() {
     pushd $BUILD_DIR
     cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug $ROOT_DIR
-    #make -j 4
-    ninja
+    ninja -j `nproc`
     popd
 }
 
 function build-release() {
     pushd $BUILD_DIR
     cmake -G Ninja -DCMAKE_BUILD_TYPE=Release $ROOT_DIR
-    #make -j 4
-    ninja
+    ninja -j `nproc`
     popd
 }
 
