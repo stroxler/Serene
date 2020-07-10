@@ -26,6 +26,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
       "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
 
     set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+    set(MemoryCheckCommand "valgrind")
 
     # Let's nicely support folders in IDEs
     set_property(GLOBAL PROPERTY USE_FOLDERS ON)

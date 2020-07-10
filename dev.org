@@ -1,3 +1,10 @@
+* Requirements
+- llvm-10
+- valgrind
+- cmake
+- ninja
+- clang
+- clang-tidy
 * Parser
 First of all you need to read [[https://tomassetti.me/guide-parsing-algorithms-terminology/][All you need to know about Parser algorithms]].
 Then here is the list or parsers that we have considered
