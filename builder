@@ -61,7 +61,8 @@ case "$command" in
         sudo apt update
         sudo apt install -y llvm-10 llvm-10-tools \
              clang-10 clang-format-10 clang-tidy-10 \
-             clang-tools-10 valgrind cmake ninja-build
+             clang-tools-10 valgrind cmake ninja-build \
+             doxygen
         ;;
     "build")
         clean
@@ -74,7 +75,7 @@ case "$command" in
         build
         ;;
     "compile")
-        compilep
+        compile
         ;;
     "run")
         run "$@"

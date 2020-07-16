@@ -1,0 +1,3 @@
+// the configured options and settings for Tutorial
+#define SERENE_VERSION_MAJOR @Serene_VERSION_MAJOR@
+#define SERENE_VERSION_MINOR @Serene_VERSION_MINOR@

@@ -22,26 +22,21 @@
  * SOFTWARE.
  */
 
-#include <iostream>
-#include "serene/reader.hpp"
-#include "serene/serene.hpp"
+#ifndef EXPR_H
+#define EXPR_H
 
-using namespace std;
-using namespace serene;
+#include <string>
+#include "serene/llvm/IR/Value.h"
 
-int main(int argc, char *argv[]) {
-  UNUSED(argc);
-  cout << "Serene >>" << endl;
+namespace serene {
+  class AExpr {
+  public:
+    virtual std::string string_repr() = 0;
+    virtual ~AExpr() = default;
+  };
 
-  char *input_file = argv[1];
-  Reader *r = new Reader(input_file);
-  ast_tree &ast = r->read();
-
-  for(const ast_node& x : ast) {
-    cout << x->string_repr() << " >> ";
-  }
-
-  delete r;
-  cout << "\nEND<<" << endl;
-  return 0;
+  typedef std::unique_ptr<AExpr> ast_node;
+  typedef std::vector<ast_node> ast_tree;
 }
+
+#endif

@@ -22,26 +22,55 @@
  * SOFTWARE.
  */
 
-#include <iostream>
-#include "serene/reader.hpp"
+#ifndef READER_H
+#define READER_H
+
+#include <string>
+#include <sstream>
+#include <memory>
+#include <vector>
+#include <stdexcept>
+#include <fmt/core.h>
+#include "serene/expr.hpp"
+#include "serene/list.hpp"
+#include "serene/symbol.hpp"
 #include "serene/serene.hpp"
 
-using namespace std;
-using namespace serene;
+#define ENABLE_READER_LOG true
+#define READER_LOG(...) if(ENABLE_READER_LOG) { fmt::print(__VA_ARGS__); }
 
-int main(int argc, char *argv[]) {
-  UNUSED(argc);
-  cout << "Serene >>" << endl;
+namespace serene {
 
-  char *input_file = argv[1];
-  Reader *r = new Reader(input_file);
-  ast_tree &ast = r->read();
+  class ReadError: public std::exception {
+  private:
+    char *message;
 
-  for(const ast_node& x : ast) {
-    cout << x->string_repr() << " >> ";
-  }
+  public:
+    ReadError(char *msg): message(msg) {};
+    const char* what() const throw() {
+      return message;
+    }
+  };
 
-  delete r;
-  cout << "\nEND<<" << endl;
-  return 0;
+  class Reader {
+  private:
+    std::stringstream input_stream;
+
+    char get_char(const bool skip_whitespace);
+    void unget_char();
+    int is_valid_for_identifier(char c);
+
+    // The property to store the ast tree
+    ast_tree ast;
+
+    ast_node read_symbol();
+    ast_list_node read_list();
+    ast_node read_expr();
+
+  public:
+    Reader(const std::string &input);
+    ast_tree &read();
+  };
 }
+
+#endif

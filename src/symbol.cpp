@@ -22,26 +22,18 @@
  * SOFTWARE.
  */
 
-#include <iostream>
-#include "serene/reader.hpp"
-#include "serene/serene.hpp"
+#include <string>
+#include <fmt/core.h>
+#include "serene/llvm/IR/Value.h"
+#include "serene/expr.hpp"
+#include "serene/symbol.hpp"
 
 using namespace std;
-using namespace serene;
 
-int main(int argc, char *argv[]) {
-  UNUSED(argc);
-  cout << "Serene >>" << endl;
+namespace serene {
+  string Symbol::string_repr() {
+    return fmt::format("<Symbol: '{}'>", name);
+  };
 
-  char *input_file = argv[1];
-  Reader *r = new Reader(input_file);
-  ast_tree &ast = r->read();
-
-  for(const ast_node& x : ast) {
-    cout << x->string_repr() << " >> ";
-  }
-
-  delete r;
-  cout << "\nEND<<" << endl;
-  return 0;
+  Symbol::~Symbol() {};
 }

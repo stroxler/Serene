@@ -5,6 +5,9 @@
 - ninja
 - clang
 - clang-tidy
+* TODOs
+** TODO Add support for release builds with NODEBUG macro :: https://www.cplusplus.com/reference/cassert/assert/
+
 * Parser
 First of all you need to read [[https://tomassetti.me/guide-parsing-algorithms-terminology/][All you need to know about Parser algorithms]].
 Then here is the list or parsers that we have considered
@@ -20,8 +23,6 @@ Then here is the list or parsers that we have considered
 - https://en.wikipedia.org/wiki/Collision_attack
 
 * Resources
-** Rust
-- The Rust book :: https://doc.rust-lang.org/book/ https://www.reddit.com/r/rust/comments/2s1zj2/the_rust_programming_language_book_as_epub/
 ** LLVM
 - Brief overview of LLVM :: https://www.infoworld.com/article/3247799/what-is-llvm-the-power-behind-swift-rust-clang-and-more.html
 - A bit in depth details on LLVM :: https://aosabook.org/en/llvm.html

@@ -22,26 +22,42 @@
  * SOFTWARE.
  */
 
-#include <iostream>
-#include "serene/reader.hpp"
-#include "serene/serene.hpp"
+#include <string>
+#include <fmt/core.h>
+#include "serene/llvm/IR/Value.h"
+#include "serene/expr.hpp"
+#include "serene/list.hpp"
 
 using namespace std;
-using namespace serene;
 
-int main(int argc, char *argv[]) {
-  UNUSED(argc);
-  cout << "Serene >>" << endl;
+namespace serene {
+  ast_list_node List::to_list(ast_tree lst) {
+    auto l = make_unique<List>();
 
-  char *input_file = argv[1];
-  Reader *r = new Reader(input_file);
-  ast_tree &ast = r->read();
+    // Using a for loop with iterator
+    for(auto node = rbegin(lst); node != rend(lst); ++node) {
+      l = l->cons(move(*node));
+    }
 
-  for(const ast_node& x : ast) {
-    cout << x->string_repr() << " >> ";
+    return l;
   }
 
-  delete r;
-  cout << "\nEND<<" << endl;
-  return 0;
+  ast_list_node List::cons(ast_node f) {
+
+    return make_unique<List>(move(f), unique_ptr<List>(move(*this)));
+  }
+
+  string List::string_repr() {
+    return fmt::format("<List: '{}'>", first->string_repr());
+  };
+
+  size_t List::length() {
+    if (this->len) {
+      return this->len;
+    }
+
+    return 0;
+  }
+
+  List::~List() {};
 }

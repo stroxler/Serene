@@ -6,6 +6,7 @@ project(Serene
   DESCRIPTION "Serene language is a modern Lisp."
   LANGUAGES CXX)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 # Only do these if this is the main project, and not if it is included through add_subdirectory
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 
@@ -14,8 +15,9 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     set(CMAKE_CXX_STANDARD_REQUIRED True)
 
     set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
-    # set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
-    set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+    set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
+    set(BIN_DIR ${CMAKE_SOURCE_DIR}/bin)
+
     set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
     set(CMAKE_CXX_CLANG_TIDY clang-tidy-10)
     # Let's ensure -std=c++xx instead of -std=g++xx
@@ -63,12 +65,12 @@ add_definitions(${LLVM_DEFINITIONS})
 llvm_map_components_to_libnames(llvm_libs support core irreader)
 
 # Formatting library
-# FetchContent_Declare(
-#   fmtlib
-#   GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-#   GIT_TAG        5.3.0
-#   )
-# FetchContent_MakeAvailable(fmtlib)
+FetchContent_Declare(
+  fmtlib
+  GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+  GIT_TAG        7.0.1
+  )
+FetchContent_MakeAvailable(fmtlib)
 
 
 # The compiled library code is here

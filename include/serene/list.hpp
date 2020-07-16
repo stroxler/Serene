@@ -22,26 +22,41 @@
  * SOFTWARE.
  */
 
-#include <iostream>
-#include "serene/reader.hpp"
-#include "serene/serene.hpp"
+#ifndef LIST_H
+#define LIST_H
 
-using namespace std;
-using namespace serene;
+#include <string>
+#include "serene/expr.hpp"
+#include "serene/llvm/IR/Value.h"
 
-int main(int argc, char *argv[]) {
-  UNUSED(argc);
-  cout << "Serene >>" << endl;
+namespace serene {
 
-  char *input_file = argv[1];
-  Reader *r = new Reader(input_file);
-  ast_tree &ast = r->read();
 
-  for(const ast_node& x : ast) {
-    cout << x->string_repr() << " >> ";
-  }
+  class List: public AExpr {
+  public:
+    ast_node first;
+    std::unique_ptr<List> rest;
+    std::size_t len;
 
-  delete r;
-  cout << "\nEND<<" << endl;
-  return 0;
+    List(): first(nullptr), rest(nullptr), len(0) {};
+    List(ast_node f, std::unique_ptr<List> r): first(std::move(f)),
+                                               rest(std::move(r)),
+                                               len(r ? r->length() + 1 : 0)
+    {};
+
+    List(ast_tree list);
+
+    std::string string_repr();
+    std::size_t length();
+    std::unique_ptr<List> cons(ast_node f);
+
+    static std::unique_ptr<List> to_list(ast_tree lst);
+
+
+    ~List();
+  };
+
+  typedef std::unique_ptr<List> ast_list_node;
 }
+
+#endif
