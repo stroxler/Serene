@@ -31,33 +31,87 @@
 using namespace std;
 
 namespace serene {
-  ast_list_node List::to_list(ast_tree lst) {
-    auto l = make_unique<List>();
-
-    // Using a for loop with iterator
-    for(auto node = rbegin(lst); node != rend(lst); ++node) {
-      l = l->cons(move(*node));
+  void List::cons(ast_node f) {
+    auto temp{std::make_unique<ListNode>(move(f))};
+    if(head) {
+      temp->next = move(head);
+      head->prev = move(temp);
+      head = move(temp);
     }
-
-    return l;
+    else {
+      head = move(temp);
+    }
+    len++;
   }
 
-  ast_list_node List::cons(ast_node f) {
+  List::List(const List &list) {
+    ListNode *root = list.head.get();
 
-    return make_unique<List>(move(f), unique_ptr<List>(move(*this)));
+    unique_ptr<ListNode> new_head{nullptr};
+    ListNode *pnew_head{nullptr};
+
+    while(root) {
+      auto temp{std::make_unique<ListNode>(unique_ptr<AExpr>(root->data.get()))};
+      if(new_head == nullptr) {
+        new_head = move(temp);
+        pnew_head = new_head.get();
+
+      } else {
+        pnew_head->next = move(temp);
+        pnew_head = pnew_head->next.get();
+      }
+
+      root = root->next.get();
+
+    }
+    head = move(new_head);
+  };
+
+
+  List::List(List &&list) {
+    head = move(list.head);
+  }
+
+  void List::add_tail(ast_node t) {
+    auto temp{std::make_unique<ListNode>(move(t))};
+    if(tail) {
+      temp->prev = move(tail);
+      tail->next = move(temp);
+      tail = move(temp);
+      len++;
+    }
+    else {
+      if (head) {
+        head->next = move(temp);
+        len++;
+      }
+      else {
+        cons(move(t));
+      }
+    }
   }
 
   string List::string_repr() {
-    return fmt::format("<List: '{}'>", first->string_repr());
+    if (head && head->data) {
+      return fmt::format("<List: '{}'>", head->data->string_repr());
+    }
+    else {
+      return "<List: empty>";
+    }
   };
 
   size_t List::length() {
-    if (this->len) {
-      return this->len;
-    }
-
-    return 0;
+    return len;
   }
 
-  List::~List() {};
+  void List::cleanup() {
+    while(head) {
+      head = move(head->next);
+    }
+  };
+
+  List::~List() {
+    fmt::print("asdsadadsddddddddddddddddddddddddd\n");
+    cleanup();
+  };
 }

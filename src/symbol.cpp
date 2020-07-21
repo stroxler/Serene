@@ -35,5 +35,7 @@ namespace serene {
     return fmt::format("<Symbol: '{}'>", name);
   };
 
-  Symbol::~Symbol() {};
+  Symbol::~Symbol() {
+    fmt::print("symbol dest\n");
+  };
 }

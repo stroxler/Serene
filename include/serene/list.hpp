@@ -31,29 +31,36 @@
 
 namespace serene {
 
+  class ListNode {
+  public:
+    ast_node data;
+    std::unique_ptr<ListNode> next;
+    std::unique_ptr<ListNode> prev;
+    ListNode(ast_node node_data) : data{move(node_data)},
+                                   next{nullptr},
+                                   prev{nullptr} {};
+  };
 
   class List: public AExpr {
   public:
-    ast_node first;
-    std::unique_ptr<List> rest;
+    std::unique_ptr<ListNode> head;
+    std::unique_ptr<ListNode> tail;
     std::size_t len;
 
-    List(): first(nullptr), rest(nullptr), len(0) {};
-    List(ast_node f, std::unique_ptr<List> r): first(std::move(f)),
-                                               rest(std::move(r)),
-                                               len(r ? r->length() + 1 : 0)
-    {};
+    List(): head{nullptr}, tail{nullptr}, len{0} {};
+    List(const List &list);
+    List(List &&list);
 
-    List(ast_tree list);
 
     std::string string_repr();
     std::size_t length();
-    std::unique_ptr<List> cons(ast_node f);
 
-    static std::unique_ptr<List> to_list(ast_tree lst);
+    void cons(ast_node f);
+    void add_tail(ast_node t);
+    void cleanup();
 
+    virtual ~List();
 
-    ~List();
   };
 
   typedef std::unique_ptr<List> ast_list_node;

@@ -37,6 +37,10 @@ namespace serene {
     input_stream.write(input.c_str(), input.size());
   };
 
+  Reader::~Reader() {
+    fmt::print("DELETE reader");
+  }
+
   char Reader::get_char(const bool skip_whitespace) {
     for(;;) {
       char c = input_stream.get();
@@ -52,7 +56,7 @@ namespace serene {
     input_stream.unget();
   };
 
-  int Reader::is_valid_for_identifier(char c) {
+  bool Reader::is_valid_for_identifier(char c) {
     READER_LOG("IS: {}\n", c);
     switch(c) {
       case '!'
@@ -73,18 +77,15 @@ namespace serene {
         | '@'
         | '^'
         | '_':
-        READER_LOG("#######\n");
-        return 1;
+        return true;
     }
 
     if((c >= 'a' && c <='z') ||
        (c >= 'A' && c <= 'Z') ||
        (c >= '0' && c <= '9')) {
-      READER_LOG("#######@@@@2\n");
-      return 1;
+      return true;
     }
-    READER_LOG("#####111111111111112\n");
-    return 0;
+    return false;
   }
 
   ast_node Reader::read_symbol() {
@@ -93,39 +94,36 @@ namespace serene {
 
     READER_LOG("Read symbol\n");
     if(!this->is_valid_for_identifier(c)) {
-      // TODO: Fix this when we implement the error handling
-      throw ReadError((char *)"Invalid character at the start of a symbol");
+
+      // TODO: Replece this with a tranceback function or something to raise
+      // synatx error.
+      fmt::print("Invalid character at the start of a symbol: '{}'\n", c);
+      exit(1);
     }
 
     string sym("");
 
-    while(c != EOF && (!(isspace(c)) && this->is_valid_for_identifier(c))) {
-      READER_LOG("ABC: {}\n", c);
+    while(c != EOF && ((!(isspace(c)) && this->is_valid_for_identifier(c)))) {
       sym += c;
       c = get_char(false);
       empty = false;
     }
 
-    READER_LOG("44444444444444\n");
     if (!empty) {
-      READER_LOG("<<<<\n");
       unget_char();
       return make_unique<Symbol>(sym);
     }
-    READER_LOG(">>>>>>>>>>>>\n");
     return nullptr;
   };
 
-  ast_list_node Reader::read_list() {
+  ast_list_node Reader::read_list(List list) {
     char c = get_char(true);
     assert(c == '(');
 
     bool list_terminated = false;
-    ast_tree lst;
 
     do {
       char c = get_char(true);
-      unget_char();
 
       switch(c) {
       case EOF:
@@ -135,11 +133,14 @@ namespace serene {
         break;
 
       default:
-        lst.push_back(read_expr());
+        unget_char();
+        auto tmp{read_expr()};
+        list.add_tail(move(tmp));
       }
+
     } while(!list_terminated);
 
-    return List::to_list(move(lst));
+    return unique_ptr<List>(&list);
   }
 
 
@@ -151,7 +152,7 @@ namespace serene {
 
     switch(c) {
     case '(':
-      return read_list();
+      return read_list(List());
 
     case EOF:
       return nullptr;
@@ -166,10 +167,16 @@ namespace serene {
 
     while(c != EOF) {
       unget_char();
-      this->ast.push_back(read_expr());
+      auto tmp{read_expr()};
+      fmt::print("##### {}", tmp->string_repr());
+      if(tmp) {
+        this->ast.push_back(move(tmp));
+      }
       c = get_char(true);
+      READER_LOG("11111 {}\n", c);
     }
 
+    READER_LOG("333333333333333\n");
     return this->ast;
   };
 }

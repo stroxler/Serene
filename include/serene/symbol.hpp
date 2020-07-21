@@ -37,7 +37,8 @@ namespace serene {
   public:
     Symbol(const std::string &name): name(name) {};
     std::string string_repr();
-    ~Symbol();
+    virtual ~Symbol();
+
   };
 }
 

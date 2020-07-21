@@ -36,11 +36,15 @@ int main(int argc, char *argv[]) {
   char *input_file = argv[1];
   Reader *r = new Reader(input_file);
   ast_tree &ast = r->read();
+  cout << "Size: " << ast.size() << endl;
 
-  for(const ast_node& x : ast) {
-    cout << x->string_repr() << " >> ";
-  }
 
+  cout << ast.at(2)->string_repr() << endl;
+
+
+  // for(const ast_node& x : ast) {
+  //   cout << x->string_repr() << " >> ";
+  // }
   delete r;
   cout << "\nEND<<" << endl;
   return 0;

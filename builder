@@ -78,7 +78,9 @@ case "$command" in
         compile
         ;;
     "run")
-        run "$@"
+        echo "##############"
+        echo "${@:2}"
+        run "${@:2}"
         ;;
 
     "scan-build")

@@ -32,7 +32,7 @@ namespace serene {
   class AExpr {
   public:
     virtual std::string string_repr() = 0;
-    virtual ~AExpr() = default;
+    virtual ~AExpr() {};
   };
 
   typedef std::unique_ptr<AExpr> ast_node;

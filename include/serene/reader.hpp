@@ -58,18 +58,20 @@ namespace serene {
 
     char get_char(const bool skip_whitespace);
     void unget_char();
-    int is_valid_for_identifier(char c);
+    bool is_valid_for_identifier(char c);
 
     // The property to store the ast tree
     ast_tree ast;
 
     ast_node read_symbol();
-    ast_list_node read_list();
+    ast_list_node read_list(List list);
     ast_node read_expr();
 
   public:
     Reader(const std::string &input);
     ast_tree &read();
+
+    ~Reader();
   };
 }
 
