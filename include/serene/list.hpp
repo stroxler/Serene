@@ -34,8 +34,8 @@ namespace serene {
   class ListNode {
   public:
     ast_node data;
-    std::unique_ptr<ListNode> next;
-    std::unique_ptr<ListNode> prev;
+    std::shared_ptr<ListNode> next;
+    std::shared_ptr<ListNode> prev;
     ListNode(ast_node node_data) : data{move(node_data)},
                                    next{nullptr},
                                    prev{nullptr} {};

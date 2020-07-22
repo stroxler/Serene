@@ -38,7 +38,7 @@ namespace serene {
   };
 
   Reader::~Reader() {
-    fmt::print("DELETE reader");
+    fmt::print("DELETE reader\n");
   }
 
   char Reader::get_char(const bool skip_whitespace) {
@@ -57,7 +57,6 @@ namespace serene {
   };
 
   bool Reader::is_valid_for_identifier(char c) {
-    READER_LOG("IS: {}\n", c);
     switch(c) {
       case '!'
         | '$'
@@ -113,10 +112,12 @@ namespace serene {
       unget_char();
       return make_unique<Symbol>(sym);
     }
+
+    // TODO: it should never happens
     return nullptr;
   };
 
-  ast_list_node Reader::read_list(List list) {
+  ast_list_node Reader::read_list(List *list) {
     char c = get_char(true);
     assert(c == '(');
 
@@ -134,13 +135,12 @@ namespace serene {
 
       default:
         unget_char();
-        auto tmp{read_expr()};
-        list.add_tail(move(tmp));
+        list->add_tail(read_expr());
       }
 
     } while(!list_terminated);
 
-    return unique_ptr<List>(&list);
+    return unique_ptr<List>(list);
   }
 
 
@@ -152,7 +152,7 @@ namespace serene {
 
     switch(c) {
     case '(':
-      return read_list(List());
+      return read_list(new List());
 
     case EOF:
       return nullptr;
@@ -168,7 +168,6 @@ namespace serene {
     while(c != EOF) {
       unget_char();
       auto tmp{read_expr()};
-      fmt::print("##### {}", tmp->string_repr());
       if(tmp) {
         this->ast.push_back(move(tmp));
       }

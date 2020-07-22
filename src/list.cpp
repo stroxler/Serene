@@ -73,6 +73,11 @@ namespace serene {
   }
 
   void List::add_tail(ast_node t) {
+    // TODO: Should we do it here?
+    if(!t) {
+      return;
+    }
+
     auto temp{std::make_unique<ListNode>(move(t))};
     if(tail) {
       temp->prev = move(tail);
@@ -83,6 +88,8 @@ namespace serene {
     else {
       if (head) {
         head->next = move(temp);
+        tail->prev = move(head);
+        tail = move(temp);
         len++;
       }
       else {
@@ -92,8 +99,11 @@ namespace serene {
   }
 
   string List::string_repr() {
+    fmt::print("sssssssssssssssssssssss {}\n", length());
+    // TODO: Fix this function to print out the list completely
     if (head && head->data) {
-      return fmt::format("<List: '{}'>", head->data->string_repr());
+      return fmt::format("<List: '{}'>",
+                         head->data->string_repr());
     }
     else {
       return "<List: empty>";

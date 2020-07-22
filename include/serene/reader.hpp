@@ -64,7 +64,7 @@ namespace serene {
     ast_tree ast;
 
     ast_node read_symbol();
-    ast_list_node read_list(List list);
+    ast_list_node read_list(List *list);
     ast_node read_expr();
 
   public:
