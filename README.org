@@ -1,16 +1,11 @@
 * Serene lang
 ** Setup development environment
-*** Emacs
-Install the dependencies including ~clangd~ and just run ~lsp~
+Setup the githook and install dependencies using the following commands:
 
-**** Requirements on the Rust side
-To setup the dev envrionment you need to have *Clippy* and *RLS* installed. Run the
-following commands to install them:
-
-#+BEGIN_SRC bash
-rustup component add rls --toolchain stable-x86_64-unknown-linux-gnu
-rustup component add --toolchain stable-x86_64-unknown-linux-gnu clippy
-rustup component add rustfmt
+#+BEGIN_EXAMPLE bash
+./builder deps
+./builder setup
 #+END_SRC
 
-Use your desired toolchain instead of *stable-x86_64-unknown-linux-gnu*
+*** Emacs
+Install the dependencies including ~clangd~ and just run ~lsp~

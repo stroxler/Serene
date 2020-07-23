@@ -72,6 +72,11 @@ case "$command" in
              clang-tools-10 valgrind cmake ninja-build \
              doxygen
         ;;
+    "setup")
+        pushd ./scripts
+        ./scripts/git-pre-commit-format install
+        popd
+        ;;
     "build")
         clean
         mkdir -p $BUILD_DIR
