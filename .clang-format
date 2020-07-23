@@ -1,0 +1,13 @@
+---
+# Global Options Go Here
+IndentWidth: 2
+ColumnLimit: 100
+---
+Language: Cpp
+BasedOnStyle: LLVM
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AlignConsecutiveMacros: true
+ForEachMacros: []
+IndentWidth: 2
+...
