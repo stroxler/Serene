@@ -31,13 +31,17 @@
 #include <vector>
 #include <stdexcept>
 #include <fmt/core.h>
+#include "serene/logger.hpp"
 #include "serene/expr.hpp"
 #include "serene/list.hpp"
 #include "serene/symbol.hpp"
 #include "serene/serene.hpp"
 
-#define ENABLE_READER_LOG true
-#define READER_LOG(...) if(ENABLE_READER_LOG) { fmt::print(__VA_ARGS__); }
+#if defined(ENABLE_READER_LOG) || defined(ENABLE_LOG)
+#define READER_LOG(...) __LOG("READER", __VA_ARGS__);
+#else
+#define READER_LOG(...);
+#endif
 
 namespace serene {
 

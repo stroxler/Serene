@@ -38,7 +38,7 @@ namespace serene {
   };
 
   Reader::~Reader() {
-    fmt::print("DELETE reader\n");
+    READER_LOG("Destroying the reader");
   }
 
   char Reader::get_char(const bool skip_whitespace) {
@@ -91,7 +91,7 @@ namespace serene {
     bool empty = true;
     char c = get_char(false);
 
-    READER_LOG("Read symbol\n");
+    READER_LOG("Reading symbol");
     if(!this->is_valid_for_identifier(c)) {
 
       // TODO: Replece this with a tranceback function or something to raise
@@ -135,7 +135,7 @@ namespace serene {
 
       default:
         unget_char();
-        list->add_tail(read_expr());
+        list->append(read_expr());
       }
 
     } while(!list_terminated);
@@ -146,7 +146,7 @@ namespace serene {
 
   ast_node Reader::read_expr() {
     char c = get_char(false);
-    READER_LOG("CHAR: {}\n", c);
+    READER_LOG("CHAR: {}", c);
 
     unget_char();
 
@@ -172,10 +172,8 @@ namespace serene {
         this->ast.push_back(move(tmp));
       }
       c = get_char(true);
-      READER_LOG("11111 {}\n", c);
     }
 
-    READER_LOG("333333333333333\n");
     return this->ast;
   };
 }

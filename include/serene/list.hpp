@@ -34,29 +34,35 @@ namespace serene {
   class ListNode {
   public:
     ast_node data;
-    std::shared_ptr<ListNode> next;
-    std::shared_ptr<ListNode> prev;
-    ListNode(ast_node node_data) : data{move(node_data)},
+    ListNode* next;
+    ListNode* prev;
+    ListNode(ast_node node_data) : data{std::move(node_data)},
                                    next{nullptr},
                                    prev{nullptr} {};
   };
 
   class List: public AExpr {
   public:
-    std::unique_ptr<ListNode> head;
-    std::unique_ptr<ListNode> tail;
+    ListNode* head;
+    ListNode* tail;
     std::size_t len;
 
     List(): head{nullptr}, tail{nullptr}, len{0} {};
     List(const List &list);
-    List(List &&list);
+    List(List &&list) noexcept;
 
+    List& operator=(const List& other);
+    List& operator=(List&& other);
 
     std::string string_repr();
     std::size_t length();
 
     void cons(ast_node f);
-    void add_tail(ast_node t);
+    void append(ast_node t);
+
+    AExpr &first();
+    List &rest();
+
     void cleanup();
 
     virtual ~List();

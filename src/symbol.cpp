@@ -32,10 +32,10 @@ using namespace std;
 
 namespace serene {
   string Symbol::string_repr() {
-    return fmt::format("<Symbol: '{}'>", name);
+    return name;
   };
 
   Symbol::~Symbol() {
-    fmt::print("symbol dest\n");
+    EXPR_LOG("Destroying symbol");
   };
 }

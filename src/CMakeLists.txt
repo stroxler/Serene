@@ -16,6 +16,7 @@ add_library(lserene
 # We need this directory, and users of our library will need it too
 target_include_directories(lserene PUBLIC "${INCLUDE_DIR}")
 target_compile_features(lserene PUBLIC cxx_std_20)
+target_include_directories(lserene PUBLIC ${PROJECT_BINARY_DIR})
 
 # This depends on (header only) boost
 target_link_libraries(lserene ${llvm_libs} fmt::fmt)

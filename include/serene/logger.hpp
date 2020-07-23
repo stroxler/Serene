@@ -22,24 +22,19 @@
  * SOFTWARE.
  */
 
-#include <iostream>
-#include "serene/reader.hpp"
-#include "serene/serene.hpp"
+#ifndef LOGGER_H
+#define LOGGER_H
 
-using namespace std;
-using namespace serene;
+#include <fmt/core.h>
+#include "config.h"
 
-int main(int argc, char *argv[]) {
-  UNUSED(argc);
-  cout << "Serene >>" << endl;
+// DO NOT USE this macro directly. USE module specific macro.
+// Checkout `reader.cpp` for example.
+#define __LOG(M, ...) fmt::print("[{}] <{}:{}> in '{}': {}\n",  \
+                                 M,                             \
+                                 __FILE__,                      \
+                                 __LINE__,                      \
+                                 __func__,                      \
+                                 fmt::format(__VA_ARGS__));
 
-  char *input_file = argv[1];
-  Reader *r = new Reader(input_file);
-  ast_tree &ast = r->read();
-
-  for(const ast_node& x : ast) {
-    cout << x->string_repr() << " ";
-  }
-  delete r;
-  return 0;
-}
+#endif

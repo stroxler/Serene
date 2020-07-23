@@ -29,8 +29,5 @@
 // and the fn signature right.
 #define UNUSED(x) (void)(x)
 
-namespace serene {
-
-}
-
+namespace serene {}
 #endif

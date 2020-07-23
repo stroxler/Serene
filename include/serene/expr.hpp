@@ -26,7 +26,14 @@
 #define EXPR_H
 
 #include <string>
+#include "serene/logger.hpp"
 #include "serene/llvm/IR/Value.h"
+
+#if defined(ENABLE_LOG) || defined(ENABLE_EXPR_LOG)
+#define EXPR_LOG(...) __LOG("EXPR", __VA_ARGS__);
+#else
+#define EXPR_LOG(...);
+#endif
 
 namespace serene {
   class AExpr {

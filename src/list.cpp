@@ -31,65 +31,104 @@
 using namespace std;
 
 namespace serene {
+  List::List(const List &list) {
+    ListNode *root = list.head;
+
+    ListNode *new_head{nullptr};
+    ListNode *prev_new_head{nullptr};
+
+    while(root) {
+      ListNode *temp = new ListNode(unique_ptr<AExpr>(root->data.get()));
+
+      if(new_head == nullptr) {
+        new_head = temp;
+        prev_new_head = new_head;
+
+      } else {
+        prev_new_head->next = temp;
+        prev_new_head = prev_new_head->next;
+      }
+
+      root = root->next;
+    }
+    head = new_head;
+  };
+
+
+  List::List(List &&list) noexcept: head(list.head),
+                                    tail(list.tail),
+                                    len(std::exchange(list.len, 0)) {
+    list.head = nullptr;
+    list.tail = nullptr;
+  };
+
+  List& List::operator=(const List& list) {
+    ListNode *root = list.head;
+
+    ListNode *new_head{nullptr};
+    ListNode *prev_new_head{nullptr};
+
+    while(root) {
+      ListNode *temp = new ListNode(unique_ptr<AExpr>(root->data.get()));
+
+      if(new_head == nullptr) {
+        new_head = temp;
+        prev_new_head = new_head;
+
+      } else {
+        prev_new_head->next = temp;
+        prev_new_head = prev_new_head->next;
+      }
+
+      root = root->next;
+    }
+    head = new_head;
+    return *this;
+  };
+
+  List& List::operator=(List&& list) {
+    head = list.head;
+    tail = list.tail;
+    len = std::exchange(list.len, 0);
+    list.head = nullptr;
+    list.tail = nullptr;
+    return *this;
+  };
+
+
   void List::cons(ast_node f) {
-    auto temp{std::make_unique<ListNode>(move(f))};
+    ListNode *temp = new ListNode(move(f));
+
     if(head) {
-      temp->next = move(head);
-      head->prev = move(temp);
-      head = move(temp);
+      temp->next = head;
+      head->prev = temp;
+      head = temp;
     }
     else {
-      head = move(temp);
+      head = temp;
     }
     len++;
   }
 
-  List::List(const List &list) {
-    ListNode *root = list.head.get();
-
-    unique_ptr<ListNode> new_head{nullptr};
-    ListNode *pnew_head{nullptr};
-
-    while(root) {
-      auto temp{std::make_unique<ListNode>(unique_ptr<AExpr>(root->data.get()))};
-      if(new_head == nullptr) {
-        new_head = move(temp);
-        pnew_head = new_head.get();
-
-      } else {
-        pnew_head->next = move(temp);
-        pnew_head = pnew_head->next.get();
-      }
-
-      root = root->next.get();
-
-    }
-    head = move(new_head);
-  };
-
-
-  List::List(List &&list) {
-    head = move(list.head);
-  }
-
-  void List::add_tail(ast_node t) {
+  void List::append(ast_node t) {
     // TODO: Should we do it here?
     if(!t) {
       return;
     }
 
-    auto temp{std::make_unique<ListNode>(move(t))};
     if(tail) {
-      temp->prev = move(tail);
-      tail->next = move(temp);
-      tail = move(temp);
+      ListNode *temp = new ListNode(move(t));
+      temp->prev = tail;
+      tail->next = temp;
+      tail = temp;
       len++;
     }
     else {
       if (head) {
-        head->next = move(temp);
-        tail->prev = move(head);
-        tail = move(temp);
+        ListNode *temp = new ListNode(move(t));
+        head->next = temp;
+        tail = temp;
+        tail->prev = head;
         len++;
       }
       else {
@@ -99,14 +138,22 @@ namespace serene {
   }
 
   string List::string_repr() {
-    fmt::print("sssssssssssssssssssssss {}\n", length());
-    // TODO: Fix this function to print out the list completely
     if (head && head->data) {
-      return fmt::format("<List: '{}'>",
-                         head->data->string_repr());
+      string s{"("};
+
+      for(ListNode* current = head, *next; current;) {
+        next = current->next;
+        s = s + current->data->string_repr();
+        current = next;
+        if (next) {
+          s = s + " ";
+        }
+      }
+      return fmt::format("{})", s);
+
     }
     else {
-      return "<List: empty>";
+      return "()";
     }
   };
 
@@ -115,13 +162,16 @@ namespace serene {
   }
 
   void List::cleanup() {
-    while(head) {
-      head = move(head->next);
+    for (ListNode* current = head, *next; current;)
+    {
+        next = current->next;
+        delete current;
+        current = next;
     }
   };
 
   List::~List() {
-    fmt::print("asdsadadsddddddddddddddddddddddddd\n");
+    EXPR_LOG("Destroying list");
     cleanup();
   };
 }

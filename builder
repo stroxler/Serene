@@ -13,24 +13,32 @@ BUILD_DIR=$ROOT_DIR/build
 
 scanbuild=scan-build-10
 
+function pushed_build() {
+    pushd $BUILD_DIR > /dev/null
+}
+
+function popd_build() {
+    popd > /dev/null
+}
+
 function compile() {
-    pushd $BUILD_DIR
+    pushed_build
     ninja
-    popd
+    popd_build
 }
 
 function build() {
-    pushd $BUILD_DIR
-    cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug $ROOT_DIR
+    pushed_build
+    cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug "$@" $ROOT_DIR
     ninja -j `nproc`
-    popd
+    popd_build
 }
 
 function build-release() {
-    pushd $BUILD_DIR
+    pushed_build
     cmake -G Ninja -DCMAKE_BUILD_TYPE=Release $ROOT_DIR
     ninja -j `nproc`
-    popd
+    popd_build
 }
 
 function clean() {
@@ -38,21 +46,21 @@ function clean() {
 }
 
 function run() {
-    pushd $BUILD_DIR
+    pushed_build
     $BUILD_DIR/bin/serene "$@"
-    popd
+    popd_build
 }
 
 function memcheck() {
-    pushd $BUILD_DIR
+    pushed_build
     ctest -T memcheck
-    popd
+    popd_build
 }
 
 function tests() {
-    pushd $BUILD_DIR
+    pushed_build
     ctest
-    popd
+    popd_build
 }
 
 
@@ -67,29 +75,27 @@ case "$command" in
     "build")
         clean
         mkdir -p $BUILD_DIR
-        build
+        build "${@:2}"
         ;;
     "build-release")
         clean
         mkdir -p $BUILD_DIR
-        build
+        build "${@:2}"
         ;;
     "compile")
         compile
         ;;
     "run")
-        echo "##############"
-        echo "${@:2}"
         run "${@:2}"
         ;;
 
     "scan-build")
         clean
         mkdir -p $BUILD_DIR
-        pushd $BUILD_DIR
+        pushed_build
         exec $scanbuild cmake $ROOT_DIR
         exec $scanbuild scan-build make -j 4
-        popd
+        popd_build
         ;;
     "memcheck")
         memcheck
