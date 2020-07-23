@@ -10,8 +10,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -25,51 +25,49 @@
 #ifndef LIST_H
 #define LIST_H
 
-#include <string>
 #include "serene/expr.hpp"
 #include "serene/llvm/IR/Value.h"
+#include <string>
 
 namespace serene {
 
-  class ListNode {
-  public:
-    ast_node data;
-    ListNode* next;
-    ListNode* prev;
-    ListNode(ast_node node_data) : data{std::move(node_data)},
-                                   next{nullptr},
-                                   prev{nullptr} {};
-  };
+class ListNode {
+public:
+  ast_node data;
+  ListNode *next;
+  ListNode *prev;
+  ListNode(ast_node node_data)
+      : data{std::move(node_data)}, next{nullptr}, prev{nullptr} {};
+};
 
-  class List: public AExpr {
-  public:
-    ListNode* head;
-    ListNode* tail;
-    std::size_t len;
+class List : public AExpr {
+public:
+  ListNode *head;
+  ListNode *tail;
+  std::size_t len;
 
-    List(): head{nullptr}, tail{nullptr}, len{0} {};
-    List(const List &list);
-    List(List &&list) noexcept;
+  List() : head{nullptr}, tail{nullptr}, len{0} {};
+  List(const List &list);
+  List(List &&list) noexcept;
 
-    List& operator=(const List& other);
-    List& operator=(List&& other);
+  List &operator=(const List &other);
+  List &operator=(List &&other);
 
-    std::string string_repr();
-    std::size_t length();
+  std::string string_repr();
+  std::size_t length();
 
-    void cons(ast_node f);
-    void append(ast_node t);
+  void cons(ast_node f);
+  void append(ast_node t);
 
-    AExpr &first();
-    List &rest();
+  AExpr &first();
+  List &rest();
 
-    void cleanup();
+  void cleanup();
 
-    virtual ~List();
+  virtual ~List();
+};
 
-  };
-
-  typedef std::unique_ptr<List> ast_list_node;
-}
+typedef std::unique_ptr<List> ast_list_node;
+} // namespace serene
 
 #endif

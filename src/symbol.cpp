@@ -10,8 +10,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -22,20 +22,16 @@
  * SOFTWARE.
  */
 
-#include <string>
-#include <fmt/core.h>
-#include "serene/llvm/IR/Value.h"
-#include "serene/expr.hpp"
 #include "serene/symbol.hpp"
+#include "serene/expr.hpp"
+#include "serene/llvm/IR/Value.h"
+#include <fmt/core.h>
+#include <string>
 
 using namespace std;
 
 namespace serene {
-  string Symbol::string_repr() {
-    return name;
-  };
+string Symbol::string_repr() { return name; };
 
-  Symbol::~Symbol() {
-    EXPR_LOG("Destroying symbol");
-  };
-}
+Symbol::~Symbol() { EXPR_LOG("Destroying symbol"); };
+} // namespace serene

@@ -10,8 +10,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -25,58 +25,58 @@
 #ifndef READER_H
 #define READER_H
 
-#include <string>
-#include <sstream>
-#include <memory>
-#include <vector>
-#include <stdexcept>
 #include <fmt/core.h>
-#include "serene/logger.hpp"
+
+#include <memory>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
 #include "serene/expr.hpp"
 #include "serene/list.hpp"
-#include "serene/symbol.hpp"
+#include "serene/logger.hpp"
 #include "serene/serene.hpp"
+#include "serene/symbol.hpp"
 
 #if defined(ENABLE_READER_LOG) || defined(ENABLE_LOG)
 #define READER_LOG(...) __LOG("READER", __VA_ARGS__);
 #else
-#define READER_LOG(...);
+#define READER_LOG(...) ;
 #endif
 
 namespace serene {
 
-  class ReadError: public std::exception {
-  private:
-    char *message;
+class ReadError : public std::exception {
+private:
+  char *message;
 
-  public:
-    ReadError(char *msg): message(msg) {};
-    const char* what() const throw() {
-      return message;
-    }
-  };
+public:
+  ReadError(char *msg) : message(msg){};
+  const char *what() const throw() { return message; }
+};
 
-  class Reader {
-  private:
-    std::stringstream input_stream;
+class Reader {
+private:
+  std::stringstream input_stream;
 
-    char get_char(const bool skip_whitespace);
-    void unget_char();
-    bool is_valid_for_identifier(char c);
+  char get_char(const bool skip_whitespace);
+  void unget_char();
+  bool is_valid_for_identifier(char c);
 
-    // The property to store the ast tree
-    ast_tree ast;
+  // The property to store the ast tree
+  ast_tree ast;
 
-    ast_node read_symbol();
-    ast_list_node read_list(List *list);
-    ast_node read_expr();
+  ast_node read_symbol();
+  ast_list_node read_list(List *list);
+  ast_node read_expr();
 
-  public:
-    Reader(const std::string &input);
-    ast_tree &read();
+public:
+  Reader(const std::string &input);
+  ast_tree &read();
 
-    ~Reader();
-  };
-}
+  ~Reader();
+};
+} // namespace serene
 
 #endif

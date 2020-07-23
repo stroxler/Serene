@@ -10,8 +10,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -22,158 +22,136 @@
  * SOFTWARE.
  */
 
-#include <string>
+#include "serene/reader.hpp"
+#include "serene/list.hpp"
+#include "serene/symbol.hpp"
+#include <assert.h>
 #include <iostream>
 #include <memory>
-#include <assert.h>
-#include "serene/reader.hpp"
-#include "serene/symbol.hpp"
-#include "serene/list.hpp"
+#include <string>
 
 using namespace std;
 
 namespace serene {
-  Reader::Reader(const string &input) {
-    input_stream.write(input.c_str(), input.size());
-  };
+Reader::Reader(const string &input) {
+  input_stream.write(input.c_str(), input.size());
+};
 
-  Reader::~Reader() {
-    READER_LOG("Destroying the reader");
+Reader::~Reader() { READER_LOG("Destroying the reader"); }
+
+char Reader::get_char(const bool skip_whitespace) {
+  for (;;) {
+    char c = input_stream.get();
+    if (skip_whitespace == true && isspace(c)) {
+      continue;
+    } else {
+      return c;
+    }
+  }
+};
+
+void Reader::unget_char() { input_stream.unget(); };
+
+bool Reader::is_valid_for_identifier(char c) {
+  switch (c) {
+  case '!' | '$' | '%' | '&' | '*' | '+' | '-' | '.' | '~' | '/' | ':' | '<' |
+      '=' | '>' | '?' | '@' | '^' | '_':
+    return true;
   }
 
-  char Reader::get_char(const bool skip_whitespace) {
-    for(;;) {
-      char c = input_stream.get();
-      if (skip_whitespace == true && isspace(c)) {
-        continue;
-      } else {
-        return c;
-      }
-    }
-  };
+  if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+      (c >= '0' && c <= '9')) {
+    return true;
+  }
+  return false;
+}
 
-  void Reader::unget_char() {
-    input_stream.unget();
-  };
+ast_node Reader::read_symbol() {
+  bool empty = true;
+  char c = get_char(false);
 
-  bool Reader::is_valid_for_identifier(char c) {
-    switch(c) {
-      case '!'
-        | '$'
-        | '%'
-        | '&'
-        | '*'
-        | '+'
-        | '-'
-        | '.'
-        | '~'
-        | '/'
-        | ':'
-        | '<'
-        | '='
-        | '>'
-        | '?'
-        | '@'
-        | '^'
-        | '_':
-        return true;
-    }
+  READER_LOG("Reading symbol");
+  if (!this->is_valid_for_identifier(c)) {
 
-    if((c >= 'a' && c <='z') ||
-       (c >= 'A' && c <= 'Z') ||
-       (c >= '0' && c <= '9')) {
-      return true;
-    }
-    return false;
+    // TODO: Replece this with a tranceback function or something to raise
+    // synatx error.
+    fmt::print("Invalid character at the start of a symbol: '{}'\n", c);
+    exit(1);
   }
 
-  ast_node Reader::read_symbol() {
-    bool empty = true;
-    char c = get_char(false);
+  string sym("");
 
-    READER_LOG("Reading symbol");
-    if(!this->is_valid_for_identifier(c)) {
-
-      // TODO: Replece this with a tranceback function or something to raise
-      // synatx error.
-      fmt::print("Invalid character at the start of a symbol: '{}'\n", c);
-      exit(1);
-    }
-
-    string sym("");
-
-    while(c != EOF && ((!(isspace(c)) && this->is_valid_for_identifier(c)))) {
-      sym += c;
-      c = get_char(false);
-      empty = false;
-    }
-
-    if (!empty) {
-      unget_char();
-      return make_unique<Symbol>(sym);
-    }
-
-    // TODO: it should never happens
-    return nullptr;
-  };
-
-  ast_list_node Reader::read_list(List *list) {
-    char c = get_char(true);
-    assert(c == '(');
-
-    bool list_terminated = false;
-
-    do {
-      char c = get_char(true);
-
-      switch(c) {
-      case EOF:
-        throw ReadError((char *)"EOF reached before closing of list");
-      case ')':
-        list_terminated = true;
-        break;
-
-      default:
-        unget_char();
-        list->append(read_expr());
-      }
-
-    } while(!list_terminated);
-
-    return unique_ptr<List>(list);
+  while (c != EOF && ((!(isspace(c)) && this->is_valid_for_identifier(c)))) {
+    sym += c;
+    c = get_char(false);
+    empty = false;
   }
 
-
-  ast_node Reader::read_expr() {
-    char c = get_char(false);
-    READER_LOG("CHAR: {}", c);
-
+  if (!empty) {
     unget_char();
+    return make_unique<Symbol>(sym);
+  }
 
-    switch(c) {
-    case '(':
-      return read_list(new List());
+  // TODO: it should never happens
+  return nullptr;
+};
 
+ast_list_node Reader::read_list(List *list) {
+  char c = get_char(true);
+  assert(c == '(');
+
+  bool list_terminated = false;
+
+  do {
+    char c = get_char(true);
+
+    switch (c) {
     case EOF:
-      return nullptr;
+      throw ReadError((char *)"EOF reached before closing of list");
+    case ')':
+      list_terminated = true;
+      break;
 
     default:
-      return read_symbol();
+      unget_char();
+      list->append(read_expr());
     }
+
+  } while (!list_terminated);
+
+  return unique_ptr<List>(list);
+}
+
+ast_node Reader::read_expr() {
+  char c = get_char(false);
+  READER_LOG("CHAR: {}", c);
+
+  unget_char();
+
+  switch (c) {
+  case '(':
+    return read_list(new List());
+
+  case EOF:
+    return nullptr;
+
+  default:
+    return read_symbol();
+  }
+}
+
+ast_tree &Reader::read() {
+  char c = get_char(true);
+
+  while (c != EOF) {
+    unget_char();
+    auto tmp{read_expr()};
+    if (tmp) {
+      this->ast.push_back(move(tmp));
+    }
+    c = get_char(true);
   }
 
-  ast_tree &Reader::read() {
-    char c = get_char(true);
-
-    while(c != EOF) {
-      unget_char();
-      auto tmp{read_expr()};
-      if(tmp) {
-        this->ast.push_back(move(tmp));
-      }
-      c = get_char(true);
-    }
-
-    return this->ast;
-  };
-}
+  return this->ast;
+};
+} // namespace serene

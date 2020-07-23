@@ -10,8 +10,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -25,16 +25,13 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
-#include <fmt/core.h>
 #include "config.h"
+#include <fmt/core.h>
 
 // DO NOT USE this macro directly. USE module specific macro.
 // Checkout `reader.cpp` for example.
-#define __LOG(M, ...) fmt::print("[{}] <{}:{}> in '{}': {}\n",  \
-                                 M,                             \
-                                 __FILE__,                      \
-                                 __LINE__,                      \
-                                 __func__,                      \
-                                 fmt::format(__VA_ARGS__));
+#define __LOG(M, ...)                                                          \
+  fmt::print("[{}] <{}:{}> in '{}': {}\n", M, __FILE__, __LINE__, __func__,    \
+             fmt::format(__VA_ARGS__));
 
 #endif

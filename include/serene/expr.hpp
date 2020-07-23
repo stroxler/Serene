@@ -10,8 +10,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -25,25 +25,25 @@
 #ifndef EXPR_H
 #define EXPR_H
 
-#include <string>
-#include "serene/logger.hpp"
 #include "serene/llvm/IR/Value.h"
+#include "serene/logger.hpp"
+#include <string>
 
 #if defined(ENABLE_LOG) || defined(ENABLE_EXPR_LOG)
 #define EXPR_LOG(...) __LOG("EXPR", __VA_ARGS__);
 #else
-#define EXPR_LOG(...);
+#define EXPR_LOG(...) ;
 #endif
 
 namespace serene {
-  class AExpr {
-  public:
-    virtual std::string string_repr() = 0;
-    virtual ~AExpr() {};
-  };
+class AExpr {
+public:
+  virtual std::string string_repr() = 0;
+  virtual ~AExpr(){};
+};
 
-  typedef std::unique_ptr<AExpr> ast_node;
-  typedef std::vector<ast_node> ast_tree;
-}
+typedef std::unique_ptr<AExpr> ast_node;
+typedef std::vector<ast_node> ast_tree;
+} // namespace serene
 
 #endif
