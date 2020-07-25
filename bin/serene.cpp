@@ -23,7 +23,7 @@
  */
 
 #include "serene/serene.hpp"
-#include "serene/reader.hpp"
+#include "serene/compiler.hpp"
 #include <iostream>
 
 using namespace std;
@@ -33,13 +33,10 @@ int main(int argc, char *argv[]) {
   UNUSED(argc);
   cout << "Serene >>" << endl;
 
-  char *input_file = argv[1];
-  Reader *r = new Reader(input_file);
-  ast_tree &ast = r->read();
+  string input_file(argv[1]);
 
-  for (const ast_node &x : ast) {
-    cout << x->string_repr() << " ";
-  }
-  delete r;
+  Compiler *c{new Compiler()};
+  c->compile(input_file);
+  delete c;
   return 0;
 }

@@ -31,14 +31,25 @@
 #include <llvm/IR/Module.h>
 #include <string>
 
+#if defined(ENABLE_LOG) || defined(ENABLE_STATE_LOG)
+#define STATE_LOG(...) __LOG("STATE", __VA_ARGS__);
+#else
+#define STATE_LOG(...) ;
+#endif
+
 namespace serene {
 class State {
 public:
   std::map<std::string, Namespace *> namespaces;
   Namespace *current_ns;
 
-  State() : namespaces(), current_ns(nullptr){};
-  void set_current_ns(Namespace *ns);
+  State();
+
+  void add_namespace(Namespace *ns, bool set_current, bool overwrite);
+  bool set_current_ns(Namespace *ns);
+  llvm::Value *lookup_in_current_scope(std::string &name);
+
+  ~State();
 };
 } // namespace serene
 

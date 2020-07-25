@@ -28,6 +28,7 @@
 #include "serene/llvm/IR/Value.h"
 #include "serene/namespace.hpp"
 #include "serene/state.hpp"
+#include <assert.h>
 #include <fmt/core.h>
 #include <string>
 
@@ -38,10 +39,11 @@ namespace serene {
 string Symbol::string_repr() { return name; };
 
 Value *Symbol::codegen(Compiler &compiler, State &state) {
-  Value *V = state.current_ns->lookup(name);
+  Value *V = state.lookup_in_current_scope(name);
 
   if (!V) {
-    return compiler.log_error("Unknown symbol name");
+    return compiler.log_error(
+        fmt::format("Unable to resolve symbol '{}'.", name).c_str());
   }
   return V;
 };

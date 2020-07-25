@@ -32,5 +32,62 @@ using namespace std;
 using namespace llvm;
 
 namespace serene {
-void State::set_current_ns(Namespace *ns) { current_ns = ns; };
+State::State() { current_ns = nullptr; };
+
+void State::add_namespace(Namespace *ns, bool set_current, bool overwrite) {
+  if (ns->name.empty()) {
+    // TODO: Better error handling
+    fmt::print("Error: namespace name is missing\n.");
+    exit(1);
+  }
+
+  Namespace *already_exist_ns = namespaces[ns->name];
+
+  if (already_exist_ns && !overwrite) {
+    return;
+  }
+
+  if (already_exist_ns) {
+    delete namespaces[ns->name];
+  }
+
+  namespaces[ns->name] = ns;
+
+  if (set_current) {
+    set_current_ns(ns);
+  }
+};
+
+bool State::set_current_ns(Namespace *ns) {
+  Namespace *already_exist_ns = namespaces[ns->name];
+  if (already_exist_ns) {
+    current_ns = ns;
+    return true;
+  }
+  return false;
+};
+
+Value *State::lookup_in_current_scope(string &name) {
+  if (this->current_ns) {
+    return current_ns->lookup(name);
+  }
+
+  fmt::print("FATAL ERROR: Current ns is not set.");
+  // TODO: Come up with the ERRNO table and return the proper ERRNO
+  exit(1);
+};
+
+State::~State() {
+  STATE_LOG("Deleting namespaces...")
+  std::map<string, Namespace *>::iterator it = namespaces.begin();
+  while (it != namespaces.end()) {
+    STATE_LOG("DELETING {}", it->first);
+    Namespace *tmp = it->second;
+    namespaces[it->first] = nullptr;
+    delete tmp;
+    it++;
+  }
+  STATE_LOG("Clearing namespaces...");
+  namespaces.clear();
+};
 } // namespace serene

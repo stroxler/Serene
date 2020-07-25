@@ -24,6 +24,7 @@
 
 #include "serene/compiler.hpp"
 #include "serene/llvm/IR/Value.h"
+#include "serene/namespace.hpp"
 #include "serene/reader.hpp"
 #include "serene/state.hpp"
 #include <llvm/IR/IRBuilder.h>
@@ -36,10 +37,18 @@ using namespace llvm;
 
 namespace serene {
 
-Compiler::Compiler() { builder = new IRBuilder(this->context); };
+Compiler::Compiler() {
+  string default_ns_name("user");
+  Namespace *default_ns = new Namespace(default_ns_name);
+
+  builder = new IRBuilder(this->context);
+  state = new State();
+
+  state->add_namespace(default_ns, true, true);
+};
 
 Value *Compiler::log_error(const char *s) {
-  fmt::print("[Error]: {}", s);
+  fmt::print("[Error]: {}\n", s);
   return nullptr;
 };
 
@@ -47,8 +56,10 @@ void Compiler::compile(string &input) {
   Reader *r = new Reader(input);
   ast_tree &ast = r->read();
 
+  COMPILER_LOG("Parsing the input has been done.")
   for (const ast_node &x : ast) {
-    auto *IR = x->codegen(*this, *this->state);
+    auto *IR{x->codegen(*this, *this->state)};
+
     if (IR) {
       fmt::print("'{}' generates: \n", x->string_repr()
 
@@ -56,10 +67,19 @@ void Compiler::compile(string &input) {
       IR->print(errs());
       fmt::print("\n");
     } else {
+      fmt::print("No gen\n");
     }
   }
+  delete r;
+  COMPILER_LOG("Done!")
+  return;
 };
 
-Compiler::~Compiler() { delete this->builder; }
+Compiler::~Compiler() {
+  COMPILER_LOG("Deleting state...");
+  delete state;
+  COMPILER_LOG("Deleting builder...");
+  delete builder;
+}
 
 } // namespace serene

@@ -44,8 +44,9 @@ private:
   std::map<std::string, llvm::Value *> scope;
 
 public:
-  Namespace();
+  std::string name;
 
+  Namespace(std::string &n) : name(n){};
   llvm::Value *lookup(std::string &name);
   ~Namespace();
 };
