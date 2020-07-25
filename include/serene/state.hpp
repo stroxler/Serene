@@ -22,54 +22,24 @@
  * SOFTWARE.
  */
 
-#ifndef LIST_H
-#define LIST_H
+#ifndef STATE_H
+#define STATE_H
 
-#include "serene/expr.hpp"
 #include "serene/llvm/IR/Value.h"
+#include "serene/logger.hpp"
+#include "serene/namespace.hpp"
+#include <llvm/IR/Module.h>
 #include <string>
 
 namespace serene {
-
-class ListNode {
+class State {
 public:
-  ast_node data;
-  ListNode *next;
-  ListNode *prev;
-  ListNode(ast_node node_data)
-      : data{std::move(node_data)}, next{nullptr}, prev{nullptr} {};
+  std::map<std::string, Namespace *> namespaces;
+  Namespace *current_ns;
+
+  State() : namespaces(), current_ns(nullptr){};
+  void set_current_ns(Namespace *ns);
 };
-
-class List : public AExpr {
-public:
-  ListNode *head;
-  ListNode *tail;
-  std::size_t len;
-
-  List() : head{nullptr}, tail{nullptr}, len{0} {};
-  List(const List &list);
-  List(List &&list) noexcept;
-
-  List &operator=(const List &other);
-  List &operator=(List &&other);
-
-  std::string string_repr();
-  std::size_t length();
-
-  void cons(ast_node f);
-  void append(ast_node t);
-
-  AExpr &first();
-  List &rest();
-
-  void cleanup();
-
-  llvm::Value *codegen(Compiler &compiler, State &state);
-
-  virtual ~List();
-};
-
-typedef std::unique_ptr<List> ast_list_node;
 } // namespace serene
 
 #endif

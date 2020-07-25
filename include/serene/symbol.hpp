@@ -25,8 +25,10 @@
 #ifndef SYMBOL_H
 #define SYMBOL_H
 
+#include "serene/compiler.hpp"
 #include "serene/expr.hpp"
 #include "serene/llvm/IR/Value.h"
+#include "serene/state.hpp"
 #include <string>
 
 namespace serene {
@@ -37,7 +39,8 @@ private:
 public:
   Symbol(const std::string &name) : name(name){};
   std::string string_repr();
-  virtual ~Symbol();
+  llvm::Value *codegen(Compiler &compiler, State &state);
+  ~Symbol();
 };
 } // namespace serene
 

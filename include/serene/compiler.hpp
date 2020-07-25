@@ -22,54 +22,40 @@
  * SOFTWARE.
  */
 
-#ifndef LIST_H
-#define LIST_H
+#ifndef COMPILER_H
+#define COMPILER_H
 
-#include "serene/expr.hpp"
 #include "serene/llvm/IR/Value.h"
+#include "serene/logger.hpp"
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/LLVMContext.h>
 #include <string>
 
+#if defined(ENABLE_LOG) || defined(ENABLE_COMPILER_LOG)
+#define COMPILER_LOG(...) __LOG("COMPILER", __VA_ARGS__);
+#else
+#define COMPILER_LOG(...) ;
+#endif
+
 namespace serene {
+// Forward declaration of State. The actual declaration is in state.hpp
+class State;
 
-class ListNode {
+class Compiler {
+private:
+  llvm::LLVMContext context;
+  llvm::IRBuilder<> *builder;
+
 public:
-  ast_node data;
-  ListNode *next;
-  ListNode *prev;
-  ListNode(ast_node node_data)
-      : data{std::move(node_data)}, next{nullptr}, prev{nullptr} {};
+  Compiler();
+
+  State *state;
+  llvm::Value *log_error(const char *s);
+  void compile(std::string &input);
+
+  ~Compiler();
 };
 
-class List : public AExpr {
-public:
-  ListNode *head;
-  ListNode *tail;
-  std::size_t len;
-
-  List() : head{nullptr}, tail{nullptr}, len{0} {};
-  List(const List &list);
-  List(List &&list) noexcept;
-
-  List &operator=(const List &other);
-  List &operator=(List &&other);
-
-  std::string string_repr();
-  std::size_t length();
-
-  void cons(ast_node f);
-  void append(ast_node t);
-
-  AExpr &first();
-  List &rest();
-
-  void cleanup();
-
-  llvm::Value *codegen(Compiler &compiler, State &state);
-
-  virtual ~List();
-};
-
-typedef std::unique_ptr<List> ast_list_node;
 } // namespace serene
 
 #endif

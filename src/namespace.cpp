@@ -22,54 +22,17 @@
  * SOFTWARE.
  */
 
-#ifndef LIST_H
-#define LIST_H
-
 #include "serene/expr.hpp"
 #include "serene/llvm/IR/Value.h"
+#include <fmt/core.h>
 #include <string>
+
+using namespace std;
+using namespace llvm;
 
 namespace serene {
 
-class ListNode {
-public:
-  ast_node data;
-  ListNode *next;
-  ListNode *prev;
-  ListNode(ast_node node_data)
-      : data{std::move(node_data)}, next{nullptr}, prev{nullptr} {};
-};
+Value *Namespace::lookup(std::string &name) { return scope[name]; };
+Namespace::~Namespace() {}
 
-class List : public AExpr {
-public:
-  ListNode *head;
-  ListNode *tail;
-  std::size_t len;
-
-  List() : head{nullptr}, tail{nullptr}, len{0} {};
-  List(const List &list);
-  List(List &&list) noexcept;
-
-  List &operator=(const List &other);
-  List &operator=(List &&other);
-
-  std::string string_repr();
-  std::size_t length();
-
-  void cons(ast_node f);
-  void append(ast_node t);
-
-  AExpr &first();
-  List &rest();
-
-  void cleanup();
-
-  llvm::Value *codegen(Compiler &compiler, State &state);
-
-  virtual ~List();
-};
-
-typedef std::unique_ptr<List> ast_list_node;
 } // namespace serene
-
-#endif

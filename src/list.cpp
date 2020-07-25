@@ -29,6 +29,7 @@
 #include <string>
 
 using namespace std;
+using namespace llvm;
 
 namespace serene {
 List::List(const List &list) {
@@ -158,6 +159,11 @@ void List::cleanup() {
     delete current;
     current = next;
   }
+};
+
+Value *List::codegen(Compiler &compiler, State &state) {
+  fmt::print("Not implemented yet \n");
+  return nullptr;
 };
 
 List::~List() {

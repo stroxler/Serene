@@ -22,54 +22,34 @@
  * SOFTWARE.
  */
 
-#ifndef LIST_H
-#define LIST_H
+#ifndef NAMESPACE_H
+#define NAMESPACE_H
 
-#include "serene/expr.hpp"
+#include "serene/compiler.hpp"
 #include "serene/llvm/IR/Value.h"
+#include "serene/logger.hpp"
+#include <llvm/IR/Module.h>
 #include <string>
 
+#if defined(ENABLE_LOG) || defined(ENABLE_NAMESPACE_LOG)
+#define NAMESPACE_LOG(...) __LOG("NAMESPACE", __VA_ARGS__);
+#else
+#define NAMESPACE_LOG(...) ;
+#endif
+
 namespace serene {
+class Namespace {
+private:
+  std::unique_ptr<llvm::Module> module;
+  std::map<std::string, llvm::Value *> scope;
 
-class ListNode {
 public:
-  ast_node data;
-  ListNode *next;
-  ListNode *prev;
-  ListNode(ast_node node_data)
-      : data{std::move(node_data)}, next{nullptr}, prev{nullptr} {};
+  Namespace();
+
+  llvm::Value *lookup(std::string &name);
+  ~Namespace();
 };
 
-class List : public AExpr {
-public:
-  ListNode *head;
-  ListNode *tail;
-  std::size_t len;
-
-  List() : head{nullptr}, tail{nullptr}, len{0} {};
-  List(const List &list);
-  List(List &&list) noexcept;
-
-  List &operator=(const List &other);
-  List &operator=(List &&other);
-
-  std::string string_repr();
-  std::size_t length();
-
-  void cons(ast_node f);
-  void append(ast_node t);
-
-  AExpr &first();
-  List &rest();
-
-  void cleanup();
-
-  llvm::Value *codegen(Compiler &compiler, State &state);
-
-  virtual ~List();
-};
-
-typedef std::unique_ptr<List> ast_list_node;
 } // namespace serene
 
 #endif

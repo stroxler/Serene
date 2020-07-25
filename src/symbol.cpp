@@ -23,15 +23,28 @@
  */
 
 #include "serene/symbol.hpp"
+#include "serene/compiler.hpp"
 #include "serene/expr.hpp"
 #include "serene/llvm/IR/Value.h"
+#include "serene/namespace.hpp"
+#include "serene/state.hpp"
 #include <fmt/core.h>
 #include <string>
 
 using namespace std;
+using namespace llvm;
 
 namespace serene {
 string Symbol::string_repr() { return name; };
+
+Value *Symbol::codegen(Compiler &compiler, State &state) {
+  Value *V = state.current_ns->lookup(name);
+
+  if (!V) {
+    return compiler.log_error("Unknown symbol name");
+  }
+  return V;
+};
 
 Symbol::~Symbol() { EXPR_LOG("Destroying symbol"); };
 } // namespace serene

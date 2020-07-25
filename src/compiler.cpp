@@ -22,54 +22,44 @@
  * SOFTWARE.
  */
 
-#ifndef LIST_H
-#define LIST_H
-
-#include "serene/expr.hpp"
+#include "serene/compiler.hpp"
 #include "serene/llvm/IR/Value.h"
+#include "serene/reader.hpp"
+#include "serene/state.hpp"
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/Support/raw_ostream.h>
 #include <string>
+
+using namespace std;
+using namespace llvm;
 
 namespace serene {
 
-class ListNode {
-public:
-  ast_node data;
-  ListNode *next;
-  ListNode *prev;
-  ListNode(ast_node node_data)
-      : data{std::move(node_data)}, next{nullptr}, prev{nullptr} {};
+Compiler::Compiler() { builder = new IRBuilder(this->context); };
+
+Value *Compiler::log_error(const char *s) {
+  fmt::print("[Error]: {}", s);
+  return nullptr;
 };
 
-class List : public AExpr {
-public:
-  ListNode *head;
-  ListNode *tail;
-  std::size_t len;
+void Compiler::compile(string &input) {
+  Reader *r = new Reader(input);
+  ast_tree &ast = r->read();
 
-  List() : head{nullptr}, tail{nullptr}, len{0} {};
-  List(const List &list);
-  List(List &&list) noexcept;
+  for (const ast_node &x : ast) {
+    auto *IR = x->codegen(*this, *this->state);
+    if (IR) {
+      fmt::print("'{}' generates: \n", x->string_repr()
 
-  List &operator=(const List &other);
-  List &operator=(List &&other);
-
-  std::string string_repr();
-  std::size_t length();
-
-  void cons(ast_node f);
-  void append(ast_node t);
-
-  AExpr &first();
-  List &rest();
-
-  void cleanup();
-
-  llvm::Value *codegen(Compiler &compiler, State &state);
-
-  virtual ~List();
+      );
+      IR->print(errs());
+      fmt::print("\n");
+    } else {
+    }
+  }
 };
 
-typedef std::unique_ptr<List> ast_list_node;
+Compiler::~Compiler() { delete this->builder; }
+
 } // namespace serene
-
-#endif

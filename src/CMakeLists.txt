@@ -3,13 +3,19 @@
 #file(GLOB SOURCES_LIST CONFIGURE_DEPENDS "${SOURCE_DIR}/**/*.cpp")
 set(HEADER_LIST
   "${INCLUDE_DIR}/serene/expr.hpp"
-  "${INCLUDE_DIR}/serene/serene.hpp")
+  "${INCLUDE_DIR}/serene/serene.hpp"
+  "${INCLUDE_DIR}/serene/state.hpp"
+  "${INCLUDE_DIR}/serene/compiler.hpp"
+  "${INCLUDE_DIR}/serene/namespace.hpp")
 # Make an automatic library - will be static or dynamic based on user setting
 add_library(lserene
   serene.cpp
   reader.cpp
   symbol.cpp
   list.cpp
+  namespace.cpp
+  compiler.cpp
+  state.cpp
   ${HEADER_LIST})
 
 

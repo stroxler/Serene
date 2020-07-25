@@ -25,8 +25,10 @@
 #ifndef EXPR_H
 #define EXPR_H
 
+#include "serene/compiler.hpp"
 #include "serene/llvm/IR/Value.h"
 #include "serene/logger.hpp"
+#include "serene/state.hpp"
 #include <string>
 
 #if defined(ENABLE_LOG) || defined(ENABLE_EXPR_LOG)
@@ -39,6 +41,7 @@ namespace serene {
 class AExpr {
 public:
   virtual std::string string_repr() = 0;
+  virtual llvm::Value *codegen(Compiler &compiler, State &state) = 0;
   virtual ~AExpr(){};
 };
 
