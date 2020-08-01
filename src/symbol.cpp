@@ -30,15 +30,27 @@
 #include "serene/state.hpp"
 #include <assert.h>
 #include <fmt/core.h>
+#include <llvm/IR/Constants.h>
+#include <llvm/IR/Type.h>
 #include <string>
 
 using namespace std;
 using namespace llvm;
 
 namespace serene {
+
 string Symbol::string_repr() { return name; };
 
 Value *Symbol::codegen(Compiler &compiler, State &state) {
+
+  if (name == "false") {
+    return ConstantInt::get(Type::getInt1Ty(compiler.context), 0);
+  }
+
+  if (name == "true") {
+    return ConstantInt::get(Type::getInt1Ty(compiler.context), 1);
+  }
+
   Value *V = state.lookup_in_current_scope(name);
 
   if (!V) {

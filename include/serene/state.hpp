@@ -48,7 +48,7 @@ public:
   void add_namespace(Namespace *ns, bool set_current, bool overwrite);
   bool set_current_ns(Namespace *ns);
   llvm::Value *lookup_in_current_scope(std::string &name);
-
+  void set_in_current_ns_root_scope(std::string name, llvm::Value *v);
   ~State();
 };
 } // namespace serene

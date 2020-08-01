@@ -13,7 +13,7 @@
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, DEFESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -22,28 +22,41 @@
  * SOFTWARE.
  */
 
-#ifndef SYMBOL_H
-#define SYMBOL_H
+#ifndef DEF_H
+#define DEF_H
 
 #include "serene/compiler.hpp"
 #include "serene/expr.hpp"
+#include "serene/list.hpp"
 #include "serene/llvm/IR/Value.h"
+#include "serene/logger.hpp"
 #include "serene/state.hpp"
 #include <string>
 
+#if defined(ENABLE_LOG) || defined(ENABLE_DEF_LOG)
+#define DEF_LOG(...) __LOG("DEF", __VA_ARGS__);
+#else
+#define DEF_LOG(...) ;
+#endif
+
 namespace serene {
-class Symbol : public AExpr {
+namespace special_forms {
+
+class Def : public AExpr {
+private:
+  AExpr *sym;
+  AExpr *value;
 
 public:
-  std::string name;
-  ExprId id{symbol};
+  ExprId id{def};
 
-  Symbol(const std::string &name) : name(name){};
+  Def(AExpr *s, AExpr *v) : sym(s), value(v){};
   std::string string_repr();
   llvm::Value *codegen(Compiler &compiler, State &state);
-
-  ~Symbol();
+  ~Def();
 };
+
+} // namespace special_forms
 } // namespace serene
 
 #endif

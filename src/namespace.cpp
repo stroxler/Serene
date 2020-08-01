@@ -32,7 +32,8 @@ using namespace llvm;
 
 namespace serene {
 
-Value *Namespace::lookup(std::string &name) { return scope[name]; };
+Value *Namespace::lookup(string &name) { return scope[name]; };
+void Namespace::insert_symbol(string &name, Value *v) { scope[name] = v; }
 Namespace::~Namespace() {}
 
 } // namespace serene

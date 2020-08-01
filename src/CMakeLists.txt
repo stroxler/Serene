@@ -6,7 +6,8 @@ set(HEADER_LIST
   "${INCLUDE_DIR}/serene/serene.hpp"
   "${INCLUDE_DIR}/serene/state.hpp"
   "${INCLUDE_DIR}/serene/compiler.hpp"
-  "${INCLUDE_DIR}/serene/namespace.hpp")
+  "${INCLUDE_DIR}/serene/namespace.hpp"
+  "${INCLUDE_DIR}/serene/special_forms/def.hpp")
 # Make an automatic library - will be static or dynamic based on user setting
 add_library(lserene
   serene.cpp
@@ -16,6 +17,7 @@ add_library(lserene
   namespace.cpp
   compiler.cpp
   state.cpp
+  special_forms/def.cpp
   ${HEADER_LIST})
 
 

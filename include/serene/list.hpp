@@ -45,6 +45,7 @@ public:
   ListNode *head;
   ListNode *tail;
   std::size_t len;
+  ExprId id{list};
 
   List() : head{nullptr}, tail{nullptr}, len{0} {};
   List(const List &list);
@@ -59,8 +60,7 @@ public:
   void cons(ast_node f);
   void append(ast_node t);
 
-  AExpr &first();
-  List &rest();
+  AExpr *at(const int index);
 
   void cleanup();
 

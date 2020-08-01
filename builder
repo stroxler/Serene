@@ -3,15 +3,15 @@
 command=$1
 
 
-export CCC_CC=clang-10
-export CCC_CXX=clang++-10
-export CC=clang-10
-export CXX=clang++-10
+export CCC_CC=clang-11
+export CCC_CXX=clang++-11
+export CC=clang-11
+export CXX=clang++-11
 
 ROOT_DIR=`pwd`
 BUILD_DIR=$ROOT_DIR/build
 
-scanbuild=scan-build-10
+scanbuild=scan-build-11
 
 function pushed_build() {
     pushd $BUILD_DIR > /dev/null

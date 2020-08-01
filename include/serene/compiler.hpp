@@ -42,11 +42,11 @@ namespace serene {
 class State;
 
 class Compiler {
-private:
+
+public:
   llvm::LLVMContext context;
   llvm::IRBuilder<> *builder;
 
-public:
   Compiler();
 
   State *state;

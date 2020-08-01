@@ -38,8 +38,12 @@
 #endif
 
 namespace serene {
+
+enum ExprId : unsigned char { aexpr = 0, symbol, list, def };
+
 class AExpr {
 public:
+  ExprId id{0};
   virtual std::string string_repr() = 0;
   virtual llvm::Value *codegen(Compiler &compiler, State &state) = 0;
   virtual ~AExpr(){};

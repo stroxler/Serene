@@ -77,6 +77,17 @@ Value *State::lookup_in_current_scope(string &name) {
   exit(1);
 };
 
+void State::set_in_current_ns_root_scope(string name, Value *v) {
+  if (current_ns) {
+    current_ns->insert_symbol(name, v);
+    return;
+  }
+
+  fmt::print("FATAL ERROR: Current ns is not set.");
+  // TODO: Come up with the ERRNO table and return the proper ERRNO
+  exit(1);
+};
+
 State::~State() {
   STATE_LOG("Deleting namespaces...")
   std::map<string, Namespace *>::iterator it = namespaces.begin();

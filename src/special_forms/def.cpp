@@ -22,28 +22,40 @@
  * SOFTWARE.
  */
 
-#ifndef SYMBOL_H
-#define SYMBOL_H
-
+#include "serene/special_forms/def.hpp"
 #include "serene/compiler.hpp"
-#include "serene/expr.hpp"
 #include "serene/llvm/IR/Value.h"
+#include "serene/namespace.hpp"
 #include "serene/state.hpp"
+#include "serene/symbol.hpp"
+#include <assert.h>
+#include <fmt/core.h>
 #include <string>
 
+using namespace std;
+using namespace llvm;
+
 namespace serene {
-class Symbol : public AExpr {
+namespace special_forms {
 
-public:
-  std::string name;
-  ExprId id{symbol};
-
-  Symbol(const std::string &name) : name(name){};
-  std::string string_repr();
-  llvm::Value *codegen(Compiler &compiler, State &state);
-
-  ~Symbol();
+string Def::string_repr() {
+  // this method is not going to get called.
+  return "Def";
 };
-} // namespace serene
 
-#endif
+Value *Def::codegen(Compiler &compiler, State &state) {
+
+  auto symobj{dynamic_cast<Symbol *>(this->sym)};
+
+  if (symobj) {
+    state.set_in_current_ns_root_scope(symobj->name,
+                                       value->codegen(compiler, state));
+    return symobj->codegen(compiler, state);
+  }
+
+  return compiler.log_error("First argument of 'def' should be a symbol.");
+};
+
+Def::~Def() { EXPR_LOG("Destroying def"); };
+} // namespace special_forms
+} // namespace serene

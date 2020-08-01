@@ -25,6 +25,9 @@
 #include "serene/list.hpp"
 #include "serene/expr.hpp"
 #include "serene/llvm/IR/Value.h"
+#include "serene/special_forms/def.hpp"
+#include "serene/symbol.hpp"
+#include <bits/c++config.h>
 #include <fmt/core.h>
 #include <string>
 
@@ -92,6 +95,22 @@ List &List::operator=(List &&list) {
   list.head = nullptr;
   list.tail = nullptr;
   return *this;
+};
+
+AExpr *List::at(const int index) {
+  ListNode *x = head;
+  int j = 0;
+
+  while (j != index) {
+    if (!x) {
+      // Index is out of range
+      return nullptr;
+    }
+    x = x->next;
+    j++;
+  }
+
+  return x->data.get();
 };
 
 void List::cons(ast_node f) {
@@ -162,7 +181,26 @@ void List::cleanup() {
 };
 
 Value *List::codegen(Compiler &compiler, State &state) {
-  fmt::print("Not implemented yet \n");
+  if (length() == 0) {
+    compiler.log_error("Can't eveluate empty list.");
+    return nullptr;
+  }
+
+  auto first_expr{head->data.get()};
+  auto sym{dynamic_cast<Symbol *>(first_expr)};
+
+  if (sym) {
+    if (sym->name == "def") {
+      auto def{make_unique<special_forms::Def>(sym, at(2))};
+      return def->codegen(compiler, state);
+    }
+  } else {
+    // if it's not symbol, it can be a list or keyword
+    // or anything callable.
+    EXPR_LOG("TODO: CHECK THE TYPE OF FIRST ELEMENT");
+  }
+
+  EXPR_LOG("Not implemented");
   return nullptr;
 };
 
