@@ -187,11 +187,10 @@ Value *List::codegen(Compiler &compiler, State &state) {
   }
 
   auto first_expr{head->data.get()};
-  auto sym{dynamic_cast<Symbol *>(first_expr)};
 
-  if (sym) {
-    if (sym->name == "def") {
-      auto def{make_unique<special_forms::Def>(sym, at(2))};
+  if (first_expr->id() == symbol) {
+    if (first_expr->name == "def") {
+      auto def{make_unique<special_forms::Def>(first_expr, at(2))};
       return def->codegen(compiler, state);
     }
   } else {

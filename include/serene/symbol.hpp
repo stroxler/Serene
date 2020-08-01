@@ -36,11 +36,11 @@ class Symbol : public AExpr {
 
 public:
   std::string name;
-  ExprId id{symbol};
+  ExprId id() const override { return symbol; };
 
   Symbol(const std::string &name) : name(name){};
-  std::string string_repr();
-  llvm::Value *codegen(Compiler &compiler, State &state);
+  std::string string_repr() override;
+  llvm::Value *codegen(Compiler &compiler, State &state) override;
 
   ~Symbol();
 };

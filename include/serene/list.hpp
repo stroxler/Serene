@@ -45,7 +45,7 @@ public:
   ListNode *head;
   ListNode *tail;
   std::size_t len;
-  ExprId id{list};
+  ExprId id() const override { return list; };
 
   List() : head{nullptr}, tail{nullptr}, len{0} {};
   List(const List &list);
@@ -54,7 +54,7 @@ public:
   List &operator=(const List &other);
   List &operator=(List &&other);
 
-  std::string string_repr();
+  std::string string_repr() override;
   std::size_t length();
 
   void cons(ast_node f);
@@ -64,7 +64,7 @@ public:
 
   void cleanup();
 
-  llvm::Value *codegen(Compiler &compiler, State &state);
+  llvm::Value *codegen(Compiler &compiler, State &state) override;
 
   virtual ~List();
 };
