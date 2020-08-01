@@ -70,6 +70,7 @@ void Compiler::compile(string &input) {
       fmt::print("No gen\n");
     }
   }
+  state->current_ns->print_scope();
   delete r;
   COMPILER_LOG("Done!")
   return;

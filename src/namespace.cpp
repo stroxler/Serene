@@ -34,6 +34,15 @@ namespace serene {
 
 Value *Namespace::lookup(string &name) { return scope[name]; };
 void Namespace::insert_symbol(string &name, Value *v) { scope[name] = v; }
+void Namespace::print_scope() {
+  typedef map<string, Value *>::const_iterator Iter;
+
+  fmt::print("Scope of '{}' ns.\n", name);
+  for (Iter iter = scope.begin(); iter != scope.end(); iter++) {
+    fmt::print("{}\n", iter->first);
+  }
+};
+
 Namespace::~Namespace() {}
 
 } // namespace serene

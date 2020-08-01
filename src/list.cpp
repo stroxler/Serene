@@ -189,9 +189,17 @@ Value *List::codegen(Compiler &compiler, State &state) {
   auto first_expr{head->data.get()};
 
   if (first_expr->id() == symbol) {
-    if (first_expr->name == "def") {
-      auto def{make_unique<special_forms::Def>(first_expr, at(2))};
-      return def->codegen(compiler, state);
+    auto sym{static_cast<Symbol *>(first_expr)};
+    if (sym->name == "def") {
+      if (at(1)->id() == symbol) {
+        auto binding{static_cast<Symbol *>(at(1))};
+
+        auto def{make_unique<special_forms::Def>(binding, at(2))};
+        return def->codegen(compiler, state);
+      } else {
+        // first argument has to be symbol.
+        compiler.log_error("First argument of `def` has to be a symbol");
+      }
     }
   } else {
     // if it's not symbol, it can be a list or keyword

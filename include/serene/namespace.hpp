@@ -49,6 +49,8 @@ public:
   Namespace(std::string &n) : name(n){};
   llvm::Value *lookup(std::string &name);
   void insert_symbol(std::string &name, llvm::Value *v);
+
+  void print_scope();
   ~Namespace();
 };
 
