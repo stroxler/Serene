@@ -43,14 +43,16 @@ enum ExprId : unsigned char { aexpr = 0, symbol, list, def };
 
 class AExpr {
 public:
+  virtual ~AExpr() = default;
+
   virtual ExprId id() const = 0;
-  virtual std::string string_repr() = 0;
+  virtual std::string string_repr() const = 0;
   virtual llvm::Value *codegen(Compiler &compiler, State &state) = 0;
-  virtual ~AExpr(){};
 };
 
-typedef std::unique_ptr<AExpr> ast_node;
-typedef std::vector<ast_node> ast_tree;
+using ast_node = std::shared_ptr<AExpr>;
+using ast_tree = std::vector<ast_node>;
+
 } // namespace serene
 
 #endif

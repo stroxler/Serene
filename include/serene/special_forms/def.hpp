@@ -50,8 +50,8 @@ private:
 public:
   ExprId id() const override { return def; };
 
-  Def(AExpr *s, AExpr *v) : sym(s), value(v){};
-  std::string string_repr() override;
+  Def(AExpr *s, AExpr *v);
+  std::string string_repr() const override;
   llvm::Value *codegen(Compiler &compiler, State &state) override;
   ~Def();
 };

@@ -39,9 +39,14 @@ using namespace llvm;
 
 namespace serene {
 
-string Symbol::string_repr() { return name; };
+string Symbol::string_repr() const { return name_; }
+
+const string &Symbol::name() const { return name_; }
+
+Symbol::Symbol(const string &name) : name_(name) {}
 
 Value *Symbol::codegen(Compiler &compiler, State &state) {
+  auto name = this->name_;
 
   if (name == "false") {
     return ConstantInt::get(Type::getInt1Ty(compiler.context), 0);
@@ -58,7 +63,7 @@ Value *Symbol::codegen(Compiler &compiler, State &state) {
         fmt::format("Unable to resolve symbol '{}'.", name).c_str());
   }
   return V;
-};
+}
 
-Symbol::~Symbol() { EXPR_LOG("Destroying symbol"); };
+Symbol::~Symbol() { EXPR_LOG("Destroying symbol"); }
 } // namespace serene

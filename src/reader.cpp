@@ -39,7 +39,7 @@ Reader::Reader(const string &input) {
 
 Reader::~Reader() { READER_LOG("Destroying the reader"); }
 
-char Reader::get_char(const bool skip_whitespace) {
+char Reader::get_char(bool skip_whitespace) {
   for (;;) {
     char c = input_stream.get();
     if (skip_whitespace == true && isspace(c)) {

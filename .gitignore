@@ -15,3 +15,4 @@ _deps
 .ccls-cache
 .clangd
 .cache/
+.vscode/

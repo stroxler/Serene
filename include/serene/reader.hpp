@@ -60,19 +60,19 @@ class Reader {
 private:
   std::stringstream input_stream;
 
-  char get_char(const bool skip_whitespace);
+  char get_char(bool);
   void unget_char();
-  bool is_valid_for_identifier(char c);
+  bool is_valid_for_identifier(char);
 
   // The property to store the ast tree
   ast_tree ast;
 
   ast_node read_symbol();
-  ast_list_node read_list(List *list);
+  ast_list_node read_list(List *);
   ast_node read_expr();
 
 public:
-  Reader(const std::string &input);
+  Reader(const std::string &);
   ast_tree &read();
 
   ~Reader();

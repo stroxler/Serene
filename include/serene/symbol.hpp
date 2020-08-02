@@ -33,16 +33,18 @@
 
 namespace serene {
 class Symbol : public AExpr {
+  const std::string name_;
 
 public:
-  std::string name;
-  ExprId id() const override { return symbol; };
+  Symbol(const std::string &);
+  virtual ~Symbol();
 
-  Symbol(const std::string &name) : name(name){};
-  std::string string_repr() override;
+  const std::string &name() const;
+
+  ExprId id() const override { return symbol; }
+  std::string string_repr() const override;
+
   llvm::Value *codegen(Compiler &compiler, State &state) override;
-
-  ~Symbol();
 };
 } // namespace serene
 

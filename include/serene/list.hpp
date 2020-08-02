@@ -27,49 +27,29 @@
 
 #include "serene/expr.hpp"
 #include "serene/llvm/IR/Value.h"
+#include <list>
 #include <string>
 
 namespace serene {
 
-class ListNode {
-public:
-  ast_node data;
-  ListNode *next;
-  ListNode *prev;
-  ListNode(ast_node node_data)
-      : data{std::move(node_data)}, next{nullptr}, prev{nullptr} {};
-};
-
 class List : public AExpr {
+  std::list<ast_node> nodes_;
+
 public:
-  ListNode *head;
-  ListNode *tail;
-  std::size_t len;
-  ExprId id() const override { return list; };
+  ExprId id() const override { return list; }
 
-  List() : head{nullptr}, tail{nullptr}, len{0} {};
-  List(const List &list);
-  List(List &&list) noexcept;
-
-  List &operator=(const List &other);
-  List &operator=(List &&other);
-
-  std::string string_repr() override;
-  std::size_t length();
+  std::string string_repr() const override;
+  size_t length() const;
 
   void cons(ast_node f);
   void append(ast_node t);
 
-  AExpr *at(const int index);
-
-  void cleanup();
+  std::optional<ast_node> at(uint index);
 
   llvm::Value *codegen(Compiler &compiler, State &state) override;
-
-  virtual ~List();
 };
 
-typedef std::unique_ptr<List> ast_list_node;
+using ast_list_node = std::unique_ptr<List>;
 } // namespace serene
 
 #endif

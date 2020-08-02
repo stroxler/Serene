@@ -31,154 +31,32 @@
 #include <fmt/core.h>
 #include <string>
 
-using namespace std;
 using namespace llvm;
 
 namespace serene {
-List::List(const List &list) {
-  ListNode *root = list.head;
 
-  ListNode *new_head{nullptr};
-  ListNode *prev_new_head{nullptr};
-
-  while (root) {
-    ListNode *temp = new ListNode(unique_ptr<AExpr>(root->data.get()));
-
-    if (new_head == nullptr) {
-      new_head = temp;
-      prev_new_head = new_head;
-
-    } else {
-      prev_new_head->next = temp;
-      prev_new_head = prev_new_head->next;
-    }
-
-    root = root->next;
-  }
-  head = new_head;
-};
-
-List::List(List &&list) noexcept
-    : head(list.head), tail(list.tail), len(std::exchange(list.len, 0)) {
-  list.head = nullptr;
-  list.tail = nullptr;
-};
-
-List &List::operator=(const List &list) {
-  ListNode *root = list.head;
-
-  ListNode *new_head{nullptr};
-  ListNode *prev_new_head{nullptr};
-
-  while (root) {
-    ListNode *temp = new ListNode(unique_ptr<AExpr>(root->data.get()));
-
-    if (new_head == nullptr) {
-      new_head = temp;
-      prev_new_head = new_head;
-
-    } else {
-      prev_new_head->next = temp;
-      prev_new_head = prev_new_head->next;
-    }
-
-    root = root->next;
-  }
-  head = new_head;
-  return *this;
-};
-
-List &List::operator=(List &&list) {
-  head = list.head;
-  tail = list.tail;
-  len = std::exchange(list.len, 0);
-  list.head = nullptr;
-  list.tail = nullptr;
-  return *this;
-};
-
-AExpr *List::at(const int index) {
-  ListNode *x = head;
-  int j = 0;
-
-  while (j != index) {
-    if (!x) {
-      // Index is out of range
-      return nullptr;
-    }
-    x = x->next;
-    j++;
-  }
-
-  return x->data.get();
-};
-
-void List::cons(ast_node f) {
-  ListNode *temp = new ListNode(move(f));
-
-  if (head) {
-    temp->next = head;
-    head->prev = temp;
-    head = temp;
-  } else {
-    head = temp;
-  }
-  len++;
+std::optional<ast_node> List::at(uint index) {
+  if (index >= nodes_.size())
+    return std::nullopt;
+  auto itr = cbegin(nodes_);
+  std::advance(itr, index);
+  return std::make_optional(*itr);
 }
 
-void List::append(ast_node t) {
-  // TODO: Should we do it here?
-  if (!t) {
-    return;
-  }
+void List::cons(ast_node f) { nodes_.push_back(std::move(f)); }
 
-  if (tail) {
-    ListNode *temp = new ListNode(move(t));
-    temp->prev = tail;
-    tail->next = temp;
-    tail = temp;
-    len++;
-  } else {
-    if (head) {
-      ListNode *temp = new ListNode(move(t));
-      head->next = temp;
-      tail = temp;
-      tail->prev = head;
-      len++;
-    } else {
-      cons(move(t));
-    }
-  }
+void List::append(ast_node t) { nodes_.push_front(std::move(t)); }
+
+std::string List::string_repr() const {
+  std::string s;
+
+  for (auto &n : nodes_)
+    s += n->string_repr();
+
+  return fmt::format("({})", s);
 }
 
-string List::string_repr() {
-  if (head && head->data) {
-    string s{"("};
-
-    for (ListNode *current = head, *next; current;) {
-      next = current->next;
-      s = s + current->data->string_repr();
-      current = next;
-      if (next) {
-        s = s + " ";
-      }
-    }
-    return fmt::format("{})", s);
-
-  } else {
-    return "()";
-  }
-};
-
-size_t List::length() { return len; }
-
-void List::cleanup() {
-  for (ListNode *current = head, *next; current;) {
-    next = current->next;
-    delete current;
-    current = next;
-  }
-};
+inline size_t List::length() const { return nodes_.size(); }
 
 Value *List::codegen(Compiler &compiler, State &state) {
   if (length() == 0) {
@@ -186,33 +64,20 @@ Value *List::codegen(Compiler &compiler, State &state) {
     return nullptr;
   }
 
-  auto first_expr{head->data.get()};
+  auto def_ptr = at(0).value_or(nullptr);
+  auto name_ptr = at(1).value_or(nullptr);
+  auto body_ptr = at(2).value_or(nullptr);
 
-  if (first_expr->id() == symbol) {
-    auto sym{static_cast<Symbol *>(first_expr)};
-    if (sym->name == "def") {
-      if (at(1)->id() == symbol) {
-        auto binding{static_cast<Symbol *>(at(1))};
+  if (!def_ptr && def_ptr->id() != symbol && static_cast<Symbol*>(def_ptr.get())->name() != "def")
+    return nullptr;
 
-        auto def{make_unique<special_forms::Def>(binding, at(2))};
-        return def->codegen(compiler, state);
-      } else {
-        // first argument has to be symbol.
-        compiler.log_error("First argument of `def` has to be a symbol");
-      }
-    }
-  } else {
-    // if it's not symbol, it can be a list or keyword
-    // or anything callable.
-    EXPR_LOG("TODO: CHECK THE TYPE OF FIRST ELEMENT");
-  }
+  if (!name_ptr && def_ptr->id() != symbol)
+    return nullptr;
 
-  EXPR_LOG("Not implemented");
-  return nullptr;
-};
+  if (!body_ptr)
+    return nullptr;
 
-List::~List() {
-  EXPR_LOG("Destroying list");
-  cleanup();
-};
+  special_forms::Def def(name_ptr.get(), body_ptr.get());
+  return def.codegen(compiler, state);
+}
 } // namespace serene
