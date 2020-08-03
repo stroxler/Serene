@@ -24,6 +24,7 @@
 
 #include "serene/expr.hpp"
 #include "serene/llvm/IR/Value.h"
+#include "serene/special_forms/def.hpp"
 #include <fmt/core.h>
 #include <string>
 
@@ -31,6 +32,15 @@ using namespace std;
 using namespace llvm;
 
 namespace serene {
+
+Namespace::BuiltinMap Namespace::builtins = [] {
+  NAMESPACE_LOG("Initializing builtins map.");
+  BuiltinMap exprs_map;
+  // exprs_map.insert(std::make_pair("def", &special_forms::Def::make));
+  // MakerFn def = ;
+  exprs_map["def"] = special_forms::Def::make;
+  return exprs_map;
+}();
 
 Value *Namespace::lookup(const string &name) { return scope[name]; };
 

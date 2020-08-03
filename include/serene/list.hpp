@@ -44,7 +44,7 @@ public:
   void cons(ast_node f);
   void append(ast_node t);
 
-  std::optional<ast_node> at(uint index);
+  std::optional<ast_node> at(uint index) const;
 
   llvm::Value *codegen(Compiler &compiler, State &state) override;
 };

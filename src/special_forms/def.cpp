@@ -24,6 +24,7 @@
 
 #include "serene/special_forms/def.hpp"
 #include "serene/compiler.hpp"
+#include "serene/list.hpp"
 #include "serene/llvm/IR/Value.h"
 #include "serene/namespace.hpp"
 #include "serene/state.hpp"
@@ -37,6 +38,32 @@ using namespace llvm;
 
 namespace serene {
 namespace special_forms {
+
+ast_node Def::make(Compiler &compiler, State &state, const List *args) {
+  auto def_ptr = args->at(0).value_or(nullptr);
+  auto name_ptr = args->at(1).value_or(nullptr);
+  auto body_ptr = args->at(2).value_or(nullptr);
+
+  if (def_ptr && def_ptr->id() == symbol &&
+      static_cast<Symbol *>(def_ptr.get())->name() == "def") {
+
+    if (!name_ptr && def_ptr->id() != symbol) {
+      compiler.log_error("First argument of 'def' has to be a symbol.");
+      return nullptr;
+    }
+
+    if (!body_ptr) {
+      compiler.log_error("'def' needs 3 arguments, two has been given.");
+      return nullptr;
+    }
+
+    return make_unique<Def>(static_cast<Symbol *>(name_ptr.get()),
+                            body_ptr.get());
+  }
+
+  compiler.log_error("Calling 'def' with wrong parameters");
+  return nullptr;
+};
 
 Def::Def(Symbol *symbol_, AExpr *value_) : m_sym(symbol_), m_value(value_) {}
 

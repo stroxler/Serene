@@ -53,6 +53,7 @@ public:
   Def(serene::Symbol *symbol_, AExpr *value_);
   std::string string_repr() const override;
   llvm::Value *codegen(Compiler &compiler, State &state) override;
+  static ast_node make(Compiler &compiler, State &state, const List *args);
   ~Def();
 };
 

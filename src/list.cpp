@@ -35,7 +35,7 @@ using namespace llvm;
 
 namespace serene {
 
-std::optional<ast_node> List::at(uint index) {
+std::optional<ast_node> List::at(uint index) const {
   if (index >= nodes_.size()) {
     return std::nullopt;
   }
