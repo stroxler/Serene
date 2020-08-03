@@ -35,8 +35,7 @@ int main(int argc, char *argv[]) {
 
   string input_file(argv[1]);
 
-  Compiler *c{new Compiler()};
-  c->compile(input_file);
-  delete c;
+  Compiler c;
+  c.compile(input_file);
   return 0;
 }

@@ -27,6 +27,7 @@
 
 #include "serene/llvm/IR/Value.h"
 #include "serene/logger.hpp"
+#include "serene/state.hpp"
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LLVMContext.h>
 #include <string>
@@ -38,18 +39,16 @@
 #endif
 
 namespace serene {
-// Forward declaration of State. The actual declaration is in state.hpp
-class State;
 
 class Compiler {
 
 public:
   llvm::LLVMContext context;
-  llvm::IRBuilder<> *builder;
+  llvm::IRBuilder<> builder;
 
   Compiler();
 
-  State *state;
+  State state;
   llvm::Value *log_error(const char *s);
   void compile(std::string &input);
 

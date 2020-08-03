@@ -38,27 +38,21 @@ using namespace llvm;
 namespace serene {
 namespace special_forms {
 
-
-Def::Def(AExpr *s, AExpr *v)
-  : sym(s), value(v) {
-}
+Def::Def(Symbol *symbol_, AExpr *value_) : m_sym(symbol_), m_value(value_) {}
 
 string Def::string_repr() const {
   // this method is not going to get called.
   return "Def";
-};
+}
 
 Value *Def::codegen(Compiler &compiler, State &state) {
+  state.set_in_current_ns_root_scope(m_sym->name(),
+                                     m_value->codegen(compiler, state));
 
-  auto symobj = dynamic_cast<Symbol *>(this->sym);
-
-  if (symobj->id() != symbol) {
-    return compiler.log_error("First argument of 'def' should be a symbol.");
-  }
-
-  state.set_in_current_ns_root_scope(symobj->name(), value->codegen(compiler, state));
-  return symobj->codegen(compiler, state);
-};
+  // TODO: Do we need to return the codegen of the symbol instead
+  // of the symbol itself?
+  return m_sym->codegen(compiler, state);
+}
 
 Def::~Def() { EXPR_LOG("Destroying def"); };
 } // namespace special_forms

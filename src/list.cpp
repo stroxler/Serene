@@ -36,22 +36,26 @@ using namespace llvm;
 namespace serene {
 
 std::optional<ast_node> List::at(uint index) {
-  if (index >= nodes_.size())
+  if (index >= nodes_.size()) {
     return std::nullopt;
+  }
+
   auto itr = cbegin(nodes_);
   std::advance(itr, index);
   return std::make_optional(*itr);
 }
 
-void List::cons(ast_node f) { nodes_.push_back(std::move(f)); }
+void List::cons(ast_node node) { nodes_.push_front(std::move(node)); }
 
-void List::append(ast_node t) { nodes_.push_front(std::move(t)); }
+void List::append(ast_node node) { nodes_.push_back(std::move(node)); }
 
 std::string List::string_repr() const {
   std::string s;
 
-  for (auto &n : nodes_)
-    s += n->string_repr();
+  for (auto &n : nodes_) {
+    // TODO: Fix the tailing space for the last element
+    s = s + n->string_repr() + " ";
+  }
 
   return fmt::format("({})", s);
 }
@@ -68,16 +72,23 @@ Value *List::codegen(Compiler &compiler, State &state) {
   auto name_ptr = at(1).value_or(nullptr);
   auto body_ptr = at(2).value_or(nullptr);
 
-  if (!def_ptr && def_ptr->id() != symbol && static_cast<Symbol*>(def_ptr.get())->name() != "def")
-    return nullptr;
+  if (def_ptr && def_ptr->id() == symbol &&
+      static_cast<Symbol *>(def_ptr.get())->name() == "def") {
 
-  if (!name_ptr && def_ptr->id() != symbol)
-    return nullptr;
+    if (!name_ptr && def_ptr->id() != symbol) {
+      return compiler.log_error("First argument of 'def' has to be a symbol.");
+    }
 
-  if (!body_ptr)
-    return nullptr;
+    if (!body_ptr) {
+      return compiler.log_error("'def' needs 3 arguments, two has been given.");
+    }
 
-  special_forms::Def def(name_ptr.get(), body_ptr.get());
-  return def.codegen(compiler, state);
+    special_forms::Def def(static_cast<Symbol *>(name_ptr.get()),
+                           body_ptr.get());
+    return def.codegen(compiler, state);
+  }
+
+  EXPR_LOG("Not implemented in list.");
+  return nullptr;
 }
 } // namespace serene

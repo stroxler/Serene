@@ -67,7 +67,7 @@ bool State::set_current_ns(Namespace *ns) {
   return false;
 };
 
-Value *State::lookup_in_current_scope(string &name) {
+Value *State::lookup_in_current_scope(const string &name) {
   if (current_ns) {
     return current_ns->lookup(name);
   }

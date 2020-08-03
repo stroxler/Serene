@@ -37,14 +37,11 @@ using namespace llvm;
 
 namespace serene {
 
-Compiler::Compiler() {
+Compiler::Compiler() : builder(context) {
   string default_ns_name("user");
   Namespace *default_ns = new Namespace(default_ns_name);
 
-  builder = new IRBuilder(this->context);
-  state = new State();
-
-  state->add_namespace(default_ns, true, true);
+  state.add_namespace(default_ns, true, true);
 };
 
 Value *Compiler::log_error(const char *s) {
@@ -58,7 +55,7 @@ void Compiler::compile(string &input) {
 
   COMPILER_LOG("Parsing the input has been done.")
   for (const ast_node &x : ast) {
-    auto *IR{x->codegen(*this, *this->state)};
+    auto *IR{x->codegen(*this, this->state)};
 
     if (IR) {
       fmt::print("'{}' generates: \n", x->string_repr()
@@ -70,17 +67,12 @@ void Compiler::compile(string &input) {
       fmt::print("No gen\n");
     }
   }
-  state->current_ns->print_scope();
+  state.current_ns->print_scope();
   delete r;
   COMPILER_LOG("Done!")
   return;
 };
 
-Compiler::~Compiler() {
-  COMPILER_LOG("Deleting state...");
-  delete state;
-  COMPILER_LOG("Deleting builder...");
-  delete builder;
-}
+Compiler::~Compiler() { COMPILER_LOG("destroying"); }
 
 } // namespace serene

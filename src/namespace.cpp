@@ -32,8 +32,10 @@ using namespace llvm;
 
 namespace serene {
 
-Value *Namespace::lookup(string &name) { return scope[name]; };
-void Namespace::insert_symbol(string &name, Value *v) { scope[name] = v; }
+Value *Namespace::lookup(const string &name) { return scope[name]; };
+
+void Namespace::insert_symbol(const string &name, Value *v) { scope[name] = v; }
+
 void Namespace::print_scope() {
   typedef map<string, Value *>::const_iterator Iter;
 

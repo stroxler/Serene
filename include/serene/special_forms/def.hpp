@@ -27,10 +27,10 @@
 
 #include "serene/compiler.hpp"
 #include "serene/expr.hpp"
-#include "serene/list.hpp"
 #include "serene/llvm/IR/Value.h"
 #include "serene/logger.hpp"
 #include "serene/state.hpp"
+#include "serene/symbol.hpp"
 #include <string>
 
 #if defined(ENABLE_LOG) || defined(ENABLE_DEF_LOG)
@@ -44,13 +44,13 @@ namespace special_forms {
 
 class Def : public AExpr {
 private:
-  AExpr *sym;
-  AExpr *value;
+  Symbol *m_sym;
+  AExpr *m_value;
 
 public:
-  ExprId id() const override { return def; };
+  ExprId id() const override { return def; }
 
-  Def(AExpr *s, AExpr *v);
+  Def(serene::Symbol *symbol_, AExpr *value_);
   std::string string_repr() const override;
   llvm::Value *codegen(Compiler &compiler, State &state) override;
   ~Def();

@@ -25,7 +25,6 @@
 #ifndef NAMESPACE_H
 #define NAMESPACE_H
 
-#include "serene/compiler.hpp"
 #include "serene/llvm/IR/Value.h"
 #include "serene/logger.hpp"
 #include <llvm/IR/Module.h>
@@ -47,8 +46,8 @@ public:
   std::string name;
 
   Namespace(std::string &n) : name(n){};
-  llvm::Value *lookup(std::string &name);
-  void insert_symbol(std::string &name, llvm::Value *v);
+  llvm::Value *lookup(const std::string &name);
+  void insert_symbol(const std::string &name, llvm::Value *v);
 
   void print_scope();
   ~Namespace();
