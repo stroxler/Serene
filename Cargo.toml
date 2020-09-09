@@ -3,9 +3,16 @@ name = "serene"
 version = "0.1.0"
 authors = ["Sameer Rahmani <lxsameer@gnu.org>"]
 edition = "2018"
+repository = "https://gitlab.com/serene-lang/serene"
+homepage = "https://serene-lang.org"
 
+license = "GPL-2.0"
+license-file = "LICENSE"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 clap = { version = "3.0.0-beta.1", features = ["yaml"] }
 inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "llvm10-0" }
+
+[dev-dependencies]
+rusty-hook = "^0.11.2"
