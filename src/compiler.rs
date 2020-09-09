@@ -36,7 +36,7 @@ use std::collections::HashMap;
 // }
 
 pub struct Compiler<'ctx> {
-    pub context: Context,
+    pub context: &'ctx Context,
     pub builder: Builder<'ctx>,
     // /// This hashmap contains all the namespaces that has to be compiled and
     // /// maps two different keys to the same namespace. Since namespace names
@@ -54,10 +54,10 @@ pub struct Compiler<'ctx> {
 }
 
 impl<'ctx> Compiler<'ctx> {
-    pub fn new() -> Compiler<'ctx> {
-        let default_ns_name = "user";
+    pub fn new(context: &'ctx Context) -> Compiler<'ctx> {
+        //let default_ns_name = "user";
         // let builder = context.create_builder();
-        let context = Context::create();
+        //let context = Context::create();
         //let user_ns = Namespace::new(&context, default_ns_name);
         //namespaces.insert(default_ns_name, &user_ns);
         // let fpm = PassManager::create(&user_ns.module);
@@ -74,9 +74,9 @@ impl<'ctx> Compiler<'ctx> {
         // fpm.initialize();
         //, builder, fpm, namespaces, Some(&default_ns_name)
         //Compiler::new(context)
-        let builder = context.create_builder();
+        //let builder = context.create_builder();
         Compiler {
-            builder: builder,
+            builder: context.create_builder(),
             context: context,
             namespaces: HashMap::new(),
         }
@@ -125,4 +125,8 @@ impl<'ctx> Compiler<'ctx> {
 
     //     generated_code
     // }
+}
+
+pub fn create_context() -> Context {
+    return Context::create();
 }
