@@ -17,6 +17,9 @@
 use inkwell::values::PointerValue;
 use std::collections::HashMap;
 
+/// Scopes in **Serene** are simply represented by hashmaps. Each
+/// Scope optionally has a parent scope that lookups fallback to
+/// if the lookup key is missing from the current scope.
 pub struct Scope<'a> {
     parent: Option<Box<Scope<'a>>>,
     symbol_table: HashMap<String, PointerValue<'a>>,
@@ -35,8 +38,18 @@ impl<'a> Scope<'a> {
         }
     }
 
+    /// Lookup the given `key` in the scope and if it is not in the current
+    /// scope look it up in the `parent` scope.
     pub fn lookup(&self, key: &str) -> Option<PointerValue> {
-        self.symbol_table.get(key).map(|x| *x)
+        let v = self.symbol_table.get(key);
+
+        if let None = v {
+            return match &self.parent {
+                Some(x) => x.lookup(key),
+                None => None,
+            };
+        }
+        v.map(|x| *x)
     }
 
     pub fn insert(&mut self, key: &str, val: PointerValue<'a>) {

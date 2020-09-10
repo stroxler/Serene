@@ -64,7 +64,7 @@ pub struct Compiler<'ctx> {
     // /// is `abc.xyz` in this case and the otherone would be
     // /// `/path/to/abc/xyz.srn` file that contains the ns.
     pub namespaces: HashMap<&'ctx str, Namespace<'ctx>>,
-    // pub fpm: &'a PassManager<FunctionValue<'ctx>>,
+    //pub fpm: &'a PassManager<FunctionValue<'ctx>>,
 
     // current_ns_name: Option<&'a str>,
 }
