@@ -14,9 +14,8 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-use crate::namespace::Namespace;
+use crate::compiler::Compiler;
 use crate::types::core::{ExprResult, Expression};
-use inkwell::values::PointerValue;
 
 #[derive(Debug, Clone)]
 pub struct Symbol {
@@ -33,7 +32,7 @@ impl Eq for Symbol {}
 
 impl<'a> Expression<'a> for Symbol {
     fn eval() {}
-    fn code_gen(&self, ns: &Namespace) -> ExprResult<'a> {
+    fn code_gen(&self, compiler: &Compiler) -> ExprResult<'a> {
         Err("Not implemented on symbol".to_string())
     }
 }

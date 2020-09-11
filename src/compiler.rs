@@ -65,15 +65,11 @@ pub struct Compiler<'ctx> {
     // /// `/path/to/abc/xyz.srn` file that contains the ns.
     pub namespaces: HashMap<&'ctx str, Namespace<'ctx>>,
     //pub fpm: &'a PassManager<FunctionValue<'ctx>>,
-
-    // current_ns_name: Option<&'a str>,
+    current_ns_name: Option<&'ctx str>,
 }
 
 impl<'ctx> Compiler<'ctx> {
     pub fn new(context: &'ctx Context) -> Compiler<'ctx> {
-        //let default_ns_name = "user";
-        // let builder = context.create_builder();
-        //let context = Context::create();
         //let user_ns = Namespace::new(&context, default_ns_name);
         //namespaces.insert(default_ns_name, &user_ns);
         // let fpm = PassManager::create(&user_ns.module);
@@ -88,26 +84,34 @@ impl<'ctx> Compiler<'ctx> {
         // fpm.add_reassociate_pass();
 
         // fpm.initialize();
-        //, builder, fpm, namespaces, Some(&default_ns_name)
-        //Compiler::new(context)
-        //let builder = context.create_builder();
         Compiler {
             builder: context.create_builder(),
             context: context,
             namespaces: HashMap::new(),
+            current_ns_name: None,
         }
     }
-    // #[inline]
-    // pub fn current_ns(&self) -> Option<&'a Namespace<'a, 'ctx>> {
-    //     let ns = self.current_ns_name?;
-    //     self.namespaces.get(ns).map(|x| *x)
-    // }
 
-    // /// Returns the `FunctionValue` representing the function being compiled.
-    // #[inline]
-    // pub fn current_fn(&self) -> FunctionValue<'ctx> {
-    //     self.current_ns().unwrap().current_fn()
-    // }
+    pub fn create_ns(&mut self, ns_name: &'ctx str) {
+        self.namespaces
+            .insert(ns_name, Namespace::new(&self.context, ns_name));
+    }
+
+    pub fn set_current_ns(&mut self, ns_name: &'ctx str) {
+        self.current_ns_name = Some(ns_name);
+    }
+
+    #[inline]
+    pub fn current_ns(&self) -> Option<&Namespace<'ctx>> {
+        let ns = self.current_ns_name?;
+        self.namespaces.get(ns).map(|x| x)
+    }
+
+    /// Returns the `FunctionValue` representing the function being compiled.
+    #[inline]
+    pub fn current_fn(&self) -> FunctionValue<'ctx> {
+        self.current_ns().unwrap().current_fn()
+    }
 
     // /// Creates a new stack allocation instruction in the entry block of the function.
     // // fn create_entry_block_alloca(&self, name: &str) -> PointerValue<'ctx> {
@@ -123,24 +127,23 @@ impl<'ctx> Compiler<'ctx> {
     // //     builder.build_alloca(self.context.f64_type(), name)
     // // }
 
-    // pub fn compile(
-    //     &self,
-    //     exprs: Vec<&impl Expression<'ctx>>,
-    // ) -> Vec<Result<PointerValue<'ctx>, String>> {
-    //     let current_ns = match self.current_ns() {
-    //         Some(ns) => ns,
-    //         None => panic!("Current namespace is not set."),
-    //     };
+    pub fn compile(
+        &self,
+        exprs: Vec<&impl Expression<'ctx>>,
+    ) -> Vec<Result<PointerValue<'ctx>, String>> {
+        match self.current_ns() {
+            Some(ns) => ns,
+            None => panic!("Current namespace is not set."),
+        };
 
-    //     let mut generated_code = vec![];
+        let mut generated_code = vec![];
 
-    //     for expr in &exprs {
-    //         let code = expr.code_gen(current_ns);
-    //         generated_code.push(code);
-    //     }
+        for expr in &exprs {
+            generated_code.push(expr.code_gen(&self));
+        }
 
-    //     generated_code
-    // }
+        generated_code
+    }
 }
 
 pub fn create_context() -> Context {

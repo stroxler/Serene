@@ -14,7 +14,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-use crate::namespace::Namespace;
+use crate::compiler::Compiler;
 use crate::types::{ExprResult, Expression, List, Number, Symbol};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
@@ -49,9 +49,9 @@ impl<'a> Expr {
 
 impl<'a> Expression<'a> for Expr {
     fn eval() {}
-    fn code_gen(&self, ns: &Namespace) -> ExprResult<'a> {
+    fn code_gen(&self, compiler: &Compiler) -> ExprResult<'a> {
         match self {
-            Expr::Sym(s) => s.code_gen(ns),
+            Expr::Sym(s) => s.code_gen(compiler),
             _ => Err("NotImplemented".to_string()),
         }
     }
