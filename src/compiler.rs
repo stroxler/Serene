@@ -23,34 +23,6 @@ use crate::namespace::Namespace;
 use crate::types::Expression;
 use std::collections::HashMap;
 
-// pub fn create_compiler<'ctx>() -> Compiler<'ctx> {
-//     let default_ns_name = "user";
-//     // let builder = context.create_builder();
-//     let context = Context::create();
-//     //let user_ns = Namespace::new(&context, default_ns_name);
-//     //namespaces.insert(default_ns_name, &user_ns);
-//     // let fpm = PassManager::create(&user_ns.module);
-
-//     // fpm.add_instruction_combining_pass();
-//     // fpm.add_reassociate_pass();
-//     // fpm.add_gvn_pass();
-//     // fpm.add_cfg_simplification_pass();
-//     // fpm.add_basic_alias_analysis_pass();
-//     // fpm.add_promote_memory_to_register_pass();
-//     // fpm.add_instruction_combining_pass();
-//     // fpm.add_reassociate_pass();
-
-//     // fpm.initialize();
-//     //, builder, fpm, namespaces, Some(&default_ns_name)
-//     //Compiler::new(context)
-//     let builder = context.create_builder();
-//     Compiler {
-//         builder: builder,
-//         context: context,
-//         namespaces: HashMap::new(),
-//     }
-// }
-
 pub struct Compiler<'ctx> {
     pub context: &'ctx Context,
     pub builder: Builder<'ctx>,
@@ -126,26 +98,54 @@ impl<'ctx> Compiler<'ctx> {
 
     // //     builder.build_alloca(self.context.f64_type(), name)
     // // }
-
-    pub fn compile(
-        &'ctx self,
-        exprs: Vec<&impl Expression>,
-    ) -> Vec<Result<AnyValueEnum<'ctx>, String>> {
-        match self.current_ns() {
-            Some(ns) => ns,
-            None => panic!("Current namespace is not set."),
-        };
-
-        let mut generated_code = vec![];
-
-        for expr in &exprs {
-            generated_code.push(expr.code_gen(&self));
-        }
-
-        generated_code
-    }
 }
 
 pub fn create_context() -> Context {
     return Context::create();
 }
+
+pub fn compile<'ctx>(
+    compiler: &'ctx Compiler,
+    exprs: Vec<impl Expression>,
+) -> Vec<Result<AnyValueEnum<'ctx>, String>> {
+    match compiler.current_ns() {
+        Some(ns) => ns,
+        None => panic!("Current namespace is not set."),
+    };
+
+    let mut generated_code = vec![];
+
+    for expr in &exprs {
+        generated_code.push(expr.code_gen(compiler));
+    }
+
+    generated_code
+}
+
+// pub fn create_compiler<'ctx>() -> Compiler<'ctx> {
+//     let default_ns_name = "user";
+//     // let builder = context.create_builder();
+//     let context = Context::create();
+//     //let user_ns = Namespace::new(&context, default_ns_name);
+//     //namespaces.insert(default_ns_name, &user_ns);
+//     // let fpm = PassManager::create(&user_ns.module);
+
+//     // fpm.add_instruction_combining_pass();
+//     // fpm.add_reassociate_pass();
+//     // fpm.add_gvn_pass();
+//     // fpm.add_cfg_simplification_pass();
+//     // fpm.add_basic_alias_analysis_pass();
+//     // fpm.add_promote_memory_to_register_pass();
+//     // fpm.add_instruction_combining_pass();
+//     // fpm.add_reassociate_pass();
+
+//     // fpm.initialize();
+//     //, builder, fpm, namespaces, Some(&default_ns_name)
+//     //Compiler::new(context)
+//     let builder = context.create_builder();
+//     Compiler {
+//         builder: builder,
+//         context: context,
+//         namespaces: HashMap::new(),
+//     }
+// }

@@ -46,11 +46,16 @@ fn main() -> io::Result<()> {
         let mut buf = String::new();
         f.read_to_string(&mut buf)?;
         match reader::read_string(&buf) {
-            Ok(v) => println!("{:?}", v),
+            Ok(v) => {
+                println!("AST: {:?}", v);
+                let g = compiler::compile(&compiler, v);
+                println!("GEN: {:?}", g)
+            }
             Err(e) => println!(">> error {:?}", e),
         }
     } else {
         println!("Input file is missing.")
     }
+
     Ok(())
 }
