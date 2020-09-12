@@ -32,8 +32,13 @@ pub mod types;
 fn main() -> io::Result<()> {
     let yaml = load_yaml!("cli.yml");
     let args = App::from(yaml).get_matches();
+
+    // Create a compiler
     let context = compiler::create_context();
-    let compiler = compiler::Compiler::new(&context);
+    let mut compiler = compiler::Compiler::new(&context);
+
+    compiler.create_ns("user");
+    compiler.set_current_ns("user");
 
     if let Some(input) = args.value_of("INPUT") {
         let mut f = File::open(input)?;

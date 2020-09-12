@@ -44,9 +44,9 @@ impl PartialEq for Number {
 
 impl Eq for Number {}
 
-impl<'a> Expression<'a> for Number {
+impl Expression for Number {
     fn eval() {}
-    fn code_gen(&self, compiler: &Compiler) -> ExprResult<'a> {
+    fn code_gen<'ctx>(&self, compiler: &'ctx Compiler) -> ExprResult<'ctx> {
         Err("Not implemented on numbers".to_string())
     }
 }

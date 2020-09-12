@@ -16,6 +16,7 @@
 */
 use crate::compiler::Compiler;
 use crate::types::core::{ExprResult, Expression};
+use inkwell::values::AnyValueEnum;
 
 #[derive(Debug, Clone)]
 pub struct Symbol {
@@ -30,10 +31,17 @@ impl PartialEq for Symbol {
 
 impl Eq for Symbol {}
 
-impl<'a> Expression<'a> for Symbol {
+impl Expression for Symbol {
     fn eval() {}
-    fn code_gen(&self, compiler: &Compiler) -> ExprResult<'a> {
-        Err("Not implemented on symbol".to_string())
+    fn code_gen<'ctx>(&self, compiler: &'ctx Compiler) -> ExprResult<'ctx> {
+        let bool_t = compiler.context.bool_type();
+        if self.name == "true" {
+            Ok(AnyValueEnum::IntValue(bool_t.const_int(1, false)))
+        } else if self.name == "false" {
+            Ok(AnyValueEnum::IntValue(bool_t.const_int(0, false)))
+        } else {
+            Err("Nothing yet".to_string())
+        }
     }
 }
 

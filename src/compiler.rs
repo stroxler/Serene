@@ -17,7 +17,7 @@
 use inkwell::builder::Builder;
 use inkwell::context::Context;
 use inkwell::passes::PassManager;
-use inkwell::values::{BasicValue, BasicValueEnum, FloatValue, FunctionValue, PointerValue};
+use inkwell::values::{AnyValueEnum, BasicValue, FloatValue, FunctionValue, PointerValue};
 
 use crate::namespace::Namespace;
 use crate::types::Expression;
@@ -128,9 +128,9 @@ impl<'ctx> Compiler<'ctx> {
     // // }
 
     pub fn compile(
-        &self,
-        exprs: Vec<&impl Expression<'ctx>>,
-    ) -> Vec<Result<PointerValue<'ctx>, String>> {
+        &'ctx self,
+        exprs: Vec<&impl Expression>,
+    ) -> Vec<Result<AnyValueEnum<'ctx>, String>> {
         match self.current_ns() {
             Some(ns) => ns,
             None => panic!("Current namespace is not set."),

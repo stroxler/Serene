@@ -18,32 +18,20 @@ use crate::compiler::Compiler;
 use crate::types::core::{ExprResult, Expression};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
-pub struct List<T>
-where
-    for<'a> T: Expression<'a>,
-{
+pub struct List<T: Expression> {
     first: Box<T>,
     rest: Box<T>,
 }
 
-impl<T> List<T>
-where
-    for<'a> T: Expression<'a>,
-{
-    pub fn new<S>(first: Box<S>, rest: Box<S>) -> List<S>
-    where
-        for<'a> S: Expression<'a>,
-    {
+impl<T: Expression> List<T> {
+    pub fn new<S: Expression>(first: Box<S>, rest: Box<S>) -> List<S> {
         List { first, rest }
     }
 }
 
-impl<'a, T> Expression<'a> for List<T>
-where
-    for<'b> T: Expression<'b>,
-{
+impl<T: Expression> Expression for List<T> {
     fn eval() {}
-    fn code_gen(&self, compiler: &Compiler) -> ExprResult<'a> {
+    fn code_gen<'ctx>(&self, compiler: &'ctx Compiler) -> ExprResult<'ctx> {
         Err("Not implemented on list".to_string())
     }
 }

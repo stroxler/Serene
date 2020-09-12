@@ -15,11 +15,11 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 use crate::compiler::Compiler;
-use inkwell::values::PointerValue;
+use inkwell::values::AnyValueEnum;
 
-pub type ExprResult<'a> = Result<PointerValue<'a>, String>;
+pub type ExprResult<'a> = Result<AnyValueEnum<'a>, String>;
 
-pub trait Expression<'a> {
+pub trait Expression {
     fn eval();
-    fn code_gen(&self, compiler: &Compiler) -> ExprResult<'a>;
+    fn code_gen<'ctx>(&self, compiler: &'ctx Compiler) -> ExprResult<'ctx>;
 }

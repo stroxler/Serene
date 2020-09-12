@@ -47,9 +47,9 @@ impl<'a> Expr {
     }
 }
 
-impl<'a> Expression<'a> for Expr {
+impl Expression for Expr {
     fn eval() {}
-    fn code_gen(&self, compiler: &Compiler) -> ExprResult<'a> {
+    fn code_gen<'ctx>(&self, compiler: &'ctx Compiler) -> ExprResult<'ctx> {
         match self {
             Expr::Sym(s) => s.code_gen(compiler),
             _ => Err("NotImplemented".to_string()),
