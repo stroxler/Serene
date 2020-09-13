@@ -1,0 +1,29 @@
+/** Serene --- Yet an other Lisp
+*
+* Copyright (c) 2020  Sameer Rahmani <lxsameer@gnu.org>
+*
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 2 of the License.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+pub mod def;
+
+pub use self::def::def;
+use crate::ast::Expr;
+use crate::compiler::Compiler;
+use crate::types::list::List;
+
+use phf::phf_map;
+
+pub type BuiltInFn = Fn(&Compiler, &List<Expr>) -> ExprResult;
+pub static BUILTINS: phf::Map<&'static str, BuiltInFn> = phf_map! {
+    "def" => &def
+};

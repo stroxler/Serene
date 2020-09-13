@@ -104,9 +104,11 @@ pub fn create_context() -> Context {
     return Context::create();
 }
 
+/// Compiles the given `ast` using the given `compiler` into
+/// LLVM IR.
 pub fn compile<'ctx>(
     compiler: &'ctx Compiler,
-    exprs: Vec<impl Expression>,
+    ast: Vec<impl Expression>,
 ) -> Vec<Result<AnyValueEnum<'ctx>, String>> {
     match compiler.current_ns() {
         Some(ns) => ns,
@@ -115,7 +117,7 @@ pub fn compile<'ctx>(
 
     let mut generated_code = vec![];
 
-    for expr in &exprs {
+    for expr in &ast {
         generated_code.push(expr.code_gen(compiler));
     }
 

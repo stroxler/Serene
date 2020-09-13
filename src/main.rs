@@ -23,11 +23,13 @@ use std::io::prelude::*;
 use std::string::String;
 
 pub mod ast;
+pub mod builtins;
 pub mod compiler;
 pub mod namespace;
 pub mod reader;
 pub mod scope;
 pub mod types;
+pub mod values;
 
 fn main() -> io::Result<()> {
     let yaml = load_yaml!("cli.yml");

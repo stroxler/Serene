@@ -29,7 +29,7 @@ pub enum Expr {
     NoMatch,
 }
 
-impl<'a> Expr {
+impl Expr {
     pub fn make_list(first: Expr, rest: Expr) -> Expr {
         Expr::Cons(List::<Expr>::new(Box::new(first), Box::new(rest)))
     }

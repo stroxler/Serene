@@ -11,8 +11,14 @@ license-file = "LICENSE"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+# CLI library
 clap = { version = "3.0.0-beta.1", features = ["yaml"] }
+
+# LLVM Binding
 inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "llvm10-0" }
+
+# Static compile time hashing generator
+phf = { version = "0.8", default-features = false }
 
 [dev-dependencies]
 rusty-hook = "^0.11.2"
