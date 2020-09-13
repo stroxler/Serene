@@ -32,3 +32,9 @@ Then here is the list or parsers that we have considered
 - Julia: A Fresh Approach toNumerical Computing :: https://julialang.org/research/julia-fresh-approach-BEKS.pdf
 ** Cranelift
 - Source tree :: https://github.com/bytecodealliance/wasmtime/tree/master/cranelift
+
+* Possible solutions
+** Garbage collection
+- https://v8.dev/blog/high-performance-cpp-gc 
+** JIT
+- https://asmjit.com/
