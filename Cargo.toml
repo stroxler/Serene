@@ -18,7 +18,7 @@ clap = { version = "3.0.0-beta.1", features = ["yaml"] }
 inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "llvm10-0" }
 
 # Static compile time hashing generator
-phf = { version = "0.8", default-features = false }
+phf = { version = "0.8", features = ["macros"] }
 
 [dev-dependencies]
 rusty-hook = "^0.11.2"

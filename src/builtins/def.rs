@@ -18,7 +18,6 @@ use crate::ast::Expr;
 use crate::compiler::Compiler;
 use crate::types::{ExprResult, List};
 
-pub fn def<'ctx>(compiler: &'ctx Compiler, args: &'ctx List<Expr>) -> ExprResult<'ctx> {
-    //compiler.current_ns().ins
-    Ok(())
+pub fn def<'a>(compiler: &'a Compiler, args: &'a List<Expr>) -> ExprResult<'a> {
+    Err("Not implemented".to_string())
 }

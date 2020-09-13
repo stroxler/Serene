@@ -17,13 +17,3 @@
 pub mod def;
 
 pub use self::def::def;
-use crate::ast::Expr;
-use crate::compiler::Compiler;
-use crate::types::list::List;
-
-use phf::phf_map;
-
-pub type BuiltInFn = Fn(&Compiler, &List<Expr>) -> ExprResult;
-pub static BUILTINS: phf::Map<&'static str, BuiltInFn> = phf_map! {
-    "def" => &def
-};
