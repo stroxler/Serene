@@ -24,10 +24,15 @@ pub struct Namespace<'ctx> {
     /// think of modules as compilation units. Object files if you prefer.
     /// This way we should be able to hot swap the namespaces.
     pub module: Module<'ctx>,
+
+    /// Root scope of the namespace
     scope: Scope<'ctx>,
 
-    // The option of the current function being compiled
+    /// The option of the current function being compiled
     current_fn_opt: Option<FunctionValue<'ctx>>,
+    // Current scope of the namespace, for example when we're processing
+    // a let form, this field would refer to the scope of that let form.
+    //current_scope_opt: Option<Scope<'ctx>>,
 }
 
 impl<'ctx> Namespace<'ctx> {
@@ -37,6 +42,7 @@ impl<'ctx> Namespace<'ctx> {
             //scope: Scope::new(None),
             current_fn_opt: None,
             scope: Scope::new(None),
+            //current_scope_opt: None,
         }
     }
     /// Get a defined function given its name.

@@ -24,14 +24,14 @@ pub enum Expr {
     Num(Number),
     Comment,
     Error(String),
-    Cons(List<Expr>),
+    Cons(Box<List>),
     Nil,
     NoMatch,
 }
 
 impl Expr {
     pub fn make_list(first: Expr, rest: Expr) -> Expr {
-        Expr::Cons(List::<Expr>::new(Box::new(first), Box::new(rest)))
+        Expr::Cons(Box::new(List::new(first, rest)))
     }
 
     pub fn make_symbol(v: String) -> Expr {

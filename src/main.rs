@@ -49,7 +49,7 @@ fn main() -> io::Result<()> {
         f.read_to_string(&mut buf)?;
         match reader::read_string(&buf) {
             Ok(v) => {
-                println!("AST: {:?}", v);
+                println!("AST: {:#?}", v);
                 let g = compiler::compile(&compiler, v);
                 println!("GEN: {:?}", g)
             }

@@ -14,10 +14,9 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-use crate::ast::Expr;
 use crate::compiler::Compiler;
 use crate::types::{ExprResult, List};
 
-pub fn def<'a>(compiler: &'a Compiler, args: &'a List<Expr>) -> ExprResult<'a> {
+pub fn def<'a>(compiler: &'a Compiler, args: &'a List) -> ExprResult<'a> {
     Err("Not implemented".to_string())
 }
