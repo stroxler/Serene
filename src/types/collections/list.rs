@@ -15,15 +15,18 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 use crate::ast::Expr;
+use crate::builtins::def;
 use crate::compiler::Compiler;
+use crate::types::collections::core::Seq;
 use crate::types::core::{ExprResult, Expression};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct List {
-    first: Expr,
-    rest: Expr,
-    length: u64,
+    pub car: Expr,
+    pub cdr: Expr,
+    pub length: u64,
 }
+//pub enum List<T> { Nil, Cons(T, Box<List<T>>) }
 
 impl List {
     pub fn new(first: Expr, rest: Expr) -> List {
@@ -43,8 +46,8 @@ impl List {
                     }
                 }
             },
-            first,
-            rest,
+            car: first,
+            cdr: rest,
         }
     }
 }
@@ -52,6 +55,25 @@ impl List {
 impl Expression for List {
     fn eval() {}
     fn code_gen<'ctx>(&self, compiler: &'ctx Compiler) -> ExprResult<'ctx> {
+        // match &self.car {
+        //     Expr::Sym(s) => def(compiler, self),
+        //     _ => ,
+        // }
+        def(compiler, self);
         Err("Not implemented on list".to_string())
+    }
+}
+
+impl Seq<Expr> for List {
+    fn first<'a>(&'a self) -> &'a Expr {
+        &self.car
+    }
+
+    fn rest<'a>(&'a self) -> Option<&'a List> {
+        match &self.cdr {
+            Expr::Nil => None,
+            Expr::Cons(v) => Some(v),
+            _ => panic!("'rest' should not match anything else!"),
+        }
     }
 }

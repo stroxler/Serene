@@ -50,6 +50,7 @@ fn main() -> io::Result<()> {
         match reader::read_string(&buf) {
             Ok(v) => {
                 println!("AST: {:#?}", v);
+
                 let g = compiler::compile(&compiler, v);
                 println!("GEN: {:?}", g)
             }

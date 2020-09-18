@@ -15,8 +15,25 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 use crate::compiler::Compiler;
+use crate::types::collections::core::{first, rest};
 use crate::types::{ExprResult, List};
 
 pub fn def<'a>(compiler: &'a Compiler, args: &'a List) -> ExprResult<'a> {
-    Err("Not implemented".to_string())
+    // TODO: We need to support docstrings for def
+    if args.length != 3 {
+        // TODO: Raise a meaningful error by including the location
+        panic!(format!(
+            "`def` expects 2 parameters, '{}' given.",
+            args.length
+        ));
+    }
+
+    //let def_ = &args.first;1
+    let name = first(rest(args));
+    //let value = first(rest(rest(args)));
+
+    println!("<<<< {:?}", name);
+    // TODO: make sure that `def_` is a symbol and its name is "def"
+
+    Err("Is not completed".to_string())
 }

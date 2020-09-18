@@ -14,12 +14,8 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-pub mod collections;
 pub mod core;
-pub mod number;
-pub mod symbol;
+pub mod list;
 
-pub use self::collections::{List, Seq};
-pub use self::core::{ExprResult, Expression};
-pub use self::number::Number;
-pub use self::symbol::Symbol;
+pub use self::core::Seq;
+pub use self::list::List;

@@ -1,2 +1,3 @@
-(defn hello! (name)
-  (println "Hello %s" name))
+(def a 4)
+;; (defn hello! (name)
+;;   (println "Hello %s" name))

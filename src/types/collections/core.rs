@@ -14,12 +14,27 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-pub mod collections;
-pub mod core;
-pub mod number;
-pub mod symbol;
 
-pub use self::collections::{List, Seq};
-pub use self::core::{ExprResult, Expression};
-pub use self::number::Number;
-pub use self::symbol::Symbol;
+pub trait Seq<T> {
+    fn first(&self) -> &T;
+    fn rest(&self) -> Option<&Self>;
+}
+
+pub fn first<'a, T, S: Seq<T>>(coll: impl Into<Option<&'a S>>) -> Option<&'a T>
+where
+    S: 'a,
+{
+    coll.into().and_then(first)
+    // match coll.into() {
+    //     Some(v) => Some(v.first()),
+    //     None => None,
+    // }
+}
+
+pub fn rest<'a, T, S: Seq<T>>(coll: impl Into<Option<&'a S>>) -> Option<&'a S> {
+    coll.into().and_then(rest)
+    // match coll.into() {
+    //     Some(v) => v.rest(),
+    //     None => None,
+    // }
+}

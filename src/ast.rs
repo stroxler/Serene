@@ -15,7 +15,8 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 use crate::compiler::Compiler;
-use crate::types::{ExprResult, Expression, List, Number, Symbol};
+use crate::types::collections;
+use crate::types::{ExprResult, Expression, Number, Symbol};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Expr {
@@ -24,14 +25,14 @@ pub enum Expr {
     Num(Number),
     Comment,
     Error(String),
-    Cons(Box<List>),
+    List(Box<collections::List>),
     Nil,
     NoMatch,
 }
 
 impl Expr {
     pub fn make_list(first: Expr, rest: Expr) -> Expr {
-        Expr::Cons(Box::new(List::new(first, rest)))
+        Expr::List(Box::new(collections::List::new(first, rest)))
     }
 
     pub fn make_symbol(v: String) -> Expr {
@@ -52,6 +53,7 @@ impl Expression for Expr {
     fn code_gen<'ctx>(&self, compiler: &'ctx Compiler) -> ExprResult<'ctx> {
         match self {
             Expr::Sym(s) => s.code_gen(compiler),
+            Expr::Cons(s) => s.code_gen(compiler),
             _ => Err("NotImplemented".to_string()),
         }
     }
