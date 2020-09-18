@@ -22,34 +22,27 @@ use crate::types::core::{ExprResult, Expression};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct List {
-    pub car: Expr,
-    pub cdr: Expr,
-    pub length: u64,
+    elements: Vec<Expr>,
 }
-//pub enum List<T> { Nil, Cons(T, Box<List<T>>) }
 
 impl List {
-    pub fn new(first: Expr, rest: Expr) -> List {
-        // The order of field definition is important here.
-        // If we move the `length` after `rest` we're going
-        // to break the ownership rule of rust because `rest: rest`
-        // is going to move it to the new list and we can not
-        // borrow it afterward.
+    pub fn new_empty() -> List {
+        List { elements: vec![] }
+    }
+
+    pub fn new(elems: &[Expr]) -> List {
         List {
-            length: match &rest {
-                Expr::Cons(v) => v.length + 1,
-                _ => {
-                    if let Expr::Nil = first {
-                        0
-                    } else {
-                        1
-                    }
-                }
-            },
-            car: first,
-            cdr: rest,
+            elements: elems.to_vec(),
         }
     }
+
+    pub fn push(&mut self, elem: Expr) {
+        self.elements.push(elem)
+    }
+
+    // pub fn new(first: T, rest: List<T>) -> List<T> {
+    //     List::Cons(first, Box::new(rest))
+    // }
 }
 
 impl Expression for List {
@@ -59,21 +52,21 @@ impl Expression for List {
         //     Expr::Sym(s) => def(compiler, self),
         //     _ => ,
         // }
-        def(compiler, self);
+        //def(compiler, self);
         Err("Not implemented on list".to_string())
     }
 }
 
-impl Seq<Expr> for List {
-    fn first<'a>(&'a self) -> &'a Expr {
-        &self.car
-    }
+// impl Seq<Expr> for List<T> {
+//     fn first<'a>(&'a self) -> &'a Expr {
+//         &self.car
+//     }
 
-    fn rest<'a>(&'a self) -> Option<&'a List> {
-        match &self.cdr {
-            Expr::Nil => None,
-            Expr::Cons(v) => Some(v),
-            _ => panic!("'rest' should not match anything else!"),
-        }
-    }
-}
+//     fn rest<'a>(&'a self) -> Option<&'a List> {
+//         match &self.cdr {
+//             Expr::Nil => None,
+//             Expr::Cons(v) => Some(v),
+//             _ => panic!("'rest' should not match anything else!"),
+//         }
+//     }
+// }

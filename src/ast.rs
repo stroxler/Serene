@@ -25,14 +25,22 @@ pub enum Expr {
     Num(Number),
     Comment,
     Error(String),
-    List(Box<collections::List>),
+    Cons(Box<collections::List>),
     Nil,
     NoMatch,
 }
 
 impl Expr {
-    pub fn make_list(first: Expr, rest: Expr) -> Expr {
-        Expr::List(Box::new(collections::List::new(first, rest)))
+    pub fn make_list(elements: &[Expr]) -> Expr {
+        Expr::Cons(Box::new(collections::List::new(elements)))
+    }
+
+    pub fn list_to_cons(l: collections::List) -> Expr {
+        Expr::Cons(Box::new(l))
+    }
+
+    pub fn make_empty_list() -> collections::List {
+        collections::List::new_empty()
     }
 
     pub fn make_symbol(v: String) -> Expr {

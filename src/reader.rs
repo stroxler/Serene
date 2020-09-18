@@ -91,10 +91,9 @@ impl ExprReader {
 
     fn read_quoted_expr<T: Read>(&mut self, reader: &mut BufReader<T>) -> ReadResult {
         let rest = self.read_expr(reader)?;
-        Ok(Expr::make_list(
-            Expr::make_symbol("quote".to_string()),
-            rest,
-        ))
+        let elements = vec![Expr::make_symbol("quote".to_string()), rest];
+
+        Ok(Expr::make_list(&elements))
     }
 
     fn read_unquoted_expr<T: Read>(&mut self, reader: &mut BufReader<T>) -> ReadResult {
@@ -103,50 +102,47 @@ impl ExprReader {
                 // Move forward in the buffer since we peeked it
                 let _ = self.get_char(reader, true);
                 let rest = self.read_expr(reader)?;
-                Ok(Expr::make_list(
-                    Expr::make_symbol("unquote-splicing".to_string()),
-                    rest,
-                ))
+                let elements = vec![Expr::make_symbol("unquote-splicing".to_string()), rest];
+                Ok(Expr::make_list(&elements))
             }
             _ => {
                 let rest = self.read_expr(reader)?;
-                Ok(Expr::make_list(
-                    Expr::make_symbol("unquote".to_string()),
-                    rest,
-                ))
+                let elements = vec![Expr::make_symbol("unquote".to_string()), rest];
+                Ok(Expr::make_list(&elements))
             }
         }
     }
 
     fn read_quasiquoted_expr<T: Read>(&mut self, reader: &mut BufReader<T>) -> ReadResult {
         let rest = self.read_expr(reader)?;
-        Ok(Expr::make_list(
-            Expr::make_symbol("quasiquote".to_string()),
-            rest,
-        ))
+        let elements = vec![Expr::make_symbol("quasiquote".to_string()), rest];
+        Ok(Expr::make_list(&elements))
     }
 
     // TODO: We might want to replace Cons with an actual List struct
     fn read_list<T: Read>(&mut self, reader: &mut BufReader<T>) -> ReadResult {
-        let first = match self.read_expr(reader) {
-            Ok(value) => value,
+        let mut result = Expr::make_empty_list();
+
+        match self.read_expr(reader) {
+            Ok(value) => result.push(value),
             Err(e) => match self.get_char(reader, true) {
                 // is it an empty list ?
                 // TODO: we might want to return an actual empty list here
-                Some(')') => return Ok(Expr::Nil),
+                Some(')') => return Ok(Expr::list_to_cons(result)),
                 _ => return Err(e),
             },
         };
 
-        let rest = match self.get_char(reader, true) {
-            Some(e) => {
-                self.unget_char(e);
-                self.read_list(reader)?
-            }
-            None => return Err("Unexpected EOF while parsing a list.".to_string()),
-        };
-
-        Ok(Expr::make_list(first, rest))
+        loop {
+            let next = match self.get_char(reader, true) {
+                Some(')') => return Ok(Expr::list_to_cons(result)),
+                Some(e) => {
+                    self.unget_char(e);
+                    result.push(self.read_expr(reader)?)
+                }
+                None => return Err("Unexpected EOF while parsing a list.".to_string()),
+            };
+        }
     }
 
     fn is_valid_for_identifier(&self, c: char) -> bool {
