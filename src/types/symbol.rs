@@ -20,7 +20,7 @@ use inkwell::values::AnyValueEnum;
 
 #[derive(Debug, Clone)]
 pub struct Symbol {
-    name: String,
+    pub name: String,
 }
 
 impl PartialEq for Symbol {
@@ -48,5 +48,9 @@ impl Expression for Symbol {
 impl Symbol {
     pub fn new(name: String) -> Self {
         Symbol { name }
+    }
+
+    pub fn is_def(&self) -> bool {
+        self.name == "def"
     }
 }

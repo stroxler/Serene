@@ -15,26 +15,25 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/// Seq trait describes a seqable collection. Please note that `first`
+/// and `rest` return a copy of the data not the reference!
 pub trait Seq<T> {
-    fn first(&self) -> &T;
-    fn rest(&self) -> Option<&Self>;
+    type Coll;
+
+    fn first(&self) -> Option<T>;
+    fn rest(&self) -> Self::Coll;
 }
 
-pub fn first<'a, T, S: Seq<T>>(coll: impl Into<Option<&'a S>>) -> Option<&'a T>
-where
-    S: 'a,
-{
-    coll.into().and_then(first)
-    // match coll.into() {
-    //     Some(v) => Some(v.first()),
-    //     None => None,
-    // }
-}
+// pub fn first<'a, T, S: Seq<T>>(coll: impl Into<Option<&'a S>>) -> Option<&'a T>
+// where
+//     S: 'a,
+// {
+//     coll.into().and_then(first)
+// }
 
-pub fn rest<'a, T, S: Seq<T>>(coll: impl Into<Option<&'a S>>) -> Option<&'a S> {
-    coll.into().and_then(rest)
-    // match coll.into() {
-    //     Some(v) => v.rest(),
-    //     None => None,
-    // }
-}
+// pub fn rest<'a, T, S: Seq<T>>(coll: impl Into<Option<&'a S>>) -> S {
+//     match coll.into() {
+//         Some(e) => e.rest(),
+//         None =>
+//     }
+// }

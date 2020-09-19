@@ -14,27 +14,26 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-use crate::ast::Expr;
 use crate::compiler::Compiler;
-use crate::types::collections::core::{first, rest};
+use crate::types::collections::core::Seq;
 use crate::types::{ExprResult, List};
 
-pub fn def<'a>(compiler: &'a Compiler, args: &'a List) -> ExprResult<'a> {
+pub fn def<'a>(compiler: &'a Compiler, args: List) -> ExprResult<'a> {
     // TODO: We need to support docstrings for def
-    // if args.length != 3 {
-    //     // TODO: Raise a meaningful error by including the location
-    //     panic!(format!(
-    //         "`def` expects 2 parameters, '{}' given.",
-    //         args.length
-    //     ));
-    // }
+    if args.length() != 2 {
+        // TODO: Raise a meaningful error by including the location
+        panic!(format!(
+            "`def` expects 2 parameters, '{}' given.",
+            args.length()
+        ));
+    }
 
-    // //let def_ = &args.first;1
-    // let name = first(rest(args));
-    // //let value = first(rest(rest(args)));
+    //let def_ = &args.first;1
+    let name = args.first();
+    let value = args.rest().first();
 
-    // println!("<<<< {:?}", name);
-    // // TODO: make sure that `def_` is a symbol and its name is "def"
+    println!("<<<< {:?} \n {:?}", name, value);
+    // TODO: make sure that `def_` is a symbol and its name is "def"
 
     Err("Is not completed".to_string())
 }

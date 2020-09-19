@@ -40,33 +40,43 @@ impl List {
         self.elements.push(elem)
     }
 
-    // pub fn new(first: T, rest: List<T>) -> List<T> {
-    //     List::Cons(first, Box::new(rest))
-    // }
+    pub fn length(&self) -> usize {
+        self.elements.len()
+    }
 }
 
 impl Expression for List {
     fn eval() {}
     fn code_gen<'ctx>(&self, compiler: &'ctx Compiler) -> ExprResult<'ctx> {
-        // match &self.car {
-        //     Expr::Sym(s) => def(compiler, self),
-        //     _ => ,
-        // }
-        //def(compiler, self);
-        Err("Not implemented on list".to_string())
+        match self.first() {
+            Some(e) => match e {
+                Expr::Sym(s) if s.is_def() => def(compiler, self.rest()),
+                _ => Err("Not implemented on list".to_string()),
+            },
+
+            // TODO: We need to return an empty list here
+            None => Err("Can't not evaluate empty list".to_string()),
+        }
+        // def(compiler, self);
+        // Err("Not implemented on list".to_string())
     }
 }
 
-// impl Seq<Expr> for List<T> {
-//     fn first<'a>(&'a self) -> &'a Expr {
-//         &self.car
-//     }
+impl Seq<Expr> for List {
+    type Coll = List;
 
-//     fn rest<'a>(&'a self) -> Option<&'a List> {
-//         match &self.cdr {
-//             Expr::Nil => None,
-//             Expr::Cons(v) => Some(v),
-//             _ => panic!("'rest' should not match anything else!"),
-//         }
-//     }
-// }
+    fn first(&self) -> Option<Expr> {
+        match self.elements.first() {
+            Some(e) => Some(e.clone()),
+            None => None,
+        }
+    }
+
+    fn rest(&self) -> List {
+        if self.length() > 0 {
+            List::new(&self.elements[1..])
+        } else {
+            List::new_empty()
+        }
+    }
+}

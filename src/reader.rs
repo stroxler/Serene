@@ -126,15 +126,13 @@ impl ExprReader {
         match self.read_expr(reader) {
             Ok(value) => result.push(value),
             Err(e) => match self.get_char(reader, true) {
-                // is it an empty list ?
-                // TODO: we might want to return an actual empty list here
                 Some(')') => return Ok(Expr::list_to_cons(result)),
                 _ => return Err(e),
             },
         };
 
         loop {
-            let next = match self.get_char(reader, true) {
+            match self.get_char(reader, true) {
                 Some(')') => return Ok(Expr::list_to_cons(result)),
                 Some(e) => {
                     self.unget_char(e);
