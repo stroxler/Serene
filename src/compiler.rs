@@ -16,7 +16,7 @@
 */
 use inkwell::builder::Builder;
 use inkwell::context::Context;
-use inkwell::passes::PassManager;
+//use inkwell::passes::PassManager;
 use inkwell::values::{AnyValueEnum, BasicValue, FloatValue, FunctionValue, PointerValue};
 
 use crate::namespace::Namespace;
@@ -35,9 +35,9 @@ pub struct Compiler<'ctx> {
     // /// two entries in this hashmap. One would be the ns name itself which
     // /// is `abc.xyz` in this case and the otherone would be
     // /// `/path/to/abc/xyz.srn` file that contains the ns.
-    pub namespaces: HashMap<&'ctx str, Namespace<'ctx>>,
+    pub namespaces: HashMap<String, Namespace<'ctx>>,
     //pub fpm: &'a PassManager<FunctionValue<'ctx>>,
-    current_ns_name: Option<&'ctx str>,
+    current_ns_name: Option<String>,
 }
 
 impl<'ctx> Compiler<'ctx> {
@@ -64,24 +64,28 @@ impl<'ctx> Compiler<'ctx> {
         }
     }
 
-    pub fn create_ns(&mut self, ns_name: &'ctx str) {
-        self.namespaces
-            .insert(ns_name, Namespace::new(&self.context, ns_name));
+    pub fn create_ns(&mut self, ns_name: String, source_file: Option<&'ctx str>) {
+        self.namespaces.insert(
+            ns_name.clone(),
+            Namespace::new(&self.context, ns_name, None),
+        );
     }
 
-    pub fn set_current_ns(&mut self, ns_name: &'ctx str) {
+    pub fn set_current_ns(&mut self, ns_name: String) {
         self.current_ns_name = Some(ns_name);
     }
 
     #[inline]
-    pub fn current_ns(&self) -> Option<&Namespace<'ctx>> {
-        let ns = self.current_ns_name?;
-        self.namespaces.get(ns).map(|x| x)
+    pub fn current_ns(&mut self) -> Option<&mut Namespace<'ctx>> {
+        match &self.current_ns_name {
+            Some(ns) => self.namespaces.get_mut(ns).map(|x| x),
+            _ => None,
+        }
     }
 
     /// Returns the `FunctionValue` representing the function being compiled.
     #[inline]
-    pub fn current_fn(&self) -> FunctionValue<'ctx> {
+    pub fn current_fn(&mut self) -> FunctionValue<'ctx> {
         self.current_ns().unwrap().current_fn()
     }
 
@@ -106,16 +110,16 @@ pub fn create_context() -> Context {
 
 /// Compiles the given `ast` using the given `compiler` into
 /// LLVM IR.
-pub fn compile<'ctx>(
-    compiler: &'ctx Compiler,
+pub fn compile<'ctx, 'val: 'ctx>(
+    compiler: &'ctx mut Compiler<'val>,
     ast: Vec<impl Expression>,
-) -> Vec<Result<AnyValueEnum<'ctx>, String>> {
+) -> Vec<Result<AnyValueEnum<'val>, String>> {
     match compiler.current_ns() {
         Some(ns) => ns,
         None => panic!("Current namespace is not set."),
     };
 
-    let mut generated_code = vec![];
+    let mut generated_code: Vec<Result<AnyValueEnum<'val>, String>> = vec![];
 
     for expr in &ast {
         generated_code.push(expr.code_gen(compiler));

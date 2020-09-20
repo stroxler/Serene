@@ -39,8 +39,8 @@ fn main() -> io::Result<()> {
     let context = compiler::create_context();
     let mut compiler = compiler::Compiler::new(&context);
 
-    compiler.create_ns("user");
-    compiler.set_current_ns("user");
+    compiler.create_ns("user".to_string(), None);
+    compiler.set_current_ns("user".to_string());
 
     if let Some(input) = args.value_of("INPUT") {
         let mut f = File::open(input)?;
@@ -51,7 +51,7 @@ fn main() -> io::Result<()> {
             Ok(v) => {
                 println!("AST: {:#?}", v);
 
-                let g = compiler::compile(&compiler, v);
+                let g = compiler::compile(&mut compiler, v);
                 println!("GEN: {:?}", g)
             }
             Err(e) => println!(">> error {:?}", e),

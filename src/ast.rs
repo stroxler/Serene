@@ -58,7 +58,7 @@ impl Expr {
 
 impl Expression for Expr {
     fn eval() {}
-    fn code_gen<'ctx>(&self, compiler: &'ctx Compiler) -> ExprResult<'ctx> {
+    fn code_gen<'ctx, 'val: 'ctx>(&self, compiler: &'ctx mut Compiler<'val>) -> ExprResult<'val> {
         match self {
             Expr::Sym(s) => s.code_gen(compiler),
             Expr::Cons(s) => s.code_gen(compiler),

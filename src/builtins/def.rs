@@ -14,11 +14,13 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+use crate::ast::Expr;
 use crate::compiler::Compiler;
 use crate::types::collections::core::Seq;
-use crate::types::{ExprResult, List};
+use crate::types::{ExprResult, Expression, List};
+use crate::values::Value;
 
-pub fn def<'a>(compiler: &'a Compiler, args: List) -> ExprResult<'a> {
+pub fn def<'ctx, 'val: 'ctx>(compiler: &'ctx mut Compiler<'val>, args: List) -> ExprResult<'val> {
     // TODO: We need to support docstrings for def
     if args.length() != 2 {
         // TODO: Raise a meaningful error by including the location
@@ -28,12 +30,24 @@ pub fn def<'a>(compiler: &'a Compiler, args: List) -> ExprResult<'a> {
         ));
     }
 
-    //let def_ = &args.first;1
-    let name = args.first();
-    let value = args.rest().first();
+    let sym = match args.first() {
+        Some(e) => match e {
+            Expr::Sym(e) => e,
+            _ => return Err("First argument of 'def' has to be a symbol".to_string()),
+        },
+        _ => return Err("First argument of 'def' has to be a symbol".to_string()),
+    };
 
-    println!("<<<< {:?} \n {:?}", name, value);
-    // TODO: make sure that `def_` is a symbol and its name is "def"
+    let value = match args.rest().first() {
+        Some(e) => {
+            let generated_code = e.code_gen(compiler);
+            Value::new(Some(sym.name.clone()), e, generated_code)
+        }
+        _ => return Err("Missing the second arugment for 'def'.".to_string()),
+    };
 
-    Err("Is not completed".to_string())
+    compiler
+        .current_ns()
+        .unwrap()
+        .define(sym.name.clone(), value, true)
 }

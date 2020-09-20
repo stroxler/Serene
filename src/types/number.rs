@@ -46,7 +46,7 @@ impl Eq for Number {}
 
 impl Expression for Number {
     fn eval() {}
-    fn code_gen<'ctx>(&self, compiler: &'ctx Compiler) -> ExprResult<'ctx> {
+    fn code_gen<'ctx, 'val: 'ctx>(&self, compiler: &'ctx mut Compiler<'val>) -> ExprResult<'val> {
         Err("Not implemented on numbers".to_string())
     }
 }

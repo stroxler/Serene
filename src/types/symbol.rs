@@ -16,6 +16,7 @@
 */
 use crate::compiler::Compiler;
 use crate::types::core::{ExprResult, Expression};
+use inkwell::types::IntType;
 use inkwell::values::AnyValueEnum;
 
 #[derive(Debug, Clone)]
@@ -33,8 +34,8 @@ impl Eq for Symbol {}
 
 impl Expression for Symbol {
     fn eval() {}
-    fn code_gen<'ctx>(&self, compiler: &'ctx Compiler) -> ExprResult<'ctx> {
-        let bool_t = compiler.context.bool_type();
+    fn code_gen<'ctx, 'val: 'ctx>(&self, compiler: &'ctx mut Compiler<'val>) -> ExprResult<'val> {
+        let bool_t: IntType<'val> = compiler.context.bool_type();
         if self.name == "true" {
             Ok(AnyValueEnum::IntValue(bool_t.const_int(1, false)))
         } else if self.name == "false" {

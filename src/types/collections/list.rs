@@ -47,10 +47,11 @@ impl List {
 
 impl Expression for List {
     fn eval() {}
-    fn code_gen<'ctx>(&self, compiler: &'ctx Compiler) -> ExprResult<'ctx> {
+    fn code_gen<'ctx, 'val: 'ctx>(&self, compiler: &'ctx mut Compiler<'val>) -> ExprResult<'val> {
         match self.first() {
             Some(e) => match e {
                 Expr::Sym(s) if s.is_def() => def(compiler, self.rest()),
+
                 _ => Err("Not implemented on list".to_string()),
             },
 
