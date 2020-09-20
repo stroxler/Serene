@@ -14,6 +14,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+use crate::compiler::Compiler;
 use crate::scope::Scope;
 use crate::types::ExprResult;
 use crate::values::Value;
@@ -120,5 +121,9 @@ impl<'ctx> Namespace<'ctx> {
             },
             Err(e) => Err(e),
         }
+    }
+
+    pub fn compile(&self) -> String {
+        self.module.print_to_string().to_string()
     }
 }

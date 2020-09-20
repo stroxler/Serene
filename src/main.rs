@@ -52,7 +52,11 @@ fn main() -> io::Result<()> {
                 println!("AST: {:#?}", v);
 
                 let g = compiler::compile(&mut compiler, v);
-                println!("GEN: {:?}", g)
+                println!("GEN: {:?}", g);
+
+                let compiled_module = compiler.compile_ns_str("user".to_string());
+                println!("\n=================\nMODULE USER:");
+                println!("{}", compiled_module);
             }
             Err(e) => println!(">> error {:?}", e),
         }
