@@ -35,6 +35,23 @@ Then here is the list or parsers that we have considered
 
 * Possible solutions
 ** Garbage collection
-- https://v8.dev/blog/high-performance-cpp-gc 
+- https://v8.dev/blog/high-performance-cpp-gc
 ** JIT
 - https://asmjit.com/
+* Features to implement
+** Compiler
+*** Branch instructions
+It would be cool to have macro to instruct the compiler about the likelyhood
+of a branch in a conditional. Something similar to kernel's *likely* and *unlikely*
+macros
+*** Execution Instrumentation
+The compiler should be able to embed some code in the program to collect data about
+the different execution paths or function instrumentation and other useful data the
+can help the compiler to optimize the program even further. For example Imagine a
+scenario which we compile a program with out any optimization ( in debug mode ) and
+using some test cases or real usage of the program in several iteration we collect
+data about the compiled application in a file (let's call it the ADF short for Analytic
+Data File), and the we can pass that ADF file to the compiler to let it compile and optimize
+the program by using the usual passes alonge side with some extra passes that operate
+on ADF
+** Lang
