@@ -13,6 +13,9 @@ Then here is the list or parsers that we have considered
 - https://en.wikipedia.org/wiki/Collision_attack
 
 * Resources
+For a generic list of resources on compiler design take a look at https://tomassetti.me/resources-create-programming-languages/
+** Lisp
+- Make a Lisp :: https://github.com/kanaka/mal/blob/master/process/guide.md
 ** Rust
 - The Rust book :: https://doc.rust-lang.org/book/ https://www.reddit.com/r/rust/comments/2s1zj2/the_rust_programming_language_book_as_epub/
 ** LLVM
