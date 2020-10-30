@@ -14,9 +14,8 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-use crate::compiler::Compiler;
 use crate::types::collections;
-use crate::types::{ExprResult, Expression, Number, Symbol};
+use crate::types::{Expression, Number, Symbol};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Expr {
@@ -58,11 +57,4 @@ impl Expr {
 
 impl Expression for Expr {
     fn eval() {}
-    fn code_gen<'ctx, 'val: 'ctx>(&self, compiler: &'ctx mut Compiler<'val>) -> ExprResult<'val> {
-        match self {
-            Expr::Sym(s) => s.code_gen(compiler),
-            Expr::Cons(s) => s.code_gen(compiler),
-            _ => Err("NotImplemented".to_string()),
-        }
-    }
 }

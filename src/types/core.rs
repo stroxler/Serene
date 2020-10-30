@@ -15,13 +15,7 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 use crate::compiler::Compiler;
-use inkwell::values::{AnyValue, AnyValueEnum};
-
-type ExprResultBase<'a, T: AnyValue<'a>> = Result<T, String>;
-
-pub type ExprResult<'a> = ExprResultBase<'a, AnyValueEnum<'a>>;
 
 pub trait Expression {
     fn eval();
-    fn code_gen<'ctx, 'val: 'ctx>(&self, compiler: &'ctx mut Compiler<'val>) -> ExprResult<'val>;
 }

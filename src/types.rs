@@ -20,6 +20,6 @@ pub mod number;
 pub mod symbol;
 
 pub use self::collections::{List, Seq};
-pub use self::core::{ExprResult, Expression};
+pub use self::core::Expression;
 pub use self::number::Number;
 pub use self::symbol::Symbol;

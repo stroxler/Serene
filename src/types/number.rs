@@ -15,7 +15,7 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 use crate::compiler::Compiler;
-use crate::types::core::{ExprResult, Expression};
+use crate::types::core::Expression;
 // Note: I kept the number implementation simple for now
 // but we need to decide on our approach to numbers, are
 // we going to only support the 64bit variants? or should
@@ -46,7 +46,4 @@ impl Eq for Number {}
 
 impl Expression for Number {
     fn eval() {}
-    fn code_gen<'ctx, 'val: 'ctx>(&self, compiler: &'ctx mut Compiler<'val>) -> ExprResult<'val> {
-        Err("Not implemented on numbers".to_string())
-    }
 }

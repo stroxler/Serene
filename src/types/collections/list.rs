@@ -18,7 +18,7 @@ use crate::ast::Expr;
 use crate::builtins::def;
 use crate::compiler::Compiler;
 use crate::types::collections::core::Seq;
-use crate::types::core::{ExprResult, Expression};
+use crate::types::core::Expression;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct List {
@@ -47,20 +47,6 @@ impl List {
 
 impl Expression for List {
     fn eval() {}
-    fn code_gen<'ctx, 'val: 'ctx>(&self, compiler: &'ctx mut Compiler<'val>) -> ExprResult<'val> {
-        match self.first() {
-            Some(e) => match e {
-                Expr::Sym(s) if s.is_def() => def(compiler, self.rest()),
-
-                _ => Err("Not implemented on list".to_string()),
-            },
-
-            // TODO: We need to return an empty list here
-            None => Err("Can't not evaluate empty list".to_string()),
-        }
-        // def(compiler, self);
-        // Err("Not implemented on list".to_string())
-    }
 }
 
 impl Seq<Expr> for List {

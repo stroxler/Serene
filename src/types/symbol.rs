@@ -15,9 +15,7 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 use crate::compiler::Compiler;
-use crate::types::core::{ExprResult, Expression};
-use inkwell::types::IntType;
-use inkwell::values::AnyValueEnum;
+use crate::types::core::Expression;
 
 #[derive(Debug, Clone)]
 pub struct Symbol {
@@ -34,16 +32,6 @@ impl Eq for Symbol {}
 
 impl Expression for Symbol {
     fn eval() {}
-    fn code_gen<'ctx, 'val: 'ctx>(&self, compiler: &'ctx mut Compiler<'val>) -> ExprResult<'val> {
-        let bool_t: IntType<'val> = compiler.context.bool_type();
-        if self.name == "true" {
-            Ok(AnyValueEnum::IntValue(bool_t.const_int(1, false)))
-        } else if self.name == "false" {
-            Ok(AnyValueEnum::IntValue(bool_t.const_int(0, false)))
-        } else {
-            Err("Nothing yet".to_string())
-        }
-    }
 }
 
 impl Symbol {

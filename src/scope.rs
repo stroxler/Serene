@@ -19,20 +19,20 @@ use crate::values::Value;
 use std::collections::HashMap;
 
 /// This struct describes the values in the scope.
-pub struct ScopeElement<'a> {
-    element_type: Value<'a>,
+pub struct ScopeElement {
+    element_type: Value,
     public: bool,
 }
 
 /// Scopes in **Serene** are simply represented by hashmaps. Each
 /// Scope optionally has a parent scope that lookups fallback to
 /// if the lookup key is missing from the current scope.
-pub struct Scope<'a> {
-    parent: Option<Box<Scope<'a>>>,
-    symbol_table: HashMap<String, ScopeElement<'a>>,
+pub struct Scope {
+    parent: Option<Box<Scope>>,
+    symbol_table: HashMap<String, ScopeElement>,
 }
 
-impl<'a> Scope<'a> {
+impl Scope {
     pub fn new(_parent: Option<Scope>) -> Scope {
         let p = match _parent {
             Some(x) => Some(Box::new(x)),
@@ -47,7 +47,7 @@ impl<'a> Scope<'a> {
 
     /// Lookup the given `key` in the scope and if it is not in the current
     /// scope look it up in the `parent` scope.
-    pub fn lookup(&self, key: &'a str) -> Option<&ScopeElement<'a>> {
+    pub fn lookup(&self, key: &str) -> Option<&ScopeElement> {
         if self.symbol_table.contains_key(key) {
             self.symbol_table.get(key)
         } else {
@@ -58,7 +58,7 @@ impl<'a> Scope<'a> {
         }
     }
 
-    pub fn insert(&mut self, key: &str, val: Value<'a>, public: bool) {
+    pub fn insert(&mut self, key: &str, val: Value, public: bool) {
         let v = ScopeElement {
             public,
             element_type: val,

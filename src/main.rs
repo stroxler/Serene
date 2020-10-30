@@ -14,8 +14,6 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-extern crate inkwell;
-
 use clap::{load_yaml, App};
 use std::fs::File;
 use std::io;
@@ -36,8 +34,7 @@ fn main() -> io::Result<()> {
     let args = App::from(yaml).get_matches();
 
     // Create a compiler
-    let context = compiler::create_context();
-    let mut compiler = compiler::Compiler::new(&context);
+    let mut compiler = compiler::Compiler::new();
 
     compiler.create_ns("user".to_string(), None);
     compiler.set_current_ns("user".to_string());
@@ -50,13 +47,6 @@ fn main() -> io::Result<()> {
         match reader::read_string(&buf) {
             Ok(v) => {
                 println!("AST: {:#?}", v);
-
-                let g = compiler::compile(&mut compiler, v);
-                println!("GEN: {:?}", g);
-
-                let compiled_module = compiler.compile_ns_str("user".to_string());
-                println!("\n=================\nMODULE USER:");
-                println!("{}", compiled_module);
             }
             Err(e) => println!(">> error {:?}", e),
         }
