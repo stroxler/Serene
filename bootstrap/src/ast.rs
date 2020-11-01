@@ -13,9 +13,18 @@
 *
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
+use crate::errors::Error;
+use crate::runtime::RT;
+use crate::scope::Scope;
 use crate::types::collections;
-use crate::types::{Expression, Number, Symbol};
+use crate::types::{Number, Symbol};
+
+pub type PossibleExpr = Result<Expr, Error>;
+
+pub trait Expression {
+    fn eval(&self, rt: &RT, scope: &Scope) -> PossibleExpr;
+}
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Expr {
@@ -55,6 +64,12 @@ impl Expr {
     }
 }
 
-impl Expression for Expr {
-    fn eval() {}
-}
+// impl Expression for Expr {
+//     fn eval(&self, rt: &RT, scope: &Scope) -> PossibleExpr {
+//         match self {
+//             Expr::Sym(s) => {
+//                 s.eval
+//             }
+//         }
+//     }
+// }

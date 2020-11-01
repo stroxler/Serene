@@ -14,13 +14,12 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-use crate::values::Value;
-
+use crate::ast::Expr;
 use std::collections::HashMap;
 
 /// This struct describes the values in the scope.
 pub struct ScopeElement {
-    element_type: Value,
+    element_type: Expr,
     public: bool,
 }
 
@@ -58,7 +57,7 @@ impl Scope {
         }
     }
 
-    pub fn insert(&mut self, key: &str, val: Value, public: bool) {
+    pub fn insert(&mut self, key: &str, val: Expr, public: bool) {
         let v = ScopeElement {
             public,
             element_type: val,

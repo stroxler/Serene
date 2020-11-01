@@ -13,9 +13,11 @@
 *
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-use crate::compiler::Compiler;
-use crate::types::core::Expression;
+ */
+use crate::ast::{Expr, Expression, PossibleExpr};
+use crate::runtime::RT;
+use crate::scope::Scope;
+
 // Note: I kept the number implementation simple for now
 // but we need to decide on our approach to numbers, are
 // we going to only support the 64bit variants? or should
@@ -45,5 +47,7 @@ impl PartialEq for Number {
 impl Eq for Number {}
 
 impl Expression for Number {
-    fn eval() {}
+    fn eval(&self, rt: &RT, scope: &Scope) -> PossibleExpr {
+        Ok(Expr::Num(self.clone()))
+    }
 }

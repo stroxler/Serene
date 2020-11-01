@@ -14,8 +14,21 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-use crate::compiler::Compiler;
+use crate::scope::Scope;
 
-pub trait Expression {
-    fn eval();
+pub struct Namespace {
+    /// Root scope of the namespace
+    pub name: String,
+    pub source_file: Option<String>,
+    root_scope: Scope,
+}
+
+impl<'ctx> Namespace {
+    pub fn new(name: String, source_file: Option<String>) -> Namespace {
+        Namespace {
+            name,
+            source_file,
+            root_scope: Scope::new(None),
+        }
+    }
 }

@@ -14,9 +14,21 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-use crate::ast::Expr;
 
-#[derive(Debug, Eq, PartialEq, Clone)]
-pub struct Value {
-    pub expr: Expr,
+pub trait IError {
+    fn message(&self) -> &str;
+}
+
+pub struct Error {
+    msg: String,
+}
+
+impl IError for Error {
+    fn message(&self) -> &str {
+        &self.msg
+    }
+}
+
+pub fn err(msg: String) -> Error {
+    Error { msg }
 }

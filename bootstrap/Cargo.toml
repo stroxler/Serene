@@ -13,6 +13,7 @@ license-file = "LICENSE"
 [dependencies]
 # CLI library
 clap = { version = "3.0.0-beta.1", features = ["yaml"] }
+rustyline = "6.3.0"
 
 [dev-dependencies]
 rusty-hook = "^0.11.2"

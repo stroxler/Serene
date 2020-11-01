@@ -13,20 +13,30 @@
 *
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-use crate::compiler::Compiler;
+ */
+use crate::ast::{Expr, PossibleExpr};
+use crate::errors::err;
+use crate::reader::read_string;
+use crate::runtime::RT;
 use crate::scope::Scope;
-use crate::values::Value;
 
-pub struct Namespace {
-    /// Root scope of the namespace
-    scope: Scope,
+fn eval_expr(rt: &RT, scope: &Scope, expr: Expr) -> PossibleExpr {
+    Ok(expr)
 }
 
-impl<'ctx> Namespace {
-    pub fn new(name: String, source_file: Option<&str>) -> Namespace {
-        Namespace {
-            scope: Scope::new(None),
+pub fn eval(rt: &RT, scope: &Scope, exprs: Vec<Expr>) -> PossibleExpr {
+    match exprs.last() {
+        Some(e) => Ok(e.clone()),
+        _ => Err(err("NotImplemented".to_string())),
+    }
+}
+
+pub fn rep(rt: &RT, scope: &Scope, input: &str) {
+    match read_string(input) {
+        Ok(exprs) => {
+            let result_expr = eval(rt, scope, exprs);
+            println!("<<");
         }
+        Err(e) => println!("Error: {}", e),
     }
 }

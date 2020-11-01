@@ -1,6 +1,6 @@
 [hooks]
-pre-commit = "cargo fmt -- --check"
-pre-push = "cargo test"
+pre-commit = "make lint"
+pre-push = "make test"
 
 [logging]
 verbose = true
