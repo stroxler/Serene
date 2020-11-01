@@ -10,3 +10,15 @@ test-bootstrap:
 
 .PHONY: test
 test: test-bootstrap
+
+
+.PHONY: clean-bootstrap
+clean-bootstrap:
+	cd $(THIS_DIR)/bootstrap && cargo clean
+
+.PHONY: bootstrap-repl
+bootstrap-repl:
+	cd $(THIS_DIR)/bootstrap && cargo run repl
+
+.PHONY: clean
+clean: clean-bootstrap

@@ -15,10 +15,7 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 use clap::{load_yaml, App, ArgMatches};
-use std::fs::File;
 use std::io;
-use std::io::prelude::*;
-use std::string::String;
 
 pub mod ast;
 pub mod builtins;
@@ -49,11 +46,6 @@ fn repl(args: ArgMatches) {
 fn main() -> io::Result<()> {
     let yaml = load_yaml!("cli.yml");
     let app = App::from(yaml);
-
-    // let rt = runtime::RT::new();
-
-    // rt.create_ns("user".to_string(), None);
-    // rt.set_current_ns("user".to_string());
 
     match app.get_matches().subcommand() {
         Some(("repl", args)) => repl(args.clone()),

@@ -19,6 +19,7 @@ pub trait IError {
     fn message(&self) -> &str;
 }
 
+#[derive(Debug)]
 pub struct Error {
     msg: String,
 }

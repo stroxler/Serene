@@ -24,18 +24,25 @@ fn eval_expr(rt: &RT, scope: &Scope, expr: Expr) -> PossibleExpr {
     Ok(expr)
 }
 
-pub fn eval(rt: &RT, scope: &Scope, exprs: Vec<Expr>) -> PossibleExpr {
+pub fn eval(rt: &RT, exprs: Vec<Expr>) -> PossibleExpr {
     match exprs.last() {
         Some(e) => Ok(e.clone()),
         _ => Err(err("NotImplemented".to_string())),
     }
 }
 
-pub fn rep(rt: &RT, scope: &Scope, input: &str) {
+pub fn read_eval_print(rt: &RT, input: &str) {
     match read_string(input) {
         Ok(exprs) => {
-            let result_expr = eval(rt, scope, exprs);
-            println!("<<");
+            if rt.is_debug() {
+                println!("Read Result: \n{:?}\n", exprs);
+            }
+
+            let result_expr = eval(rt, exprs);
+
+            if rt.is_debug() {
+                println!("Eval Result: \n{:?}\n", result_expr);
+            }
         }
         Err(e) => println!("Error: {}", e),
     }

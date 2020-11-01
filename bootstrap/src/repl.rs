@@ -13,7 +13,8 @@
 *
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
+use crate::core::read_eval_print;
 use crate::runtime::RT;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
@@ -32,7 +33,7 @@ pub fn repl(rt: RT) {
         match readline {
             Ok(line) => {
                 rl.add_history_entry(line.as_str());
-                println!("Line: {}", line);
+                read_eval_print(&rt, &line);
             }
             Err(ReadlineError::Interrupted) => {
                 println!("CTRL-C");
