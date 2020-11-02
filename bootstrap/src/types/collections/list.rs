@@ -14,13 +14,15 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 //use crate::builtins::def;
-use crate::ast::{Expr, Expression, PossibleExpr};
+use crate::ast::{Expr, Expression, PossibleExpr, StringRepr};
 use crate::errors::err;
 use crate::runtime::RT;
 use crate::scope::Scope;
 use crate::types::collections::core::Seq;
 use crate::types::Symbol;
+use std::fmt;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct List {
@@ -74,11 +76,30 @@ impl Expression for List {
 
         let first = self.first().unwrap();
         let rest = self.rest();
-        Err(err("NotImplemented".to_string()))
-        //Ok(Expr::Cons(Box::new(*self)))
+
+        Ok(Expr::Cons(self.clone()))
         // match first {
         //     Expr::Sym(sum) => {}
         //     _ => Err(err("NotImplemented".to_string())),
         // }
+    }
+}
+
+impl fmt::Display for List {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let elems: Vec<String> = self
+            .elements
+            .clone()
+            .iter()
+            .map(|x| format!("{}", x))
+            .collect();
+
+        write!(f, "({})", &elems.join(" "))
+    }
+}
+
+impl StringRepr for List {
+    fn string_repr(&self, rt: &RT) -> String {
+        format!("{}", self)
     }
 }

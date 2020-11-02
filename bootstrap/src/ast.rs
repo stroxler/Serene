@@ -46,6 +46,15 @@ pub trait Expression {
     fn eval(&self, rt: &RT, scope: &Scope) -> PossibleExpr;
 }
 
+/// It differs from the `fmt::Display` in the way that anything that
+/// we want to show in a repl as the result of an evaluation and needs
+/// the runtime details has to implement this trait. But we use the
+/// `fmt::Display` as a formatter and in a way that it doesn't need the
+/// runtime.
+pub trait StringRepr {
+    fn string_repr(&self, rt: &RT) -> String;
+}
+
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Expr {
     Sym(Symbol),
@@ -53,18 +62,18 @@ pub enum Expr {
     Num(Number),
     Comment,
     Error(String),
-    Cons(Box<collections::List>),
+    Cons(collections::List),
     Nil,
     NoMatch,
 }
 
 impl Expr {
     pub fn make_list(elements: &[Expr]) -> Expr {
-        Expr::Cons(Box::new(collections::List::new(elements)))
+        Expr::Cons(collections::List::new(elements))
     }
 
     pub fn list_to_cons(l: collections::List) -> Expr {
-        Expr::Cons(Box::new(l))
+        Expr::Cons(l)
     }
 
     pub fn make_empty_list() -> collections::List {
@@ -90,6 +99,17 @@ impl fmt::Display for Expr {
             Expr::Num(n) => n.fmt(f),
             Expr::Sym(s) => s.fmt(f),
             _ => write!(f, "NA"),
+        }
+    }
+}
+
+impl StringRepr for Expr {
+    fn string_repr(&self, rt: &RT) -> String {
+        match self {
+            Expr::Num(n) => n.string_repr(rt),
+            Expr::Sym(s) => s.string_repr(rt),
+            Expr::Cons(c) => c.string_repr(rt),
+            _ => "NA".to_string(),
         }
     }
 }

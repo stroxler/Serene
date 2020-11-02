@@ -14,7 +14,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-use crate::ast::{Expr, Expression, Location, PossibleExpr};
+use crate::ast::{Expr, Expression, Location, PossibleExpr, StringRepr};
 use crate::errors::err;
 use crate::runtime::RT;
 use crate::scope::Scope;
@@ -97,12 +97,12 @@ impl Expression for Symbol {
 
 impl fmt::Display for Symbol {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match &self.ns {
-            Some(n) => write!(f, "#'{}/{}", &n, &self.name),
-            _ => panic!(
-                "Displaying symbol '{:?}' without evaluating it.",
-                &self.name
-            ),
-        }
+        write!(f, "{}", &self.name)
+    }
+}
+
+impl StringRepr for Symbol {
+    fn string_repr(&self, rt: &RT) -> String {
+        format!("#'{}/{}", &rt.current_ns().name, &self.name)
     }
 }

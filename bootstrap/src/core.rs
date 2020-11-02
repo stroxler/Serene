@@ -14,7 +14,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-use crate::ast::{Expr, Expression, PossibleExpr};
+use crate::ast::{Expr, Expression, PossibleExpr, StringRepr};
 use crate::errors::err;
 use crate::reader::read_string;
 use crate::runtime::RT;
@@ -60,7 +60,7 @@ pub fn read_eval_print(rt: &RT, input: &str) {
             }
 
             match result_expr {
-                Ok(expr) => println!("{}", expr),
+                Ok(expr) => println!("{}", expr.string_repr(rt)),
                 Err(e) => println!("{}", e),
             }
         }
