@@ -13,7 +13,8 @@
 *
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
+use crate::ast::{Expr, PossibleExpr};
 use crate::scope::Scope;
 
 pub struct Namespace {
@@ -23,12 +24,20 @@ pub struct Namespace {
     root_scope: Scope,
 }
 
-impl<'ctx> Namespace {
+impl Namespace {
     pub fn new(name: String, source_file: Option<String>) -> Namespace {
         Namespace {
             name,
             source_file,
             root_scope: Scope::new(None),
         }
+    }
+
+    pub fn current_scope(&self) -> &Scope {
+        &self.root_scope
+    }
+
+    pub fn lookup_external(&self, target: &str, key: &str) -> PossibleExpr {
+        Ok(Expr::Nil)
     }
 }

@@ -19,10 +19,30 @@ use crate::runtime::RT;
 use crate::scope::Scope;
 use crate::types::collections;
 use crate::types::{Number, Symbol};
+use std::fmt;
 
 pub type PossibleExpr = Result<Expr, Error>;
 
+#[derive(Debug, Eq, PartialEq, Clone)]
+pub struct Location {
+    position: i64,
+    file_path: String,
+}
+
+impl fmt::Display for Location {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "'{}:{}'", &self.file_path, &self.position)
+    }
+}
+
 pub trait Expression {
+    fn location(&self) -> Location {
+        Location {
+            position: 0,
+            file_path: "NotImplemented".to_string(),
+        }
+    }
+
     fn eval(&self, rt: &RT, scope: &Scope) -> PossibleExpr;
 }
 
@@ -51,8 +71,8 @@ impl Expr {
         collections::List::new_empty()
     }
 
-    pub fn make_symbol(v: String) -> Expr {
-        Expr::Sym(Symbol::new(v))
+    pub fn make_symbol(v: String, target_ns: Option<String>) -> Expr {
+        Expr::Sym(Symbol::new(v, target_ns))
     }
 
     pub fn make_string(v: String) -> Expr {
@@ -64,12 +84,12 @@ impl Expr {
     }
 }
 
-// impl Expression for Expr {
-//     fn eval(&self, rt: &RT, scope: &Scope) -> PossibleExpr {
-//         match self {
-//             Expr::Sym(s) => {
-//                 s.eval
-//             }
-//         }
-//     }
-// }
+impl fmt::Display for Expr {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Expr::Num(n) => n.fmt(f),
+            Expr::Sym(s) => s.fmt(f),
+            _ => write!(f, "NA"),
+        }
+    }
+}

@@ -91,7 +91,7 @@ impl ExprReader {
 
     fn read_quoted_expr<T: Read>(&mut self, reader: &mut BufReader<T>) -> ReadResult {
         let rest = self.read_expr(reader)?;
-        let elements = vec![Expr::make_symbol("quote".to_string()), rest];
+        let elements = vec![Expr::make_symbol("quote".to_string(), None), rest];
 
         Ok(Expr::make_list(&elements))
     }
@@ -102,12 +102,15 @@ impl ExprReader {
                 // Move forward in the buffer since we peeked it
                 let _ = self.get_char(reader, true);
                 let rest = self.read_expr(reader)?;
-                let elements = vec![Expr::make_symbol("unquote-splicing".to_string()), rest];
+                let elements = vec![
+                    Expr::make_symbol("unquote-splicing".to_string(), None),
+                    rest,
+                ];
                 Ok(Expr::make_list(&elements))
             }
             _ => {
                 let rest = self.read_expr(reader)?;
-                let elements = vec![Expr::make_symbol("unquote".to_string()), rest];
+                let elements = vec![Expr::make_symbol("unquote".to_string(), None), rest];
                 Ok(Expr::make_list(&elements))
             }
         }
@@ -115,7 +118,7 @@ impl ExprReader {
 
     fn read_quasiquoted_expr<T: Read>(&mut self, reader: &mut BufReader<T>) -> ReadResult {
         let rest = self.read_expr(reader)?;
-        let elements = vec![Expr::make_symbol("quasiquote".to_string()), rest];
+        let elements = vec![Expr::make_symbol("quasiquote".to_string(), None), rest];
         Ok(Expr::make_list(&elements))
     }
 
@@ -199,7 +202,22 @@ impl ExprReader {
             }
         }
 
-        Ok(Expr::make_symbol(symbol))
+        let tmp = &symbol;
+        let mut parts: Vec<&str> = tmp.split("/").collect();
+
+        parts.reverse();
+
+        match parts.len() {
+            1 => Ok(Expr::make_symbol(symbol, None)),
+            2 => Ok(Expr::make_symbol(
+                parts[0].to_string(),
+                parts.last().map(|x| x.to_string()),
+            )),
+            _ => Err(format!(
+                "Multiple NSs won't work: {} at {}",
+                &symbol, self.location
+            )),
+        }
     }
 
     fn read_escape_char<T: Read>(&mut self, reader: &mut BufReader<T>) -> Option<char> {

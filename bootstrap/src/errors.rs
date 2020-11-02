@@ -14,6 +14,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+use std::fmt;
 
 pub trait IError {
     fn message(&self) -> &str;
@@ -22,6 +23,12 @@ pub trait IError {
 #[derive(Debug)]
 pub struct Error {
     msg: String,
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Error: {}", &self.msg)
+    }
 }
 
 impl IError for Error {

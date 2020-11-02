@@ -15,6 +15,7 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 use crate::namespace::Namespace;
+use crate::scope::Scope;
 use std::collections::HashMap;
 use std::env;
 use std::path::Path;
@@ -70,6 +71,10 @@ impl RT {
         self.namespaces
             .get(&self.current_ns_name.clone().unwrap())
             .unwrap()
+    }
+
+    pub fn current_scope(&self) -> &Scope {
+        self.current_ns().current_scope()
     }
 
     #[inline]

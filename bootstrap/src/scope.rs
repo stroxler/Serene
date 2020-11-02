@@ -19,8 +19,8 @@ use std::collections::HashMap;
 
 /// This struct describes the values in the scope.
 pub struct ScopeElement {
-    element_type: Expr,
-    public: bool,
+    pub expr: Expr,
+    pub public: bool,
 }
 
 /// Scopes in **Serene** are simply represented by hashmaps. Each
@@ -57,11 +57,8 @@ impl Scope {
         }
     }
 
-    pub fn insert(&mut self, key: &str, val: Expr, public: bool) {
-        let v = ScopeElement {
-            public,
-            element_type: val,
-        };
+    pub fn insert(&mut self, key: &str, expr: Expr, public: bool) {
+        let v = ScopeElement { public, expr };
         self.symbol_table.insert(key.to_string(), v);
     }
 }

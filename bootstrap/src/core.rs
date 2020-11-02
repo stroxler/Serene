@@ -14,21 +14,36 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-use crate::ast::{Expr, PossibleExpr};
+use crate::ast::{Expr, Expression, PossibleExpr};
 use crate::errors::err;
 use crate::reader::read_string;
 use crate::runtime::RT;
 use crate::scope::Scope;
 
 fn eval_expr(rt: &RT, scope: &Scope, expr: Expr) -> PossibleExpr {
-    Ok(expr)
+    match expr {
+        Expr::Num(n) => n.eval(rt, scope),
+        // TODO: find a better way to attach the ns name to the symbol. This
+        //       is ugly.
+        Expr::Sym(s) => s
+            .clone_with_ns(rt.current_ns().name.clone())
+            .eval(rt, scope),
+        _ => Ok(expr),
+    }
 }
 
 pub fn eval(rt: &RT, exprs: Vec<Expr>) -> PossibleExpr {
-    match exprs.last() {
-        Some(e) => Ok(e.clone()),
-        _ => Err(err("NotImplemented".to_string())),
+    if exprs.len() == 0 {
+        return Ok(Expr::NoMatch);
     }
+
+    let mut ret: PossibleExpr = Ok(Expr::NoMatch);
+
+    for expr in exprs.iter() {
+        ret = eval_expr(rt, rt.current_scope(), expr.clone());
+    }
+
+    ret
 }
 
 pub fn read_eval_print(rt: &RT, input: &str) {
@@ -42,6 +57,11 @@ pub fn read_eval_print(rt: &RT, input: &str) {
 
             if rt.is_debug() {
                 println!("Eval Result: \n{:?}\n", result_expr);
+            }
+
+            match result_expr {
+                Ok(expr) => println!("{}", expr),
+                Err(e) => println!("{}", e),
             }
         }
         Err(e) => println!("Error: {}", e),

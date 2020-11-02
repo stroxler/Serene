@@ -17,6 +17,7 @@
 use crate::ast::{Expr, Expression, PossibleExpr};
 use crate::runtime::RT;
 use crate::scope::Scope;
+use std::fmt;
 
 // Note: I kept the number implementation simple for now
 // but we need to decide on our approach to numbers, are
@@ -47,7 +48,16 @@ impl PartialEq for Number {
 impl Eq for Number {}
 
 impl Expression for Number {
-    fn eval(&self, rt: &RT, scope: &Scope) -> PossibleExpr {
+    fn eval(&self, _rt: &RT, _scope: &Scope) -> PossibleExpr {
         Ok(Expr::Num(self.clone()))
+    }
+}
+
+impl fmt::Display for Number {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Integer(n) => write!(f, "{}", n),
+            Self::Float(n) => write!(f, "{}", n),
+        }
     }
 }
