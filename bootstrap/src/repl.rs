@@ -1,4 +1,4 @@
-/** Serene --- Yet an other Lisp
+/* Serene --- Yet an other Lisp
 *
 * Copyright (c) 2020  Sameer Rahmani <lxsameer@gnu.org>
 *
