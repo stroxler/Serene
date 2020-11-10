@@ -15,7 +15,7 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 use crate::namespace::Namespace;
-use crate::types::Expression;
+use crate::types::Node;
 use std::collections::HashMap;
 
 pub struct Compiler {

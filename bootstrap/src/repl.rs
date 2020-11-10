@@ -15,20 +15,21 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 use crate::core::read_eval_print;
-use crate::runtime::RT;
+use crate::namespace;
+use crate::runtime;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
 
-pub fn repl(rt: RT) {
+pub fn repl(rt: &runtime::Runtime) {
     let mut rl = Editor::<()>::new();
-    let history = rt.history_file_path();
+    let history = runtime::history_file_path();
 
-    if rl.load_history(&history).is_err() && rt.is_debug() {
+    if rl.load_history(&history).is_err() && runtime::is_debug(&rt) {
         println!("No previous history.");
     }
 
     loop {
-        let prompt = format!("{}> ", rt.current_ns().name);
+        let prompt = format!("{}> ", namespace::get_name(runtime::current_ns(rt)));
         let readline = rl.readline(&prompt);
         match readline {
             Ok(line) => {

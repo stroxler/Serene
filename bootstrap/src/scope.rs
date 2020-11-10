@@ -17,7 +17,10 @@
 use crate::ast::Expr;
 use std::collections::HashMap;
 
+pub type Scope = Arc<RwLock<UnSafeScope>>;
+
 /// This struct describes the values in the scope.
+#[derive(Debug, Clone)]
 pub struct ScopeElement {
     pub expr: Expr,
     pub public: bool,
@@ -26,19 +29,20 @@ pub struct ScopeElement {
 /// Scopes in **Serene** are simply represented by hashmaps. Each
 /// Scope optionally has a parent scope that lookups fallback to
 /// if the lookup key is missing from the current scope.
-pub struct Scope {
-    parent: Option<Box<Scope>>,
+#[derive(Debug, Clone)]
+pub struct UnSafeScope {
+    parent: Option<Scope>,
     symbol_table: HashMap<String, ScopeElement>,
 }
 
-impl Scope {
+impl UnSafeScope {
     pub fn new(_parent: Option<Scope>) -> Scope {
         let p = match _parent {
             Some(x) => Some(Box::new(x)),
             None => None,
         };
 
-        Scope {
+        UnSafeScope {
             parent: p,
             symbol_table: HashMap::new(),
         }
@@ -61,4 +65,12 @@ impl Scope {
         let v = ScopeElement { public, expr };
         self.symbol_table.insert(key.to_string(), v);
     }
+}
+
+#[test]
+fn test_scope() {
+    let mut scope = Scope::new(None);
+    scope.insert("sym1", Expr::Nil, true);
+    let sym = scope.lookup("sym1").unwrap();
+    assert_eq!(sym.expr, Expr::Nil);
 }

@@ -16,12 +16,8 @@
  */
 
 //use crate::builtins::def;
-use crate::ast::{Expr, Expression, PossibleExpr, StringRepr};
-use crate::errors::err;
-use crate::runtime::RT;
-use crate::scope::Scope;
+use crate::ast::{Expr, Node};
 use crate::types::collections::core::Seq;
-use crate::types::Symbol;
 use std::fmt;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
@@ -68,20 +64,9 @@ impl Seq<Expr> for List {
     }
 }
 
-impl Expression for List {
-    fn eval(&self, rt: &RT, scope: &Scope) -> PossibleExpr {
-        if self.count() == 0 {
-            return Ok(Expr::Nil);
-        }
-
-        let first = self.first().unwrap();
-        let rest = self.rest();
-
-        Ok(Expr::Cons(self.clone()))
-        // match first {
-        //     Expr::Sym(sum) => {}
-        //     _ => Err(err("NotImplemented".to_string())),
-        // }
+impl Node for List {
+    fn get_type_str(&self) -> &str {
+        "List"
     }
 }
 
@@ -95,11 +80,5 @@ impl fmt::Display for List {
             .collect();
 
         write!(f, "({})", &elems.join(" "))
-    }
-}
-
-impl StringRepr for List {
-    fn string_repr(&self, rt: &RT) -> String {
-        format!("{}", self)
     }
 }

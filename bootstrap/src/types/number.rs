@@ -14,9 +14,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-use crate::ast::{Expr, Expression, PossibleExpr, StringRepr};
-use crate::runtime::RT;
-use crate::scope::Scope;
+use crate::ast::Node;
 use std::fmt;
 
 // Note: I kept the number implementation simple for now
@@ -47,9 +45,9 @@ impl PartialEq for Number {
 
 impl Eq for Number {}
 
-impl Expression for Number {
-    fn eval(&self, _rt: &RT, _scope: &Scope) -> PossibleExpr {
-        Ok(Expr::Num(self.clone()))
+impl Node for Number {
+    fn get_type_str(&self) -> &str {
+        "Number"
     }
 }
 
@@ -59,11 +57,5 @@ impl fmt::Display for Number {
             Self::Integer(n) => write!(f, "{}", n),
             Self::Float(n) => write!(f, "{}", n),
         }
-    }
-}
-
-impl StringRepr for Number {
-    fn string_repr(&self, rt: &RT) -> String {
-        format!("{}", self)
     }
 }

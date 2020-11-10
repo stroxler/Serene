@@ -13,7 +13,19 @@
 *
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
+#![deny(
+    missing_docs,
+    missing_debug_implementations,
+    missing_copy_implementations,
+    trivial_casts,
+    trivial_numeric_casts,
+    unsafe_code,
+    unstable_features,
+    unused_import_braces,
+    unused_qualifications
+)]
+
 use clap::{load_yaml, App, ArgMatches};
 use std::io;
 
@@ -35,12 +47,12 @@ fn repl(args: ArgMatches) {
         debug = true;
     }
 
-    let mut rt = runtime::RT::new();
+    let rt = runtime::create_runtime();
 
-    rt.create_ns("user".to_string(), None);
-    rt.set_current_ns("user".to_string());
-    rt.set_debug_mode(debug);
-    repl::repl(rt);
+    runtime::create_ns(&rt, "user".to_string(), None);
+    runtime::set_current_ns(&rt, "user".to_string());
+    runtime::set_debug_mode(&rt, debug);
+    repl::repl(&rt);
 }
 
 fn main() -> io::Result<()> {

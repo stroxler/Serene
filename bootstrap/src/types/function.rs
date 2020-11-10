@@ -13,13 +13,25 @@
 *
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-pub mod builtin_function;
-pub mod collections;
-pub mod number;
-pub mod symbol;
+ */
+use crate::ast::Node;
+use std::fmt;
 
-pub use self::builtin_function::BuiltinFunction;
-pub use self::collections::{List, Seq};
-pub use self::number::Number;
-pub use self::symbol::Symbol;
+#[derive(Debug, Clone)]
+pub struct Function {
+    pub name: Option<String>,
+}
+
+//impl Eq for Function {}
+
+impl Node for Function {
+    fn get_type_str(&self) -> &str {
+        "Function"
+    }
+}
+
+// impl fmt::Display for Function {
+//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+//         write!(f, "{}", &self.name)
+//     }
+// }

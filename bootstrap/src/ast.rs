@@ -15,11 +15,13 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 use crate::errors::Error;
-use crate::runtime::RT;
+use crate::runtime;
 use crate::scope::Scope;
 use crate::types::collections;
-use crate::types::{Number, Symbol};
+use crate::types::{BuiltinFunction, Number, Symbol};
 use std::fmt;
+
+pub type AST = Vec<Expr>;
 
 pub type PossibleExpr = Result<Expr, Error>;
 
@@ -35,7 +37,7 @@ impl fmt::Display for Location {
     }
 }
 
-pub trait Expression {
+pub trait Node: fmt::Display {
     fn location(&self) -> Location {
         Location {
             position: 0,
@@ -43,27 +45,26 @@ pub trait Expression {
         }
     }
 
-    fn eval(&self, rt: &RT, scope: &Scope) -> PossibleExpr;
+    fn get_type_str(&self) -> &str {
+        "Some type"
+    }
 }
 
-/// It differs from the `fmt::Display` in the way that anything that
-/// we want to show in a repl as the result of an evaluation and needs
-/// the runtime details has to implement this trait. But we use the
-/// `fmt::Display` as a formatter and in a way that it doesn't need the
-/// runtime.
-pub trait StringRepr {
-    fn string_repr(&self, rt: &RT) -> String;
+pub trait Callable {
+    fn apply(&self, rt: &runtime::Runtime, scope: &Scope, args: collections::List) -> Expr;
 }
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Expr {
     Sym(Symbol),
     Str(String),
+    //Fn(Function),
+    BuiltinFn(BuiltinFunction),
     Num(Number),
-    Comment,
     Error(String),
     Cons(collections::List),
     Nil,
+    Comment,
     NoMatch,
 }
 
@@ -91,25 +92,49 @@ impl Expr {
     pub fn make_number(n: Number) -> Expr {
         Expr::Num(n)
     }
-}
 
-impl fmt::Display for Expr {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    pub fn get_node(&self) -> Option<&dyn Node> {
         match self {
-            Expr::Num(n) => n.fmt(f),
-            Expr::Sym(s) => s.fmt(f),
-            _ => write!(f, "NA"),
+            Self::Num(x) => Some(x),
+            Self::Sym(x) => Some(x),
+            Self::Cons(x) => Some(x),
+            Self::BuiltinFn(x) => Some(x),
+            //Self::Str(x) => x,
+            // Self:://Fn(Function),
+            //Self::Error(String),
+            _ => None,
         }
     }
 }
 
-impl StringRepr for Expr {
-    fn string_repr(&self, rt: &RT) -> String {
-        match self {
-            Expr::Num(n) => n.string_repr(rt),
-            Expr::Sym(s) => s.string_repr(rt),
-            Expr::Cons(c) => c.string_repr(rt),
-            _ => "NA".to_string(),
+impl fmt::Display for Expr {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.get_node() {
+            Some(n) => n.fmt(f),
+            _ => match self {
+                Self::Comment => write!(f, "comment"),
+                Self::Error(_) => write!(f, "error"),
+                Self::Nil => write!(f, "nil"),
+                Self::NoMatch => write!(f, "noMatch"),
+                _ => write!(f, "Should Not happen"),
+            },
+        }
+    }
+}
+
+impl Node for Expr {
+    fn get_type_str(&self) -> &str {
+        match self.get_node() {
+            Some(x) => x.get_type_str(),
+            None => match self {
+                Self::Comment => "comment",
+                Self::Error(_) => "error",
+                Self::Nil => "nil",
+                Self::NoMatch => "noMatch",
+                _ => {
+                    panic!("This shouldn't happen. Checkout `get_node` and `get_type_str` on Expr")
+                }
+            },
         }
     }
 }
