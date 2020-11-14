@@ -15,16 +15,24 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-// Package reader provides a set of functions to read forms from several
-// different mediums
-package reader
+package cmd
 
 import (
-	"serene-lang.org/bootstrap/pkg/parser"
-	"serene-lang.org/bootstrap/pkg/types"
+	"github.com/spf13/cobra"
+	"serene-lang.org/bootstrap/pkg/core"
 )
 
-func ReadString(input string) (types.ASTree, error) {
-	return parser.ParseToAST(input)
+// replCmd represents the base command when called without any subcommands
+var replCmd = &cobra.Command{
+	Use:   "repl",
+	Short: "Runs the local Serene's REPL",
+	Long:  `Runs the local Serene's REPL to interact with Serene`,
+	Run: func(cmd *cobra.Command, args []string) {
+		// TODO: Get the debug value from a CLI flag
+		core.REPL(false)
+	},
+}
+
+func init() {
+	rootCmd.AddCommand(replCmd)
 }

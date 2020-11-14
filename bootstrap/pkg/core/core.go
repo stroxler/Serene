@@ -15,43 +15,58 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-package cmd
+
+// Package core contains the high level internal function of Serene
+package core
 
 import (
 	"fmt"
-	"os"
 
-	"github.com/spf13/cobra"
+	"github.com/chzyer/readline"
+	"serene-lang.org/bootstrap/pkg/printer"
+	"serene-lang.org/bootstrap/pkg/reader"
+	"serene-lang.org/bootstrap/pkg/runtime"
 )
 
-// rootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{
-	Use:   "Serene",
-	Short: "The bootstrap version",
-	Long: `Serene's bootstrap interpreter V0.1.0
+func rep(rt *runtime.Runtime, line string) {
+	ast, err := reader.ReadString(line)
+	if err != nil {
+		fmt.Printf("Error: %s", err)
+		return
+	}
+	//eval.Eval(rt, ast)
+	printer.Print(rt, ast)
+}
 
-Serene's bootstrap interpreter is used to
+/** TODO:
+Replace the readline implementation with go-prompt.
+*/
+
+func REPL(debug bool) {
+	rt := runtime.MakeRuntime(debug)
+
+	rt.CreateNS("user", "REPL", true)
+	rl, err := readline.New("> ")
+	if err != nil {
+		panic(err)
+	}
+	defer rl.Close()
+
+	fmt.Println(`Serene's bootstrap interpreter is used to
 bootstrap the Serene's compiler.'
 
 It comes with ABSOLUTELY NO WARRANTY;
 This is free software, and you are welcome
 to redistribute it under certain conditions;
 for details take a look at the LICENSE file.
-`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Fix me!!!! I don't do anything !!!")
-	},
-}
-
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+`)
+	for {
+		rl.SetPrompt(fmt.Sprintf("%s> ", rt.CurrentNS().GetName()))
+		line, err := rl.Readline()
+		if err != nil { // io.EOF
+			break
+		}
+		rep(rt, line)
 	}
-}
 
-func init() {
-	cobra.OnInitialize()
 }

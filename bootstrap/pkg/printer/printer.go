@@ -16,15 +16,16 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Package reader provides a set of functions to read forms from several
-// different mediums
-package reader
+// Package printer contains helper functions to printout AST and exprs
+package printer
 
 import (
-	"serene-lang.org/bootstrap/pkg/parser"
+	"fmt"
+
+	"serene-lang.org/bootstrap/pkg/runtime"
 	"serene-lang.org/bootstrap/pkg/types"
 )
 
-func ReadString(input string) (types.ASTree, error) {
-	return parser.ParseToAST(input)
+func Print(rt *runtime.Runtime, ast types.ASTree) {
+	fmt.Println(ast.String())
 }

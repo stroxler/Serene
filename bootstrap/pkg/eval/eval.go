@@ -16,15 +16,24 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Package reader provides a set of functions to read forms from several
-// different mediums
-package reader
+// Package eval provides all the necessary functions to eval expressions
+package eval
 
 import (
-	"serene-lang.org/bootstrap/pkg/parser"
+	"serene-lang.org/bootstrap/pkg/runtime"
 	"serene-lang.org/bootstrap/pkg/types"
 )
 
-func ReadString(input string) (types.ASTree, error) {
-	return parser.ParseToAST(input)
+func eval(rt *runtime.Runtime, forms types.ASTree) types.IExpr {
+	if len(forms) == 0 {
+		return &types.Nil
+	}
+
+	var ret types.IExpr
+
+	for _, form := range forms {
+		ret = eval_form(rt, rt.CurrentNS().GetRootScope(), form)
+	}
+
+	ret
 }

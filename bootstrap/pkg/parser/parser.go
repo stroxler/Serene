@@ -95,14 +95,15 @@ func readRawSymbol(parser IParsable) (types.IExpr, error) {
 	var symbol string
 
 	if c == nil {
-		return nil, errors.New("Unexpected EOF while parsing a symbol")
+		return nil, errors.New("unexpected EOF while parsing a symbol")
 	}
 
 	if isValidForSymbol(*c) {
+		parser.next(false)
 		symbol = *c
 	} else {
 
-		return nil, fmt.Errorf("Unexpected character: got '%s', expected a symbol at %s",
+		return nil, fmt.Errorf("unexpected character: got '%s', expected a symbol at %s",
 			*c,
 			parser.GetLocation(),
 		)
@@ -143,7 +144,6 @@ func readNumber(parser IParsable, neg bool) (types.IExpr, error) {
 		}
 
 		if *c == "." && isDouble {
-			fmt.Println(result)
 			return nil, errors.New("a double with more that one '.' ???")
 		}
 
@@ -163,7 +163,7 @@ func readNumber(parser IParsable, neg bool) (types.IExpr, error) {
 			break
 		}
 	}
-	fmt.Println(result)
+
 	return types.MakeNumberFromStr(result, isDouble)
 }
 
