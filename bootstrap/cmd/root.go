@@ -44,7 +44,7 @@ for details take a look at the LICENSE file.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		reader.ReadString("sameer mary")
-		ast, _ := parser.ParseToAST("(asd mary)")
+		ast, _ := parser.ParseToAST("(asd 'mary '(1 2 3) `(asd ~asd ~@zxc))")
 		fmt.Printf("%s\n", ast.String())
 	},
 }

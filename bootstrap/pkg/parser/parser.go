@@ -211,17 +211,23 @@ func readUnquotedExpr(parser IParsable) (types.IExpr, error) {
 	}
 
 	var sym types.IExpr
-	expr, err := readExpr(parser)
+	var err error
+	var expr types.IExpr
+
+	if *c == "@" {
+		parser.next(true)
+		sym = types.MakeSymbol("unquote-splicing")
+		expr, err = readExpr(parser)
+
+	} else {
+		sym = types.MakeSymbol("unquote")
+		expr, err = readExpr(parser)
+	}
+
 	if err != nil {
 		return nil, err
 	}
 
-	if *c == "@" {
-		sym = types.MakeSymbol("unquote-splicing")
-
-	} else {
-		sym = types.MakeSymbol("unquote")
-	}
 	return types.MakeList([]types.IExpr{sym, expr}), nil
 }
 
