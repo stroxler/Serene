@@ -22,6 +22,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"serene-lang.org/bootstrap/pkg/parser"
+	"serene-lang.org/bootstrap/pkg/reader"
 )
 
 var cfgFile string
@@ -41,7 +43,9 @@ to redistribute it under certain conditions;
 for details take a look at the LICENSE file.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("BOOOOOOOOOOOOO")
+		reader.ReadString("sameer mary")
+		ast, _ := parser.ParseToAST("(asd mary)")
+		fmt.Printf("%s\n", ast.String())
 	},
 }
 
