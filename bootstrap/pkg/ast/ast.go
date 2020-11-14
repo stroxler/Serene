@@ -25,6 +25,7 @@ type NodeType int
 const (
 	Nil NodeType = iota
 	Symbol
+	Number
 	List
 )
 

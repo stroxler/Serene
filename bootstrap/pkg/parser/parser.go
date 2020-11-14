@@ -127,33 +127,81 @@ func readRawSymbol(parser IParsable) (types.IExpr, error) {
 	return types.MakeSymbol(symbol), nil
 }
 
+func readNumber(parser IParsable, neg bool) (types.IExpr, error) {
+	isDouble := false
+	result := ""
+
+	if neg {
+		result = "-"
+	}
+
+	for {
+		c := parser.next(false)
+
+		if c == nil {
+			break
+		}
+
+		if *c == "." && isDouble {
+			fmt.Println(result)
+			return nil, errors.New("a double with more that one '.' ???")
+		}
+
+		if *c == "." {
+			isDouble = true
+			result = result + *c
+			continue
+		}
+
+		// Weird, But go won't stop complaining without this swap
+		char := *c
+		r := rune(char[0])
+		if unicode.IsDigit(r) {
+			result = result + *c
+		} else {
+			parser.back()
+			break
+		}
+	}
+	fmt.Println(result)
+	return types.MakeNumberFromStr(result, isDouble)
+}
+
 func readSymbol(parser IParsable) (types.IExpr, error) {
 	c := parser.peek(false)
 
 	if c == nil {
-		return nil, errors.New("Unexpected end of file while scanning a symbol")
+		return nil, errors.New("unexpected end of file while scanning a symbol")
 	}
 
 	// if c == "\"" {
 	// 	return readString(parser)
 	// }
 
-	// if unicode.IsDigit(c) {
-	// 	readNumber(parser, false)
-	// }
+	// Weird, But go won't stop complaining without this swap
+	char := *c
+	r := rune(char[0])
+	if unicode.IsDigit(r) {
+		return readNumber(parser, false)
+	}
 
-	// if c == "-" {
-	// 	parser.next(true)
-	// 	c := parser.peek(false)
-	// 	if unicode.IsDigit(c) {
-	// 		return readNumber(parser, true)
-	// 	} else {
-	// 		// Unread '-'
-	// 		parser.back()
-	// 		return readRawSymbol(parser)
-	// 	}
+	if *c == "-" {
+		parser.next(true)
+		c := parser.peek(false)
 
-	// }
+		// Weird, But go won't stop complaining without this swap
+		char := *c
+		r := rune(char[0])
+
+		if unicode.IsDigit(r) {
+			return readNumber(parser, true)
+		} else {
+			// Unread '-'
+			parser.back()
+			return readRawSymbol(parser)
+		}
+
+	}
 	return readRawSymbol(parser)
 }
 
