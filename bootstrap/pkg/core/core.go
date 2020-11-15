@@ -23,13 +23,11 @@ import (
 	"fmt"
 
 	"github.com/chzyer/readline"
-	"serene-lang.org/bootstrap/pkg/printer"
-	"serene-lang.org/bootstrap/pkg/reader"
 	"serene-lang.org/bootstrap/pkg/runtime"
 )
 
 func rep(rt *runtime.Runtime, line string) {
-	ast, err := reader.ReadString(line)
+	ast, err := ReadString(line)
 
 	if err != nil {
 		fmt.Println(err)
@@ -37,8 +35,8 @@ func rep(rt *runtime.Runtime, line string) {
 
 	if rt.IsDebugMode() {
 		fmt.Println("\n### DEBUG ###")
-		printer.Print(rt, ast)
-		fmt.Println("#############\n")
+		Print(rt, ast)
+		fmt.Print("#############\n\n")
 	}
 
 	result, err := Eval(rt, ast)
@@ -47,7 +45,7 @@ func rep(rt *runtime.Runtime, line string) {
 		return
 	}
 
-	printer.Print(rt, result)
+	Print(rt, result)
 }
 
 /** TODO:

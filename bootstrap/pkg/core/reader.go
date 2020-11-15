@@ -16,9 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Package reader provides a set of functions to read forms from several
-// different mediums
-package reader
+package core
 
 import (
 	"serene-lang.org/bootstrap/pkg/parser"
