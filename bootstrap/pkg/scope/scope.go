@@ -21,46 +21,44 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package scope
 
 import (
-	"fmt"
-
 	"serene-lang.org/bootstrap/pkg/types"
 )
 
 type IScope interface {
-	Lookup(k string) (*Binding, error)
+	Lookup(k string) *Binding
 	Insert(k string, v types.IExpr, public bool)
 }
 
 type Binding struct {
-	value  types.IExpr
-	public bool
+	Value  types.IExpr
+	Public bool
 }
 
 type Scope struct {
-	bindings map[string]*Binding
-	parent   IScope
+	bindings map[string]Binding
+	parent   *Scope
 }
 
-func (s *Scope) Lookup(k string) (*Binding, error) {
+func (s *Scope) Lookup(k string) *Binding {
 	v, ok := s.bindings[k]
 	if ok {
-		return v, nil
+		return &v
 	}
 
 	if s.parent != nil {
 		return s.parent.Lookup(k)
-	} else {
-		return nil, fmt.Errorf("can't resolve symbol '%s'", k)
 	}
+
+	return nil
 }
 
 func (s *Scope) Insert(k string, v types.IExpr, public bool) {
-	s.bindings[k] = &Binding{value: v, public: public}
+	s.bindings[k] = Binding{Value: v, Public: public}
 }
 
 func MakeScope(parent *Scope) Scope {
 	return Scope{
 		parent:   parent,
-		bindings: map[string]*Binding{},
+		bindings: map[string]Binding{},
 	}
 }

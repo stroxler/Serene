@@ -30,12 +30,24 @@ import (
 
 func rep(rt *runtime.Runtime, line string) {
 	ast, err := reader.ReadString(line)
+
 	if err != nil {
-		fmt.Printf("Error: %s", err)
+		fmt.Println(err)
+	}
+
+	if rt.IsDebugMode() {
+		fmt.Println("\n### DEBUG ###")
+		printer.Print(rt, ast)
+		fmt.Println("#############\n")
+	}
+
+	result, err := Eval(rt, ast)
+	if err != nil {
+		fmt.Printf("Error: %s\n", err)
 		return
 	}
-	//eval.Eval(rt, ast)
-	printer.Print(rt, ast)
+
+	printer.Print(rt, result)
 }
 
 /** TODO:

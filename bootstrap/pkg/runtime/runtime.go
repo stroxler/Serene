@@ -41,6 +41,10 @@ type Runtime struct {
 	debugMode  bool
 }
 
+func (r *Runtime) IsDebugMode() bool {
+	return r.debugMode
+}
+
 func (r *Runtime) CurrentNS() *namespace.Namespace {
 	if r.currentNS == "" {
 		panic("current ns is not set on the runtime.")

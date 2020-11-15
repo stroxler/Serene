@@ -24,6 +24,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var debugMode bool
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "Serene",
@@ -54,4 +56,10 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize()
+	rootCmd.PersistentFlags().BoolVar(
+		&debugMode,
+		"debug",
+		false,
+		"Turns on the debug mode.")
+
 }

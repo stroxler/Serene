@@ -29,7 +29,7 @@ var replCmd = &cobra.Command{
 	Long:  `Runs the local Serene's REPL to interact with Serene`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// TODO: Get the debug value from a CLI flag
-		core.REPL(false)
+		core.REPL(debugMode)
 	},
 }
 

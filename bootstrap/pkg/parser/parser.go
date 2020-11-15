@@ -95,15 +95,14 @@ func readRawSymbol(parser IParsable) (types.IExpr, error) {
 	var symbol string
 
 	if c == nil {
-		return nil, errors.New("unexpected EOF while parsing a symbol")
+		return nil, errors.New("unexpected enf of file while parsing a symbol")
 	}
 
 	if isValidForSymbol(*c) {
 		parser.next(false)
 		symbol = *c
 	} else {
-
-		return nil, fmt.Errorf("unexpected character: got '%s', expected a symbol at %s",
+		return nil, fmt.Errorf("unexpected character: got '%s', expected a symbol at %d",
 			*c,
 			parser.GetLocation(),
 		)

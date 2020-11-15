@@ -25,15 +25,16 @@ type Symbol struct {
 	name string
 }
 
-func (s *Symbol) Eval() IExpr {
-	return &Nil
-}
-
 func (s *Symbol) GetType() ast.NodeType {
 	return ast.Symbol
 }
 
 func (s *Symbol) String() string {
+	// TODO: Handle ns qualified symbols here
+	return s.name
+}
+
+func (s *Symbol) GetName() string {
 	// TODO: Handle ns qualified symbols here
 	return s.name
 }

@@ -26,6 +26,6 @@ import (
 	"serene-lang.org/bootstrap/pkg/types"
 )
 
-func Print(rt *runtime.Runtime, ast types.ASTree) {
+func Print(rt *runtime.Runtime, ast types.IPrintable) {
 	fmt.Println(ast.String())
 }

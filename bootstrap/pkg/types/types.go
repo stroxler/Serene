@@ -40,7 +40,6 @@ type IExpr interface {
 	ast.ITypable
 	IPrintable
 	IDebuggable
-	Eval() IExpr
 }
 
 type Node struct {
