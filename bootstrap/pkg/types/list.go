@@ -25,20 +25,25 @@ import (
 	"serene-lang.org/bootstrap/pkg/ast"
 )
 
+/** WARNING:
+This List implementation may look simple and performant but since
+we're using a slice here. But in fact it's not memory effecient at
+all. We need to rewrite this later to be a immutable and persistent
+link list of cons.
+*/
+
 type List struct {
 	Node
 	exprs []IExpr
 }
 
-func (l List) Eval() IExpr {
-	return &Nil
-}
+// Implementing IExpr for List ---
 
-func (l List) GetType() ast.NodeType {
+func (l *List) GetType() ast.NodeType {
 	return ast.List
 }
 
-func (l List) String() string {
+func (l *List) String() string {
 	var strs []string
 	for _, e := range l.exprs {
 		strs = append(strs, e.String())
@@ -46,12 +51,46 @@ func (l List) String() string {
 	return fmt.Sprintf("(%s)", strings.Join(strs, " "))
 }
 
-func (l List) ToDebugStr() string {
+func (l *List) ToDebugStr() string {
 	return fmt.Sprintf("%#v", l)
 }
+
+// END: IExpr ---
+
+// Implementing ISeq for List ---
+
+func (l *List) First() IExpr {
+	if l.Count() == 0 {
+		return Nil
+	}
+	return l.exprs[0]
+}
+
+func (l *List) Rest() *List {
+	if l.Count() < 2 {
+		return MakeEmptyList()
+	}
+	return MakeList(l.exprs[1:])
+}
+
+// END: ISeq ---
+
+// Implementing ICountable for List ---
+
+func (l *List) Count() int {
+	return len(l.exprs)
+}
+
+// END: ICountable ---
 
 func MakeList(elements []IExpr) *List {
 	return &List{
 		exprs: elements,
+	}
+}
+
+func MakeEmptyList() *List {
+	return &List{
+		exprs: []IExpr{},
 	}
 }

@@ -20,7 +20,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // of it to be used as the basic blocks of Serene's namespaces.
 package namespace
 
-import "serene-lang.org/bootstrap/pkg/scope"
+import (
+	"serene-lang.org/bootstrap/pkg/scope"
+	"serene-lang.org/bootstrap/pkg/types"
+)
 
 type INamespace interface {
 	DefineGlobal()
@@ -37,7 +40,9 @@ type Namespace struct {
 	externals map[string]Namespace
 }
 
-func (n *Namespace) DefineGlobal() {}
+func (n *Namespace) DefineGlobal(k string, v types.IExpr, public bool) {
+	n.rootScope.Insert(k, v, public)
+}
 
 func (n *Namespace) LookupGlobal() {}
 

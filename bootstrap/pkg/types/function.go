@@ -18,5 +18,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package types
 
-type ISeq interface {
+import (
+	"serene-lang.org/bootstrap/pkg/runtime"
+	"serene-lang.org/bootstrap/pkg/scope"
+)
+
+type ICallable interface {
+	Apply(rt *runtime.Runtime, scope scope.IScope, args *List) (IExpr, error)
 }
