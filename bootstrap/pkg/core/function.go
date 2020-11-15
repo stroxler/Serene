@@ -16,11 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package parser
+package core
 
-type IParsable interface {
-	next(skipWhitespace bool) *string
-	peek(skipWhitespace bool) *string
-	back()
-	GetLocation() int
+type ICallable interface {
+	Apply(rt *Runtime, scope IScope, args *List) (IExpr, error)
 }

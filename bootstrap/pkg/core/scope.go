@@ -16,35 +16,43 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package types
+package core
 
-import "serene-lang.org/bootstrap/pkg/ast"
-
-type Symbol struct {
-	Node
-	name string
+type IScope interface {
+	Lookup(k string) *Binding
+	Insert(k string, v IExpr, public bool)
 }
 
-func (s *Symbol) GetType() ast.NodeType {
-	return ast.Symbol
+type Binding struct {
+	Value  IExpr
+	Public bool
 }
 
-func (s *Symbol) String() string {
-	// TODO: Handle ns qualified symbols here
-	return s.name
+type Scope struct {
+	bindings map[string]Binding
+	parent   *Scope
 }
 
-func (s *Symbol) GetName() string {
-	// TODO: Handle ns qualified symbols here
-	return s.name
+func (s *Scope) Lookup(k string) *Binding {
+	v, ok := s.bindings[k]
+	if ok {
+		return &v
+	}
+
+	if s.parent != nil {
+		return s.parent.Lookup(k)
+	}
+
+	return nil
 }
 
-func (s *Symbol) ToDebugStr() string {
-	return s.name
+func (s *Scope) Insert(k string, v IExpr, public bool) {
+	s.bindings[k] = Binding{Value: v, Public: public}
 }
 
-func MakeSymbol(s string) *Symbol {
-	return &Symbol{
-		name: s,
+func MakeScope(parent *Scope) Scope {
+	return Scope{
+		parent:   parent,
+		bindings: map[string]Binding{},
 	}
 }

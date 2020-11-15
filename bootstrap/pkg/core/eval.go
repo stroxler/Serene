@@ -23,20 +23,19 @@ import (
 	"fmt"
 
 	"serene-lang.org/bootstrap/pkg/ast"
-	"serene-lang.org/bootstrap/pkg/runtime"
-	"serene-lang.org/bootstrap/pkg/scope"
-	"serene-lang.org/bootstrap/pkg/types"
 )
 
-var sFormsTable = map[string]types.ICallable{
+var sFormsTable map[string]ICallable = map[string]ICallable{
 	"def": Def,
 }
 
-func GetBuildIn(s *types.Symbol) (types.ICallable, bool) {
-	return sFormsTable[s.GetName()]
+func GetBuiltIn(s *Symbol) (ICallable, bool) {
+	// Go can't differntiate between returning a tupe directly or indirectly
+	v, ok := sFormsTable[s.GetName()]
+	return v, ok
 }
 
-func EvalForm(rt *runtime.Runtime, scope scope.IScope, form types.IExpr) (types.IExpr, error) {
+func EvalForm(rt *Runtime, scope IScope, form IExpr) (IExpr, error) {
 	switch form.GetType() {
 	case ast.Nil:
 	case ast.Number:
@@ -48,7 +47,7 @@ func EvalForm(rt *runtime.Runtime, scope scope.IScope, form types.IExpr) (types.
 	// * If it's not a NSQS Look up the name in the current scope.
 	// * Otherwise throw an error
 	case ast.Symbol:
-		symbolName := form.(*types.Symbol).GetName()
+		symbolName := form.(*Symbol).GetName()
 		expr := scope.Lookup(symbolName)
 
 		if expr == nil {
@@ -63,14 +62,14 @@ func EvalForm(rt *runtime.Runtime, scope scope.IScope, form types.IExpr) (types.
 	//   first element is `ICallable` and it's not a macro or special form.
 	// * An empty list evaluates to itself.
 	case ast.List:
-		list := form.(*types.List)
+		list := form.(*List)
 		if list.Count() == 0 {
 			return list, nil
 		}
-		first := form.(*types.List).First()
+		first := form.(*List).First()
 
 		if first.GetType() == ast.Symbol {
-			sform, ok := GetBuiltIn(first.(*types.Symbol))
+			sform, ok := GetBuiltIn(first.(*Symbol))
 			if ok {
 				return sform.Apply(rt, scope, list.Rest())
 			}
@@ -84,12 +83,12 @@ func EvalForm(rt *runtime.Runtime, scope scope.IScope, form types.IExpr) (types.
 	return nil, errors.New("not implemented")
 }
 
-func Eval(rt *runtime.Runtime, forms types.ASTree) (types.IExpr, error) {
+func Eval(rt *Runtime, forms ASTree) (IExpr, error) {
 	if len(forms) == 0 {
-		return &types.Nil, nil
+		return &Nil, nil
 	}
 
-	var ret types.IExpr
+	var ret IExpr
 
 	for _, form := range forms {
 		// v is here to shut up the linter

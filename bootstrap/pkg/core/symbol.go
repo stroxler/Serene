@@ -16,13 +16,35 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package types
+package core
 
-type ISeq interface {
-	First() IExpr
-	Rest() ISeq
+import "serene-lang.org/bootstrap/pkg/ast"
+
+type Symbol struct {
+	Node
+	name string
 }
 
-type ICountable interface {
-	Count() int
+func (s *Symbol) GetType() ast.NodeType {
+	return ast.Symbol
+}
+
+func (s *Symbol) String() string {
+	// TODO: Handle ns qualified symbols here
+	return s.name
+}
+
+func (s *Symbol) GetName() string {
+	// TODO: Handle ns qualified symbols here
+	return s.name
+}
+
+func (s *Symbol) ToDebugStr() string {
+	return s.name
+}
+
+func MakeSymbol(s string) *Symbol {
+	return &Symbol{
+		name: s,
+	}
 }

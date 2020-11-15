@@ -22,9 +22,6 @@ import (
 	"errors"
 
 	"serene-lang.org/bootstrap/pkg/ast"
-	"serene-lang.org/bootstrap/pkg/runtime"
-	"serene-lang.org/bootstrap/pkg/scope"
-	"serene-lang.org/bootstrap/pkg/types"
 )
 
 /** TODO:
@@ -36,7 +33,7 @@ type def struct{}
 
 var Def = def{}
 
-func (d def) Apply(rt *runtime.Runtime, scope scope.IScope, args *types.List) (types.IExpr, error) {
+func (d def) Apply(rt *Runtime, scope IScope, args *List) (IExpr, error) {
 	switch args.Count() {
 	case 2:
 		name := args.First()
@@ -45,9 +42,9 @@ func (d def) Apply(rt *runtime.Runtime, scope scope.IScope, args *types.List) (t
 			return nil, errors.New("The first argument of 'def' has to be a symbol")
 		}
 
-		sym := name.(*types.Symbol)
+		sym := name.(*Symbol)
 
-		//value = args.Rest().(*types.List).First()
+		//value = args.Rest().(*List).First()
 		valueExpr := args.Rest().First()
 		value, err := EvalForm(rt, scope, valueExpr)
 

@@ -16,20 +16,23 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Package parser provides necessary functions to generate an AST
-// from an input
-package parser
+package core
 
 import (
 	"errors"
 	"fmt"
 	"strings"
 	"unicode"
-
-	"serene-lang.org/bootstrap/pkg/types"
 )
 
 var validChars = []rune{'!', '$', '%', '&', '*', '+', '-', '.', '~', '/', ':', '<', '=', '>', '?', '@', '^', '_'}
+
+type IParsable interface {
+	next(skipWhitespace bool) *string
+	peek(skipWhitespace bool) *string
+	back()
+	GetLocation() int
+}
 
 type StringParser struct {
 	buffer []string
@@ -90,7 +93,7 @@ func isValidForSymbol(char string) bool {
 	return contains(validChars, c) || unicode.IsLetter(c) || unicode.IsDigit(c)
 }
 
-func readRawSymbol(parser IParsable) (types.IExpr, error) {
+func readRawSymbol(parser IParsable) (IExpr, error) {
 	c := parser.peek(false)
 	var symbol string
 
@@ -124,10 +127,10 @@ func readRawSymbol(parser IParsable) (types.IExpr, error) {
 	}
 
 	// TODO: Add support for ns qualified symbols
-	return types.MakeSymbol(symbol), nil
+	return MakeSymbol(symbol), nil
 }
 
-func readNumber(parser IParsable, neg bool) (types.IExpr, error) {
+func readNumber(parser IParsable, neg bool) (IExpr, error) {
 	isDouble := false
 	result := ""
 
@@ -163,10 +166,10 @@ func readNumber(parser IParsable, neg bool) (types.IExpr, error) {
 		}
 	}
 
-	return types.MakeNumberFromStr(result, isDouble)
+	return MakeNumberFromStr(result, isDouble)
 }
 
-func readSymbol(parser IParsable) (types.IExpr, error) {
+func readSymbol(parser IParsable) (IExpr, error) {
 	c := parser.peek(false)
 
 	if c == nil {
@@ -204,8 +207,8 @@ func readSymbol(parser IParsable) (types.IExpr, error) {
 	return readRawSymbol(parser)
 }
 
-func readList(parser IParsable) (types.IExpr, error) {
-	list := []types.IExpr{}
+func readList(parser IParsable) (IExpr, error) {
+	list := []IExpr{}
 
 	for {
 		c := parser.peek(true)
@@ -226,10 +229,10 @@ func readList(parser IParsable) (types.IExpr, error) {
 		}
 	}
 
-	return types.MakeList(list), nil
+	return MakeList(list), nil
 }
 
-func readComment(parser IParsable) (types.IExpr, error) {
+func readComment(parser IParsable) (IExpr, error) {
 	for {
 		c := parser.next(false)
 		if c == nil || *c == "\n" {
@@ -238,36 +241,36 @@ func readComment(parser IParsable) (types.IExpr, error) {
 	}
 }
 
-func readQuotedExpr(parser IParsable) (types.IExpr, error) {
+func readQuotedExpr(parser IParsable) (IExpr, error) {
 	expr, err := readExpr(parser)
 	if err != nil {
 		return nil, err
 	}
 
-	return types.MakeList([]types.IExpr{
-		types.MakeSymbol("quote"),
+	return MakeList([]IExpr{
+		MakeSymbol("quote"),
 		expr,
 	}), nil
 }
 
-func readUnquotedExpr(parser IParsable) (types.IExpr, error) {
+func readUnquotedExpr(parser IParsable) (IExpr, error) {
 	c := parser.peek(true)
 
 	if c == nil {
 		return nil, errors.New("end of file while reading an unquoted expression")
 	}
 
-	var sym types.IExpr
+	var sym IExpr
 	var err error
-	var expr types.IExpr
+	var expr IExpr
 
 	if *c == "@" {
 		parser.next(true)
-		sym = types.MakeSymbol("unquote-splicing")
+		sym = MakeSymbol("unquote-splicing")
 		expr, err = readExpr(parser)
 
 	} else {
-		sym = types.MakeSymbol("unquote")
+		sym = MakeSymbol("unquote")
 		expr, err = readExpr(parser)
 	}
 
@@ -275,22 +278,22 @@ func readUnquotedExpr(parser IParsable) (types.IExpr, error) {
 		return nil, err
 	}
 
-	return types.MakeList([]types.IExpr{sym, expr}), nil
+	return MakeList([]IExpr{sym, expr}), nil
 }
 
-func readQuasiquotedExpr(parser IParsable) (types.IExpr, error) {
+func readQuasiquotedExpr(parser IParsable) (IExpr, error) {
 	expr, err := readExpr(parser)
 	if err != nil {
 		return nil, err
 	}
 
-	return types.MakeList([]types.IExpr{
-		types.MakeSymbol("quasiquote"),
+	return MakeList([]IExpr{
+		MakeSymbol("quasiquote"),
 		expr,
 	}), nil
 }
 
-func readExpr(parser IParsable) (types.IExpr, error) {
+func readExpr(parser IParsable) (IExpr, error) {
 
 loop:
 	c := parser.next(true)
@@ -329,9 +332,9 @@ loop:
 
 }
 
-func ParseToAST(input string) (types.ASTree, error) {
+func ParseToAST(input string) (ASTree, error) {
 
-	var ast types.ASTree
+	var ast ASTree
 	parser := StringParser{
 		buffer: strings.Split(input, ""),
 		pos:    0,

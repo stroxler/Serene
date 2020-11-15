@@ -20,11 +20,8 @@ package core
 
 import (
 	"fmt"
-
-	"serene-lang.org/bootstrap/pkg/runtime"
-	"serene-lang.org/bootstrap/pkg/types"
 )
 
-func Print(rt *runtime.Runtime, ast types.IPrintable) {
+func Print(rt *Runtime, ast IPrintable) {
 	fmt.Println(ast.String())
 }

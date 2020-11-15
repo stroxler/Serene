@@ -23,10 +23,9 @@ import (
 	"fmt"
 
 	"github.com/chzyer/readline"
-	"serene-lang.org/bootstrap/pkg/runtime"
 )
 
-func rep(rt *runtime.Runtime, line string) {
+func rep(rt *Runtime, line string) {
 	ast, err := ReadString(line)
 
 	if err != nil {
@@ -53,7 +52,7 @@ Replace the readline implementation with go-prompt.
 */
 
 func REPL(debug bool) {
-	rt := runtime.MakeRuntime(debug)
+	rt := MakeRuntime(debug)
 
 	rt.CreateNS("user", "REPL", true)
 	rl, err := readline.New("> ")

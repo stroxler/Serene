@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // Package types provides the type interface of Serene. All the types
 // in Serene are directly AST Nodes as well.
-package types
+package core
 
 import (
 	"fmt"

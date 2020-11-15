@@ -16,13 +16,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package types
+package core
 
-import (
-	"serene-lang.org/bootstrap/pkg/runtime"
-	"serene-lang.org/bootstrap/pkg/scope"
-)
+type ISeq interface {
+	First() IExpr
+	Rest() ISeq
+}
 
-type ICallable interface {
-	Apply(rt *runtime.Runtime, scope scope.IScope, args *List) (IExpr, error)
+type ICountable interface {
+	Count() int
 }

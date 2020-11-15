@@ -16,37 +16,30 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Package namespace provides an INamespace interface and one implementation
-// of it to be used as the basic blocks of Serene's namespaces.
-package namespace
-
-import (
-	"serene-lang.org/bootstrap/pkg/scope"
-	"serene-lang.org/bootstrap/pkg/types"
-)
+package core
 
 type INamespace interface {
 	DefineGlobal()
 	LookupGlobal()
-	GetRootScope() scope.IScope
+	GetRootScope() IScope
 	// return the fully qualified name of the namespace
 	GetName() string
 }
 
 type Namespace struct {
 	name      string
-	rootScope scope.Scope
+	rootScope Scope
 	source    string
 	externals map[string]Namespace
 }
 
-func (n *Namespace) DefineGlobal(k string, v types.IExpr, public bool) {
+func (n *Namespace) DefineGlobal(k string, v IExpr, public bool) {
 	n.rootScope.Insert(k, v, public)
 }
 
 func (n *Namespace) LookupGlobal() {}
 
-func (n *Namespace) GetRootScope() scope.IScope {
+func (n *Namespace) GetRootScope() IScope {
 	return &n.rootScope
 }
 
@@ -57,7 +50,7 @@ func (n *Namespace) GetName() string {
 func MakeNS(name string, source string) Namespace {
 	return Namespace{
 		name:      name,
-		rootScope: scope.MakeScope(nil),
+		rootScope: MakeScope(nil),
 		source:    source,
 		externals: map[string]Namespace{},
 	}

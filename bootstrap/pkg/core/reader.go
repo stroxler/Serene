@@ -18,11 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package core
 
-import (
-	"serene-lang.org/bootstrap/pkg/parser"
-	"serene-lang.org/bootstrap/pkg/types"
-)
-
-func ReadString(input string) (types.ASTree, error) {
-	return parser.ParseToAST(input)
+func ReadString(input string) (ASTree, error) {
+	return ParseToAST(input)
 }

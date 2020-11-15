@@ -16,15 +16,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Package runtime provides all the necessary functionality and data
-// structures of Serene at runtime. You can think of the run time as
-// Serene's state.
-package runtime
+package core
 
 import (
 	"fmt"
-
-	"serene-lang.org/bootstrap/pkg/namespace"
 )
 
 /** TODO:
@@ -36,7 +31,7 @@ Handle concurrency on the runtime level
 */
 
 type Runtime struct {
-	namespaces map[string]namespace.Namespace
+	namespaces map[string]Namespace
 	currentNS  string
 	debugMode  bool
 }
@@ -45,7 +40,7 @@ func (r *Runtime) IsDebugMode() bool {
 	return r.debugMode
 }
 
-func (r *Runtime) CurrentNS() *namespace.Namespace {
+func (r *Runtime) CurrentNS() *Namespace {
 	if r.currentNS == "" {
 		panic("current ns is not set on the runtime.")
 	}
@@ -60,7 +55,7 @@ func (r *Runtime) CurrentNS() *namespace.Namespace {
 }
 
 func (r *Runtime) CreateNS(name string, source string, setAsCurrent bool) {
-	ns := namespace.MakeNS(name, source)
+	ns := MakeNS(name, source)
 
 	if setAsCurrent {
 		r.currentNS = name
@@ -70,7 +65,7 @@ func (r *Runtime) CreateNS(name string, source string, setAsCurrent bool) {
 
 func MakeRuntime(debug bool) *Runtime {
 	return &Runtime{
-		namespaces: map[string]namespace.Namespace{},
+		namespaces: map[string]Namespace{},
 		currentNS:  "",
 		debugMode:  debug,
 	}
