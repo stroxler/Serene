@@ -22,7 +22,6 @@ package core
 
 import (
 	"fmt"
-	"strings"
 
 	"serene-lang.org/bootstrap/pkg/ast"
 )
@@ -48,17 +47,4 @@ type Node struct {
 
 func (n Node) GetLocation() int {
 	return n.location
-}
-
-type ASTree []IExpr
-
-func (t ASTree) String() string {
-	var result []string
-	result = append(result, "AST[")
-
-	for _, node := range t {
-		result = append(result, node.String())
-	}
-	result = append(result, "]")
-	return strings.Join(result, " ")
 }

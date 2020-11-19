@@ -78,82 +78,110 @@ func EvalForm(rt *Runtime, scope IScope, form IExpr) (IExpr, error) {
 
 }
 
-func EvalForms(rt *Runtime, scope IScope, forms IExpr) (IExpr, error) {
+func EvalForms(rt *Runtime, scope IScope, expressions IExpr) (IExpr, error) {
+	var ret IExpr
+	var err error
+
+tco:
 	for {
-		if forms.GetType() != ast.List {
-			return EvalForm(rt, scope, forms)
-		}
+		var exprs []IExpr
 
-		list := forms.(*List)
-
-		if list.Count() == 0 {
-			return &Nil, nil
-		}
-		fmt.Printf("EVAL: %s\n", list)
-
-		rawFirst := list.First()
-		sform := ""
-
-		// Handling special forms
-		if rawFirst.GetType() == ast.Symbol {
-			sform = rawFirst.(*Symbol).GetName()
-		}
-
-		fmt.Printf("sform: %s\n", sform)
-		switch sform {
-
-		case "def":
-			return Def(rt, scope, list.Rest().(*List))
-
-		case "fn":
-			return Fn(rt, scope, list.Rest().(*List))
-
-		default:
-			exprs, err := EvalForm(rt, scope, list)
-			if err != nil {
-				return nil, err
+		if expressions.GetType() == ast.Block {
+			if expressions.(*Block).Count() == 0 {
+				return &Nothing, nil
 			}
-			f := exprs.(*List).First()
+			exprs = expressions.(*Block).ToSlice()
+		} else {
+			exprs = []IExpr{expressions}
+		}
+	body:
+		for _, forms := range exprs {
 
-			switch f.GetType() {
-			case ast.Fn:
-				fn := f.(*Function)
-				// Since we're passing a List to evaluate the
-				// result has to be a list. ( Rest returns a List )
-				args, e := EvalForm(rt, scope, list.Rest().(*List))
-				if e != nil {
-					return nil, e
-				}
-				argList, _ := args.(*List)
+			switch forms.GetType() {
+			case ast.List:
 
-				scope, err = MakeFnScope(fn.GetScope(), fn.GetParams(), argList)
-				if err != nil {
-					return nil, err
-				}
-				forms = MakeList(fn.GetBody().ToSlice())
-			// case ast.InteropFn:
 			default:
-				lst := exprs.(*List)
-				return lst.ToSlice()[lst.Count()-1], nil
-				// TODO: Fix this ugly error msg
-				//return nil, fmt.Errorf("can't call anything beside functions yet")
+				ret, err = EvalForm(rt, scope, forms)
+				break tco // return
+			}
 
+			if forms.(*List).Count() == 0 {
+				ret = &Nil
+				break tco // return
+			}
+
+			list := forms.(*List)
+			rawFirst := list.First()
+			sform := ""
+
+			// Handling special forms
+			if rawFirst.GetType() == ast.Symbol {
+				sform = rawFirst.(*Symbol).GetName()
+			}
+
+			switch sform {
+
+			case "def":
+				ret, err = Def(rt, scope, list.Rest().(*List))
+				break tco // return
+
+			case "fn":
+				ret, err = Fn(rt, scope, list.Rest().(*List))
+				break tco // return
+			default:
+				exprs, e := EvalForm(rt, scope, list)
+				if e != nil {
+					err = e
+					ret = nil
+					break tco //return
+				}
+
+				fmt.Printf("<<< %s\n", list)
+				f := exprs.(*List).First()
+
+				switch f.GetType() {
+				case ast.Fn:
+					fn := f.(*Function)
+					if e != nil {
+						err = e
+						ret = nil
+						break body //return
+
+					}
+					//argList, _ := args.(*List)
+					argList := exprs.(*List).Rest().(*List)
+
+					scope, e = MakeFnScope(fn.GetScope(), fn.GetParams(), argList)
+					if e != nil {
+						err = e
+						ret = nil
+						break body //return
+					}
+
+					expressions = fn.GetBody()
+					continue tco
+				default:
+					err = errors.New("don't know how to execute anything beside function")
+					ret = nil
+					break tco
+				}
 			}
 		}
 	}
 
+	return ret, err
 }
 
-func Eval(rt *Runtime, forms ASTree) (IExpr, error) {
-	if len(forms) == 0 {
-		return &Nil, nil
+func Eval(rt *Runtime, forms *Block) (IExpr, error) {
+	if forms.Count() == 0 {
+		return &Nothing, nil
 	}
 
-	v, err := EvalForm(rt, rt.CurrentNS().GetRootScope(), MakeList(forms))
+	v, err := EvalForms(rt, rt.CurrentNS().GetRootScope(), forms)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return v.(*List).First(), nil
+	return v, nil
 }

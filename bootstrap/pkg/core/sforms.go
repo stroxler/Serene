@@ -31,7 +31,7 @@ func Fn(rt *Runtime, scope IScope, args *List) (IExpr, error) {
 	}
 
 	var params IColl
-	body := MakeEmptyList()
+	body := MakeEmptyBlock()
 
 	arguments := args.First()
 
@@ -42,7 +42,7 @@ func Fn(rt *Runtime, scope IScope, args *List) (IExpr, error) {
 	}
 
 	if args.Count() > 1 {
-		body = args.Rest().(*List)
+		body.SetContent(args.Rest().(*List).ToSlice())
 	}
 
 	return MakeFunction(scope, params, body), nil

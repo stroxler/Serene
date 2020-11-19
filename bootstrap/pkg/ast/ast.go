@@ -24,10 +24,12 @@ type NodeType int
 
 const (
 	Nil NodeType = iota
+	Nothing
 	Symbol
 	Number
 	List
 	Fn
+	Block // Dont' mistake it with block from other programming languages
 )
 
 type ILocatable interface {

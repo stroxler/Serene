@@ -332,9 +332,9 @@ loop:
 
 }
 
-func ParseToAST(input string) (ASTree, error) {
+func ParseToAST(input string) (*Block, error) {
 
-	var ast ASTree
+	var ast Block
 	parser := StringParser{
 		buffer: strings.Split(input, ""),
 		pos:    0,
@@ -350,8 +350,8 @@ func ParseToAST(input string) (ASTree, error) {
 			break
 		}
 
-		ast = append(ast, expr)
+		ast.Append(expr)
 	}
 
-	return ast, nil
+	return &ast, nil
 }

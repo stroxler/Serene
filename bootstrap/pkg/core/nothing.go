@@ -20,22 +20,22 @@ package core
 
 import "serene-lang.org/bootstrap/pkg/ast"
 
-type NilType struct{}
+type NothingType struct{}
 
-var Nil = NilType{}
+var Nothing = NothingType{}
 
-func (n NilType) GetType() ast.NodeType {
-	return ast.Nil
+func (n NothingType) GetType() ast.NodeType {
+	return ast.Nothing
 }
 
-func (n NilType) GetLocation() int {
-	return 0
+func (n NothingType) GetLocation() int {
+	return -1
 }
 
-func (n NilType) String() string {
-	return "nil"
+func (n NothingType) String() string {
+	return ""
 }
 
-func (n NilType) ToDebugStr() string {
-	return "nil"
+func (n NothingType) ToDebugStr() string {
+	return ""
 }

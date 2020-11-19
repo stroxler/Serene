@@ -34,7 +34,7 @@ type Function struct {
 	name   string
 	scope  IScope
 	params IColl
-	body   IColl
+	body   *Block
 }
 
 func (f *Function) GetType() ast.NodeType {
@@ -62,11 +62,11 @@ func (f *Function) ToDebugStr() string {
 	return fmt.Sprintf("<Fn: %s at %p", f.name, f)
 }
 
-func (f *Function) GetBody() IColl {
+func (f *Function) GetBody() *Block {
 	return f.body
 }
 
-func MakeFunction(scope IScope, params IColl, body IColl) *Function {
+func MakeFunction(scope IScope, params IColl, body *Block) *Function {
 	return &Function{
 		scope:  scope,
 		params: params,
