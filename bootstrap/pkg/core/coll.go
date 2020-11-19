@@ -26,3 +26,9 @@ type ISeq interface {
 type ICountable interface {
 	Count() int
 }
+
+type IColl interface {
+	ISeq
+	ICountable
+	ToSlice() []IExpr
+}

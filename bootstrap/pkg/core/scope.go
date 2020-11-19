@@ -50,8 +50,8 @@ func (s *Scope) Insert(k string, v IExpr, public bool) {
 	s.bindings[k] = Binding{Value: v, Public: public}
 }
 
-func MakeScope(parent *Scope) Scope {
-	return Scope{
+func MakeScope(parent *Scope) *Scope {
+	return &Scope{
 		parent:   parent,
 		bindings: map[string]Binding{},
 	}

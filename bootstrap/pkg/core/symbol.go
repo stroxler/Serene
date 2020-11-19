@@ -18,7 +18,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package core
 
-import "serene-lang.org/bootstrap/pkg/ast"
+import (
+	"strings"
+
+	"serene-lang.org/bootstrap/pkg/ast"
+)
 
 type Symbol struct {
 	Node
@@ -41,6 +45,11 @@ func (s *Symbol) GetName() string {
 
 func (s *Symbol) ToDebugStr() string {
 	return s.name
+}
+
+func (s *Symbol) IsRestable() bool {
+	// Weird name ? I know :D
+	return strings.HasPrefix(s.name, "&")
 }
 
 func MakeSymbol(s string) *Symbol {

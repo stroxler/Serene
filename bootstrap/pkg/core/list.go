@@ -66,7 +66,7 @@ func (l *List) First() IExpr {
 	return l.exprs[0]
 }
 
-func (l *List) Rest() *List {
+func (l *List) Rest() ISeq {
 	if l.Count() < 2 {
 		return MakeEmptyList()
 	}
@@ -82,6 +82,14 @@ func (l *List) Count() int {
 }
 
 // END: ICountable ---
+
+// Implementing IColl for List ---
+
+func (l *List) ToSlice() []IExpr {
+	return l.exprs
+}
+
+// END: IColl ---
 
 func MakeList(elements []IExpr) *List {
 	return &List{

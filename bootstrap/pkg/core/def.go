@@ -24,16 +24,7 @@ import (
 	"serene-lang.org/bootstrap/pkg/ast"
 )
 
-/** TODO:
-Make sure to implement INode for Def as well to be able to point
-to the write place at the input stream for error messages.
-*/
-
-type def struct{}
-
-var Def = def{}
-
-func (d def) Apply(rt *Runtime, scope IScope, args *List) (IExpr, error) {
+func Def(rt *Runtime, scope IScope, args *List) (IExpr, error) {
 	switch args.Count() {
 	case 2:
 		name := args.First()
@@ -46,7 +37,7 @@ func (d def) Apply(rt *Runtime, scope IScope, args *List) (IExpr, error) {
 
 		//value = args.Rest().(*List).First()
 		valueExpr := args.Rest().First()
-		value, err := EvalForm(rt, scope, valueExpr)
+		value, err := EvalForms(rt, scope, valueExpr)
 
 		if err != nil {
 			return nil, err

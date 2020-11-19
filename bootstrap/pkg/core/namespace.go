@@ -48,9 +48,10 @@ func (n *Namespace) GetName() string {
 }
 
 func MakeNS(name string, source string) Namespace {
+	s := MakeScope(nil)
 	return Namespace{
 		name:      name,
-		rootScope: MakeScope(nil),
+		rootScope: *s,
 		source:    source,
 		externals: map[string]Namespace{},
 	}

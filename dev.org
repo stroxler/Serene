@@ -14,6 +14,7 @@ Then here is the list or parsers that we have considered
 
 * Resources
 For a generic list of resources on compiler design take a look at https://tomassetti.me/resources-create-programming-languages/
+https://www.reddit.com/r/ProgrammingLanguages/comments/8ggx2n/is_llvm_a_good_backend_for_functional_languages/
 ** Lisp
 - Make a Lisp :: https://github.com/kanaka/mal/blob/master/process/guide.md
 ** Rust

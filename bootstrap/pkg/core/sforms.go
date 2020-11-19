@@ -16,24 +16,35 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Package ast provides the functionality and data structures around the
-// Serene's AST.
-package ast
+package core
 
-type NodeType int
+import (
+	"errors"
 
-const (
-	Nil NodeType = iota
-	Symbol
-	Number
-	List
-	Fn
+	"serene-lang.org/bootstrap/pkg/ast"
 )
 
-type ILocatable interface {
-	GetLocation() int
-}
+func Fn(rt *Runtime, scope IScope, args *List) (IExpr, error) {
 
-type ITypable interface {
-	GetType() NodeType
+	if args.Count() < 1 {
+		return nil, errors.New("'fn' needs at least an arguments list")
+	}
+
+	var params IColl
+	body := MakeEmptyList()
+
+	arguments := args.First()
+
+	// TODO: Add vector in here
+	// Or any other icoll
+	if arguments.GetType() == ast.List {
+		params = arguments.(IColl)
+	}
+
+	if args.Count() > 1 {
+		body = args.Rest().(*List)
+	}
+
+	return MakeFunction(scope, params, body), nil
+
 }

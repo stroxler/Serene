@@ -25,19 +25,11 @@ import (
 	"serene-lang.org/bootstrap/pkg/ast"
 )
 
-var sFormsTable map[string]ICallable = map[string]ICallable{
-	"def": Def,
-}
-
-func GetBuiltIn(s *Symbol) (ICallable, bool) {
-	// Go can't differntiate between returning a tupe directly or indirectly
-	v, ok := sFormsTable[s.GetName()]
-	return v, ok
-}
-
 func EvalForm(rt *Runtime, scope IScope, form IExpr) (IExpr, error) {
+
 	switch form.GetType() {
 	case ast.Nil:
+		return form, nil
 	case ast.Number:
 		return form, nil
 
@@ -51,7 +43,7 @@ func EvalForm(rt *Runtime, scope IScope, form IExpr) (IExpr, error) {
 		expr := scope.Lookup(symbolName)
 
 		if expr == nil {
-			return nil, fmt.Errorf("Can't resolve symbol '%s' in ns '%s'", symbolName, rt.CurrentNS().GetName())
+			return nil, fmt.Errorf("can't resolve symbol '%s' in ns '%s'", symbolName, rt.CurrentNS().GetName())
 		}
 
 		return expr.Value, nil
@@ -62,25 +54,94 @@ func EvalForm(rt *Runtime, scope IScope, form IExpr) (IExpr, error) {
 	//   first element is `ICallable` and it's not a macro or special form.
 	// * An empty list evaluates to itself.
 	case ast.List:
-		list := form.(*List)
-		if list.Count() == 0 {
-			return list, nil
-		}
-		first := form.(*List).First()
+		var result []IExpr
 
-		if first.GetType() == ast.Symbol {
-			sform, ok := GetBuiltIn(first.(*Symbol))
-			if ok {
-				return sform.Apply(rt, scope, list.Rest())
+		lst := form.(*List)
+
+		for {
+			if lst.Count() > 0 {
+				expr, err := EvalForms(rt, scope, lst.First())
+				if err != nil {
+					return nil, err
+				}
+				result = append(result, expr)
+				lst = lst.Rest().(*List)
+			} else {
+				break
 			}
 		}
-
-		fmt.Printf("no builtin %#v", first)
-
+		return MakeList(result), nil
 	}
 
 	// Default case
 	return nil, errors.New("not implemented")
+
+}
+
+func EvalForms(rt *Runtime, scope IScope, forms IExpr) (IExpr, error) {
+	for {
+		if forms.GetType() != ast.List {
+			return EvalForm(rt, scope, forms)
+		}
+
+		list := forms.(*List)
+
+		if list.Count() == 0 {
+			return &Nil, nil
+		}
+		fmt.Printf("EVAL: %s\n", list)
+
+		rawFirst := list.First()
+		sform := ""
+
+		// Handling special forms
+		if rawFirst.GetType() == ast.Symbol {
+			sform = rawFirst.(*Symbol).GetName()
+		}
+
+		fmt.Printf("sform: %s\n", sform)
+		switch sform {
+
+		case "def":
+			return Def(rt, scope, list.Rest().(*List))
+
+		case "fn":
+			return Fn(rt, scope, list.Rest().(*List))
+
+		default:
+			exprs, err := EvalForm(rt, scope, list)
+			if err != nil {
+				return nil, err
+			}
+			f := exprs.(*List).First()
+
+			switch f.GetType() {
+			case ast.Fn:
+				fn := f.(*Function)
+				// Since we're passing a List to evaluate the
+				// result has to be a list. ( Rest returns a List )
+				args, e := EvalForm(rt, scope, list.Rest().(*List))
+				if e != nil {
+					return nil, e
+				}
+				argList, _ := args.(*List)
+
+				scope, err = MakeFnScope(fn.GetScope(), fn.GetParams(), argList)
+				if err != nil {
+					return nil, err
+				}
+				forms = MakeList(fn.GetBody().ToSlice())
+			// case ast.InteropFn:
+			default:
+				lst := exprs.(*List)
+				return lst.ToSlice()[lst.Count()-1], nil
+				// TODO: Fix this ugly error msg
+				//return nil, fmt.Errorf("can't call anything beside functions yet")
+
+			}
+		}
+	}
+
 }
 
 func Eval(rt *Runtime, forms ASTree) (IExpr, error) {
@@ -88,18 +149,11 @@ func Eval(rt *Runtime, forms ASTree) (IExpr, error) {
 		return &Nil, nil
 	}
 
-	var ret IExpr
+	v, err := EvalForm(rt, rt.CurrentNS().GetRootScope(), MakeList(forms))
 
-	for _, form := range forms {
-		// v is here to shut up the linter
-		v, err := EvalForm(rt, rt.CurrentNS().GetRootScope(), form)
-
-		if err != nil {
-			return nil, err
-		}
-
-		ret = v
+	if err != nil {
+		return nil, err
 	}
 
-	return ret, nil
+	return v.(*List).First(), nil
 }
