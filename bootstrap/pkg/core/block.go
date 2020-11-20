@@ -25,6 +25,10 @@ import (
 	"serene-lang.org/bootstrap/pkg/ast"
 )
 
+// Block struct represents a group of forms. Don't confuse it with
+// code blocks from other languages that specify a block using curly
+// brackets and indentation.
+// Blocks in serene are just a group of forms and nothing more.
 type Block struct {
 	body []IExpr
 }
@@ -60,6 +64,7 @@ func (b *Block) SetContent(body []IExpr) {
 	b.body = body
 }
 
+// Append the given expr `form` to the block
 func (b *Block) Append(form IExpr) {
 	b.body = append(b.body, form)
 }
@@ -68,10 +73,13 @@ func (b *Block) Count() int {
 	return len(b.body)
 }
 
+// MakeEmptyBlock creates an empty block
 func MakeEmptyBlock() *Block {
 	return &Block{}
 }
 
+// MakeBlock creates a block that holds the given array of
+// forms `body`.
 func MakeBlock(body []IExpr) *Block {
 	return &Block{
 		body: body,

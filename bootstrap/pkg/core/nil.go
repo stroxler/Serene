@@ -22,6 +22,7 @@ import "serene-lang.org/bootstrap/pkg/ast"
 
 type NilType struct{}
 
+// Nil is just Nil not `null` or anything
 var Nil = NilType{}
 
 func (n NilType) GetType() ast.NodeType {

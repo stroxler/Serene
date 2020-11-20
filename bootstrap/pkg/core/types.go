@@ -16,8 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Package types provides the type interface of Serene. All the types
-// in Serene are directly AST Nodes as well.
 package core
 
 import (
@@ -26,14 +24,22 @@ import (
 	"serene-lang.org/bootstrap/pkg/ast"
 )
 
+// IPrintable is the interface which any value that wants to have a string
+// representation has to implement. The `print` family functions will use
+// this interface to convert forms to string
 type IPrintable interface {
 	fmt.Stringer
 }
 
+// IDebuggable is the interface designed for converting forms to a string
+// form which are meant to be used as debug data
 type IDebuggable interface {
 	ToDebugStr() string
 }
 
+// IExpr is the most important interface in Serene which basically represents
+// a VALUE in Serene. All the forms (beside special formss) has to implement
+// this interface.
 type IExpr interface {
 	ast.ILocatable
 	ast.ITypable
@@ -41,10 +47,13 @@ type IExpr interface {
 	IDebuggable
 }
 
+// Node struct is simply representing a Node in the AST which provides the
+// functionalities required to trace the code based on the location.
 type Node struct {
 	location int
 }
 
+// GetLocation returns the location of the Node in the source input
 func (n Node) GetLocation() int {
 	return n.location
 }

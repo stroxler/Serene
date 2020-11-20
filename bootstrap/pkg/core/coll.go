@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package core
 
+// ISeq is an interface describing a sequence of forms
 type ISeq interface {
 	First() IExpr
 	Rest() ISeq
@@ -27,6 +28,7 @@ type ICountable interface {
 	Count() int
 }
 
+// IColl describes a collection of values. A finite collection.
 type IColl interface {
 	ISeq
 	ICountable

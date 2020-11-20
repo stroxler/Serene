@@ -24,6 +24,40 @@ import (
 	"serene-lang.org/bootstrap/pkg/ast"
 )
 
+// Def defines a global binding in the current namespace. The first
+// arguments in `args` has to be a symbol ( none ns qualified ) and
+// the second param should be the value of the binding
+func Def(rt *Runtime, scope IScope, args *List) (IExpr, error) {
+
+	// TODO: Add support for docstrings and meta
+
+	switch args.Count() {
+	case 2:
+		name := args.First()
+
+		if name.GetType() != ast.Symbol {
+			return nil, errors.New("the first argument of 'def' has to be a symbol")
+		}
+
+		sym := name.(*Symbol)
+
+		valueExpr := args.Rest().First()
+		value, err := EvalForms(rt, scope, valueExpr)
+
+		if err != nil {
+			return nil, err
+		}
+
+		ns := rt.CurrentNS()
+		ns.DefineGlobal(sym.GetName(), value, true)
+		return sym, nil
+	}
+
+	return nil, errors.New("'def' form need at least 2 arguments")
+}
+
+// Fn defines a function inside the given scope `scope` with the given `args`.
+// `args` contains the arugment list, docstring and body of the function.
 func Fn(rt *Runtime, scope IScope, args *List) (IExpr, error) {
 
 	if args.Count() < 1 {
@@ -46,5 +80,4 @@ func Fn(rt *Runtime, scope IScope, args *List) (IExpr, error) {
 	}
 
 	return MakeFunction(scope, params, body), nil
-
 }

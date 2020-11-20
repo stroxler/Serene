@@ -34,6 +34,7 @@ func rep(rt *Runtime, line string) {
 		fmt.Println(err)
 	}
 
+	// Debug data, ugly right ? :))
 	if rt.IsDebugMode() {
 		fmt.Println("\n### DEBUG ###")
 		Print(rt, ast)
@@ -53,6 +54,8 @@ func rep(rt *Runtime, line string) {
 Replace the readline implementation with go-prompt.
 */
 
+// REPL executes a Read Eval Print Loop locally reading from stdin and
+// writing to stdout
 func REPL(debug bool) {
 	rt := MakeRuntime(debug)
 	rt.CreateNS("user", "REPL", true)

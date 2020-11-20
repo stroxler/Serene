@@ -40,6 +40,8 @@ type StringParser struct {
 }
 
 // Implementing IParsable for StringParser ---
+
+// Returns the next character in the buffer
 func (sp *StringParser) next(skipWhitespace bool) *string {
 	if sp.pos >= len(sp.buffer) {
 		return nil
@@ -54,6 +56,7 @@ func (sp *StringParser) next(skipWhitespace bool) *string {
 	return &char
 }
 
+// Return the character of the buffer without consuming it
 func (sp *StringParser) peek(skipWhitespace bool) *string {
 	if sp.pos >= len(sp.buffer) {
 		return nil
@@ -67,6 +70,7 @@ func (sp *StringParser) peek(skipWhitespace bool) *string {
 	return &c
 }
 
+// Move the char pointer back by one character
 func (sp *StringParser) back() {
 	if sp.pos > 0 {
 		sp.pos = sp.pos - 1
@@ -78,6 +82,7 @@ func (sp *StringParser) GetLocation() int {
 }
 
 // END: IParsable ---
+
 func contains(s []rune, c rune) bool {
 	for _, v := range s {
 		if v == c {

@@ -1,4 +1,11 @@
 * Serene lang
+
+** Development hint
+
+*** Use Make... functions
+In order to create a new value in any type use the designated Make function, for example: MakeList
+
+
 ** Setup development environment
 *** Emacs
 [[https://github.com/brotzeit/rustic][Rustic]] is highly recommended. Just install it and install the dependencies necessary
