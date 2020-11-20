@@ -136,7 +136,6 @@ tco:
 					break tco //return
 				}
 
-				fmt.Printf("<<< %s\n", list)
 				f := exprs.(*List).First()
 
 				switch f.GetType() {

@@ -21,6 +21,8 @@ package core
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/chzyer/readline"
 )
@@ -53,12 +55,19 @@ Replace the readline implementation with go-prompt.
 
 func REPL(debug bool) {
 	rt := MakeRuntime(debug)
-
 	rt.CreateNS("user", "REPL", true)
-	rl, err := readline.New("> ")
+
+	rl, err := readline.NewEx(&readline.Config{
+		Prompt:            "> ",
+		HistoryFile:       filepath.Join(os.Getenv("HOME"), ".serene.history"),
+		InterruptPrompt:   "^C",
+		EOFPrompt:         "exit",
+		HistorySearchFold: true,
+	})
 	if err != nil {
 		panic(err)
 	}
+	rl.HistoryEnable()
 	defer rl.Close()
 
 	fmt.Println(`Serene's bootstrap interpreter is used to
