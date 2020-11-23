@@ -90,7 +90,6 @@ func MakeFunction(scope IScope, params IColl, body *Block) *Function {
 // MakeFnScope a new scope for the body of a function. It binds the `bindings`
 // to the given `values`.
 func MakeFnScope(parent IScope, bindings IColl, values IColl) (*Scope, error) {
-	fmt.Printf("%s    %s\n", bindings, values)
 	scope := MakeScope(parent.(*Scope))
 
 	// TODO: Implement destructuring

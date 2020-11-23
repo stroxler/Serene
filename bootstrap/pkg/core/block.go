@@ -49,11 +49,11 @@ func (b *Block) ToDebugStr() string {
 	return fmt.Sprintf("%#v", b)
 }
 
-func (b *Block) GetLocation() int {
+func (b *Block) GetLocation() ast.Location {
 	if len(b.body) > 0 {
 		return b.body[0].GetLocation()
 	}
-	return -1
+	return ast.MakeUnknownLocation()
 }
 
 func (b *Block) ToSlice() []IExpr {

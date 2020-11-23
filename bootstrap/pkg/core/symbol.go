@@ -52,8 +52,9 @@ func (s *Symbol) IsRestable() bool {
 	return strings.HasPrefix(s.name, "&")
 }
 
-func MakeSymbol(s string) *Symbol {
+func MakeSymbol(n Node, s string) *Symbol {
 	return &Symbol{
+		Node: n,
 		name: s,
 	}
 }

@@ -50,10 +50,16 @@ type IExpr interface {
 // Node struct is simply representing a Node in the AST which provides the
 // functionalities required to trace the code based on the location.
 type Node struct {
-	location int
+	location ast.Location
 }
 
 // GetLocation returns the location of the Node in the source input
-func (n Node) GetLocation() int {
+func (n Node) GetLocation() ast.Location {
 	return n.location
+}
+
+func MakeNode(input *[]string, start int, end int) Node {
+	return Node{
+		location: ast.MakeLocation(input, start, end),
+	}
 }

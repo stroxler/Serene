@@ -29,8 +29,8 @@ func (n NilType) GetType() ast.NodeType {
 	return ast.Nil
 }
 
-func (n NilType) GetLocation() int {
-	return 0
+func (n NilType) GetLocation() ast.Location {
+	return ast.MakeUnknownLocation()
 }
 
 func (n NilType) String() string {

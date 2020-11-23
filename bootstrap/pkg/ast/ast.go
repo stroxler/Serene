@@ -32,10 +32,32 @@ const (
 	Block // Dont' mistake it with block from other programming languages
 )
 
+type Location struct {
+	start         int
+	end           int
+	source        *[]string
+	knownLocation bool
+}
+
 type ILocatable interface {
-	GetLocation() int
+	GetLocation() Location
+}
+
+func MakeLocation(input *[]string, start int, end int) Location {
+	return Location{
+		source:        input,
+		start:         start,
+		end:           end,
+		knownLocation: true,
+	}
 }
 
 type ITypable interface {
 	GetType() NodeType
+}
+
+func MakeUnknownLocation() Location {
+	return Location{
+		knownLocation: false,
+	}
 }

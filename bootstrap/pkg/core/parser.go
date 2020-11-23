@@ -32,6 +32,7 @@ type IParsable interface {
 	peek(skipWhitespace bool) *string
 	back()
 	GetLocation() int
+	Buffer() *[]string
 }
 
 type StringParser struct {
@@ -79,6 +80,10 @@ func (sp *StringParser) back() {
 
 func (sp *StringParser) GetLocation() int {
 	return sp.pos
+}
+
+func (sp *StringParser) Buffer() *[]string {
+	return &sp.buffer
 }
 
 // END: IParsable ---
@@ -132,7 +137,8 @@ func readRawSymbol(parser IParsable) (IExpr, error) {
 	}
 
 	// TODO: Add support for ns qualified symbols
-	return MakeSymbol(symbol), nil
+	node := MakeNode(parser.Buffer(), parser.GetLocation()-len(symbol), parser.GetLocation())
+	return MakeSymbol(node, symbol), nil
 }
 
 func readNumber(parser IParsable, neg bool) (IExpr, error) {
@@ -252,8 +258,9 @@ func readQuotedExpr(parser IParsable) (IExpr, error) {
 		return nil, err
 	}
 
+	symNode := MakeNode(parser.Buffer(), parser.GetLocation(), parser.GetLocation())
 	return MakeList([]IExpr{
-		MakeSymbol("quote"),
+		MakeSymbol(symNode, "quote"),
 		expr,
 	}), nil
 }
@@ -269,13 +276,15 @@ func readUnquotedExpr(parser IParsable) (IExpr, error) {
 	var err error
 	var expr IExpr
 
+	node := MakeNode(parser.Buffer(), parser.GetLocation(), parser.GetLocation())
+
 	if *c == "@" {
 		parser.next(true)
-		sym = MakeSymbol("unquote-splicing")
+		sym = MakeSymbol(node, "unquote-splicing")
 		expr, err = readExpr(parser)
 
 	} else {
-		sym = MakeSymbol("unquote")
+		sym = MakeSymbol(node, "unquote")
 		expr, err = readExpr(parser)
 	}
 
@@ -292,8 +301,9 @@ func readQuasiquotedExpr(parser IParsable) (IExpr, error) {
 		return nil, err
 	}
 
+	node := MakeNode(parser.Buffer(), parser.GetLocation(), parser.GetLocation())
 	return MakeList([]IExpr{
-		MakeSymbol("quasiquote"),
+		MakeSymbol(node, "quasiquote"),
 		expr,
 	}), nil
 }

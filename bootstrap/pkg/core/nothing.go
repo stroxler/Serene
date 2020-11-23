@@ -28,8 +28,8 @@ func (n NothingType) GetType() ast.NodeType {
 	return ast.Nothing
 }
 
-func (n NothingType) GetLocation() int {
-	return -1
+func (n NothingType) GetLocation() ast.Location {
+	return ast.MakeUnknownLocation()
 }
 
 func (n NothingType) String() string {
