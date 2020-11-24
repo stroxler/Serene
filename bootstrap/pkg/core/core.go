@@ -32,6 +32,7 @@ func rep(rt *Runtime, line string) {
 
 	if err != nil {
 		PrintError(rt, err)
+		return
 	}
 
 	// Debug data, ugly right ? :))

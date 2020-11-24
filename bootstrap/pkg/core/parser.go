@@ -88,7 +88,7 @@ func (sp *StringParser) Buffer() *[]string {
 
 func makeErrorAtPoint(p IParsable, msg string, a ...interface{}) IError {
 	n := MakeSinglePointNode(p.Buffer(), p.GetLocation())
-	return MakeParsetimeErrorf(n, msg, a)
+	return MakeParsetimeErrorf(n, msg, a...)
 }
 
 func makeErrorFromError(parser IParsable, e error) IError {
