@@ -19,9 +19,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package core
 
 import (
-	"errors"
-	"fmt"
-
 	"serene-lang.org/bootstrap/pkg/ast"
 )
 
@@ -29,7 +26,7 @@ import (
 // evaluation rules. For example if `form` is a list instead of the formal
 // evaluation of a list it will evaluate all the elements and return the
 // evaluated list
-func evalForm(rt *Runtime, scope IScope, form IExpr) (IExpr, error) {
+func evalForm(rt *Runtime, scope IScope, form IExpr) (IExpr, IError) {
 
 	switch form.GetType() {
 	case ast.Nil:
@@ -44,13 +41,23 @@ func evalForm(rt *Runtime, scope IScope, form IExpr) (IExpr, error) {
 	// * Otherwise throw an error
 	case ast.Symbol:
 		symbolName := form.(*Symbol).GetName()
-		expr := scope.Lookup(symbolName)
 
-		if expr == nil {
-			return nil, fmt.Errorf("can't resolve symbol '%s' in ns '%s'", symbolName, rt.CurrentNS().GetName())
+		switch symbolName {
+		case "true":
+			return &True, nil
+		case "false":
+			return &False, nil
+		case "nil":
+			return &Nil, nil
+		default:
+			expr := scope.Lookup(symbolName)
+
+			if expr == nil {
+				return nil, MakeRuntimeErrorf(rt, "can't resolve symbol '%s' in ns '%s'", symbolName, rt.CurrentNS().GetName())
+			}
+
+			return expr.Value, nil
 		}
-
-		return expr.Value, nil
 
 	// Evaluate all the elements in the list instead of following the lisp convention
 	case ast.List:
@@ -74,13 +81,13 @@ func evalForm(rt *Runtime, scope IScope, form IExpr) (IExpr, error) {
 	}
 
 	// Default case
-	return nil, errors.New("not implemented")
+	return nil, MakeError(rt, "not implemented")
 
 }
 
 // EvalForms evaluates the given expr `expressions` (it can be a list, block, symbol or anything else)
 // with the given runtime `rt` and the scope `scope`.
-func EvalForms(rt *Runtime, scope IScope, expressions IExpr) (IExpr, error) {
+func EvalForms(rt *Runtime, scope IScope, expressions IExpr) (IExpr, IError) {
 	// EvalForms is the main and the most important evaluation function on Serene.
 	// It's a long loooooooooooong function. Why? Well, Because we don't want to
 	// waste call stack spots in order to have a well organized code.
@@ -88,7 +95,7 @@ func EvalForms(rt *Runtime, scope IScope, expressions IExpr) (IExpr, error) {
 	// a functional language we need to avoid unnecessary calls and keep as much
 	// as possible in a loop.
 	var ret IExpr
-	var err error
+	var err IError
 
 tco:
 	for {
@@ -154,7 +161,11 @@ tco:
 				ret, err = Fn(rt, scope, list.Rest().(*List))
 				break tco // return
 
-			// List evaluation rules:
+			// case "if":
+			// 	ret, err = If(rt, scope, list.Rest().(*List))
+			// 	break tco // return
+
+			// list evaluation rules:
 			// * The first element of the list has to be an expression which is callable
 			// * An empty list evaluates to itself.
 			default:
@@ -185,7 +196,7 @@ tco:
 
 					argList := exprs.(*List).Rest().(*List)
 
-					scope, e = MakeFnScope(fn.GetScope(), fn.GetParams(), argList)
+					scope, e = MakeFnScope(rt, fn.GetScope(), fn.GetParams(), argList)
 					if e != nil {
 						err = e
 						ret = nil
@@ -195,7 +206,7 @@ tco:
 					expressions = fn.GetBody()
 					continue tco
 				default:
-					err = errors.New("don't know how to execute anything beside function")
+					err = MakeError(rt, "don't know how to execute anything beside function")
 					ret = nil
 					break tco
 				}
@@ -212,7 +223,7 @@ tco:
 // concept of Block with blocks from other languages which
 // specify by using `{}` or indent or what ever. Blocks in terms
 // of Serene are just arrays of expressions and nothing more.
-func Eval(rt *Runtime, forms *Block) (IExpr, error) {
+func Eval(rt *Runtime, forms *Block) (IExpr, IError) {
 	if forms.Count() == 0 {
 		// Nothing is literally Nothing
 		return &Nothing, nil

@@ -41,12 +41,11 @@ func rep(rt *Runtime, line string) {
 		fmt.Print("#############\n\n")
 	}
 
-	result, err := Eval(rt, ast)
-	if err != nil {
+	result, e := Eval(rt, ast)
+	if e != nil {
 		fmt.Printf("Error: %s\n", err)
 		return
 	}
-
 	Print(rt, result)
 }
 

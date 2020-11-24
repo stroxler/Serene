@@ -19,7 +19,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package core
 
 import (
-	"errors"
 	"fmt"
 
 	"serene-lang.org/bootstrap/pkg/ast"
@@ -89,13 +88,13 @@ func MakeFunction(scope IScope, params IColl, body *Block) *Function {
 
 // MakeFnScope a new scope for the body of a function. It binds the `bindings`
 // to the given `values`.
-func MakeFnScope(parent IScope, bindings IColl, values IColl) (*Scope, error) {
+func MakeFnScope(rt *Runtime, parent IScope, bindings IColl, values IColl) (*Scope, IError) {
 	scope := MakeScope(parent.(*Scope))
 
 	// TODO: Implement destructuring
 
 	if bindings.Count() > values.Count() {
-		return nil, errors.New("'binding' and 'valuse' size don't match")
+		return nil, MakeError(rt, "'binding' and 'valuse' size don't match")
 	}
 
 	binds := bindings.ToSlice()

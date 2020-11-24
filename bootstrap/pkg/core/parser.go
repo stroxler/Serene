@@ -19,8 +19,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package core
 
 import (
-	"errors"
-	"fmt"
 	"strings"
 	"unicode"
 )
@@ -88,6 +86,15 @@ func (sp *StringParser) Buffer() *[]string {
 
 // END: IParsable ---
 
+func makeErrorAtPoint(p IParsable, msg string, a ...interface{}) IError {
+	n := MakeSinglePointNode(p.Buffer(), p.GetLocation())
+	return MakeParsetimeErrorf(n, msg, a)
+}
+
+func makeErrorFromError(parser IParsable, e error) IError {
+	return makeErrorAtPoint(parser, "%w", e)
+}
+
 func contains(s []rune, c rune) bool {
 	for _, v := range s {
 		if v == c {
@@ -103,19 +110,20 @@ func isValidForSymbol(char string) bool {
 	return contains(validChars, c) || unicode.IsLetter(c) || unicode.IsDigit(c)
 }
 
-func readRawSymbol(parser IParsable) (IExpr, error) {
+func readRawSymbol(parser IParsable) (IExpr, IError) {
 	c := parser.peek(false)
 	var symbol string
 
 	if c == nil {
-		return nil, errors.New("unexpected enf of file while parsing a symbol")
+		return nil, makeErrorAtPoint(parser, "unexpected enf of file while parsing a symbol")
 	}
 
 	if isValidForSymbol(*c) {
 		parser.next(false)
 		symbol = *c
 	} else {
-		return nil, fmt.Errorf("unexpected character: got '%s', expected a symbol at %d",
+		return nil, makeErrorAtPoint(parser,
+			"unexpected character: got '%s', expected a symbol at %d",
 			*c,
 			parser.GetLocation(),
 		)
@@ -141,7 +149,7 @@ func readRawSymbol(parser IParsable) (IExpr, error) {
 	return MakeSymbol(node, symbol), nil
 }
 
-func readNumber(parser IParsable, neg bool) (IExpr, error) {
+func readNumber(parser IParsable, neg bool) (IExpr, IError) {
 	isDouble := false
 	result := ""
 
@@ -157,7 +165,7 @@ func readNumber(parser IParsable, neg bool) (IExpr, error) {
 		}
 
 		if *c == "." && isDouble {
-			return nil, errors.New("a double with more that one '.' ???")
+			return nil, makeErrorAtPoint(parser, "a double with more that one '.' ???")
 		}
 
 		if *c == "." {
@@ -177,14 +185,20 @@ func readNumber(parser IParsable, neg bool) (IExpr, error) {
 		}
 	}
 
-	return MakeNumberFromStr(result, isDouble)
+	value, err := MakeNumberFromStr(result, isDouble)
+
+	if err != nil {
+		return nil, makeErrorFromError(parser, err)
+	}
+
+	return value, nil
 }
 
-func readSymbol(parser IParsable) (IExpr, error) {
+func readSymbol(parser IParsable) (IExpr, IError) {
 	c := parser.peek(false)
 
 	if c == nil {
-		return nil, errors.New("unexpected end of file while scanning a symbol")
+		return nil, makeErrorAtPoint(parser, "unexpected end of file while scanning a symbol")
 	}
 
 	// if c == "\"" {
@@ -218,13 +232,13 @@ func readSymbol(parser IParsable) (IExpr, error) {
 	return readRawSymbol(parser)
 }
 
-func readList(parser IParsable) (IExpr, error) {
+func readList(parser IParsable) (IExpr, IError) {
 	list := []IExpr{}
 
 	for {
 		c := parser.peek(true)
 		if c == nil {
-			return nil, errors.New("reaching the end of file while reading a list")
+			return nil, makeErrorAtPoint(parser, "reaching the end of file while reading a list")
 		}
 		if *c == ")" {
 			parser.next(true)
@@ -243,7 +257,7 @@ func readList(parser IParsable) (IExpr, error) {
 	return MakeList(list), nil
 }
 
-func readComment(parser IParsable) (IExpr, error) {
+func readComment(parser IParsable) (IExpr, IError) {
 	for {
 		c := parser.next(false)
 		if c == nil || *c == "\n" {
@@ -252,7 +266,7 @@ func readComment(parser IParsable) (IExpr, error) {
 	}
 }
 
-func readQuotedExpr(parser IParsable) (IExpr, error) {
+func readQuotedExpr(parser IParsable) (IExpr, IError) {
 	expr, err := readExpr(parser)
 	if err != nil {
 		return nil, err
@@ -265,15 +279,15 @@ func readQuotedExpr(parser IParsable) (IExpr, error) {
 	}), nil
 }
 
-func readUnquotedExpr(parser IParsable) (IExpr, error) {
+func readUnquotedExpr(parser IParsable) (IExpr, IError) {
 	c := parser.peek(true)
 
 	if c == nil {
-		return nil, errors.New("end of file while reading an unquoted expression")
+		return nil, makeErrorAtPoint(parser, "end of file while reading an unquoted expression")
 	}
 
 	var sym IExpr
-	var err error
+	var err IError
 	var expr IExpr
 
 	node := MakeNode(parser.Buffer(), parser.GetLocation(), parser.GetLocation())
@@ -295,7 +309,7 @@ func readUnquotedExpr(parser IParsable) (IExpr, error) {
 	return MakeList([]IExpr{sym, expr}), nil
 }
 
-func readQuasiquotedExpr(parser IParsable) (IExpr, error) {
+func readQuasiquotedExpr(parser IParsable) (IExpr, IError) {
 	expr, err := readExpr(parser)
 	if err != nil {
 		return nil, err
@@ -308,7 +322,7 @@ func readQuasiquotedExpr(parser IParsable) (IExpr, error) {
 	}), nil
 }
 
-func readExpr(parser IParsable) (IExpr, error) {
+func readExpr(parser IParsable) (IExpr, IError) {
 
 loop:
 	c := parser.next(true)
@@ -347,7 +361,7 @@ loop:
 
 }
 
-func ParseToAST(input string) (*Block, error) {
+func ParseToAST(input string) (*Block, IError) {
 
 	var ast Block
 	parser := StringParser{

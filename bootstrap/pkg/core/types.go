@@ -63,3 +63,7 @@ func MakeNode(input *[]string, start int, end int) Node {
 		location: ast.MakeLocation(input, start, end),
 	}
 }
+
+func MakeSinglePointNode(input *[]string, point int) Node {
+	return MakeNode(input, point, point)
+}
