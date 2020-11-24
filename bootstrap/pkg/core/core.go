@@ -31,7 +31,7 @@ func rep(rt *Runtime, line string) {
 	ast, err := ReadString(line)
 
 	if err != nil {
-		fmt.Println(err)
+		PrintError(rt, err)
 	}
 
 	// Debug data, ugly right ? :))
@@ -43,7 +43,7 @@ func rep(rt *Runtime, line string) {
 
 	result, e := Eval(rt, ast)
 	if e != nil {
-		fmt.Printf("Error: %s\n", err)
+		PrintError(rt, e)
 		return
 	}
 	Print(rt, result)

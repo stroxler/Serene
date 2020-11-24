@@ -25,3 +25,7 @@ import (
 func Print(rt *Runtime, ast IPrintable) {
 	fmt.Println(ast.String())
 }
+
+func PrintError(rt *Runtime, err IError) {
+	fmt.Printf("Error: %s\n", err.String())
+}
