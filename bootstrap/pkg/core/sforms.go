@@ -79,29 +79,3 @@ func Fn(rt *Runtime, scope IScope, args *List) (IExpr, IError) {
 
 	return MakeFunction(scope, params, body), nil
 }
-
-// If defines a conditional expression which evaluates the first
-// element of the given `args` as the conditional and if the result
-// is truthy evaluates and returns the second arg otherwise does the
-// same for the third arg.
-func If(rt *Runtime, scope IScope, args *List) (IExpr, IError) {
-
-	if args.Count() != 3 {
-		return nil, MakeError(rt, "'if' needs exactly 3 aruments")
-	}
-
-	pred, err := EvalForms(rt, scope, args.First())
-	result := pred.GetType()
-
-	if err != nil {
-		return nil, err
-	}
-
-	if result != ast.False && result != ast.Nil {
-		// Truthy clause
-		return EvalForms(rt, scope, args.Rest().First())
-	}
-
-	// Falsy clause
-	return EvalForms(rt, scope, args.Rest().Rest().First())
-}

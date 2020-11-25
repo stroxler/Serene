@@ -167,8 +167,28 @@ tco:
 			//   is not `nil` or `false` evaluates THEN otherwise
 			//   evaluate the ELSE expression and return the result.
 			case "if":
-				ret, err = If(rt, scope, list.Rest().(*List))
-				break tco // return
+				args := list.Rest().(*List)
+				if args.Count() != 3 {
+					return nil, MakeError(rt, "'if' needs exactly 3 aruments")
+				}
+
+				pred, err := EvalForms(rt, scope, args.First())
+				result := pred.GetType()
+
+				if err != nil {
+					return nil, err
+				}
+
+				if result != ast.False && result != ast.Nil {
+					// Truthy clause
+					expressions = args.Rest().First()
+				} else {
+
+					// Falsy clause
+					expressions = args.Rest().Rest().First()
+				}
+
+				continue tco // Loop over to execute the new expressions
 
 			// `do` evaluation rules:
 			// * Evaluate the body as a new block in the TCO loop
@@ -176,6 +196,8 @@ tco:
 			case "do":
 				expressions = MakeBlock(list.Rest().(*List).ToSlice())
 				continue tco // Loop over to execute the new expressions
+
+			// case "let":
 
 			// list evaluation rules:
 			// * The first element of the list has to be an expression which is callable
