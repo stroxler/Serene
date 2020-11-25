@@ -161,9 +161,21 @@ tco:
 				ret, err = Fn(rt, scope, list.Rest().(*List))
 				break tco // return
 
+			// `if` evaluation rules:
+			// * It has to get only 3 arguments: PRED THEN ELSE
+			// * Evaluate only the PRED expression if the result
+			//   is not `nil` or `false` evaluates THEN otherwise
+			//   evaluate the ELSE expression and return the result.
 			case "if":
 				ret, err = If(rt, scope, list.Rest().(*List))
 				break tco // return
+
+			// `do` evaluation rules:
+			// * Evaluate the body as a new block in the TCO loop
+			//   and return the result of the last expression
+			case "do":
+				expressions = MakeBlock(list.Rest().(*List).ToSlice())
+				continue tco // Loop over to execute the new expressions
 
 			// list evaluation rules:
 			// * The first element of the list has to be an expression which is callable
