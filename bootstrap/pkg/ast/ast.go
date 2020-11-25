@@ -41,6 +41,22 @@ type Location struct {
 	knownLocation bool
 }
 
+func (l *Location) GetStart() int {
+	return l.start
+}
+
+func (l *Location) GetEnd() int {
+	return l.end
+}
+
+func (l *Location) GetSource() *[]string {
+	return l.source
+}
+
+func (l *Location) IsKnownLocaiton() bool {
+	return l.knownLocation
+}
+
 type ILocatable interface {
 	GetLocation() Location
 }

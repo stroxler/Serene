@@ -197,7 +197,57 @@ tco:
 				expressions = MakeBlock(list.Rest().(*List).ToSlice())
 				continue tco // Loop over to execute the new expressions
 
-			// case "let":
+			case "let":
+				if list.Count() < 2 {
+					return nil, MakeError(rt, "'let' needs at list 1 aruments")
+				}
+
+				letScope := MakeScope(scope.(*Scope))
+
+				// Since we're using IColl for the bindings, we can use either lists
+				// or vectors or even hashmaps for bindings
+				var bindings IColl
+				bindings = list.Rest().First().(IColl)
+
+				body := list.Rest().Rest().(*List).ToSlice()
+
+				if bindings.Count()%2 != 0 {
+					return nil, MakeError(rt, "'let' bindings has to have even number of forms.")
+				}
+
+				for {
+					// We're reducing over bindings here
+					if bindings.Count() == 0 {
+						break
+					}
+
+					name := bindings.First()
+					expr := bindings.Rest().First()
+
+					// TODO: We need to destruct the bindings here and remove this check
+					//       for the symbol type
+					if name.GetType() != ast.Symbol {
+						err := MakeErrorFor(rt, name, "'let' doesn't support desbbtructuring yet, use a symbol.")
+						return nil, err
+					}
+
+					// You might be wondering why we're using `EvalForms` here to evaluate
+					// the exprs in bindings, what about TCO ?
+					// Well, It's called TAIL call optimization for a reason. Exprs in the
+					// bindings are not tail calls
+					evaluatedExpr, e := EvalForms(rt, letScope, expr)
+
+					if e != nil {
+						return nil, e
+					}
+
+					letScope.Insert(name.String(), evaluatedExpr, false)
+					bindings = bindings.Rest().Rest().(IColl)
+				}
+
+				expressions = MakeBlock(body)
+				scope = letScope
+				continue tco
 
 			// list evaluation rules:
 			// * The first element of the list has to be an expression which is callable

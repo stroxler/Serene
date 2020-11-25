@@ -58,10 +58,15 @@ func (n Node) GetLocation() ast.Location {
 	return n.location
 }
 
-func MakeNode(input *[]string, start int, end int) Node {
+// Create a new Node for the given Location `loc`
+func MakeNodeFromLocation(loc ast.Location) Node {
 	return Node{
-		location: ast.MakeLocation(input, start, end),
+		location: loc,
 	}
+}
+
+func MakeNode(input *[]string, start int, end int) Node {
+	return MakeNodeFromLocation(ast.MakeLocation(input, start, end))
 }
 
 func MakeSinglePointNode(input *[]string, point int) Node {

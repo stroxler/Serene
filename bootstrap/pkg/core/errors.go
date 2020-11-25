@@ -49,6 +49,15 @@ func MakeError(rt *Runtime, msg string) IError {
 	}
 }
 
+func MakeErrorFor(rt *Runtime, e IExpr, msg string) IError {
+	loc := e.GetLocation()
+
+	return &Error{
+		Node: MakeNodeFromLocation(loc),
+		msg:  msg,
+	}
+}
+
 func MakeRuntimeErrorf(rt *Runtime, msg string, a ...interface{}) IError {
 	return &Error{
 		msg: fmt.Sprintf(msg, a...),

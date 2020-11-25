@@ -27,5 +27,7 @@ func Print(rt *Runtime, ast IPrintable) {
 }
 
 func PrintError(rt *Runtime, err IError) {
-	fmt.Printf("Error: %s\n", err.String())
+	loc := err.GetLocation()
+	fmt.Printf("Error: %s\nAt: %d to %d\n", err.String(), loc.GetStart(), loc.GetEnd())
+
 }
