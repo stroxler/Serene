@@ -59,3 +59,6 @@ Data File), and the we can pass that ADF file to the compiler to let it compile 
 the program by using the usual passes alonge side with some extra passes that operate
 on ADF
 ** Lang
+*** Scheme
+- Chicken Scheme - Easy-to-use compiler and interpreter, with lots of libraries :: https://call-cc.org
+- Stalin - Brutally optimizing Scheme compiler, with lots of optimization flags :: https://github.com/barak/stalin
