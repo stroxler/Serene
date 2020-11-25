@@ -161,9 +161,9 @@ tco:
 				ret, err = Fn(rt, scope, list.Rest().(*List))
 				break tco // return
 
-			// case "if":
-			// 	ret, err = If(rt, scope, list.Rest().(*List))
-			// 	break tco // return
+			case "if":
+				ret, err = If(rt, scope, list.Rest().(*List))
+				break tco // return
 
 			// list evaluation rules:
 			// * The first element of the list has to be an expression which is callable
