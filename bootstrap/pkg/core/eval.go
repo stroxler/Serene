@@ -153,10 +153,30 @@ tco:
 			}
 
 			switch sform {
+
+			// `quote` evaluation rules:
+			// * Only takes one argument
+			// * Returns the argument without evaluating it
+			case "quote":
+				// Including the `quote` itself
+				if list.Count() != 2 {
+					return nil, MakeErrorFor(rt, list, "'quote' quote only accepts one argument.")
+				}
+				return list.Rest().First(), nil
+
+			// `def` evaluation rules
+			// * The first argument has to be a symbol.
+			// * The second argument has to be evaluated and be used as
+			//   the value.
+			// * Defines a global binding in the current namespace using
+			//   the symbol name binded to the value
 			case "def":
 				ret, err = Def(rt, scope, list.Rest().(*List))
 				break tco // return
 
+			// `fn` evaluation rules:
+			// * It needs at least a collection of arguments
+			// * Defines an anonymous function.
 			case "fn":
 				ret, err = Fn(rt, scope, list.Rest().(*List))
 				break tco // return
