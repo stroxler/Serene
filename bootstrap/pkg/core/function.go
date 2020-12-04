@@ -44,15 +44,24 @@ type Function struct {
 	params IColl
 
 	// A reference to the body block of the function
-	body *Block
+	body    *Block
+	isMacro bool
 }
 
 func (f *Function) GetType() ast.NodeType {
 	return ast.Fn
 }
 
+func (f *Function) IsMacro() bool {
+	return f.isMacro
+}
+
 func (f *Function) String() string {
-	return fmt.Sprintf("<Fn: %s at %p", f.name, f)
+	if f.isMacro {
+		return fmt.Sprintf("<Macro: %s at %p>", f.name, f)
+	}
+
+	return fmt.Sprintf("<Fn: %s at %p>", f.name, f)
 }
 
 func (f *Function) GetName() string {
@@ -69,7 +78,11 @@ func (f *Function) GetParams() IColl {
 }
 
 func (f *Function) ToDebugStr() string {
-	return fmt.Sprintf("<Fn: %s at %p", f.name, f)
+	if f.isMacro {
+		return fmt.Sprintf("<Macro: %s at %p>", f.name, f)
+	}
+
+	return fmt.Sprintf("<Fn: %s at %p>", f.name, f)
 }
 
 func (f *Function) GetBody() *Block {
@@ -80,9 +93,10 @@ func (f *Function) GetBody() *Block {
 // the given `scope`.
 func MakeFunction(scope IScope, params IColl, body *Block) *Function {
 	return &Function{
-		scope:  scope,
-		params: params,
-		body:   body,
+		scope:   scope,
+		params:  params,
+		body:    body,
+		isMacro: false,
 	}
 }
 

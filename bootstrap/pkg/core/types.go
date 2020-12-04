@@ -65,6 +65,10 @@ func MakeNodeFromLocation(loc ast.Location) Node {
 	}
 }
 
+func MakeNodeFromExpr(e IExpr) Node {
+	return MakeNodeFromLocation(e.GetLocation())
+}
+
 func MakeNode(input *[]string, start int, end int) Node {
 	return MakeNodeFromLocation(ast.MakeLocation(input, start, end))
 }

@@ -63,6 +63,12 @@ func (r *Runtime) CreateNS(name string, source string, setAsCurrent bool) {
 	r.namespaces[name] = ns
 }
 
+func (r *Runtime) IsQQSimplificationEnabled() bool {
+	// TODO: read the value of this flag from the arguments of serene
+	//       and set the default to true
+	return false
+}
+
 func MakeRuntime(debug bool) *Runtime {
 	return &Runtime{
 		namespaces: map[string]Namespace{},

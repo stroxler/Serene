@@ -33,4 +33,5 @@ type IColl interface {
 	ISeq
 	ICountable
 	ToSlice() []IExpr
+	Cons(e IExpr) IExpr
 }

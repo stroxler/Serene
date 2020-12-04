@@ -54,6 +54,51 @@ func Def(rt *Runtime, scope IScope, args *List) (IExpr, IError) {
 	return nil, MakeError(rt, "'def' form need at least 2 arguments")
 }
 
+// Def defines a macro in the current namespace. The first
+// arguments in `args` has to be a symbol ( none ns qualified ) and
+// the rest of params should be the body of the macro. Unlike other
+// expressions in Serene `defmacro` DOES NOT evaluate its arguments.
+// That is what makes macros great
+func DefMacro(rt *Runtime, scope IScope, args *List) (IExpr, IError) {
+
+	// TODO: Add support for docstrings and meta
+
+	switch args.Count() {
+	case 3:
+		name := args.First()
+
+		if name.GetType() != ast.Symbol {
+			return nil, MakeError(rt, "the first argument of 'defmacro' has to be a symbol")
+		}
+
+		sym := name.(*Symbol)
+
+		var params IColl
+		body := MakeEmptyBlock()
+
+		arguments := args.Rest().First()
+
+		// TODO: Add vector in here
+		// Or any other icoll
+		if arguments.GetType() == ast.List {
+			params = arguments.(IColl)
+		}
+
+		if args.Count() > 2 {
+			body.SetContent(args.Rest().Rest().(*List).ToSlice())
+		}
+
+		macro := MakeMacro(scope, sym.GetName(), params, body)
+
+		ns := rt.CurrentNS()
+		ns.DefineGlobal(sym.GetName(), macro, true)
+
+		return macro, nil
+	}
+
+	return nil, MakeError(rt, "'defmacro' form need at least 2 arguments")
+}
+
 // Fn defines a function inside the given scope `scope` with the given `args`.
 // `args` contains the arugment list, docstring and body of the function.
 func Fn(rt *Runtime, scope IScope, args *List) (IExpr, IError) {

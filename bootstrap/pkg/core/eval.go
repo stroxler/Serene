@@ -19,6 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package core
 
 import (
+	"fmt"
+
 	"serene-lang.org/bootstrap/pkg/ast"
 )
 
@@ -126,6 +128,21 @@ tco:
 				break tco // return ret, err
 			}
 
+			// Expand macroes that exists in the given array of expression `forms`.
+			// Since this implementation of Serene is an interpreter, the line
+			// between compile time and runtime is unclear (afterall every thing
+			// is happening in runtime). So we need to expand macroes before evaluating
+			// other forms. In the future we might want to cache the expanded AST
+			// as a cache and some sort of a bytecode for faster evaluation.
+			forms, err = macroexpand(rt, scope, forms)
+			if err != nil {
+				return nil, err
+			}
+
+			if forms.GetType() != ast.List {
+				return evalForm(rt, scope, forms)
+			}
+
 			list := forms.(*List)
 
 			// Empty list evaluates to itself
@@ -164,6 +181,63 @@ tco:
 				}
 				return list.Rest().First(), nil
 
+			// case "quasiquote-expand":
+			// 	return quasiquote(list.Rest().First()), nil
+
+			// // For `quasiquote` evaluation rules, check out the documentation on
+			// // the `quasiquote` function in `quasiquote.go`
+			// case "quasiquote":
+			// 	expressions = quasiquote(list.Rest().First())
+			// 	continue tco // Loop over to execute the new expressions
+
+			// TODO: Implement `list` in serene itself when we have destructuring available
+			// Creates a new list form it's arguments.
+			case "list":
+				return evalForm(rt, scope, list.Rest().(*List))
+
+			// TODO: Implement `concat` in serene itself when we have protocols available
+			// Concats all the collections together.
+			case "concat":
+				evaledForms, err := evalForm(rt, scope, list.Rest().(*List))
+
+				if err != nil {
+					return nil, err
+				}
+
+				lists := evaledForms.(*List).ToSlice()
+
+				result := []IExpr{}
+				for _, lst := range lists {
+					if lst.GetType() != ast.List {
+						return nil, MakeErrorFor(rt, lst, fmt.Sprintf("don't know how to concat '%s'", lst.String()))
+					}
+
+					result = append(result, lst.(*List).ToSlice()...)
+				}
+				return MakeList(result), nil
+
+			// TODO: Implement `list` in serene itself when we have destructuring available
+			// Calls the `Cons` function on the second argument to cons the first arg to it.
+			// In terms of a list, cons adds the first argument to as the new head of the list
+			// given in the second argument.
+			case "cons":
+				if list.Count() != 3 {
+					return nil, MakeErrorFor(rt, list, "'cons' needs exactly 3 arguments")
+				}
+
+				evaledForms, err := evalForm(rt, scope, list.Rest().(*List))
+
+				if err != nil {
+					return nil, err
+				}
+				coll, ok := evaledForms.(*List).Rest().First().(IColl)
+
+				if !ok {
+					return nil, MakeErrorFor(rt, list, "second arg of 'cons' has to be a collection")
+				}
+
+				return coll.Cons(evaledForms.(*List).First()), nil
+
 			// `def` evaluation rules
 			// * The first argument has to be a symbol.
 			// * The second argument has to be evaluated and be used as
@@ -172,6 +246,32 @@ tco:
 			//   the symbol name binded to the value
 			case "def":
 				ret, err = Def(rt, scope, list.Rest().(*List))
+				break tco // return
+
+			// `defmacro` evaluation rules:
+			// * The first argument has to be a symbol
+			// * The second argument has to be a list of argument for the macro
+			// * The rest of the arguments will form a block that acts as the
+			//   body of the macro.
+			case "defmacro":
+				ret, err = DefMacro(rt, scope, list.Rest().(*List))
+				break tco // return
+
+			// `macroexpand` evaluation rules:
+			// * It has to have only one argument
+			// * It WILL evaluate the only argument and tries to expand it
+			//   as a macro and returns the expanded forms.
+			case "macroexpand":
+				if list.Count() != 2 {
+					return nil, MakeErrorFor(rt, list, "'macroexpand' needs exactly one argument.")
+				}
+				evaledForm, e := evalForm(rt, scope, list.Rest().(*List))
+
+				if e != nil {
+					return nil, e
+				}
+
+				ret, err = macroexpand(rt, scope, evaledForm.(*List).First())
 				break tco // return
 
 			// `fn` evaluation rules:
@@ -217,6 +317,34 @@ tco:
 				expressions = MakeBlock(list.Rest().(*List).ToSlice())
 				continue tco // Loop over to execute the new expressions
 
+			// `eval` evaluation rules:
+			// * It only takes on arguments.
+			// * The argument has to be a form. For example if we pass a string
+			//   to it as an argument that contains some expressions it will
+			//   evaluate the string as string which will result to the same
+			//   string. So IT DOES NOT READ the argument.
+			// * It will evaluate the given form as the argument and return
+			//   the result.
+			case "eval":
+				if list.Count() != 2 {
+					return nil, MakeErrorFor(rt, list, "'eval' needs exactly 1 arguments")
+				}
+				form, err := evalForm(rt, scope, list.Rest().(*List))
+				if err != nil {
+					return nil, err
+				}
+
+				return EvalForms(rt, scope, form)
+
+			// `let` evaluation rules:
+			// Let's assume the following:
+			//   L = (let (A B C D) BODY)
+			// * Create a new scope which has the current scope as the parent
+			// * Evaluate the bindings by evaluating `B` and bind it to the name `A`
+			//   in the scope.
+			// * Repeat the prev step for expr D and name C
+			// * Eval the block `BODY` using the created scope and return the result
+			//   which is the result of the last expre in `BODY`
 			case "let":
 				if list.Count() < 2 {
 					return nil, MakeError(rt, "'let' needs at list 1 aruments")

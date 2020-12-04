@@ -89,7 +89,27 @@ func (l *List) ToSlice() []IExpr {
 	return l.exprs
 }
 
+func (l *List) Cons(e IExpr) IExpr {
+	elems := l.ToSlice()
+	return MakeList(append([]IExpr{e}, elems...))
+}
+
 // END: IColl ---
+
+func (l *List) AppendToList(e IExpr) *List {
+	l.exprs = append(l.exprs, e)
+	return l
+}
+
+func ListStartsWith(l *List, sym string) bool {
+	if l.Count() > 0 {
+		firstElem := l.First()
+		if firstElem.GetType() == ast.Symbol {
+			return firstElem.(*Symbol).GetName() == sym
+		}
+	}
+	return false
+}
 
 func MakeList(elements []IExpr) *List {
 	return &List{
