@@ -1,24 +1,38 @@
-* Serene lang
+* Serene lang (Bootstrap interpreter)
+The bootstrap version of Serene is used to bootstrap the compiler which is written in Serene
+itself. It's an interpreter with minimal set of features and rough edges.
+
+** Heads up
+Since the interpreter is there to bootstrap the compiler the goal is to keep it simple and good enough
+too run the compiler. So we don't want to over engineer things because the interpreter will go away
+evantually. Here is the list of things that we implemented ( or will implement ) differently:
+
+- *Normal Macros* (Syntax macro): Since bootstrap version is an interpreter we don't have clear
+distinction between compile time and runtime (We have only runtime) - unless we build bytecode support
+into the interpreter to be able to cache the compiled ast - So we can't really implemeent normal macros
+as they meant to be implemented.
+
+- List implementation: We don't follow the actual list implementation as a single or doubly linked
+list. So far we kept it really stupid by creating a wrapper around Go slices. But we need to fix this
+one in the future.
+
+- Since we didn't write the reader in Serene itself, there is no reader macroes.
 
 ** Development hint
 
 *** Use Make... functions
-In order to create a new value in any type use the designated Make function, for example: MakeList
+In order to create a new value in any type use the designated Make function, for example: =MakeList=
 
 
 ** Setup development environment
 *** Emacs
-[[https://github.com/brotzeit/rustic][Rustic]] is highly recommended. Just install it and install the dependencies necessary
-on the Rust side. If you're using *FG42*, It already ships with Rustic installed.
+All you have to do is to install =LSP= and =gopls= that's it.
 
-**** Requirements on the Rust side
-To setup the dev envrionment you need to have *Clippy* and *RLS* installed. Run the
-following commands to install them:
+** Running the REPL
+In order to run the REPL by compiling the code just do:
 
 #+BEGIN_SRC bash
-rustup component add rls --toolchain stable-x86_64-unknown-linux-gnu
-rustup component add --toolchain stable-x86_64-unknown-linux-gnu clippy
-rustup component add rustfmt
+go run serene.go repl
 #+END_SRC
 
-Use your desired toolchain instead of *stable-x86_64-unknown-linux-gnu*
+There is a =--debug= parameter which enables more debug output (For example: read -> AST -> out data).
