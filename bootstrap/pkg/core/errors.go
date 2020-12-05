@@ -43,6 +43,10 @@ func (e *Error) ToDebugStr() string {
 	return e.msg
 }
 
+func (e *Error) Error() string {
+	return e.msg
+}
+
 func MakeError(rt *Runtime, msg string) IError {
 	return &Error{
 		msg: msg,
