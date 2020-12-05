@@ -28,11 +28,13 @@ type IError interface {
 	ast.ILocatable
 	IPrintable
 	IDebuggable
+	WithError(err error) IError
 }
 
 type Error struct {
 	Node
-	msg string
+	WrappedErr error
+	msg        string
 }
 
 func (e *Error) String() string {
@@ -40,7 +42,16 @@ func (e *Error) String() string {
 }
 
 func (e *Error) ToDebugStr() string {
-	return e.msg
+	_, isInternalErr := e.WrappedErr.(*Error)
+	if isInternalErr {
+		return fmt.Sprintf("%s:\n\t%s", e.msg, e.WrappedErr.(*Error).ToDebugStr())
+	}
+	return fmt.Sprintf("%s:\n\t%s", e.msg, e.WrappedErr.Error())
+}
+
+func (e *Error) WithError(err error) IError {
+	e.WrappedErr = err
+	return e
 }
 
 func (e *Error) Error() string {
