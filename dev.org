@@ -62,3 +62,55 @@ on ADF
 *** Scheme
 - Chicken Scheme - Easy-to-use compiler and interpreter, with lots of libraries :: https://call-cc.org
 - Stalin - Brutally optimizing Scheme compiler, with lots of optimization flags :: https://github.com/barak/stalin
+* TODOs
+** Bootstrap
+*** TODO Language Spec
+*** TODO A proper List implementation
+    It should be a proper linked list
+*** TODO Vector implementation
+*** TODO Hashmap implementation
+*** TODO Call stack
+- [ ] Thread local call stack
+- [ ] Handle TCO in the call stack
+- [ ] Integration with the Error handling
+*** TODO Meta data support
+- [ ] Attachable meta data to any expression
+- [ ] Spec for special meta data that mean something to the interpreter. E.g: docstrings
+- [ ] Meta data API
+*** TODO Docstring support
+- [ ] For functions and macros
+- [ ] For namespaces and projects
+- [ ] API to interact with docstrings and helps
+*** TODO FFI interface
+- [ ] Convertion of Serene types to C types
+- [ ] Shared libraries dynamic loading
+- [ ] Integration with namespaces and requirement set
+- [ ] Necessary API and checks for library and ABI Availability
+*** TODO Load path and namespace loading
+*** TODO nREPL
+*** TODO Emacs mode
+*** TODO Number implementation
+- [ ] Basic operations
+- [ ] Standard functions in Serene itself
+- [ ] Type infer and conversion
+*** TODO String implementation
+- [ ] Basic operations
+- [ ] Numer <-> String
+- [ ] Interpolation
+*** TODO Enum implementation
+- [ ] Embedded data in a variant
+- [ ] Generate functions based on variants
+*** TODO Protocol
+- [ ] Polymorphic functions
+*** TODO Struct implementation
+*** TODO Error handling
+- [ ] Integration with callstacks
+*** TODO Multi arity functions
+*** TODO QuasiQuotation
+*** TODO Linter
+*** TODO Document generator
+*** TODO Spec like functionality
+*** TODO Laziness implementation
+*** Standard libraries
+**** TODO IO library
+**** TODO Test library
