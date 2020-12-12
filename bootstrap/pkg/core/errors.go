@@ -29,6 +29,7 @@ type IError interface {
 	IPrintable
 	IDebuggable
 	WithError(err error) IError
+	SetNode(n *Node)
 }
 
 type Error struct {
@@ -54,14 +55,22 @@ func (e *Error) WithError(err error) IError {
 	return e
 }
 
+func (e *Error) SetNode(n *Node) {
+	e.Node = *n
+}
+
 func (e *Error) Error() string {
 	return e.msg
 }
 
-func MakeError(rt *Runtime, msg string) IError {
+func MakePlainError(msg string) IError {
 	return &Error{
 		msg: msg,
 	}
+}
+
+func MakeError(rt *Runtime, msg string) IError {
+	return MakePlainError(msg)
 }
 
 func MakeErrorFor(rt *Runtime, e IExpr, msg string) IError {
