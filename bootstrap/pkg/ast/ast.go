@@ -31,7 +31,9 @@ const (
 	Number
 	List
 	Fn
+	Namespace
 	Block // Dont' mistake it with block from other programming languages
+	// 10
 )
 
 type Location struct {
