@@ -37,9 +37,7 @@ func rep(rt *Runtime, line string) {
 
 	// Debug data, ugly right ? :))
 	if rt.IsDebugMode() {
-		fmt.Println("\n### DEBUG ###")
-		Print(rt, ast)
-		fmt.Print("#############\n\n")
+		fmt.Printf("[DEBUG] Parsed AST: %s\n", ast.String())
 	}
 
 	result, e := Eval(rt, ast)
@@ -57,7 +55,13 @@ Replace the readline implementation with go-prompt.
 // REPL executes a Read Eval Print Loop locally reading from stdin and
 // writing to stdout
 func REPL(debug bool) {
-	rt := MakeRuntime(debug)
+	cwd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	rt := MakeRuntime([]string{cwd}, debug)
+
 	rt.CreateNS("user", "REPL", true)
 
 	rl, err := readline.NewEx(&readline.Config{

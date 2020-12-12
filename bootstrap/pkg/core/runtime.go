@@ -20,6 +20,10 @@ package core
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path"
+	"strings"
 )
 
 /** TODO:
@@ -29,10 +33,15 @@ Create an IRuntime interface to avoid using INamespace directly
 /** TODO:
 Handle concurrency on the runtime level
 */
+type loadedForms struct {
+	source string
+	forms  *Block
+}
 
 type Runtime struct {
 	namespaces map[string]Namespace
 	currentNS  string
+	paths      []string
 	debugMode  bool
 }
 
@@ -54,6 +63,21 @@ func (r *Runtime) CurrentNS() *Namespace {
 	return &ns
 }
 
+func (r *Runtime) setCurrentNS(nsName string) bool {
+	_, ok := r.namespaces[nsName]
+
+	if ok {
+		r.currentNS = nsName
+		return true
+	}
+	return false
+}
+
+func (r *Runtime) GetNS(ns string) (*Namespace, bool) {
+	namespace, ok := r.namespaces[ns]
+	return &namespace, ok
+}
+
 func (r *Runtime) CreateNS(name string, source string, setAsCurrent bool) {
 	ns := MakeNS(name, source)
 
@@ -69,10 +93,81 @@ func (r *Runtime) IsQQSimplificationEnabled() bool {
 	return false
 }
 
-func MakeRuntime(debug bool) *Runtime {
+func nsNameToPath(ns string) string {
+	replacer := strings.NewReplacer(
+		".", "/",
+		//"-", "_",
+	)
+	return replacer.Replace(ns)
+}
+
+func (r *Runtime) LoadNS(ns string) (*loadedForms, IError) {
+	nsFile := nsNameToPath(ns)
+	for _, loadPath := range r.paths {
+		// TODO: Hardcoding the suffix??? ewwww, fix it.
+		possibleFile := path.Join(loadPath, nsFile+".srn")
+
+		_, err := os.Stat(possibleFile)
+
+		if err != nil {
+			continue
+		}
+
+		data, err := ioutil.ReadFile(possibleFile)
+
+		if err != nil {
+			readError := MakeError(
+				r,
+				fmt.Sprintf("error while reading the file at %s", possibleFile),
+			)
+			readError.WithError(err)
+			return nil, readError
+		}
+
+		body, e := ReadString(string(data))
+		if e != nil {
+			return nil, e
+		}
+
+		return &loadedForms{possibleFile, body}, nil
+	}
+
+	// TODO: Add the load paths to the error message here
+	return nil, MakeError(r, fmt.Sprintf("Can't find the namespace '%s' in any of load paths.", ns))
+}
+
+func (r *Runtime) RequireNS(ns string) (*Namespace, IError) {
+	// TODO: use a hashing algorithm to avoid reloading an unchanged namespace
+	loadedForms, err := r.LoadNS(ns)
+
+	if err != nil {
+		return nil, err
+	}
+
+	body := loadedForms.forms
+	source := loadedForms.source
+
+	if body.Count() == 0 {
+		return nil, MakeError(
+			r,
+			fmt.Sprintf("The '%s' ns source code doesn't start with an 'ns' form.", ns),
+		)
+	}
+	namespace := MakeNS(ns, source)
+	namespace.setForms(body)
+
+	return &namespace, nil
+}
+
+func (r *Runtime) InsertNS(nsName string, ns *Namespace) {
+	r.namespaces[nsName] = *ns
+}
+
+func MakeRuntime(paths []string, debug bool) *Runtime {
 	return &Runtime{
 		namespaces: map[string]Namespace{},
 		currentNS:  "",
 		debugMode:  debug,
+		paths:      paths,
 	}
 }
