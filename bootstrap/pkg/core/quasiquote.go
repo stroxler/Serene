@@ -91,8 +91,15 @@ func qqProcess(rt *Runtime, e IExpr) (IExpr, IError) {
 
 	// Example: `x => (*quote* x) => (quote x)
 	case ast.Symbol:
+		sym, err := MakeSymbol(MakeNodeFromExpr(e), qqQUOTE)
+		if err != nil {
+			//newErr := makeErrorAtPoint()
+			// TODO: uncomment next line when we have stackable errors
+			// newErr.stack(err)
+			return nil, err
+		}
 		return MakeList([]IExpr{
-			MakeSymbol(MakeNodeFromExpr(e), qqQUOTE),
+			sym,
 			e,
 		}), nil
 

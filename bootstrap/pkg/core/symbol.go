@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package core
 
 import (
+	"fmt"
 	"strings"
 
 	"serene-lang.org/bootstrap/pkg/ast"
@@ -26,7 +27,8 @@ import (
 
 type Symbol struct {
 	Node
-	name string
+	name   string
+	nsPart string
 }
 
 func (s *Symbol) GetType() ast.NodeType {
@@ -34,17 +36,23 @@ func (s *Symbol) GetType() ast.NodeType {
 }
 
 func (s *Symbol) String() string {
-	// TODO: Handle ns qualified symbols here
+	if s.IsNSQualified() {
+		return s.nsPart + "/" + s.name
+	}
+
 	return s.name
 }
 
 func (s *Symbol) GetName() string {
-	// TODO: Handle ns qualified symbols here
 	return s.name
 }
 
+func (s *Symbol) GetNSPart() string {
+	return s.nsPart
+}
+
 func (s *Symbol) ToDebugStr() string {
-	return s.name
+	return s.String()
 }
 
 func (s *Symbol) IsRestable() bool {
@@ -52,9 +60,34 @@ func (s *Symbol) IsRestable() bool {
 	return strings.HasPrefix(s.name, "&")
 }
 
-func MakeSymbol(n Node, s string) *Symbol {
-	return &Symbol{
-		Node: n,
-		name: s,
+func (s *Symbol) IsNSQualified() bool {
+	if s.nsPart == "" {
+		return false
 	}
+	return true
+}
+
+func MakeSymbol(n Node, s string) (*Symbol, IError) {
+	parts := strings.Split(s, "/")
+	var (
+		name   string
+		nsPart string
+	)
+
+	switch len(parts) {
+	case 1:
+		name = parts[0]
+		nsPart = ""
+	case 2:
+		name = parts[1]
+		nsPart = parts[0]
+	default:
+		return nil, MakePlainError(fmt.Sprintf("can't create a symbol from '%s'. More that on '/' is illegal.", s))
+	}
+
+	return &Symbol{
+		Node:   n,
+		name:   name,
+		nsPart: nsPart,
+	}, nil
 }
