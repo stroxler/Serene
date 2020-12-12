@@ -1,0 +1,3 @@
+(ns examples.hello-world)
+
+(def hello-world (fn () 'helloworld))

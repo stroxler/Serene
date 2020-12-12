@@ -105,6 +105,7 @@ on ADF
 *** TODO Struct implementation
 *** TODO Error handling
 - [ ] Integration with callstacks
+- [ ] Stackable errors
 *** TODO Multi arity functions
 *** TODO QuasiQuotation
 *** TODO Linter

@@ -42,7 +42,9 @@ func evalForm(rt *Runtime, scope IScope, form IExpr) (IExpr, IError) {
 	// * If it's not a NSQS Look up the name in the current scope.
 	// * Otherwise throw an error
 	case ast.Symbol:
-		symbolName := form.(*Symbol).GetName()
+		var nsName string
+		sym := form.(*Symbol)
+		symbolName := sym.GetName()
 
 		switch symbolName {
 		case "true":
@@ -52,10 +54,28 @@ func evalForm(rt *Runtime, scope IScope, form IExpr) (IExpr, IError) {
 		case "nil":
 			return &Nil, nil
 		default:
-			expr := scope.Lookup(symbolName)
+			var expr *Binding
+			if sym.IsNSQualified() {
+				if !rt.CurrentNS().hasExternal(sym.GetNSPart()) {
+					return nil, MakeErrorFor(rt, sym,
+						fmt.Sprintf("Namespace '%s' is no loaded", sym.GetNSPart()),
+					)
+				}
+
+				expr = rt.CurrentNS().LookupGlobal(sym)
+				nsName = sym.GetNSPart()
+			} else {
+				expr = scope.Lookup(symbolName)
+				nsName = rt.CurrentNS().GetName()
+			}
 
 			if expr == nil {
-				return nil, MakeRuntimeErrorf(rt, "can't resolve symbol '%s' in ns '%s'", symbolName, rt.CurrentNS().GetName())
+				return nil, MakeRuntimeErrorf(
+					rt,
+					"can't resolve symbol '%s' in ns '%s'",
+					symbolName,
+					nsName,
+				)
 			}
 
 			return expr.Value, nil
@@ -122,6 +142,9 @@ tco:
 	body:
 		for _, forms := range exprs {
 			// Evaluating forms one by one
+			if rt.IsDebugMode() {
+				fmt.Printf("[DEBUG] Evaluating forms in NS: %s, Forms: %s\n", rt.CurrentNS().GetName(), forms)
+			}
 
 			if forms.GetType() != ast.List {
 				ret, err = evalForm(rt, scope, forms)
@@ -170,6 +193,14 @@ tco:
 			}
 
 			switch sform {
+
+			case "ns":
+				ret, err = NSForm(rt, scope, list)
+				continue // return
+
+			case "require":
+				ret, err = RequireForm(rt, scope, list)
+				continue // return
 
 			// `quote` evaluation rules:
 			// * Only takes one argument
@@ -444,6 +475,7 @@ tco:
 				}
 			}
 		}
+		break tco
 	}
 
 	return ret, err
@@ -468,4 +500,26 @@ func Eval(rt *Runtime, forms *Block) (IExpr, IError) {
 	}
 
 	return v, nil
+}
+
+func EvalNSBody(rt *Runtime, ns *Namespace) (*Namespace, IError) {
+	body := ns.getForms()
+	exprs := body.ToSlice()
+
+	if len(exprs) == 0 {
+		return nil, MakeError(rt, fmt.Sprintf("the 'ns' form is missing from '%s'", ns.GetName()))
+	}
+
+	if exprs[0].GetType() == ast.List {
+		firstForm := exprs[0].(*List).First()
+		if firstForm.GetType() == ast.Symbol && firstForm.(*Symbol).GetName() == "ns" {
+			_, err := EvalForms(rt, ns.GetRootScope(), body)
+			if err != nil {
+				return nil, err
+			}
+			return ns, nil
+		}
+	}
+
+	return nil, MakeError(rt, fmt.Sprintf("the 'ns' form is missing from '%s'", ns.GetName()))
 }

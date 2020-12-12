@@ -19,6 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package core
 
 import (
+	"fmt"
+
 	"serene-lang.org/bootstrap/pkg/ast"
 )
 
@@ -28,7 +30,6 @@ import (
 func Def(rt *Runtime, scope IScope, args *List) (IExpr, IError) {
 
 	// TODO: Add support for docstrings and meta
-
 	switch args.Count() {
 	case 2:
 		name := args.First()
@@ -123,4 +124,97 @@ func Fn(rt *Runtime, scope IScope, args *List) (IExpr, IError) {
 	}
 
 	return MakeFunction(scope, params, body), nil
+}
+
+func NSForm(rt *Runtime, scope IScope, args *List) (IExpr, IError) {
+	if args.Count() == 1 {
+		return nil, MakeErrorFor(rt, args, "namespace's name is missing")
+	}
+
+	name := args.Rest().First()
+
+	if name.GetType() != ast.Symbol {
+		return nil, MakeErrorFor(rt, name, "the first argument to the 'ns' has to be a symbol")
+	}
+	nsName := name.(*Symbol).GetName()
+
+	if nsName != rt.CurrentNS().GetName() {
+		return nil, MakeErrorFor(
+			rt,
+			args,
+			fmt.Sprintf("the namespace '%s' doesn't match the file name.", nsName),
+		)
+	}
+	ns, ok := rt.GetNS(nsName)
+
+	if !ok {
+		return nil, MakeErrorFor(rt, name, fmt.Sprintf("can't find the namespace '%s'. Is it the same as the file name?", nsName))
+	}
+
+	return ns, nil
+	// TODO: Handle the params like `require` and `meta`
+	// params := args.Rest().Rest()
+
+}
+
+func RequireForm(rt *Runtime, scope IScope, args *List) (IExpr, IError) {
+	switch args.Count() {
+	case 0:
+		return nil, MakeErrorFor(rt, args, "'require' special form is missing")
+	case 2:
+	default:
+		return nil, MakeErrorFor(rt, args.First(), "'require' special form needs exactly one argument")
+	}
+
+	ns, err := EvalForms(rt, scope, args.Rest().First())
+
+	if err != nil {
+		return nil, err
+	}
+
+	switch ns.GetType() {
+	case ast.Symbol:
+		loadedNS, err := rt.RequireNS(ns.(*Symbol).GetName())
+		if err != nil {
+			return nil, err
+		}
+
+		prevNS := rt.CurrentNS()
+
+		rt.InsertNS(ns.(*Symbol).GetName(), loadedNS)
+		inserted := rt.setCurrentNS(loadedNS.GetName())
+
+		if !inserted {
+			return nil, MakeError(
+				rt,
+				fmt.Sprintf(
+					"the namespace '%s' didn't get inserted in the runtime.",
+					loadedNS.GetName()),
+			)
+		}
+
+		loadedNS, e := EvalNSBody(rt, loadedNS)
+
+		inserted = rt.setCurrentNS(prevNS.GetName())
+
+		if !inserted {
+			return nil, MakeError(
+				rt,
+				fmt.Sprintf(
+					"can't set the current ns back to '%s' from '%s'.",
+					prevNS.GetName(),
+					loadedNS.GetName()),
+			)
+		}
+
+		if e != nil {
+			return nil, e
+		}
+
+		prevNS.setExternal(ns.(*Symbol).GetName(), loadedNS)
+		return loadedNS, nil
+	case ast.List:
+	default:
+	}
+	return nil, MakeError(rt, "NotImplemented")
 }
