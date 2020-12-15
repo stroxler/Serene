@@ -62,10 +62,10 @@ func evalForm(rt *Runtime, scope IScope, form IExpr) (IExpr, IError) {
 					)
 				}
 
-				expr = rt.CurrentNS().LookupGlobal(sym)
+				expr = rt.CurrentNS().LookupGlobal(rt, sym)
 				nsName = sym.GetNSPart()
 			} else {
-				expr = scope.Lookup(symbolName)
+				expr = scope.Lookup(rt, symbolName)
 				nsName = rt.CurrentNS().GetName()
 			}
 
@@ -196,10 +196,6 @@ tco:
 
 			case "ns":
 				ret, err = NSForm(rt, scope, list)
-				continue // return
-
-			case "require":
-				ret, err = RequireForm(rt, scope, list)
 				continue // return
 
 			// `quote` evaluation rules:
@@ -468,6 +464,13 @@ tco:
 
 					expressions = fn.GetBody()
 					continue tco
+				case ast.NativeFn:
+					fn := f.(*NativeFunction)
+					return fn.Apply(
+						rt,
+						scope,
+						MakeNodeFromExpr(fn),
+						exprs.(*List))
 				default:
 					err = MakeError(rt, "don't know how to execute anything beside function")
 					ret = nil

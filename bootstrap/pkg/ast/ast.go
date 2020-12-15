@@ -28,12 +28,14 @@ const (
 	True
 	False
 	Symbol
+	Keyword
 	Number
 	List
 	Fn
+	NativeFn
 	Namespace
 	Block // Dont' mistake it with block from other programming languages
-	// 10
+
 )
 
 type Location struct {

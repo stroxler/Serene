@@ -18,8 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package core
 
+import "fmt"
+
 type IScope interface {
-	Lookup(k string) *Binding
+	Lookup(rt *Runtime, k string) *Binding
 	Insert(k string, v IExpr, public bool)
 }
 
@@ -33,14 +35,25 @@ type Scope struct {
 	parent   *Scope
 }
 
-func (s *Scope) Lookup(k string) *Binding {
+func (s *Scope) Lookup(rt *Runtime, k string) *Binding {
+	if rt.IsDebugMode() {
+		fmt.Println(s.parent)
+		fmt.Printf("[DEBUG] Looking up '%s'\n", k)
+	}
+
 	v, ok := s.bindings[k]
 	if ok {
 		return &v
 	}
 
 	if s.parent != nil {
-		return s.parent.Lookup(k)
+		return s.parent.Lookup(rt, k)
+	}
+
+	builtin := rt.LookupBuiltin(k)
+
+	if builtin != nil {
+		return &Binding{builtin, true}
 	}
 
 	return nil

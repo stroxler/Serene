@@ -62,7 +62,7 @@ func (n *Namespace) DefineGlobal(k string, v IExpr, public bool) {
 	n.rootScope.Insert(k, v, public)
 }
 
-func (n *Namespace) LookupGlobal(sym *Symbol) *Binding {
+func (n *Namespace) LookupGlobal(rt *Runtime, sym *Symbol) *Binding {
 	if !sym.IsNSQualified() {
 		return nil
 	}
@@ -74,7 +74,7 @@ func (n *Namespace) LookupGlobal(sym *Symbol) *Binding {
 	}
 
 	externalScope := externalNS.GetRootScope()
-	return externalScope.Lookup(sym.GetName())
+	return externalScope.Lookup(rt, sym.GetName())
 }
 
 func (n *Namespace) GetRootScope() IScope {
@@ -100,6 +100,99 @@ func (n *Namespace) setForms(block *Block) {
 
 func (n *Namespace) getForms() *Block {
 	return &n.forms
+}
+
+func requireNS(rt *Runtime, ns string) (*Namespace, IError) {
+	// TODO: use a hashing algorithm to avoid reloading an unchanged namespace
+	loadedForms, err := rt.LoadNS(ns)
+
+	if err != nil {
+		return nil, err
+	}
+
+	body := loadedForms.forms
+	source := loadedForms.source
+
+	if body.Count() == 0 {
+		return nil, MakeError(
+			rt,
+			fmt.Sprintf("The '%s' ns source code doesn't start with an 'ns' form.", ns),
+		)
+	}
+	namespace := MakeNS(ns, source)
+	namespace.setForms(body)
+
+	return &namespace, nil
+}
+
+func RequireNamespace(rt *Runtime, namespace IExpr) (IExpr, IError) {
+	var alias string
+	var ns *Symbol
+
+	switch namespace.GetType() {
+	case ast.Symbol:
+		ns = namespace.(*Symbol)
+		alias = ns.GetName()
+
+	case ast.List:
+		list := namespace.(*List)
+		first := list.First()
+
+		if first.GetType() != ast.Symbol {
+			return nil, MakeErrorFor(rt, first, "The first element has to be a symbol")
+		}
+
+		second := list.Rest().First()
+		if second.GetType() != ast.Symbol {
+			return nil, MakeErrorFor(rt, first, "The second element has to be a symbol")
+		}
+
+		ns = first.(*Symbol)
+		alias = second.(*Symbol).GetName()
+	default:
+		return nil, MakeErrorFor(rt, ns, "Don't know how to load the given namespace")
+	}
+
+	loadedNS, err := requireNS(rt, ns.GetName())
+
+	if err != nil {
+		return nil, err
+	}
+
+	prevNS := rt.CurrentNS()
+
+	rt.InsertNS(ns.GetName(), loadedNS)
+	inserted := rt.setCurrentNS(loadedNS.GetName())
+
+	if !inserted {
+		return nil, MakeError(
+			rt,
+			fmt.Sprintf(
+				"the namespace '%s' didn't get inserted in the runtime.",
+				loadedNS.GetName()),
+		)
+	}
+
+	loadedNS, e := EvalNSBody(rt, loadedNS)
+
+	inserted = rt.setCurrentNS(prevNS.GetName())
+
+	if !inserted {
+		return nil, MakeError(
+			rt,
+			fmt.Sprintf(
+				"can't set the current ns back to '%s' from '%s'.",
+				prevNS.GetName(),
+				loadedNS.GetName()),
+		)
+	}
+
+	if e != nil {
+		return nil, e
+	}
+
+	prevNS.setExternal(alias, loadedNS)
+	return loadedNS, nil
 }
 
 func MakeNS(name string, source string) Namespace {

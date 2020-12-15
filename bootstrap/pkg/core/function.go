@@ -24,6 +24,12 @@ import (
 	"serene-lang.org/bootstrap/pkg/ast"
 )
 
+type nativeFnHandler = func(rt *Runtime, scope IScope, n Node, args *List) (IExpr, IError)
+
+type INativeFn interface {
+	Apply(rt *Runtime, scope IScope, n Node, args *List) (IExpr, IError)
+}
+
 // Function struct represent a user defined function.
 type Function struct {
 	// Node struct holds the necessary functions to make
@@ -46,6 +52,14 @@ type Function struct {
 	// A reference to the body block of the function
 	body    *Block
 	isMacro bool
+}
+
+type NativeFunction struct {
+	// Node struct holds the necessary functions to make
+	// Functions locatable
+	Node
+	name string
+	fn   nativeFnHandler
 }
 
 func (f *Function) GetType() ast.NodeType {
@@ -128,4 +142,27 @@ func MakeFnScope(rt *Runtime, parent IScope, bindings IColl, values IColl) (*Sco
 	}
 
 	return scope, nil
+}
+
+func (f *NativeFunction) GetType() ast.NodeType {
+	return ast.NativeFn
+}
+
+func (f *NativeFunction) String() string {
+	return fmt.Sprintf("<NativeFn: %s>", f.name)
+}
+
+func (f *NativeFunction) ToDebugStr() string {
+	return fmt.Sprintf("<NativeFn: %s>", f.name)
+}
+
+func (f *NativeFunction) Apply(rt *Runtime, scope IScope, n Node, args *List) (IExpr, IError) {
+	return f.fn(rt, scope, n, args)
+}
+
+func MakeNativeFn(name string, f nativeFnHandler) NativeFunction {
+	return NativeFunction{
+		name: name,
+		fn:   f,
+	}
 }

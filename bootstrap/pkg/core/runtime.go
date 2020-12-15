@@ -40,6 +40,7 @@ type loadedForms struct {
 
 type Runtime struct {
 	namespaces map[string]Namespace
+	builtins   map[string]NativeFunction
 	currentNS  string
 	paths      []string
 	debugMode  bool
@@ -163,11 +164,24 @@ func (r *Runtime) InsertNS(nsName string, ns *Namespace) {
 	r.namespaces[nsName] = *ns
 }
 
+func (r *Runtime) LookupBuiltin(k string) IExpr {
+	builtinfn, ok := r.builtins[k]
+
+	if ok {
+		return &builtinfn
+	}
+
+	return nil
+}
+
 func MakeRuntime(paths []string, debug bool) *Runtime {
-	return &Runtime{
+	rt := Runtime{
 		namespaces: map[string]Namespace{},
 		currentNS:  "",
 		debugMode:  debug,
 		paths:      paths,
 	}
+
+	rt.builtins = BUILTINS
+	return &rt
 }

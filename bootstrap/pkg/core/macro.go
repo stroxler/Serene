@@ -50,7 +50,7 @@ func isMacroCall(rt *Runtime, scope IScope, form IExpr) (*Function, bool) {
 		var macro IExpr = nil
 
 		if first.GetType() == ast.Symbol {
-			binding := scope.Lookup(first.(*Symbol).GetName())
+			binding := scope.Lookup(rt, first.(*Symbol).GetName())
 			if binding != nil && binding.Public {
 				macro = binding.Value
 			}
