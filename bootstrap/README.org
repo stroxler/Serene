@@ -1,6 +1,9 @@
+#+OPTIONS:     num:t toc:nil
 * Serene lang (Bootstrap interpreter)
 The bootstrap version of Serene is used to bootstrap the compiler which is written in Serene
 itself. It's an interpreter with minimal set of features and rough edges.
+
+#+TOC: headlines 2
 
 ** Heads up
 Since the interpreter is there to bootstrap the compiler the goal is to keep it simple and good enough
