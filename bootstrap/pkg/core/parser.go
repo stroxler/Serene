@@ -18,21 +18,50 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package core
 
+// Parser Implementation:
+// * `ParseToAST` is the entry point of the parser
+// * It's a manual parser with look ahead factor of (1)
+// * It parsers the input string to a tree of `IEpxr`s
+//
+// TODOs:
+// * Add a shortcut for anonymous functions similar to `#(...)` clojure
+//   syntax
+// * Add the support for strings
+// * Add the support for kewords
+// * Add a shortcut for the `deref` function like `@x` => `(deref x)`
+
 import (
 	"strings"
 	"unicode"
 )
 
+// An array of the valid characters that be be used in a symbol
 var validChars = []rune{'!', '$', '%', '&', '*', '+', '-', '.', '~', '/', ':', '<', '=', '>', '?', '@', '^', '_'}
 
+// IParsable defines the common interface which any parser has to implement.
 type IParsable interface {
+	// Reads the next character in the buffer with respect to skipWhitespace
+	// parameter which basically jumps over whitespace and some conceptual
+	// equivilant of a whitespace like '\n'
 	next(skipWhitespace bool) *string
+
+	// Similar to the `next` but it won't change the position in the buffer
+	// so an imidiate `next` function after a `peek` will read the same char
+	// but will move the position, and a series of `peek` calls will read the
+	// same function over and over again without changing the position in the
+	// buffer.
 	peek(skipWhitespace bool) *string
+
+	// Moves back the position by one in the buffer.
 	back()
+
+	// Returns the current position in the buffer
 	GetLocation() int
 	Buffer() *[]string
 }
 
+// StringParser is an implementation of the  IParsable that operates on strings.
+// To put it simply it parses input strings
 type StringParser struct {
 	buffer []string
 	pos    int
@@ -47,7 +76,6 @@ func (sp *StringParser) next(skipWhitespace bool) *string {
 	}
 	char := sp.buffer[sp.pos]
 	sp.pos = sp.pos + 1
-	//fmt.Println("C: %s, W: %s", char, is)
 
 	if skipWhitespace && isSeparator(&char) {
 		return sp.next(skipWhitespace)
@@ -56,6 +84,9 @@ func (sp *StringParser) next(skipWhitespace bool) *string {
 	return &char
 }
 
+// isSeparator returns a boolean indicating whether the given character `c`
+// contains a separator or not. In a Lisp whitespace and someother characters
+// are conceptually the same and we need to treat them the same as well.
 func isSeparator(c *string) bool {
 
 	if c == nil {
@@ -102,11 +133,14 @@ func (sp *StringParser) Buffer() *[]string {
 
 // END: IParsable ---
 
+// makeErrorAtPoint is a helper function which generates an `IError` that
+// points at the current position of the buffer.
 func makeErrorAtPoint(p IParsable, msg string, a ...interface{}) IError {
 	n := MakeSinglePointNode(p.Buffer(), p.GetLocation())
 	return MakeParsetimeErrorf(n, msg, a...)
 }
 
+// makeErrorFromError is a function which wraps a Golang error in an IError
 func makeErrorFromError(parser IParsable, e error) IError {
 	return makeErrorAtPoint(parser, "%w", e)
 }
@@ -126,6 +160,7 @@ func isValidForSymbol(char string) bool {
 	return contains(validChars, c) || unicode.IsLetter(c) || unicode.IsDigit(c)
 }
 
+//readRawSymbol reads a symbol from the current position forward
 func readRawSymbol(parser IParsable) (IExpr, IError) {
 	c := parser.peek(false)
 	var symbol string
@@ -134,6 +169,7 @@ func readRawSymbol(parser IParsable) (IExpr, IError) {
 		return nil, makeErrorAtPoint(parser, "unexpected enf of file while parsing a symbol")
 	}
 
+	// Does the symbol starts with a valid character or not
 	if isValidForSymbol(*c) {
 		parser.next(false)
 		symbol = *c
@@ -145,6 +181,7 @@ func readRawSymbol(parser IParsable) (IExpr, IError) {
 		)
 	}
 
+	// read the rest of the symbol
 	for {
 		c := parser.next(false)
 
@@ -172,6 +209,8 @@ func readRawSymbol(parser IParsable) (IExpr, IError) {
 	return sym, nil
 }
 
+// readNumber reads a number with respect to its sign and whether it's
+// a decimal or a float
 func readNumber(parser IParsable, neg bool) (IExpr, IError) {
 	isDouble := false
 	result := ""
@@ -217,6 +256,10 @@ func readNumber(parser IParsable, neg bool) (IExpr, IError) {
 	return value, nil
 }
 
+// readSymbol reads a symbol and return the appropriate type of expression
+// based on the symbol conditions. For example it will read a number if the
+// symbol starts with a number or a neg sign or a string if it starts with '\"'
+// and a raw symbol otherwise
 func readSymbol(parser IParsable) (IExpr, IError) {
 	c := parser.peek(false)
 
@@ -255,6 +298,7 @@ func readSymbol(parser IParsable) (IExpr, IError) {
 	return readRawSymbol(parser)
 }
 
+// readList reads a List recursively.
 func readList(parser IParsable) (IExpr, IError) {
 	list := []IExpr{}
 
@@ -289,6 +333,8 @@ func readComment(parser IParsable) (IExpr, IError) {
 	}
 }
 
+// readQuotedExpr reads quoted expression ( lie 'something ) by replaceing the
+// quote with a call to `quote` special form so 'something => (quote something)
 func readQuotedExpr(parser IParsable) (IExpr, IError) {
 	expr, err := readExpr(parser)
 	if err != nil {
@@ -309,6 +355,11 @@ func readQuotedExpr(parser IParsable) (IExpr, IError) {
 	}), nil
 }
 
+// readUnquotedExpr reads different unquoting expressions from their short representaions.
+// ~a => (unquote a)
+// ~@a => (unquote-splicing a)
+// Note: `unquote` and `unquote-splicing` are not global functions or special, they are bounded
+// to quasiquoted experssions only.
 func readUnquotedExpr(parser IParsable) (IExpr, IError) {
 	c := parser.peek(true)
 
@@ -347,6 +398,8 @@ func readUnquotedExpr(parser IParsable) (IExpr, IError) {
 	return MakeList([]IExpr{sym, expr}), nil
 }
 
+// readQuasiquotedExpr reads the backquote and replace it with a call
+// to the `quasiquote` macro.
 func readQuasiquotedExpr(parser IParsable) (IExpr, IError) {
 	expr, err := readExpr(parser)
 	if err != nil {
@@ -365,6 +418,9 @@ func readQuasiquotedExpr(parser IParsable) (IExpr, IError) {
 	}), nil
 }
 
+// readExpr reads one expression from the input. This function is the most
+// important function in the parser which dispatches the call to different
+// reader functions based on the first character
 func readExpr(parser IParsable) (IExpr, IError) {
 
 loop:
@@ -404,6 +460,12 @@ loop:
 
 }
 
+//ParseToAST is the entry function to the reader/parser which
+// converts the `input` string to a `Block` of code. A block
+// by itself is not something available to the language. It's
+// just anbstraction for a ordered collection of expressions.
+// It doesn't have anything to do with the concept of blocks
+// from other programming languages
 func ParseToAST(input string) (*Block, IError) {
 
 	var ast Block

@@ -56,6 +56,7 @@ func evalForm(rt *Runtime, scope IScope, form IExpr) (IExpr, IError) {
 		default:
 			var expr *Binding
 			if sym.IsNSQualified() {
+				// Whether a namespace with the given alias loaded or not
 				if !rt.CurrentNS().hasExternal(sym.GetNSPart()) {
 					return nil, MakeErrorFor(rt, sym,
 						fmt.Sprintf("Namespace '%s' is no loaded", sym.GetNSPart()),
@@ -194,6 +195,11 @@ tco:
 
 			switch sform {
 
+			// `ns` evaluation rules:
+			// * The first element has to be a symbol representing the
+			//   name of the namespace. ( We won't evaluate the first
+			//   element )
+			// TODO: decide on the syntax and complete the docs
 			case "ns":
 				ret, err = NSForm(rt, scope, list)
 				continue // return
@@ -344,6 +350,7 @@ tco:
 				expressions = MakeBlock(list.Rest().(*List).ToSlice())
 				continue tco // Loop over to execute the new expressions
 
+			// TODO: Implement `eval` as a native function
 			// `eval` evaluation rules:
 			// * It only takes on arguments.
 			// * The argument has to be a form. For example if we pass a string
@@ -464,6 +471,9 @@ tco:
 
 					expressions = fn.GetBody()
 					continue tco
+
+				// If the function was a native function which is represented
+				// by the `NativeFunction` struct
 				case ast.NativeFn:
 					fn := f.(*NativeFunction)
 					return fn.Apply(
@@ -505,6 +515,9 @@ func Eval(rt *Runtime, forms *Block) (IExpr, IError) {
 	return v, nil
 }
 
+// EvalNSBody evals the body of the given namespace `ns` using the given
+// runtime `rt`. It makes sure that the body starts with a `ns` special
+// form with the same name as the ns argument.
 func EvalNSBody(rt *Runtime, ns *Namespace) (*Namespace, IError) {
 	body := ns.getForms()
 	exprs := body.ToSlice()

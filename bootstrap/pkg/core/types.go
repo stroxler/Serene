@@ -58,21 +58,28 @@ func (n Node) GetLocation() ast.Location {
 	return n.location
 }
 
-// Create a new Node for the given Location `loc`
+// MakeNodeFromLocation creates a new Node for the given Location `loc`
 func MakeNodeFromLocation(loc ast.Location) Node {
 	return Node{
 		location: loc,
 	}
 }
 
+// MakeNodeFromExpr creates a new Node from the given `IExpr`.
+// We use the Node to pass it to other IExpr constructors to
+// keep the reference to the original form in the input string
 func MakeNodeFromExpr(e IExpr) Node {
 	return MakeNodeFromLocation(e.GetLocation())
 }
 
+// MakeNode creates a new Node in the the given `input` that points to a
+// range of characters starting from the `start` till the `end`.
 func MakeNode(input *[]string, start int, end int) Node {
 	return MakeNodeFromLocation(ast.MakeLocation(input, start, end))
 }
 
+// MakeSinglePointNode creates a not the points to a single char in the
+// input
 func MakeSinglePointNode(input *[]string, point int) Node {
 	return MakeNode(input, point, point)
 }

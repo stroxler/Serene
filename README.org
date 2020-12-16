@@ -1,0 +1,6 @@
+* Serene language
+
+** Where to get help
+- ~IRC~: ~#5hit~ on the freenode server
+- ~Gitter~: [[https://gitter.im/Serene-lang/serene]]
+- ~MailingList~: https://www.freelists.org/list/serene

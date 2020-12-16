@@ -18,17 +18,43 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package core
 
+// Error implementations:
+// * `IError` is the main interface to represent errors.
+// * `Error` struct is an expression itself.
+// * `IError` and any implementation of it has to implement `ILocatable`
+//    so we can point to the exact location of the error.
+// * We have to use `IError` everywhere and avoid using Golangs errors
+//   since IError is an expression itself.
+//
+// TODOs:
+// * Make errors stackable, so different pieces of code can stack related
+//   errors on top of each other so user can track them through the code
+// * Errors should contain a help message as well to give some hints to the
+//   user about how to fix the problem. Something similar to Rust's error
+//   messages
+// * Integrate the call stack with IError
+
 import (
 	"fmt"
 
 	"serene-lang.org/bootstrap/pkg/ast"
 )
 
+// IError defines the necessary functionality of the internal errors.
 type IError interface {
+	// In order to point to a specific point in the input
 	ast.ILocatable
+
+	// We want errors to be printable by the `print` family
 	IPrintable
 	IDebuggable
+
+	// To wrap Golan rrrrors
 	WithError(err error) IError
+
+	// Some errors might doesn't have any node available to them
+	// at the creation time. SetNode allows us to the the appropriate
+	// node later in time.
 	SetNode(n *Node)
 }
 
@@ -69,10 +95,13 @@ func MakePlainError(msg string) IError {
 	}
 }
 
+// MakeError creates an Error without any location.
 func MakeError(rt *Runtime, msg string) IError {
 	return MakePlainError(msg)
 }
 
+// MakeErrorFor creates an Error which points to the given IExpr `e` as
+// the root of the error.
 func MakeErrorFor(rt *Runtime, e IExpr, msg string) IError {
 	loc := e.GetLocation()
 
@@ -82,6 +111,7 @@ func MakeErrorFor(rt *Runtime, e IExpr, msg string) IError {
 	}
 }
 
+//MakeRuntimeErrorf is a helper function which works like `fmt.Errorf`
 func MakeRuntimeErrorf(rt *Runtime, msg string, a ...interface{}) IError {
 	return &Error{
 		msg: fmt.Sprintf(msg, a...),

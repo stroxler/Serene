@@ -18,6 +18,15 @@ one in the future.
 
 - Since we didn't write the reader in Serene itself, there is no reader macroes.
 
+** New contributors
+If you're a new contributor and you want to start working on the source code and don't know where to start,
+just look through the source code for *TODO:* sections and the ~dev.org~ on the root for some higher level
+TODOs.
+
+In order to start reading the code start from the ~pkg/core/parser.go~ file which is the parser implementation
+and then take a look at ~pkg/core/core.go~ and ~pkg/core/eval.go~. If you have any question feel free to ask them
+either on the mailing list or the gitter/IRC channel.
+
 ** Development hint
 
 *** Use Make... functions

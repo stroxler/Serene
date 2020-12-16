@@ -18,6 +18,26 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package core
 
+// Function implementations:
+// * We have two different types of functions. User defined functions and
+//   native functions
+// * User defined functions are represented via the `Function` struct.
+// * Native functions are represented via the `NativeFunction` struct.
+// * User defined functions gets evaluated by:
+// - Creating a new scope a direct child of the scope that the function
+//   defined in
+// - Creating bindings in the new scope to bind the passed values to their
+//   arguments names
+// - Evaluate the body of the function in context of the new scope and return
+//   the result of the last expression
+// * Native functions evaluates by calling the `Apply` method of the `INativeFn`
+//   interface which is quite simple.
+//
+// TODOs:
+// * Support for multi-arity functions
+// * Support for protocol functions
+// * `IFn` protocol
+
 import (
 	"fmt"
 
