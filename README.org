@@ -1,7 +1,7 @@
-#+OPTIONS:     num:t toc:t
+#+OPTIONS:     num:t toc:nil
 * Serene language
 
-[TABLE-OF-CONTENTS]
+#+TOC: headlines 2
 
 ** Where to get help
 - ~IRC~: ~#5hit~ on the freenode server
