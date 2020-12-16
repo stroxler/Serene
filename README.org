@@ -1,4 +1,7 @@
+#+OPTIONS:     num:t toc:t
 * Serene language
+
+[TABLE-OF-CONTENTS]
 
 ** Where to get help
 - ~IRC~: ~#5hit~ on the freenode server
