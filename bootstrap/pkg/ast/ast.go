@@ -34,6 +34,7 @@ const (
 	Fn
 	NativeFn
 	Namespace
+	String
 	Block // Dont' mistake it with block from other programming languages
 
 )

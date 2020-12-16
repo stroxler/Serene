@@ -36,6 +36,9 @@ func evalForm(rt *Runtime, scope IScope, form IExpr) (IExpr, IError) {
 	case ast.Number:
 		return form, nil
 
+	case ast.String:
+		return form, nil
+
 	// Symbol evaluation rules:
 	// * If it's a NS qualified symbol (NSQS), Look it up in the external symbol table of
 	// the current namespace.

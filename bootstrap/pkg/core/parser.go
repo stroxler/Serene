@@ -208,8 +208,24 @@ func readRawSymbol(parser IParsable) (IExpr, IError) {
 
 	return sym, nil
 }
+func readString(parser IParsable) (IExpr, IError) {
+	str := ""
 
-// readNumber reads a number with respect to its sign and whether it's
+	for {
+		c := parser.next(false)
+		if c == nil {
+			return nil, makeErrorAtPoint(parser, "reached end of file while scanning a string")
+		}
+
+		if *c == "\"" {
+			node := MakeNode(parser.Buffer(), parser.GetLocation()-len(str), parser.GetLocation())
+			return MakeString(node, str), nil
+		}
+		str = str + *c
+	}
+}
+
+// readNumber reads a number with respect to its sign and whether it's, a ...interface{}
 // a decimal or a float
 func readNumber(parser IParsable, neg bool) (IExpr, IError) {
 	isDouble := false
@@ -267,9 +283,10 @@ func readSymbol(parser IParsable) (IExpr, IError) {
 		return nil, makeErrorAtPoint(parser, "unexpected end of file while scanning a symbol")
 	}
 
-	// if c == "\"" {
-	// 	return readString(parser)
-	// }
+	if *c == "\"" {
+		parser.next(false)
+		return readString(parser)
+	}
 
 	// Weird, But go won't stop complaining without this swap
 	char := *c
