@@ -16,37 +16,23 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package core
+// Package hash provides the hashing functionality
+package hash
 
-import (
-	"fmt"
+import "hash/crc32"
 
-	"serene-lang.org/bootstrap/pkg/ast"
-	"serene-lang.org/bootstrap/pkg/hash"
-)
+var hashTable *crc32.Table = crc32.MakeTable(crc32.Castagnoli)
 
-type String struct {
-	Node
-	content string
+//IHashable is the interface types which allows expressions to have a hash
+// value that doesn't change through out their life time. The origin
+// of each expression can be checked by comparing their hashes. Basically
+// two expressions with the same hash consider to be the same.
+type IHashable interface {
+	// Returns a 32 bit hash of the the entity which implements it.
+	// The hash should be constant to the life time of the implementor.
+	Hash() uint32
 }
 
-func (s *String) GetType() ast.NodeType {
-	return ast.String
-}
-
-func (s *String) String() string {
-	return s.content
-}
-
-func (s *String) ToDebugStr() string {
-	return fmt.Sprintf("<%s at %p>", s.content, s)
-}
-
-func (s *String) Hash() uint32 {
-	bytes := []byte(s.content)
-	return hash.HashOf(append([]byte{byte(ast.String)}, bytes...))
-}
-
-func MakeString(n Node, s string) *String {
-	return &String{n, s}
+func HashOf(in []byte) uint32 {
+	return crc32.Checksum(in, hashTable)
 }

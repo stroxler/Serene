@@ -28,6 +28,7 @@ import (
 var BUILTINS = map[string]NativeFunction{
 	"print":   MakeNativeFn("print", PrintNativeFn),
 	"require": MakeNativeFn("print", RequireNativeFn),
+	"hash":    MakeNativeFn("hash", HashNativeFn),
 }
 
 func PrintNativeFn(rt *Runtime, scope IScope, n Node, args *List) (IExpr, IError) {
@@ -44,9 +45,9 @@ func PrintNativeFn(rt *Runtime, scope IScope, n Node, args *List) (IExpr, IError
 func RequireNativeFn(rt *Runtime, scope IScope, n Node, args *List) (IExpr, IError) {
 	switch args.Count() {
 	case 0:
-		return nil, MakeErrorFor(rt, args, "'require' special form is missing")
+		return nil, MakeErrorFor(rt, args, "'require' function is missing")
 	case 1:
-		return nil, MakeErrorFor(rt, args.First(), "'require' special form needs at least one argument")
+		return nil, MakeErrorFor(rt, args.First(), "'require' function needs at least one argument")
 	default:
 	}
 
@@ -61,4 +62,20 @@ func RequireNativeFn(rt *Runtime, scope IScope, n Node, args *List) (IExpr, IErr
 
 	return result, nil
 
+}
+
+func HashNativeFn(rt *Runtime, scope IScope, n Node, args *List) (IExpr, IError) {
+	if args.Count() != 2 {
+		return nil, MakeErrorFor(rt, args.First(), "'hash' function needs exactly one argument")
+	}
+
+	expr := args.Rest().First()
+	result, err := MakeInteger(expr.Hash())
+
+	if err != nil {
+		return nil, err
+	}
+
+	result.Node = n
+	return result, nil
 }

@@ -18,7 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package core
 
-import "serene-lang.org/bootstrap/pkg/ast"
+import (
+	"serene-lang.org/bootstrap/pkg/ast"
+	"serene-lang.org/bootstrap/pkg/hash"
+)
 
 type NothingType struct{}
 
@@ -26,6 +29,11 @@ var Nothing = NothingType{}
 
 func (n NothingType) GetType() ast.NodeType {
 	return ast.Nothing
+}
+
+func (n NothingType) Hash() uint32 {
+	bytes := []byte("Nothing")
+	return hash.HashOf(append([]byte{byte(ast.Block)}, bytes...))
 }
 
 func (n NothingType) GetLocation() ast.Location {

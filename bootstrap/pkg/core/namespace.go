@@ -22,6 +22,7 @@ import (
 	"fmt"
 
 	"serene-lang.org/bootstrap/pkg/ast"
+	"serene-lang.org/bootstrap/pkg/hash"
 )
 
 type INamespace interface {
@@ -99,6 +100,10 @@ func (n *Namespace) GetRootScope() IScope {
 
 func (n *Namespace) GetName() string {
 	return n.name
+}
+
+func (n *Namespace) Hash() uint32 {
+	return hash.HashOf([]byte(n.String()))
 }
 
 func (n *Namespace) hasExternal(nsName string) bool {

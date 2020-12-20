@@ -40,3 +40,7 @@ func (n NilType) String() string {
 func (n NilType) ToDebugStr() string {
 	return "nil"
 }
+
+func (n NilType) Hash() uint32 {
+	return 0
+}

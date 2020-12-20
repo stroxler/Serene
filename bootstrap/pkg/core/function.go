@@ -42,6 +42,7 @@ import (
 	"fmt"
 
 	"serene-lang.org/bootstrap/pkg/ast"
+	"serene-lang.org/bootstrap/pkg/hash"
 )
 
 type nativeFnHandler = func(rt *Runtime, scope IScope, n Node, args *List) (IExpr, IError)
@@ -84,6 +85,11 @@ type NativeFunction struct {
 
 func (f *Function) GetType() ast.NodeType {
 	return ast.Fn
+}
+
+func (f *Function) Hash() uint32 {
+	// TODO: Fix this function to return an appropriate hash for a function
+	return hash.HashOf([]byte(f.String()))
 }
 
 func (f *Function) IsMacro() bool {
@@ -169,7 +175,12 @@ func (f *NativeFunction) GetType() ast.NodeType {
 }
 
 func (f *NativeFunction) String() string {
-	return fmt.Sprintf("<NativeFn: %s>", f.name)
+	return fmt.Sprintf("<NativeFn: %s at %p>", f.name, f)
+}
+
+func (f *NativeFunction) Hash() uint32 {
+	// TODO: Fix this function to return an appropriate hash for a function
+	return hash.HashOf([]byte(f.String()))
 }
 
 func (f *NativeFunction) ToDebugStr() string {

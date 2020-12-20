@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	"serene-lang.org/bootstrap/pkg/ast"
+	"serene-lang.org/bootstrap/pkg/hash"
 )
 
 // Block struct represents a group of forms. Don't confuse it with
@@ -54,6 +55,11 @@ func (b *Block) GetLocation() ast.Location {
 		return b.body[0].GetLocation()
 	}
 	return ast.MakeUnknownLocation()
+}
+
+func (l *Block) Hash() uint32 {
+	bytes := []byte("TODO")
+	return hash.HashOf(append([]byte{byte(ast.Block)}, bytes...))
 }
 
 func (b *Block) ToSlice() []IExpr {

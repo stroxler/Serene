@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	"serene-lang.org/bootstrap/pkg/ast"
+	"serene-lang.org/bootstrap/pkg/hash"
 )
 
 /** WARNING:
@@ -71,6 +72,11 @@ func (l *List) Rest() ISeq {
 		return MakeEmptyList()
 	}
 	return MakeList(l.exprs[1:])
+}
+
+func (l *List) Hash() uint32 {
+	bytes := []byte("TODO")
+	return hash.HashOf(append([]byte{byte(ast.List)}, bytes...))
 }
 
 // END: ISeq ---

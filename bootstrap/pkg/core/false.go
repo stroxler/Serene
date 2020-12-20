@@ -18,7 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package core
 
-import "serene-lang.org/bootstrap/pkg/ast"
+import (
+	"serene-lang.org/bootstrap/pkg/ast"
+	"serene-lang.org/bootstrap/pkg/hash"
+)
 
 type FalseType struct{}
 
@@ -39,4 +42,9 @@ func (n FalseType) String() string {
 
 func (n FalseType) ToDebugStr() string {
 	return "false"
+}
+
+func (n FalseType) Hash() uint32 {
+	bytes := []byte("false")
+	return hash.HashOf(append([]byte{byte(ast.False)}, bytes...))
 }

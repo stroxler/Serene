@@ -22,6 +22,7 @@ import (
 	"fmt"
 
 	"serene-lang.org/bootstrap/pkg/ast"
+	"serene-lang.org/bootstrap/pkg/hash"
 )
 
 // IPrintable is the interface which any value that wants to have a string
@@ -43,6 +44,7 @@ type IDebuggable interface {
 type IExpr interface {
 	ast.ILocatable
 	ast.ITypable
+	hash.IHashable
 	IPrintable
 	IDebuggable
 }

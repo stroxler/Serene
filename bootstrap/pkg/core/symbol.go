@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	"serene-lang.org/bootstrap/pkg/ast"
+	"serene-lang.org/bootstrap/pkg/hash"
 )
 
 type Symbol struct {
@@ -53,6 +54,11 @@ func (s *Symbol) GetNSPart() string {
 
 func (s *Symbol) ToDebugStr() string {
 	return s.String()
+}
+
+func (s *Symbol) Hash() uint32 {
+	// TODO: Return a combined hash of nsPart and name
+	return hash.HashOf([]byte(s.nsPart + "/" + s.name))
 }
 
 func (s *Symbol) IsRestable() bool {

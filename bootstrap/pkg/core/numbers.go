@@ -19,10 +19,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package core
 
 import (
+	"encoding/binary"
 	"fmt"
+	"math"
 	"strconv"
 
 	"serene-lang.org/bootstrap/pkg/ast"
+	"serene-lang.org/bootstrap/pkg/hash"
 )
 
 type INumber interface {
@@ -57,12 +60,14 @@ type Integer struct {
 	value int64
 }
 
-func (i Integer) Eval() IExpr {
-	return &i
-}
-
 func (i Integer) GetType() ast.NodeType {
 	return ast.Number
+}
+
+func (i Integer) Hash() uint32 {
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint64(b, uint64(i.value))
+	return hash.HashOf(b)
 }
 
 func (i Integer) String() string {
@@ -81,17 +86,36 @@ func (i Integer) F64() float64 {
 	return float64(i.value)
 }
 
+func MakeInteger(x interface{}) (*Integer, IError) {
+	var value int64
+	switch x.(type) {
+	case uint32:
+		value = int64(x.(uint32))
+	case int32:
+		value = int64(x.(int32))
+	default:
+		return nil, MakePlainError(fmt.Sprintf("don't know how to make 'integer' out of '%s'", x))
+	}
+
+	return &Integer{
+		value: value,
+	}, nil
+}
+
 type Double struct {
 	Node
 	value float64
 }
 
-func (d Double) Eval() IExpr {
-	return &d
-}
-
 func (d Double) GetType() ast.NodeType {
 	return ast.Number
+}
+
+func (d Double) Hash() uint32 {
+	b := make([]byte, 8)
+
+	binary.BigEndian.PutUint64(b, math.Float64bits(d.value))
+	return hash.HashOf(b)
 }
 
 func (d Double) String() string {
@@ -135,4 +159,22 @@ func MakeNumberFromStr(strValue string, isDouble bool) (INumber, error) {
 	}
 
 	return ret, nil
+}
+
+func MakeDouble(x interface{}) (*Double, IError) {
+	var value float64
+	switch x.(type) {
+	case uint32:
+		value = float64(x.(uint32))
+	case int32:
+		value = float64(x.(int32))
+	case float32:
+		value = float64(x.(float32))
+	default:
+		return nil, MakePlainError(fmt.Sprintf("don't know how to make 'double' out of '%s'", x))
+	}
+
+	return &Double{
+		value: value,
+	}, nil
 }
