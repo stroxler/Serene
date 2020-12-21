@@ -24,8 +24,6 @@ import (
 	"os"
 	"path"
 	"strings"
-
-	"serene-lang.org/bootstrap/pkg/dl"
 )
 
 /** TODO:
@@ -198,10 +196,6 @@ func (r *Runtime) LookupBuiltin(k string) IExpr {
 // runtime initialization such as adding default namespaces and vice
 // versa has to happen here.
 func MakeRuntime(paths []string, debug bool) *Runtime {
-	_, e := dl.Open("/home/lxsameer/src/serene/serene/bootstrap/examples/ffi/foo/libfoo.so")
-	if e != nil {
-		panic(e)
-	}
 	rt := Runtime{
 		namespaces: map[string]Namespace{},
 		currentNS:  "",
