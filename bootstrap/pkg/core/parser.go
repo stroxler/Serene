@@ -160,6 +160,16 @@ func isValidForSymbol(char string) bool {
 	return contains(validChars, c) || unicode.IsLetter(c) || unicode.IsDigit(c)
 }
 
+func readKeyword(parser IParsable) (IExpr, IError) {
+	symbol, err := readRawSymbol(parser)
+	if err != nil {
+		return nil, err
+	}
+
+	node := MakeNodeFromExpr(symbol)
+	return MakeKeyword(node, ":"+symbol.(*Symbol).String())
+}
+
 //readRawSymbol reads a symbol from the current position forward
 func readRawSymbol(parser IParsable) (IExpr, IError) {
 	c := parser.peek(false)
@@ -197,7 +207,6 @@ func readRawSymbol(parser IParsable) (IExpr, IError) {
 		}
 	}
 
-	// TODO: Add support for ns qualified symbols
 	node := MakeNode(parser.Buffer(), parser.GetLocation()-len(symbol), parser.GetLocation())
 	sym, err := MakeSymbol(node, symbol)
 
@@ -466,12 +475,17 @@ loop:
 		readComment(parser)
 		goto loop
 	}
-	// case '[':
+
+	if *c == ":" {
+		return readKeyword(parser)
+	}
+	// if *c == "[" {
 	// 	readVector(parser)
+	// }
 
-	// case '{':
+	// if *c == "{" {
 	// 	readMap(parser)
-
+	// }
 	parser.back()
 	return readSymbol(parser)
 

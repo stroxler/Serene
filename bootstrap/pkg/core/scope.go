@@ -37,7 +37,6 @@ type Scope struct {
 
 func (s *Scope) Lookup(rt *Runtime, k string) *Binding {
 	if rt.IsDebugMode() {
-		fmt.Println(s.parent)
 		fmt.Printf("[DEBUG] Looking up '%s'\n", k)
 	}
 

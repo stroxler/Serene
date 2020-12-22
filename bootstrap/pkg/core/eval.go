@@ -39,6 +39,18 @@ func evalForm(rt *Runtime, scope IScope, form IExpr) (IExpr, IError) {
 	case ast.String:
 		return form, nil
 
+	// Keyword evaluation rules:
+	// * Keywords evaluates to themselves with respect to a
+	// possible namespace alias. For example `::core/xyz`
+	// will evaluates to `:serene.core/xyz` only if the ns
+	// `serene.core` is loaded in the current ns with the
+	// `core` alias. Also `::xyz` will evaluete to
+	// `:<CURRENT_NS>/xyz`
+	case ast.Keyword:
+		// Eval initialize the keyword and MUTATES the state of the keyword
+		// and returns the updated keyword which would be the same
+		return form.(*Keyword).Eval(rt, scope)
+
 	// Symbol evaluation rules:
 	// * If it's a NS qualified symbol (NSQS), Look it up in the external symbol table of
 	// the current namespace.

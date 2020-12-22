@@ -111,6 +111,16 @@ func (n *Namespace) hasExternal(nsName string) bool {
 	return ok
 }
 
+// LookupExternal looks up the given `alias` in the `externals` table
+// of the namespace.
+func (n *Namespace) LookupExternal(alias string) *Namespace {
+	if n.hasExternal(alias) {
+		return n.externals[alias]
+	}
+
+	return nil
+}
+
 func (n *Namespace) setExternal(name string, ns *Namespace) {
 	n.externals[name] = ns
 }

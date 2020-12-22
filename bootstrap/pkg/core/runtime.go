@@ -136,9 +136,11 @@ func (r *Runtime) IsQQSimplificationEnabled() bool {
 func nsNameToPath(ns string) string {
 	replacer := strings.NewReplacer(
 		".", "/",
+		// TODO: checkout the different OSs for character supports in
+		// the filesystem level
 		//"-", "_",
 	)
-	return replacer.Replace(ns) + "srn"
+	return replacer.Replace(ns) + ".srn"
 }
 
 // LoadNS looks up the namespace specified by the given name `ns`
@@ -148,6 +150,10 @@ func (r *Runtime) LoadNS(ns string) (*loadedForms, IError) {
 	nsFile := nsNameToPath(ns)
 	for _, loadPath := range r.paths {
 		possibleFile := path.Join(loadPath, nsFile)
+
+		if r.debugMode {
+			fmt.Printf("[DEBUG] Looking for '%s' in '%s'", possibleFile, loadPath)
+		}
 
 		_, err := os.Stat(possibleFile)
 

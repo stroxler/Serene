@@ -36,3 +36,13 @@ type IHashable interface {
 func HashOf(in []byte) uint32 {
 	return crc32.Checksum(in, hashTable)
 }
+
+// CombineHashes combines two hashes and return a new one
+func CombineHashes(hash1, hash2 uint32) uint32 {
+	// This way of composing hashes is used in libboost and almost everyone
+	// is using it. The 0x9e3779b9 is the integral part of the Golden Ratio's
+	// fractional part 0.61803398875… (sqrt(5)-1)/2, multiplied by 2^32.
+	// For more info: https://lkml.org/lkml/2016/4/29/838
+	hash1 ^= hash2 + 0x9e3779b9 + (hash1 << 6) + (hash2 >> 2)
+	return hash1
+}
