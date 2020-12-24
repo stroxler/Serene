@@ -1,3 +1,9 @@
+* Serene's Development Resources
+This document is dedicated to collecting useful resources to help us in the development process.
+Any thing that might be useful, tools, other languages to look at, inspirations literally anything. Just
+try to find the best heading for them. IF your not familiar with the org mode markup checkout
+[[https://emacsclub.github.io/html/org_tutorial.html#sec-7][this cheatsheet]].
+
 * Parser
 First of all you need to read [[https://tomassetti.me/guide-parsing-algorithms-terminology/][All you need to know about Parser algorithms]].
 Then here is the list or parsers that we have considered
@@ -17,15 +23,17 @@ For a generic list of resources on compiler design take a look at https://tomass
 https://www.reddit.com/r/ProgrammingLanguages/comments/8ggx2n/is_llvm_a_good_backend_for_functional_languages/
 ** Lisp
 - Make a Lisp :: https://github.com/kanaka/mal/blob/master/process/guide.md
+*** Quasiquotation
+- Backquote in CL :: http://www.lispworks.com/documentation/HyperSpec/Body/02_df.htm
+- Backquote spec in Common Lisp the Language, 2nd Edition :: https://www.cs.cmu.edu/Groups/AI/html/cltl/clm/node367.html
+- Backquote and pretty printing :: http://christophe.rhodes.io/notes/blog/posts/2014/backquote_and_pretty_printing/
 ** Rust
 - The Rust book :: https://doc.rust-lang.org/book/ https://www.reddit.com/r/rust/comments/2s1zj2/the_rust_programming_language_book_as_epub/
 ** LLVM
 - Brief overview of LLVM :: https://www.infoworld.com/article/3247799/what-is-llvm-the-power-behind-swift-rust-clang-and-more.html
 - A bit in depth details on LLVM :: https://aosabook.org/en/llvm.html
-- Rust binding :: https://crates.io/crates/llvm-sys
 - Official LLVM tutorial C++ :: https://llvm.org/docs/tutorial/
-- Rust LLVM tutorial :: https://github.com/jauhien/iron-kaleidoscope
-
+- Interactive C++ with Cling :: https://blog.llvm.org/posts/2020-11-30-interactive-cpp-with-cling/
 ** Data structures
 - Pure functional datastructures papaer :: https://www.cs.cmu.edu/~rwh/theses/okasaki.pdf
 - Dynamic typing: syntax and proof theory :: https://reader.elsevier.com/reader/sd/pii/0167642394000042?token=CEFF5C5D1B03FD680762FC4889A14C0CA2BB28FE390EC51099984536E12AC358F3D28A5C25C274296ACBBC32E5AE23CD
@@ -36,14 +44,20 @@ https://www.reddit.com/r/ProgrammingLanguages/comments/8ggx2n/is_llvm_a_good_bac
 - Julia: A Fresh Approach toNumerical Computing :: https://julialang.org/research/julia-fresh-approach-BEKS.pdf
 ** Cranelift
 - Source tree :: https://github.com/bytecodealliance/wasmtime/tree/master/cranelift
+** Memory management
+- Visualizing memory management in Golang :: https://deepu.tech/memory-management-in-golang/
+- TCMalloc : Thread-Caching Malloc :: http://goog-perftools.sourceforge.net/doc/tcmalloc.html
+- A visual guide to Go Memory Allocator from scratch (Golang) :: https://medium.com/@ankur_anand/a-visual-guide-to-golang-memory-allocator-from-ground-up-e132258453ed
+** Concurrency
+- Scheduling In Go (Series) :: https://www.ardanlabs.com/blog/2018/08/scheduling-in-go-part1.html
 
-* Possible solutions
 ** Garbage collection
 - https://v8.dev/blog/high-performance-cpp-gc
+- Perceus: Garbage Free Reference Counting with Reuse :: https://www.microsoft.com/en-us/research/uploads/prod/2020/11/perceus-tr-v1.pdf
 ** JIT
 - https://asmjit.com/
-* Features to implement
 ** Compiler
+- Stack frame layout on x86-64 :: https://eli.thegreenplace.net/2011/09/06/stack-frame-layout-on-x86-64
 *** Branch instructions
 It would be cool to have macro to instruct the compiler about the likelyhood
 of a branch in a conditional. Something similar to kernel's *likely* and *unlikely*
