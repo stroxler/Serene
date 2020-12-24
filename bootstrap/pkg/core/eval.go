@@ -36,6 +36,9 @@ func evalForm(rt *Runtime, scope IScope, form IExpr) (IExpr, IError) {
 	case ast.Number:
 		return form, nil
 
+	case ast.Fn:
+		return form, nil
+
 	case ast.String:
 		return form, nil
 
@@ -117,10 +120,9 @@ func evalForm(rt *Runtime, scope IScope, form IExpr) (IExpr, IError) {
 		}
 		return MakeList(result), nil
 	}
-
+	panic("Asd")
 	// Default case
-	return nil, MakeError(rt, "not implemented")
-
+	return nil, MakeError(rt, fmt.Sprintf("support for '%d' is not implemented", form.GetType()))
 }
 
 // EvalForms evaluates the given expr `expressions` (it can be a list, block, symbol or anything else)
@@ -294,7 +296,7 @@ tco:
 			//   the symbol name binded to the value
 			case "def":
 				ret, err = Def(rt, scope, list.Rest().(*List))
-				break tco // return
+				continue body
 
 			// `defmacro` evaluation rules:
 			// * The first argument has to be a symbol
@@ -303,7 +305,7 @@ tco:
 			//   body of the macro.
 			case "defmacro":
 				ret, err = DefMacro(rt, scope, list.Rest().(*List))
-				break tco // return
+				continue body
 
 			// `macroexpand` evaluation rules:
 			// * It has to have only one argument
@@ -327,7 +329,7 @@ tco:
 			// * Defines an anonymous function.
 			case "fn":
 				ret, err = Fn(rt, scope, list.Rest().(*List))
-				break tco // return
+				continue body
 
 			// `if` evaluation rules:
 			// * It has to get only 3 arguments: PRED THEN ELSE

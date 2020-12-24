@@ -1,3 +1,9 @@
 (ns examples.hello-world)
 
-(def hello-world (fn () 'helloworld))
+(def hello-world
+     (fn ()
+         "helloworld"))
+
+(def main
+     (fn (&args)
+         (println "sameer")))

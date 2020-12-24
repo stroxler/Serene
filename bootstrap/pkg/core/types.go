@@ -25,11 +25,20 @@ import (
 	"serene-lang.org/bootstrap/pkg/hash"
 )
 
-// IPrintable is the interface which any value that wants to have a string
-// representation has to implement. The `print` family functions will use
-// this interface to convert forms to string
-type IPrintable interface {
+// IRepresentable is the interface which any value that wants to have a string
+// representation has to implement. Serene will use this string where ever
+// it needs to present a value as string.
+type IRepresentable interface {
 	fmt.Stringer
+}
+
+// IPrintable is the interface which any value that wants to have a string
+// representation for printing has to implement. The `print` family functions will use
+// this interface to convert forms to string first and if the value doesn't
+// implement this interface they will resort to `IRepresentable`
+type IPrintable interface {
+	IRepresentable
+	PrintToString() string
 }
 
 // IDebuggable is the interface designed for converting forms to a string
@@ -45,7 +54,7 @@ type IExpr interface {
 	ast.ILocatable
 	ast.ITypable
 	hash.IHashable
-	IPrintable
+	IRepresentable
 	IDebuggable
 }
 
@@ -58,6 +67,22 @@ type Node struct {
 // GetLocation returns the location of the Node in the source input
 func (n Node) GetLocation() ast.Location {
 	return n.location
+}
+
+// Helper functions ===========================================================
+
+// toRepresentables converts the given collection of IExprs to an array of
+// IRepresentable. Since golangs type system is weird ( if A is an interface
+// that embeds interface B you []A should be usable as []B but that's not the
+// case in Golang), we need this convertor helper
+func toRepresentables(ast IColl) []IRepresentable {
+	var params []IRepresentable
+
+	for _, x := range ast.ToSlice() {
+		params = append(params, x.(IRepresentable))
+	}
+
+	return params
 }
 
 // MakeNodeFromLocation creates a new Node for the given Location `loc`

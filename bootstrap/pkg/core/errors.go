@@ -46,7 +46,7 @@ type IError interface {
 	ast.ILocatable
 
 	// We want errors to be printable by the `print` family
-	IPrintable
+	IRepresentable
 	IDebuggable
 
 	// To wrap Golan rrrrors

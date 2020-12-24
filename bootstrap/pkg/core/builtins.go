@@ -18,27 +18,35 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package core
 
-import (
-	"fmt"
-	"strings"
-)
-
 // BUILTINS is used in the Runtime to support builtin functions of
 // the language which are implemented in Go
 var BUILTINS = map[string]NativeFunction{
+	"pr":      MakeNativeFn("pr", PrNativeFn),
+	"prn":     MakeNativeFn("pr", PrnNativeFn),
 	"print":   MakeNativeFn("print", PrintNativeFn),
+	"println": MakeNativeFn("println", PrintlnNativeFn),
 	"require": MakeNativeFn("print", RequireNativeFn),
 	"hash":    MakeNativeFn("hash", HashNativeFn),
 }
 
+func PrNativeFn(rt *Runtime, scope IScope, n Node, args *List) (IExpr, IError) {
+	Pr(rt, toRepresentables(args.Rest().(IColl))...)
+	return &Nil, nil
+}
+
+func PrnNativeFn(rt *Runtime, scope IScope, n Node, args *List) (IExpr, IError) {
+
+	Prn(rt, toRepresentables(args.Rest().(IColl))...)
+	return &Nil, nil
+}
+
 func PrintNativeFn(rt *Runtime, scope IScope, n Node, args *List) (IExpr, IError) {
-	var params []string
+	Print(rt, toRepresentables(args.Rest().(IColl))...)
+	return &Nil, nil
+}
 
-	for _, expr := range args.Rest().(*List).ToSlice() {
-		params = append(params, expr.String())
-	}
-
-	fmt.Print(strings.Join(params, " "))
+func PrintlnNativeFn(rt *Runtime, scope IScope, n Node, args *List) (IExpr, IError) {
+	Println(rt, toRepresentables(args.Rest().(IColl))...)
 	return &Nil, nil
 }
 

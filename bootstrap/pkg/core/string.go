@@ -20,6 +20,7 @@ package core
 
 import (
 	"fmt"
+	"strings"
 
 	"serene-lang.org/bootstrap/pkg/ast"
 	"serene-lang.org/bootstrap/pkg/hash"
@@ -35,6 +36,10 @@ func (s *String) GetType() ast.NodeType {
 }
 
 func (s *String) String() string {
+	return "\"" + s.Escape() + "\""
+}
+
+func (s *String) PrintToString() string {
 	return s.content
 }
 
@@ -45,6 +50,17 @@ func (s *String) ToDebugStr() string {
 func (s *String) Hash() uint32 {
 	bytes := []byte(s.content)
 	return hash.HashOf(append([]byte{byte(ast.String)}, bytes...))
+}
+
+func (s *String) Escape() string {
+	replacer := strings.NewReplacer(
+		"\n", "\\n",
+		"\t", "\\t",
+		"\r", "\\r",
+		"\\", "\\\\",
+		"\"", "\\\"",
+	)
+	return replacer.Replace(s.content)
 }
 
 func MakeString(n Node, s string) *String {

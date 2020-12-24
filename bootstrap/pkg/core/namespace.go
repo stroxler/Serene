@@ -152,6 +152,7 @@ func requireNS(rt *Runtime, ns string) (*Namespace, IError) {
 			fmt.Sprintf("The '%s' ns source code doesn't start with an 'ns' form.", ns),
 		)
 	}
+
 	namespace := MakeNS(ns, source)
 	namespace.setForms(body)
 

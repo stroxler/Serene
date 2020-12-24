@@ -28,7 +28,6 @@ import (
 // arguments in `args` has to be a symbol ( none ns qualified ) and
 // the second param should be the value of the binding
 func Def(rt *Runtime, scope IScope, args *List) (IExpr, IError) {
-
 	// TODO: Add support for docstrings and meta
 	switch args.Count() {
 	case 2:
@@ -45,6 +44,10 @@ func Def(rt *Runtime, scope IScope, args *List) (IExpr, IError) {
 
 		if err != nil {
 			return nil, err
+		}
+
+		if value.GetType() == ast.Fn {
+			value.(*Function).SetName(sym.GetName())
 		}
 
 		ns := rt.CurrentNS()

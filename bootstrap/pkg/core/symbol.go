@@ -67,10 +67,7 @@ func (s *Symbol) IsRestable() bool {
 }
 
 func (s *Symbol) IsNSQualified() bool {
-	if s.nsPart == "" {
-		return false
-	}
-	return true
+	return s.nsPart != ""
 }
 
 func MakeSymbol(n Node, s string) (*Symbol, IError) {

@@ -109,6 +109,10 @@ func (f *Function) GetName() string {
 	return f.name
 }
 
+func (f *Function) SetName(name string) {
+	f.name = name
+}
+
 func (f *Function) GetScope() IScope {
 	return f.scope
 }
@@ -129,6 +133,11 @@ func (f *Function) GetBody() *Block {
 	return f.body
 }
 
+func (f *Function) Apply(rt *Runtime, scope IScope, n Node, args *List) (IExpr, IError) {
+	application := args.Cons(f)
+	return EvalForms(rt, scope, application)
+}
+
 // MakeFunction Create a function with the given `params` and `body` in
 // the given `scope`.
 func MakeFunction(scope IScope, params IColl, body *Block) *Function {
@@ -144,15 +153,24 @@ func MakeFunction(scope IScope, params IColl, body *Block) *Function {
 // to the given `values`.
 func MakeFnScope(rt *Runtime, parent IScope, bindings IColl, values IColl) (*Scope, IError) {
 	scope := MakeScope(parent.(*Scope))
-
 	// TODO: Implement destructuring
-
-	if bindings.Count() > values.Count() {
-		return nil, MakeError(rt, "'binding' and 'valuse' size don't match")
-	}
-
 	binds := bindings.ToSlice()
 	exprs := values.ToSlice()
+	numberOfBindings := len(binds)
+	lastBinding := binds[len(binds)-1]
+
+	if lastBinding.GetType() == ast.Symbol && lastBinding.(*Symbol).IsRestable() {
+		numberOfBindings = len(binds) - 1
+	}
+
+	if numberOfBindings > len(exprs) {
+		if rt.IsDebugMode() {
+			fmt.Printf("[DEBUG] Mismatch on bindings and values: Bindings: %s, Values: %s\n", bindings, values)
+		}
+
+		return nil, MakeError(rt,
+			fmt.Sprintf("'bindings' and 'values' size don't match. '%d' and '%d'", bindings.Count(), values.Count()))
+	}
 
 	for i := 0; i < len(binds); i += 1 {
 		// If an argument started with char `&` use it to represent
@@ -160,7 +178,25 @@ func MakeFnScope(rt *Runtime, parent IScope, bindings IColl, values IColl) (*Sco
 		//
 		// for example: `(fn (x y &z) ...)`
 		if binds[i].GetType() == ast.Symbol && binds[i].(*Symbol).IsRestable() {
-			scope.Insert(binds[i+1].(*Symbol).GetName(), MakeList(exprs[i:]), false)
+
+			if i != len(binds)-1 {
+				return nil, MakeErrorFor(rt, binds[i], "The function argument with '&' has to be the last argument.")
+			}
+
+			// if the number of values are one less than the number of bindings
+			// but the last binding is a Restable (e.g &x) the the last bindings
+			// has to be an empty list. Note the check for number of vlaues comes
+			// next.
+			rest := MakeEmptyList()
+
+			if i == len(exprs)-1 {
+				// If the number of values matches the number of bindings
+				// or it is more than that create a list from them
+				// to pass it to the last argument that has to be Restable (e.g &x)
+				rest = MakeList(exprs[i:])
+			}
+
+			scope.Insert(binds[i].(*Symbol).GetName()[1:], rest, false)
 			break
 		} else {
 			scope.Insert(binds[i].(*Symbol).GetName(), exprs[i], false)

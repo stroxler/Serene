@@ -20,14 +20,49 @@ package core
 
 import (
 	"fmt"
+	"strings"
 )
 
-func Print(rt *Runtime, ast IPrintable) {
-	fmt.Println(ast.String())
+func toRepresanbleString(ast ...IRepresentable) string {
+	var results []string
+	for _, x := range ast {
+		results = append(results, x.String())
+
+	}
+	return strings.Join(results, " ")
+}
+
+func toPrintableString(ast ...IRepresentable) string {
+	var results []string
+	for _, x := range ast {
+
+		if printable, ok := x.(IPrintable); ok {
+			results = append(results, printable.PrintToString())
+			continue
+		}
+		results = append(results, x.String())
+
+	}
+	return strings.Join(results, " ")
+}
+
+func Pr(rt *Runtime, ast ...IRepresentable) {
+	fmt.Print(toRepresanbleString(ast...))
+}
+
+func Prn(rt *Runtime, ast ...IRepresentable) {
+	fmt.Println(toRepresanbleString(ast...))
+}
+
+func Print(rt *Runtime, ast ...IRepresentable) {
+	fmt.Print(toPrintableString(ast...))
+}
+
+func Println(rt *Runtime, ast ...IRepresentable) {
+	fmt.Println(toPrintableString(ast...))
 }
 
 func PrintError(rt *Runtime, err IError) {
 	loc := err.GetLocation()
 	fmt.Printf("Error: %s\nAt: %d to %d\n", err.String(), loc.GetStart(), loc.GetEnd())
-
 }

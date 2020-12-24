@@ -217,6 +217,7 @@ func readRawSymbol(parser IParsable) (IExpr, IError) {
 
 	return sym, nil
 }
+
 func readString(parser IParsable) (IExpr, IError) {
 	str := ""
 
@@ -230,7 +231,26 @@ func readString(parser IParsable) (IExpr, IError) {
 			node := MakeNode(parser.Buffer(), parser.GetLocation()-len(str), parser.GetLocation())
 			return MakeString(node, str), nil
 		}
-		str = str + *c
+
+		if *c == "\\" {
+			c = parser.next(false)
+			switch *c {
+			case "n":
+				str = str + "\n"
+			case "t":
+				str = str + "\t"
+			case "r":
+				str = str + "\r"
+			case "\\":
+				str = str + "\\"
+			case "\"":
+				str = str + "\""
+			default:
+				return nil, makeErrorAtPoint(parser, "Unsupported escape character: \\%s", *c)
+			}
+		} else {
+			str = str + *c
+		}
 	}
 }
 
