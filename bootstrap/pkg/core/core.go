@@ -74,12 +74,20 @@ func REPL(debug bool) {
 	})
 	if err != nil {
 		panic(err)
+
 	}
 	rl.HistoryEnable()
 	defer rl.Close()
 
-	fmt.Println(`Serene's bootstrap interpreter is used to
-bootstrap the Serene's compiler.'
+	fmt.Println(`
+ _______ _______ ______ _______ _______ _______
+|     __|    ___|   __ \    ___|    |  |    ___|
+|__     |    ___|      <    ___|       |    ___|
+|_______|_______|___|__|_______|__|____|_______|
+
+
+Serene's bootstrap interpreter is used to
+bootstrap the Serene's compiler.
 
 It comes with ABSOLUTELY NO WARRANTY;
 This is free software, and you are welcome
