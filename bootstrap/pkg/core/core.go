@@ -25,6 +25,7 @@ import (
 	"path/filepath"
 
 	"github.com/chzyer/readline"
+	"serene-lang.org/bootstrap/pkg/ast"
 )
 
 func rep(rt *Runtime, line string) {
@@ -45,7 +46,7 @@ func rep(rt *Runtime, line string) {
 		PrintError(rt, e)
 		return
 	}
-	Print(rt, result)
+	Prn(rt, result)
 }
 
 /** TODO:
@@ -94,4 +95,79 @@ for details take a look at the LICENSE file.
 		rep(rt, line)
 	}
 
+}
+
+func Run(debug bool, args []string) {
+	cwd, e := os.Getwd()
+	if e != nil {
+		panic(e)
+	}
+
+	rt := MakeRuntime([]string{cwd}, debug)
+
+	if len(args) == 0 {
+
+		PrintError(rt, MakePlainError("'run' command needs at least one argument"))
+		os.Exit(1)
+	}
+
+	ns := args[0]
+	loadedNS, err := requireNS(rt, ns)
+
+	if err != nil {
+		PrintError(rt, err)
+		os.Exit(1)
+	}
+
+	rt.InsertNS(ns, loadedNS)
+	inserted := rt.setCurrentNS(loadedNS.GetName())
+
+	if !inserted {
+		err := MakeError(
+			rt,
+			fmt.Sprintf(
+				"the namespace '%s' didn't get inserted in the runtime.",
+				loadedNS.GetName()),
+		)
+		PrintError(rt, err)
+		os.Exit(1)
+	}
+
+	// Evaluating the body of the loaded ns (Check for ns validation happens here)
+	loadedNS, err = EvalNSBody(rt, loadedNS)
+	if err != nil {
+		PrintError(rt, err)
+		os.Exit(1)
+	}
+
+	mainBinding := loadedNS.GetRootScope().Lookup(rt, "main")
+
+	if mainBinding == nil {
+		fmt.Printf(">>> %w\n", loadedNS.GetRootScope())
+		PrintError(rt, MakePlainError(fmt.Sprintf("can't find the 'main' function in '%s' namespace", ns)))
+		os.Exit(1)
+	}
+
+	if mainBinding.Value.GetType() != ast.Fn {
+		PrintError(rt, MakePlainError("'main' is not a function"))
+		os.Exit(1)
+	}
+
+	mainFn := mainBinding.Value.(*Function)
+
+	var fnArgs []IExpr
+
+	if len(args) > 1 {
+		for _, arg := range args[1:] {
+			node := MakeNodeFromExpr(mainFn)
+			fnArgs = append(fnArgs, MakeString(node, arg))
+		}
+	}
+
+	_, err = mainFn.Apply(rt, loadedNS.GetRootScope(), mainFn.Node, MakeList(fnArgs))
+
+	if err != nil {
+		PrintError(rt, err)
+		os.Exit(1)
+	}
 }
