@@ -18,6 +18,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package core
 
+// Instructions Implementation:
+// * Instructions are expressions as well but they are not doing
+//   anything special by themselves.
+// * We need them to be expressions because we need to process
+//   them as part of the evaluation loop
+// * We use instructions as nodes in the AST to instruct Serene
+//   to do specific tasks after rewriting the AST. For example
+//   `PopStack` instructs Serene to simply pop a call from the
+//   call stack.
+// * Instructions doesn't return a value and should not alter
+//   the return value of the eval loop. But they might interrupt
+//   the loop by raising an error `IError`.
 import (
 	"fmt"
 
@@ -27,13 +39,20 @@ import (
 
 type instructionType int
 
+// Instruction types
 const (
+	// Pop a function from the call stack. We use this
+	// instruction at the end of function bodies. So
+	// function bodies will clean up after themselves
 	PopStack instructionType = iota
 )
 
 type Instruction struct {
+	// Just to be compatible with IExpr ---
 	Node
 	ExecutionScope
+	// ------------------------------------
+
 	Type instructionType
 }
 
@@ -60,6 +79,7 @@ func MakeStackPop(rt *Runtime) IExpr {
 	}
 }
 
+// ProcessInstruction is the main function to process instructions
 func ProcessInstruction(rt *Runtime, form *Instruction) IError {
 	switch form.Type {
 	case PopStack:

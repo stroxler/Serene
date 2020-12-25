@@ -547,7 +547,12 @@ tco:
 					}
 
 					rt.Stack.Push(fn)
-					body := append(fn.GetBody().ToSlice(), MakeStackPop(rt))
+					body := append(
+						fn.GetBody().ToSlice(),
+						// Add the PopStack instruction to clean up the stack after
+						// returning from the function.
+						MakeStackPop(rt),
+					)
 					changeExecutionScope(body, fnScope)
 					exprs = append(body, restOfExprs(exprs, i)...)
 					goto body // rewrite
