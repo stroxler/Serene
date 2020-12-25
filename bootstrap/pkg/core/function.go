@@ -173,7 +173,7 @@ func MakeFnScope(rt *Runtime, parent IScope, bindings IColl, values IColl) (*Sco
 		}
 
 		return nil, MakeError(rt,
-			fmt.Sprintf("'bindings' and 'values' size don't match. '%d' and '%d'", bindings.Count(), values.Count()))
+			fmt.Sprintf("expected '%d' arguments, got '%d'.", bindings.Count(), values.Count()))
 	}
 
 	for i := 0; i < len(binds); i += 1 {

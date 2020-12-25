@@ -3,8 +3,8 @@
 
 (def hello-world
      (fn (name)
-         (println "hello " name)))
+         (println "hello" name)))
 
 (def main
      (fn (&args)
-         (hello-world)))
+         (hello-world "world")))
