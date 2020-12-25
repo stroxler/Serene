@@ -28,7 +28,7 @@ var runCmd = &cobra.Command{
 	Short: "Evaluates the given NS and runs the main function of it",
 	Long:  `Evaluates the given NS and runs the main function`,
 	Run: func(cmd *cobra.Command, args []string) {
-		core.Run(debugMode, args)
+		core.Run(makeFlags(), args)
 	},
 }
 

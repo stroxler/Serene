@@ -25,6 +25,14 @@ import (
 )
 
 var debugMode bool
+var stackDebugMode bool
+
+func makeFlags() map[string]bool {
+	return map[string]bool{
+		"debugMode":      debugMode,
+		"stackDebugMode": stackDebugMode,
+	}
+}
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -61,5 +69,11 @@ func init() {
 		"debug",
 		false,
 		"Turns on the debug mode.")
+
+	rootCmd.PersistentFlags().BoolVar(
+		&stackDebugMode,
+		"debug-stack",
+		false,
+		"Turns on the call stack debug mode.")
 
 }

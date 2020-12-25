@@ -72,6 +72,7 @@ type Runtime struct {
 	// languages
 	paths []string
 
+	Stack CallStack
 	// A to turn on the verbose mode, FOR DEVELOPMENT USE ONLY
 	debugMode bool
 }
@@ -201,12 +202,13 @@ func (r *Runtime) LookupBuiltin(k string) IExpr {
 // MakeRuntime creates a Runtime and returns a pointer to it. Any
 // runtime initialization such as adding default namespaces and vice
 // versa has to happen here.
-func MakeRuntime(paths []string, debug bool) *Runtime {
+func MakeRuntime(paths []string, flags map[string]bool) *Runtime {
 	rt := Runtime{
 		namespaces: map[string]Namespace{},
 		currentNS:  "",
-		debugMode:  debug,
+		debugMode:  flags["debugMode"],
 		paths:      paths,
+		Stack:      MakeCallStack(flags["stackDebugMode"]),
 	}
 
 	rt.builtins = BUILTINS

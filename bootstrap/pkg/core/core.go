@@ -55,13 +55,13 @@ Replace the readline implementation with go-prompt.
 
 // REPL executes a Read Eval Print Loop locally reading from stdin and
 // writing to stdout
-func REPL(debug bool) {
+func REPL(flags map[string]bool) {
 	cwd, err := os.Getwd()
 	if err != nil {
 		panic(err)
 	}
 
-	rt := MakeRuntime([]string{cwd}, debug)
+	rt := MakeRuntime([]string{cwd}, flags)
 
 	rt.CreateNS("user", "REPL", true)
 
@@ -105,13 +105,13 @@ for details take a look at the LICENSE file.
 
 }
 
-func Run(debug bool, args []string) {
+func Run(flags map[string]bool, args []string) {
 	cwd, e := os.Getwd()
 	if e != nil {
 		panic(e)
 	}
 
-	rt := MakeRuntime([]string{cwd}, debug)
+	rt := MakeRuntime([]string{cwd}, flags)
 
 	if len(args) == 0 {
 
@@ -171,10 +171,16 @@ func Run(debug bool, args []string) {
 		}
 	}
 
+	//rt.Stack.Push(mainFn)
 	_, err = mainFn.Apply(rt, loadedNS.GetRootScope(), mainFn.Node, MakeList(fnArgs))
 
 	if err != nil {
 		PrintError(rt, err)
 		os.Exit(1)
 	}
+
+	// rt.Stack.Pop()
+	// if rt.Stack.Count() != 0 {
+	// 	panic("Call stack is not empty.")
+	// }
 }

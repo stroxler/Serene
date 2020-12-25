@@ -30,7 +30,7 @@ package core
 //   arguments names
 // - Evaluate the body of the function in context of the new scope and return
 //   the result of the last expression
-// * Native functions evaluates by calling the `Apply` method of the `INativeFn`
+// * Native functions evaluates by calling the `Apply` method of the `IFn`
 //   interface which is quite simple.
 //
 // TODOs:
@@ -47,7 +47,8 @@ import (
 
 type nativeFnHandler = func(rt *Runtime, scope IScope, n Node, args *List) (IExpr, IError)
 
-type INativeFn interface {
+type IFn interface {
+	ast.ILocatable
 	Apply(rt *Runtime, scope IScope, n Node, args *List) (IExpr, IError)
 }
 

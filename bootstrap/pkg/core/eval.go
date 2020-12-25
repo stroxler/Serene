@@ -40,6 +40,7 @@ func evalForm(rt *Runtime, scope IScope, form IExpr) (IExpr, IError) {
 	switch form.GetType() {
 	case ast.Nil:
 		return form, nil
+
 	case ast.Number:
 		return form, nil
 
@@ -195,7 +196,19 @@ tco:
 
 			if rt.IsDebugMode() {
 				fmt.Printf("[DEBUG] Evaluating forms in NS: %s, Forms: %s\n", rt.CurrentNS().GetName(), forms)
-				fmt.Printf("[DEBUG] -> State: I: %d, Exprs: %s\n", i, exprs)
+				fmt.Printf("[DEBUG] * State: I: %d, Exprs: %s\n", i, exprs)
+			}
+
+			// Evaluate any internal instruction that has to be run.
+			// Instructions should change the return value, but errors
+			// are ok
+			if forms.GetType() == ast.Instruction {
+				err := ProcessInstruction(rt, forms.(*Instruction))
+				if err != nil {
+					return nil, err
+				}
+
+				continue
 			}
 
 			// Evaluating forms one by one
@@ -533,7 +546,8 @@ tco:
 						break body //return
 					}
 
-					body := fn.GetBody().ToSlice()
+					rt.Stack.Push(fn)
+					body := append(fn.GetBody().ToSlice(), MakeStackPop(rt))
 					changeExecutionScope(body, fnScope)
 					exprs = append(body, restOfExprs(exprs, i)...)
 					goto body // rewrite
@@ -542,12 +556,14 @@ tco:
 				// by the `NativeFunction` struct
 				case ast.NativeFn:
 					fn := f.(*NativeFunction)
+					rt.Stack.Push(fn)
 					ret, err = fn.Apply(
 						rt,
 						scope,
 						MakeNodeFromExpr(fn),
 						listExprs.(*List),
 					)
+					rt.Stack.Pop()
 					continue body // no rewrite
 
 				default:
