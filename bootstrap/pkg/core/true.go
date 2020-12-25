@@ -23,28 +23,26 @@ import (
 	"serene-lang.org/bootstrap/pkg/hash"
 )
 
-type TrueType struct{}
+type True struct {
+	Node
+	ExecutionScope
+}
 
-// True is just True not `null` or anything
-var True = TrueType{}
-
-func (n TrueType) GetType() ast.NodeType {
+func (t *True) GetType() ast.NodeType {
 	return ast.True
 }
 
-func (n TrueType) GetLocation() ast.Location {
-	return ast.MakeUnknownLocation()
-}
-
-func (n TrueType) String() string {
+func (t *True) String() string {
 	return "true"
 }
 
-func (n TrueType) ToDebugStr() string {
+func (t *True) ToDebugStr() string {
 	return "true"
 }
-
-func (n TrueType) Hash() uint32 {
+func (t *True) Hash() uint32 {
 	bytes := []byte("true")
 	return hash.HashOf(append([]byte{byte(ast.True)}, bytes...))
+}
+func MakeTrue(n Node) *True {
+	return &True{Node: n}
 }

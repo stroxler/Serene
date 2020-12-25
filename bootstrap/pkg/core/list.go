@@ -35,6 +35,7 @@ link list of cons.
 
 type List struct {
 	Node
+	ExecutionScope
 	exprs []IExpr
 }
 
@@ -62,7 +63,7 @@ func (l *List) ToDebugStr() string {
 
 func (l *List) First() IExpr {
 	if l.Count() == 0 {
-		return Nil
+		return MakeNil(MakeNodeFromExpr(l))
 	}
 	return l.exprs[0]
 }

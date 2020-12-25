@@ -31,23 +31,23 @@ var BUILTINS = map[string]NativeFunction{
 
 func PrNativeFn(rt *Runtime, scope IScope, n Node, args *List) (IExpr, IError) {
 	Pr(rt, toRepresentables(args.Rest().(IColl))...)
-	return &Nil, nil
+	return MakeNil(n), nil
 }
 
 func PrnNativeFn(rt *Runtime, scope IScope, n Node, args *List) (IExpr, IError) {
 
 	Prn(rt, toRepresentables(args.Rest().(IColl))...)
-	return &Nil, nil
+	return MakeNil(n), nil
 }
 
 func PrintNativeFn(rt *Runtime, scope IScope, n Node, args *List) (IExpr, IError) {
 	Print(rt, toRepresentables(args.Rest().(IColl))...)
-	return &Nil, nil
+	return MakeNil(n), nil
 }
 
 func PrintlnNativeFn(rt *Runtime, scope IScope, n Node, args *List) (IExpr, IError) {
 	Println(rt, toRepresentables(args.Rest().(IColl))...)
-	return &Nil, nil
+	return MakeNil(n), nil
 }
 
 func RequireNativeFn(rt *Runtime, scope IScope, n Node, args *List) (IExpr, IError) {

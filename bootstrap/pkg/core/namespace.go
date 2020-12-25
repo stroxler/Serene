@@ -68,6 +68,12 @@ func (n *Namespace) ToDebugStr() string {
 	return fmt.Sprintf("<ns: %s at %s>", n.name, n.source)
 }
 
+func (n *Namespace) GetExecutionScope() IScope {
+	return nil
+}
+
+func (n *Namespace) SetExecutionScope(scope IScope) {}
+
 // DefineGlobal inserts the given expr `v` to the root scope of
 // `n`. The `public` parameter determines whether the public
 // value is accessable publicly or not (in other namespaces).

@@ -47,3 +47,9 @@ func (n NothingType) String() string {
 func (n NothingType) ToDebugStr() string {
 	return ""
 }
+
+func (n NothingType) GetExecutionScope() IScope {
+	return nil
+}
+
+func (n NothingType) SetExecutionScope(scope IScope) {}

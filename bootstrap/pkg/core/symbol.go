@@ -28,6 +28,7 @@ import (
 
 type Symbol struct {
 	Node
+	ExecutionScope
 	name   string
 	nsPart string
 }

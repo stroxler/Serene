@@ -56,7 +56,7 @@ type Function struct {
 	// Node struct holds the necessary functions to make
 	// Functions locatable
 	Node
-
+	ExecutionScope
 	// Name of the function, it can be empty and it has to be
 	// set via `def`
 	name string
@@ -79,6 +79,7 @@ type NativeFunction struct {
 	// Node struct holds the necessary functions to make
 	// Functions locatable
 	Node
+	ExecutionScope
 	name string
 	fn   nativeFnHandler
 }
@@ -157,10 +158,13 @@ func MakeFnScope(rt *Runtime, parent IScope, bindings IColl, values IColl) (*Sco
 	binds := bindings.ToSlice()
 	exprs := values.ToSlice()
 	numberOfBindings := len(binds)
-	lastBinding := binds[len(binds)-1]
 
-	if lastBinding.GetType() == ast.Symbol && lastBinding.(*Symbol).IsRestable() {
-		numberOfBindings = len(binds) - 1
+	if len(binds) > 0 {
+		lastBinding := binds[len(binds)-1]
+
+		if lastBinding.GetType() == ast.Symbol && lastBinding.(*Symbol).IsRestable() {
+			numberOfBindings = len(binds) - 1
+		}
 	}
 
 	if numberOfBindings > len(exprs) {

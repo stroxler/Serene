@@ -57,6 +57,10 @@ to begin with
 
 type Integer struct {
 	Node
+	// ExecutionScope checkout IScopable
+	scope IScope
+
+	ExecutionScope
 	value int64
 }
 
@@ -68,6 +72,15 @@ func (i Integer) Hash() uint32 {
 	b := make([]byte, 8)
 	binary.LittleEndian.PutUint64(b, uint64(i.value))
 	return hash.HashOf(b)
+}
+
+func (i Integer) GetExecutionScope() IScope {
+	return i.scope
+
+}
+
+func (i Integer) SetExecutionScope(scope IScope) {
+	i.scope = scope
 }
 
 func (i Integer) String() string {
@@ -104,6 +117,8 @@ func MakeInteger(x interface{}) (*Integer, IError) {
 
 type Double struct {
 	Node
+	// ExecutionScope checkout IScopable
+	scope IScope
 	value float64
 }
 
@@ -124,6 +139,15 @@ func (d Double) String() string {
 
 func (d Double) ToDebugStr() string {
 	return fmt.Sprintf("%#v", d)
+}
+
+func (d Double) GetExecutionScope() IScope {
+	return d.scope
+
+}
+
+func (d Double) SetExecutionScope(scope IScope) {
+	d.scope = scope
 }
 
 func (d Double) I64() int64 {

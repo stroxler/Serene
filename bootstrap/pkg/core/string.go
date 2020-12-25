@@ -28,6 +28,7 @@ import (
 
 type String struct {
 	Node
+	ExecutionScope
 	content string
 }
 
@@ -64,5 +65,8 @@ func (s *String) Escape() string {
 }
 
 func MakeString(n Node, s string) *String {
-	return &String{n, s}
+	return &String{
+		Node:    n,
+		content: s,
+	}
 }

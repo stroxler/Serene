@@ -41,6 +41,21 @@ type IPrintable interface {
 	PrintToString() string
 }
 
+// IScopable is the interface describing how to get the execution scope of
+// the value. During the evaluation of the forms in Serene we might rewrite
+// the execution tree to eliminate tail calls. In order to do that we should
+// be able to attach the execution scope to any form that we need to rewrite.
+type IScopable interface {
+
+	// GetExecutionScope returns an attached execution scope if there's
+	// any, nil otherwise.
+	GetExecutionScope() IScope
+
+	// SetExecutionScope sets the given scope as the execution scope of
+	// the current implementor
+	SetExecutionScope(scope IScope)
+}
+
 // IDebuggable is the interface designed for converting forms to a string
 // form which are meant to be used as debug data
 type IDebuggable interface {
@@ -56,6 +71,7 @@ type IExpr interface {
 	hash.IHashable
 	IRepresentable
 	IDebuggable
+	IScopable
 }
 
 // Node struct is simply representing a Node in the AST which provides the
@@ -69,7 +85,28 @@ func (n Node) GetLocation() ast.Location {
 	return n.location
 }
 
+type ExecutionScope struct {
+	scope IScope
+}
+
+func (e *ExecutionScope) GetExecutionScope() IScope {
+	return e.scope
+
+}
+
+func (e *ExecutionScope) SetExecutionScope(scope IScope) {
+	e.scope = scope
+}
+
 // Helper functions ===========================================================
+
+// changeExecutionScope sets the execution scope of all the expressions in `es`
+// to the given `scope`
+func changeExecutionScope(es []IExpr, scope IScope) {
+	for _, x := range es {
+		x.SetExecutionScope(scope)
+	}
+}
 
 // toRepresentables converts the given collection of IExprs to an array of
 // IRepresentable. Since golangs type system is weird ( if A is an interface

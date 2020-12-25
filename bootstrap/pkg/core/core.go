@@ -151,7 +151,6 @@ func Run(debug bool, args []string) {
 	mainBinding := loadedNS.GetRootScope().Lookup(rt, "main")
 
 	if mainBinding == nil {
-		fmt.Printf(">>> %w\n", loadedNS.GetRootScope())
 		PrintError(rt, MakePlainError(fmt.Sprintf("can't find the 'main' function in '%s' namespace", ns)))
 		os.Exit(1)
 	}

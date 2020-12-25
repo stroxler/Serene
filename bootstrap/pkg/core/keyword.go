@@ -84,6 +84,7 @@ import (
 
 type Keyword struct {
 	Node
+	ExecutionScope
 	name string
 	// nsName is the string that is used as the namespace name. It
 	// might be an ns alias in the current ns or the full namespace

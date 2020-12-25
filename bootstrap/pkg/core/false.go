@@ -23,28 +23,28 @@ import (
 	"serene-lang.org/bootstrap/pkg/hash"
 )
 
-type FalseType struct{}
+type False struct {
+	Node
+	ExecutionScope
+}
 
-// False is just False not `null` or anything
-var False = FalseType{}
-
-func (n FalseType) GetType() ast.NodeType {
+func (f *False) GetType() ast.NodeType {
 	return ast.False
 }
 
-func (n FalseType) GetLocation() ast.Location {
-	return ast.MakeUnknownLocation()
-}
-
-func (n FalseType) String() string {
+func (f *False) String() string {
 	return "false"
 }
 
-func (n FalseType) ToDebugStr() string {
+func (f *False) ToDebugStr() string {
 	return "false"
 }
 
-func (n FalseType) Hash() uint32 {
+func (f *False) Hash() uint32 {
 	bytes := []byte("false")
 	return hash.HashOf(append([]byte{byte(ast.False)}, bytes...))
+}
+
+func MakeFalse(n Node) *False {
+	return &False{Node: n}
 }

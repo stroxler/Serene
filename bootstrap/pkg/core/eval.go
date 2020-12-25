@@ -24,6 +24,13 @@ import (
 	"serene-lang.org/bootstrap/pkg/ast"
 )
 
+func restOfExprs(es []IExpr, i int) []IExpr {
+	if len(es)-1 > i {
+		return es[i+1:]
+	}
+	return []IExpr{}
+}
+
 // evalForm evaluates the given expression `form` by a slightly different
 // evaluation rules. For example if `form` is a list instead of the formal
 // evaluation of a list it will evaluate all the elements and return the
@@ -66,11 +73,11 @@ func evalForm(rt *Runtime, scope IScope, form IExpr) (IExpr, IError) {
 
 		switch symbolName {
 		case "true":
-			return &True, nil
+			return MakeTrue(MakeNodeFromExpr(form)), nil
 		case "false":
-			return &False, nil
+			return MakeFalse(MakeNodeFromExpr(form)), nil
 		case "nil":
-			return &Nil, nil
+			return MakeNil(MakeNodeFromExpr(form)), nil
 		default:
 			var expr *Binding
 			if sym.IsNSQualified() {
@@ -120,7 +127,7 @@ func evalForm(rt *Runtime, scope IScope, form IExpr) (IExpr, IError) {
 		}
 		return MakeList(result), nil
 	}
-	panic("Asd")
+
 	// Default case
 	return nil, MakeError(rt, fmt.Sprintf("support for '%d' is not implemented", form.GetType()))
 }
@@ -134,6 +141,11 @@ func EvalForms(rt *Runtime, scope IScope, expressions IExpr) (IExpr, IError) {
 	// In order to avoid stackoverflows and implement TCO ( which is a must for
 	// a functional language we need to avoid unnecessary calls and keep as much
 	// as possible in a loop.
+	//
+	// `expressions` is argument is basically a tree of expressions which
+	// this function walks over and rewrite it as necessary. The main purpose
+	// of rewriting the tree is to eliminate any unnecessary function call.
+	// This way we can eliminate tail calls and run everything faster.
 	var ret IExpr
 	var err IError
 
@@ -158,15 +170,25 @@ tco:
 		}
 
 	body:
-		for _, forms := range exprs {
-			// Evaluating forms one by one
-			if rt.IsDebugMode() {
-				fmt.Printf("[DEBUG] Evaluating forms in NS: %s, Forms: %s\n", rt.CurrentNS().GetName(), forms)
+		for i := 0; i < len(exprs); i++ {
+			//for i, forms := range exprs {
+			forms := exprs[i]
+			executionScope := forms.GetExecutionScope()
+			scope := scope
+
+			if executionScope != nil {
+				scope = executionScope
 			}
 
+			if rt.IsDebugMode() {
+				fmt.Printf("[DEBUG] Evaluating forms in NS: %s, Forms: %s\n", rt.CurrentNS().GetName(), forms)
+				fmt.Printf("[DEBUG] -> State: I: %d, Exprs: %s\n", i, exprs)
+			}
+
+			// Evaluating forms one by one
 			if forms.GetType() != ast.List {
 				ret, err = evalForm(rt, scope, forms)
-				break tco // return ret, err
+				continue body
 			}
 
 			// Expand macroes that exists in the given array of expression `forms`.
@@ -219,7 +241,7 @@ tco:
 			// TODO: decide on the syntax and complete the docs
 			case "ns":
 				ret, err = NSForm(rt, scope, list)
-				continue // return
+				continue body // no rewrite
 
 			// `quote` evaluation rules:
 			// * Only takes one argument
@@ -229,7 +251,9 @@ tco:
 				if list.Count() != 2 {
 					return nil, MakeErrorFor(rt, list, "'quote' quote only accepts one argument.")
 				}
-				return list.Rest().First(), nil
+				ret = list.Rest().First()
+				err = nil
+				continue body // no rewrite
 
 			// case "quasiquote-expand":
 			// 	return quasiquote(list.Rest().First()), nil
@@ -243,7 +267,8 @@ tco:
 			// TODO: Implement `list` in serene itself when we have destructuring available
 			// Creates a new list form it's arguments.
 			case "list":
-				return evalForm(rt, scope, list.Rest().(*List))
+				ret, err = evalForm(rt, scope, list.Rest().(*List))
+				continue body // no rewrite
 
 			// TODO: Implement `concat` in serene itself when we have protocols available
 			// Concats all the collections together.
@@ -264,7 +289,8 @@ tco:
 
 					result = append(result, lst.(*List).ToSlice()...)
 				}
-				return MakeList(result), nil
+				ret, err = MakeList(result), nil
+				continue body // no rewrite
 
 			// TODO: Implement `list` in serene itself when we have destructuring available
 			// Calls the `Cons` function on the second argument to cons the first arg to it.
@@ -286,7 +312,8 @@ tco:
 					return nil, MakeErrorFor(rt, list, "second arg of 'cons' has to be a collection")
 				}
 
-				return coll.Cons(evaledForms.(*List).First()), nil
+				ret, err = coll.Cons(evaledForms.(*List).First()), nil
+				continue body // no rewrite
 
 			// `def` evaluation rules
 			// * The first argument has to be a symbol.
@@ -296,7 +323,7 @@ tco:
 			//   the symbol name binded to the value
 			case "def":
 				ret, err = Def(rt, scope, list.Rest().(*List))
-				continue body
+				continue body // no rewrite
 
 			// `defmacro` evaluation rules:
 			// * The first argument has to be a symbol
@@ -305,7 +332,7 @@ tco:
 			//   body of the macro.
 			case "defmacro":
 				ret, err = DefMacro(rt, scope, list.Rest().(*List))
-				continue body
+				continue body // no rewrite
 
 			// `macroexpand` evaluation rules:
 			// * It has to have only one argument
@@ -322,14 +349,14 @@ tco:
 				}
 
 				ret, err = macroexpand(rt, scope, evaledForm.(*List).First())
-				break tco // return
+				continue body // no rewrite
 
 			// `fn` evaluation rules:
 			// * It needs at least a collection of arguments
 			// * Defines an anonymous function.
 			case "fn":
 				ret, err = Fn(rt, scope, list.Rest().(*List))
-				continue body
+				continue body // no rewrite
 
 			// `if` evaluation rules:
 			// * It has to get only 3 arguments: PRED THEN ELSE
@@ -351,21 +378,26 @@ tco:
 
 				if result != ast.False && result != ast.Nil {
 					// Truthy clause
-					expressions = args.Rest().First()
+					exprs = append([]IExpr{args.Rest().First()}, restOfExprs(exprs, i)...)
 				} else {
 
 					// Falsy clause
-					expressions = args.Rest().Rest().First()
+					exprs = append([]IExpr{args.Rest().Rest().First()}, restOfExprs(exprs, i)...)
 				}
-
-				continue tco // Loop over to execute the new expressions
+				i = 0
+				goto body // rewrite
 
 			// `do` evaluation rules:
 			// * Evaluate the body as a new block in the TCO loop
 			//   and return the result of the last expression
 			case "do":
-				expressions = MakeBlock(list.Rest().(*List).ToSlice())
-				continue tco // Loop over to execute the new expressions
+				// create a new slice of expressions by using the
+				// do body and merging it by the remaining expressions
+				// in the old `exprs` value and loop over it
+				doExprs := list.Rest().(*List).ToSlice()
+				exprs = append(doExprs, exprs[i+1:]...)
+				i = 0
+				goto body // rewrite
 
 			// TODO: Implement `eval` as a native function
 			// `eval` evaluation rules:
@@ -385,7 +417,8 @@ tco:
 					return nil, err
 				}
 
-				return EvalForms(rt, scope, form)
+				ret, err = EvalForms(rt, scope, form)
+				continue body // no rewrite
 
 			// `let` evaluation rules:
 			// Let's assume the following:
@@ -444,23 +477,24 @@ tco:
 					bindings = bindings.Rest().Rest().(IColl)
 				}
 
-				expressions = MakeBlock(body)
-				scope = letScope
-				continue tco
+				changeExecutionScope(body, letScope)
+				exprs = append(body, exprs[i+1:]...)
+				i = 0
+				goto body
 
 			// list evaluation rules:
 			// * The first element of the list has to be an expression which is callable
 			// * An empty list evaluates to itself.
 			default:
 				// Evaluating all the elements of the list
-				exprs, e := evalForm(rt, scope, list)
+				listExprs, e := evalForm(rt, scope, list)
 				if e != nil {
 					err = e
 					ret = nil
 					break tco //return
 				}
 
-				f := exprs.(*List).First()
+				f := listExprs.(*List).First()
 
 				switch f.GetType() {
 				case ast.Fn:
@@ -477,27 +511,32 @@ tco:
 
 					}
 
-					argList := exprs.(*List).Rest().(*List)
+					argList := listExprs.(*List).Rest().(*List)
 
-					scope, e = MakeFnScope(rt, fn.GetScope(), fn.GetParams(), argList)
+					fnScope, e := MakeFnScope(rt, fn.GetScope(), fn.GetParams(), argList)
 					if e != nil {
 						err = e
 						ret = nil
 						break body //return
 					}
 
-					expressions = fn.GetBody()
-					continue tco
+					body := fn.GetBody().ToSlice()
+					changeExecutionScope(body, fnScope)
+					exprs = append(body, restOfExprs(exprs, i)...)
+					goto body // rewrite
 
 				// If the function was a native function which is represented
 				// by the `NativeFunction` struct
 				case ast.NativeFn:
 					fn := f.(*NativeFunction)
-					return fn.Apply(
+					ret, err = fn.Apply(
 						rt,
 						scope,
 						MakeNodeFromExpr(fn),
-						exprs.(*List))
+						listExprs.(*List),
+					)
+					continue body // no rewrite
+
 				default:
 					err = MakeError(rt, "don't know how to execute anything beside function")
 					ret = nil

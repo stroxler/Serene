@@ -20,27 +20,27 @@ package core
 
 import "serene-lang.org/bootstrap/pkg/ast"
 
-type NilType struct{}
+type Nil struct {
+	Node
+	ExecutionScope
+}
 
-// Nil is just Nil not `null` or anything
-var Nil = NilType{}
-
-func (n NilType) GetType() ast.NodeType {
+func (n *Nil) GetType() ast.NodeType {
 	return ast.Nil
 }
 
-func (n NilType) GetLocation() ast.Location {
-	return ast.MakeUnknownLocation()
-}
-
-func (n NilType) String() string {
+func (n *Nil) String() string {
 	return "nil"
 }
 
-func (n NilType) ToDebugStr() string {
+func (n *Nil) ToDebugStr() string {
 	return "nil"
 }
 
-func (n NilType) Hash() uint32 {
+func (n *Nil) Hash() uint32 {
 	return 0
+}
+
+func MakeNil(n Node) *Nil {
+	return &Nil{Node: n}
 }

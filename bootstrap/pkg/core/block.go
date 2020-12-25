@@ -31,6 +31,7 @@ import (
 // brackets and indentation.
 // Blocks in serene are just a group of forms and nothing more.
 type Block struct {
+	ExecutionScope
 	body []IExpr
 }
 
