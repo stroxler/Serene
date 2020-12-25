@@ -5,6 +5,14 @@
      (fn (name)
          (println "hello" name)))
 
+(defmacro defn
+  (name args &body)
+  (list 'def name (cons 'fn (cons args body))))
+
+(defn pp (x)
+  (println x))
+
 (def main
      (fn (&args)
+         (pp "sam")
          (hello-world "world")))

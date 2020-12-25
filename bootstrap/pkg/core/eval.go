@@ -146,10 +146,23 @@ func EvalForms(rt *Runtime, scope IScope, expressions IExpr) (IExpr, IError) {
 	// this function walks over and rewrite it as necessary. The main purpose
 	// of rewriting the tree is to eliminate any unnecessary function call.
 	// This way we can eliminate tail calls and run everything faster.
+	//
+	// Execution scopes are just regular scopes that are attached to expressions
+	// in order to specify the scope that they need to get executed in. Since
+	// we rewrite the tree some of the nodes of the tree (expressions) has different
+	// scope so we need to attach a scope to those expressions. An example would be
+	// the `let` special form. It creates a new scope for its body, after creating
+	// the scope we will attach it to all the expressions in the body and rewrite
+	// the tree to replace the original `let` node with the expressions from the
+	// body of `let` and reloop over the tree. So the tree contains some nodes
+	// from the `let` body with an execution scope and the rest of tree with
+	// no execution scope (no attached scope) which we will use the `scope`
+	// that we got as an argument.
 	var ret IExpr
 	var err IError
 
 tco:
+	// TODO: With the new tree rewrite we might be able to get ride of this `for`
 	for {
 		// The TCO loop is there to take advantage or the fact that
 		// in order to call a function or a block we simply can change
