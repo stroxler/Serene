@@ -27,6 +27,7 @@ const (
 	Nothing
 	True
 	False
+	Instruction
 	Symbol
 	Keyword
 	Number
