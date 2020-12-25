@@ -34,6 +34,7 @@ https://www.reddit.com/r/ProgrammingLanguages/comments/8ggx2n/is_llvm_a_good_bac
 - A bit in depth details on LLVM :: https://aosabook.org/en/llvm.html
 - Official LLVM tutorial C++ :: https://llvm.org/docs/tutorial/
 - Interactive C++ with Cling :: https://blog.llvm.org/posts/2020-11-30-interactive-cpp-with-cling/
+- My First LLVM Compiler :: https://www.wilfred.me.uk/blog/2015/02/21/my-first-llvm-compiler/
 ** Data structures
 - Pure functional datastructures papaer :: https://www.cs.cmu.edu/~rwh/theses/okasaki.pdf
 - Dynamic typing: syntax and proof theory :: https://reader.elsevier.com/reader/sd/pii/0167642394000042?token=CEFF5C5D1B03FD680762FC4889A14C0CA2BB28FE390EC51099984536E12AC358F3D28A5C25C274296ACBBC32E5AE23CD
@@ -76,6 +77,10 @@ on ADF
 *** Scheme
 - Chicken Scheme - Easy-to-use compiler and interpreter, with lots of libraries :: https://call-cc.org
 - Stalin - Brutally optimizing Scheme compiler, with lots of optimization flags :: https://github.com/barak/stalin
+** Utilities
+*** Emacs mode
+- Adding A New Language to Emacs :: https://www.wilfred.me.uk/blog/2015/03/19/adding-a-new-language-to-emacs/
+- The Definitive Guide To Syntax Highlighting :: https://www.wilfred.me.uk/blog/2014/09/27/the-definitive-guide-to-syntax-highlighting/
 * TODOs
 ** Bootstrap
 *** TODO Language Spec
