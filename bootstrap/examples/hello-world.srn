@@ -9,7 +9,7 @@
   (name args &body)
   (list 'def name (cons 'fn (cons args body))))
 
-(defn pp (x)
+(defn pp (x y)
   (println x))
 
 (def main

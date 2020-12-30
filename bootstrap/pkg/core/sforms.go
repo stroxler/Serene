@@ -34,7 +34,7 @@ func Def(rt *Runtime, scope IScope, args *List) (IExpr, IError) {
 		name := args.First()
 
 		if name.GetType() != ast.Symbol {
-			return nil, MakeError(rt, "the first argument of 'def' has to be a symbol")
+			return nil, MakeError(rt, name, "the first argument of 'def' has to be a symbol")
 		}
 
 		sym := name.(*Symbol)
@@ -55,7 +55,7 @@ func Def(rt *Runtime, scope IScope, args *List) (IExpr, IError) {
 		return sym, nil
 	}
 
-	return nil, MakeError(rt, "'def' form need at least 2 arguments")
+	return nil, MakeError(rt, args, "'def' form need at least 2 arguments")
 }
 
 // Def defines a macro in the current namespace. The first
@@ -72,7 +72,7 @@ func DefMacro(rt *Runtime, scope IScope, args *List) (IExpr, IError) {
 		name := args.First()
 
 		if name.GetType() != ast.Symbol {
-			return nil, MakeError(rt, "the first argument of 'defmacro' has to be a symbol")
+			return nil, MakeError(rt, name, "the first argument of 'defmacro' has to be a symbol")
 		}
 
 		sym := name.(*Symbol)
@@ -100,21 +100,21 @@ func DefMacro(rt *Runtime, scope IScope, args *List) (IExpr, IError) {
 		return macro, nil
 	}
 
-	return nil, MakeError(rt, "'defmacro' form need at least 2 arguments")
+	return nil, MakeError(rt, args, "'defmacro' form need at least 2 arguments")
 }
 
 // Fn defines a function inside the given scope `scope` with the given `args`.
 // `args` contains the arugment list, docstring and body of the function.
 func Fn(rt *Runtime, scope IScope, args *List) (IExpr, IError) {
 
-	if args.Count() < 1 {
-		return nil, MakeError(rt, "'fn' needs at least an arguments list")
+	if args.Count() < 2 {
+		return nil, MakeError(rt, args, "'fn' needs at least an arguments list")
 	}
 
 	var params IColl
 	body := MakeEmptyBlock()
 
-	arguments := args.First()
+	arguments := args.Rest().First()
 
 	// TODO: Add vector in here
 	// Or any other icoll
@@ -123,26 +123,26 @@ func Fn(rt *Runtime, scope IScope, args *List) (IExpr, IError) {
 	}
 
 	if args.Count() > 1 {
-		body.SetContent(args.Rest().(*List).ToSlice())
+		body.SetContent(args.Rest().Rest().(*List).ToSlice())
 	}
 
-	return MakeFunction(scope, params, body), nil
+	return MakeFunction(MakeNodeFromExpr(args.First()), scope, params, body), nil
 }
 
 func NSForm(rt *Runtime, scope IScope, args *List) (IExpr, IError) {
 	if args.Count() == 1 {
-		return nil, MakeErrorFor(rt, args, "namespace's name is missing")
+		return nil, MakeError(rt, args, "namespace's name is missing")
 	}
 
 	name := args.Rest().First()
 
 	if name.GetType() != ast.Symbol {
-		return nil, MakeErrorFor(rt, name, "the first argument to the 'ns' has to be a symbol")
+		return nil, MakeError(rt, name, "the first argument to the 'ns' has to be a symbol")
 	}
 	nsName := name.(*Symbol).GetName()
 
 	if nsName != rt.CurrentNS().GetName() {
-		return nil, MakeErrorFor(
+		return nil, MakeError(
 			rt,
 			args,
 			fmt.Sprintf("the namespace '%s' doesn't match the file name.", nsName),
@@ -151,7 +151,7 @@ func NSForm(rt *Runtime, scope IScope, args *List) (IExpr, IError) {
 	ns, ok := rt.GetNS(nsName)
 
 	if !ok {
-		return nil, MakeErrorFor(rt, name, fmt.Sprintf("can't find the namespace '%s'. Is it the same as the file name?", nsName))
+		return nil, MakeError(rt, name, fmt.Sprintf("can't find the namespace '%s'. Is it the same as the file name?", nsName))
 	}
 
 	return ns, nil

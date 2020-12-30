@@ -159,7 +159,7 @@ func (k *Keyword) Eval(rt *Runtime, scope IScope) (*Keyword, IError) {
 		}
 
 		if aliasedNS == nil {
-			return nil, MakeErrorFor(rt, k, fmt.Sprintf("can't find the alias '%s' in the current namespace.", k.nsName))
+			return nil, MakeError(rt, k, fmt.Sprintf("can't find the alias '%s' in the current namespace.", k.nsName))
 		}
 		k.ns = aliasedNS
 		return k, nil

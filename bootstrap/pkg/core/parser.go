@@ -33,6 +33,8 @@ package core
 import (
 	"strings"
 	"unicode"
+
+	"serene-lang.org/bootstrap/pkg/ast"
 )
 
 // An array of the valid characters that be be used in a symbol
@@ -57,14 +59,17 @@ type IParsable interface {
 
 	// Returns the current position in the buffer
 	GetLocation() int
+	GetSource() *ast.Source
 	Buffer() *[]string
 }
 
 // StringParser is an implementation of the  IParsable that operates on strings.
 // To put it simply it parses input strings
 type StringParser struct {
-	buffer []string
-	pos    int
+	buffer    []string
+	pos       int
+	source    string
+	lineIndex []int
 }
 
 // Implementing IParsable for StringParser ---
@@ -75,6 +80,12 @@ func (sp *StringParser) next(skipWhitespace bool) *string {
 		return nil
 	}
 	char := sp.buffer[sp.pos]
+
+	if char == "\n" {
+		// Including the \n itself
+		sp.lineIndex = append(sp.lineIndex, sp.pos+1)
+	}
+
 	sp.pos = sp.pos + 1
 
 	if skipWhitespace && isSeparator(&char) {
@@ -127,6 +138,14 @@ func (sp *StringParser) GetLocation() int {
 	return sp.pos
 }
 
+func (sp *StringParser) GetSource() *ast.Source {
+	return &ast.Source{
+		Buffer:    &sp.buffer,
+		Path:      sp.source,
+		LineIndex: &sp.lineIndex,
+	}
+}
+
 func (sp *StringParser) Buffer() *[]string {
 	return &sp.buffer
 }
@@ -136,7 +155,7 @@ func (sp *StringParser) Buffer() *[]string {
 // makeErrorAtPoint is a helper function which generates an `IError` that
 // points at the current position of the buffer.
 func makeErrorAtPoint(p IParsable, msg string, a ...interface{}) IError {
-	n := MakeSinglePointNode(p.Buffer(), p.GetLocation())
+	n := MakeSinglePointNode(p.GetSource(), p.GetLocation())
 	return MakeParsetimeErrorf(n, msg, a...)
 }
 
@@ -207,7 +226,7 @@ func readRawSymbol(parser IParsable) (IExpr, IError) {
 		}
 	}
 
-	node := MakeNode(parser.Buffer(), parser.GetLocation()-len(symbol), parser.GetLocation())
+	node := MakeNode(parser.GetSource(), parser.GetLocation()-len(symbol), parser.GetLocation())
 	sym, err := MakeSymbol(node, symbol)
 
 	if err != nil {
@@ -228,7 +247,7 @@ func readString(parser IParsable) (IExpr, IError) {
 		}
 
 		if *c == "\"" {
-			node := MakeNode(parser.Buffer(), parser.GetLocation()-len(str), parser.GetLocation())
+			node := MakeNode(parser.GetSource(), parser.GetLocation()-len(str), parser.GetLocation())
 			return MakeString(node, str), nil
 		}
 
@@ -367,7 +386,10 @@ func readList(parser IParsable) (IExpr, IError) {
 		}
 	}
 
-	return MakeList(list), nil
+	node := MakeNodeFromExprs(list)
+	node.location.DecStart(1)
+	node.location.IncEnd(1)
+	return MakeList(node, list), nil
 }
 
 func readComment(parser IParsable) (IExpr, IError) {
@@ -387,7 +409,7 @@ func readQuotedExpr(parser IParsable) (IExpr, IError) {
 		return nil, err
 	}
 
-	symNode := MakeNode(parser.Buffer(), parser.GetLocation(), parser.GetLocation())
+	symNode := MakeNode(parser.GetSource(), parser.GetLocation(), parser.GetLocation())
 	sym, err := MakeSymbol(symNode, "quote")
 
 	if err != nil {
@@ -395,10 +417,15 @@ func readQuotedExpr(parser IParsable) (IExpr, IError) {
 		return nil, err
 	}
 
-	return MakeList([]IExpr{
+	listElems := []IExpr{
 		sym,
 		expr,
-	}), nil
+	}
+
+	listNode := MakeNodeFromExprs(listElems)
+	listNode.location.DecStart(1)
+	listNode.location.IncStart(1)
+	return MakeList(listNode, listElems), nil
 }
 
 // readUnquotedExpr reads different unquoting expressions from their short representaions.
@@ -417,7 +444,7 @@ func readUnquotedExpr(parser IParsable) (IExpr, IError) {
 	var err IError
 	var expr IExpr
 
-	node := MakeNode(parser.Buffer(), parser.GetLocation(), parser.GetLocation())
+	node := MakeNode(parser.GetSource(), parser.GetLocation(), parser.GetLocation())
 
 	if *c == "@" {
 		parser.next(true)
@@ -441,7 +468,11 @@ func readUnquotedExpr(parser IParsable) (IExpr, IError) {
 		return nil, err
 	}
 
-	return MakeList([]IExpr{sym, expr}), nil
+	listElems := []IExpr{sym, expr}
+	listNode := MakeNodeFromExprs(listElems)
+	listNode.location.DecStart(1)
+	listNode.location.IncStart(1)
+	return MakeList(listNode, listElems), nil
 }
 
 // readQuasiquotedExpr reads the backquote and replace it with a call
@@ -452,16 +483,19 @@ func readQuasiquotedExpr(parser IParsable) (IExpr, IError) {
 		return nil, err
 	}
 
-	node := MakeNode(parser.Buffer(), parser.GetLocation(), parser.GetLocation())
+	node := MakeNode(parser.GetSource(), parser.GetLocation(), parser.GetLocation())
 	sym, err := MakeSymbol(node, "quasiquote")
 	if err != nil {
 		err.SetNode(&node)
 		return nil, err
 	}
-	return MakeList([]IExpr{
-		sym,
-		expr,
-	}), nil
+
+	listElems := []IExpr{sym, expr}
+	listNode := MakeNodeFromExprs(listElems)
+	listNode.location.DecStart(1)
+	listNode.location.IncStart(1)
+
+	return MakeList(listNode, listElems), nil
 }
 
 // readExpr reads one expression from the input. This function is the most
@@ -516,13 +550,14 @@ loop:
 // by itself is not something available to the language. It's
 // just anbstraction for a ordered collection of expressions.
 // It doesn't have anything to do with the concept of blocks
-// from other programming languages
-func ParseToAST(input string) (*Block, IError) {
+// from other programming languages.
+func ParseToAST(source string, input string) (*Block, IError) {
 
 	var ast Block
 	parser := StringParser{
 		buffer: strings.Split(input, ""),
 		pos:    0,
+		source: source,
 	}
 
 	for {

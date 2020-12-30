@@ -33,38 +33,51 @@ package core
 //   compare the stack items by their address, identity and location.
 // * Add support for iteration on the stack.
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type ICallStack interface {
 	// Push the given callable `f` to the stack
 	Push(f IFn) IError
-	Pop() FnCall
+	Pop() *Frame
+	Peek() *Frame
 	Count() uint
 }
 
-type FnCall struct {
-	Fn IFn
+type Frame struct {
 	// Number of recursive calls to this function
-	count uint
+	Count  uint
+	Fn     IFn
+	Caller IExpr
 }
+
+type TraceBack = []Frame
 
 type CallStackItem struct {
 	prev *CallStackItem
-	data FnCall
+	data Frame
 }
 
 type CallStack struct {
+	debug bool
 	head  *CallStackItem
 	count uint
-	debug bool
 }
 
 func (c *CallStack) Count() uint {
 	return c.count
 }
 
-func (c *CallStack) Push(f IFn) IError {
+func (c *CallStack) GetCurrentFn() IFn {
+	if c.head == nil {
+		return nil
+	}
 
+	return c.head.data.Fn
+}
+
+func (c *CallStack) Push(caller IExpr, f IFn) IError {
 	if c.debug {
 		fmt.Println("[Stack] -->", f)
 	}
@@ -73,12 +86,17 @@ func (c *CallStack) Push(f IFn) IError {
 		return MakePlainError("Can't push 'nil' pointer to the call stack.")
 	}
 
+	if caller == nil {
+		return MakePlainError("Can't push 'nil' pointer to the call stack for the caller.")
+	}
+
 	// Empty Stack
 	if c.head == nil {
 		c.head = &CallStackItem{
-			data: FnCall{
-				Fn:    f,
-				count: 0,
+			data: Frame{
+				Fn:     f,
+				Caller: caller,
+				Count:  0,
 			},
 		}
 		c.count++
@@ -87,15 +105,16 @@ func (c *CallStack) Push(f IFn) IError {
 	nodeData := &c.head.data
 
 	// If the same function was on top of the stack
-	if nodeData.Fn == f {
+	if nodeData.Fn == f && caller == nodeData.Caller {
 		// TODO: expand the check here to support address and location as well
-		nodeData.count++
+		nodeData.Count++
 	} else {
 		c.head = &CallStackItem{
 			prev: c.head,
-			data: FnCall{
-				Fn:    f,
-				count: 0,
+			data: Frame{
+				Fn:     f,
+				Caller: caller,
+				Count:  0,
 			},
 		}
 		c.count++
@@ -103,7 +122,7 @@ func (c *CallStack) Push(f IFn) IError {
 	return nil
 }
 
-func (c *CallStack) Pop() *FnCall {
+func (c *CallStack) Pop() *Frame {
 	if c.head == nil {
 		if c.debug {
 			fmt.Println("[Stack] <-- nil")
@@ -118,6 +137,32 @@ func (c *CallStack) Pop() *FnCall {
 		fmt.Printf("[Stack] <-- %s\n", result.data.Fn)
 	}
 	return &result.data
+}
+
+func (c *CallStack) Peek() *Frame {
+	if c.head == nil {
+		if c.debug {
+			fmt.Println("[Stack] <-- nil")
+		}
+		return nil
+	}
+
+	result := c.head
+	return &result.data
+}
+
+func (c *CallStack) ToTraceBack() *TraceBack {
+	var tr TraceBack
+	item := c.head
+	for {
+		if item == nil {
+			break
+		}
+		tr = append(tr, item.data)
+		item = item.prev
+	}
+
+	return &tr
 }
 
 func MakeCallStack(debugMode bool) CallStack {

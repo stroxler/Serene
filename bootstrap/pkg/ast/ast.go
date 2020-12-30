@@ -20,6 +20,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // Serene's AST.
 package ast
 
+import (
+	"sort"
+	"strings"
+)
+
 type NodeType int
 
 const (
@@ -40,12 +45,41 @@ const (
 
 )
 
+type Source struct {
+	Buffer *[]string
+	// It can be the path to the source file or something like "*in*"
+	// for standard in
+	Path      string
+	LineIndex *[]int
+}
+
+func (s *Source) GetLine(linenum int) string {
+	lines := strings.Split(strings.Join(*s.Buffer, ""), "\n")
+	return lines[linenum-1]
+}
+
+func (s *Source) LineNumberFor(pos int) int {
+	if pos < 0 {
+		return -1
+	}
+
+	return sort.Search(len(*s.LineIndex), func(i int) bool {
+		if i == 0 {
+			return pos < (*s.LineIndex)[i]
+		} else {
+			return (*s.LineIndex)[i-1] < pos && pos < (*s.LineIndex)[i]
+		}
+	})
+}
+
 type Location struct {
 	start         int
 	end           int
-	source        *[]string
+	source        Source
 	knownLocation bool
 }
+
+var UnknownLocation *Location = &Location{knownLocation: false}
 
 func (l *Location) GetStart() int {
 	return l.start
@@ -55,8 +89,42 @@ func (l *Location) GetEnd() int {
 	return l.end
 }
 
-func (l *Location) GetSource() *[]string {
-	return l.source
+func (l *Location) GetSource() *Source {
+	return &l.source
+}
+
+func (l *Location) IncStart(x int) {
+	if x+l.start < len(*l.source.Buffer) {
+		l.start += x
+	} else {
+		l.start = len(*l.source.Buffer) - 1
+	}
+}
+
+func (l *Location) DecStart(x int) {
+	if l.start-x >= 0 {
+		l.start -= x
+	} else {
+		l.start = 0
+	}
+
+}
+
+func (l *Location) IncEnd(x int) {
+	if x+l.end < len(*l.source.Buffer) {
+		l.end += x
+	} else {
+		l.end = len(*l.source.Buffer) - 1
+	}
+
+}
+
+func (l *Location) DecEnd(x int) {
+	if l.end-x >= 0 {
+		l.end -= x
+	} else {
+		l.end = 0
+	}
 }
 
 func (l *Location) IsKnownLocaiton() bool {
@@ -64,12 +132,12 @@ func (l *Location) IsKnownLocaiton() bool {
 }
 
 type ILocatable interface {
-	GetLocation() Location
+	GetLocation() *Location
 }
 
-func MakeLocation(input *[]string, start int, end int) Location {
-	return Location{
-		source:        input,
+func MakeLocation(input *Source, start int, end int) *Location {
+	return &Location{
+		source:        *input,
 		start:         start,
 		end:           end,
 		knownLocation: true,
@@ -80,8 +148,6 @@ type ITypable interface {
 	GetType() NodeType
 }
 
-func MakeUnknownLocation() Location {
-	return Location{
-		knownLocation: false,
-	}
+func MakeUnknownLocation() *Location {
+	return UnknownLocation
 }

@@ -98,10 +98,15 @@ func qqProcess(rt *Runtime, e IExpr) (IExpr, IError) {
 			// newErr.stack(err)
 			return nil, err
 		}
-		return MakeList([]IExpr{
+		elems := []IExpr{
 			sym,
 			e,
-		}), nil
+		}
+
+		return MakeList(
+			MakeNodeFromExprs(elems),
+			elems,
+		), nil
 
 	case ast.List:
 		list := e.(*List)
@@ -125,7 +130,7 @@ func qqProcess(rt *Runtime, e IExpr) (IExpr, IError) {
 		}
 		// ???
 		if isUnquoteSplicing(first) {
-			return nil, MakeErrorFor(rt, first, "'unquote-splicing' is not allowed out of a collection.")
+			return nil, MakeError(rt, first, "'unquote-splicing' is not allowed out of a collection.")
 		}
 
 		// p := list

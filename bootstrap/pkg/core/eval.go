@@ -84,7 +84,7 @@ func evalForm(rt *Runtime, scope IScope, form IExpr) (IExpr, IError) {
 			if sym.IsNSQualified() {
 				// Whether a namespace with the given alias loaded or not
 				if !rt.CurrentNS().hasExternal(sym.GetNSPart()) {
-					return nil, MakeErrorFor(rt, sym,
+					return nil, MakeError(rt, sym,
 						fmt.Sprintf("Namespace '%s' is no loaded", sym.GetNSPart()),
 					)
 				}
@@ -97,11 +97,14 @@ func evalForm(rt *Runtime, scope IScope, form IExpr) (IExpr, IError) {
 			}
 
 			if expr == nil {
-				return nil, MakeRuntimeErrorf(
+				return nil, MakeError(
 					rt,
-					"can't resolve symbol '%s' in ns '%s'",
-					symbolName,
-					nsName,
+					sym,
+					fmt.Sprintf(
+						"can't resolve symbol '%s' in ns '%s'",
+						symbolName,
+						nsName,
+					),
 				)
 			}
 
@@ -126,11 +129,12 @@ func evalForm(rt *Runtime, scope IScope, form IExpr) (IExpr, IError) {
 				break
 			}
 		}
-		return MakeList(result), nil
+
+		return MakeList(MakeNodeFromExpr(lst), result), nil
 	}
 
 	// Default case
-	return nil, MakeError(rt, fmt.Sprintf("support for '%d' is not implemented", form.GetType()))
+	return nil, MakeError(rt, form, fmt.Sprintf("support for '%d' is not implemented", form.GetType()))
 }
 
 // EvalForms evaluates the given expr `expressions` (it can be a list, block, symbol or anything else)
@@ -185,7 +189,6 @@ tco:
 
 	body:
 		for i := 0; i < len(exprs); i++ {
-			//for i, forms := range exprs {
 			forms := exprs[i]
 			executionScope := forms.GetExecutionScope()
 			scope := scope
@@ -275,7 +278,7 @@ tco:
 			case "quote":
 				// Including the `quote` itself
 				if list.Count() != 2 {
-					return nil, MakeErrorFor(rt, list, "'quote' quote only accepts one argument.")
+					return nil, MakeError(rt, list, "'quote' quote only accepts one argument.")
 				}
 				ret = list.Rest().First()
 				err = nil
@@ -310,12 +313,18 @@ tco:
 				result := []IExpr{}
 				for _, lst := range lists {
 					if lst.GetType() != ast.List {
-						return nil, MakeErrorFor(rt, lst, fmt.Sprintf("don't know how to concat '%s'", lst.String()))
+						return nil, MakeError(rt, lst, fmt.Sprintf("don't know how to concat '%s'", lst.String()))
 					}
 
 					result = append(result, lst.(*List).ToSlice()...)
 				}
-				ret, err = MakeList(result), nil
+
+				node := MakeNodeFromExpr(list)
+				if len(result) > 0 {
+					node = MakeNodeFromExprs(result)
+				}
+
+				ret, err = MakeList(node, result), nil
 				continue body // no rewrite
 
 			// TODO: Implement `list` in serene itself when we have destructuring available
@@ -324,7 +333,7 @@ tco:
 			// given in the second argument.
 			case "cons":
 				if list.Count() != 3 {
-					return nil, MakeErrorFor(rt, list, "'cons' needs exactly 3 arguments")
+					return nil, MakeError(rt, list, "'cons' needs exactly 3 arguments")
 				}
 
 				evaledForms, err := evalForm(rt, scope, list.Rest().(*List))
@@ -335,7 +344,7 @@ tco:
 				coll, ok := evaledForms.(*List).Rest().First().(IColl)
 
 				if !ok {
-					return nil, MakeErrorFor(rt, list, "second arg of 'cons' has to be a collection")
+					return nil, MakeError(rt, list, "second arg of 'cons' has to be a collection")
 				}
 
 				ret, err = coll.Cons(evaledForms.(*List).First()), nil
@@ -366,7 +375,7 @@ tco:
 			//   as a macro and returns the expanded forms.
 			case "macroexpand":
 				if list.Count() != 2 {
-					return nil, MakeErrorFor(rt, list, "'macroexpand' needs exactly one argument.")
+					return nil, MakeError(rt, list, "'macroexpand' needs exactly one argument.")
 				}
 				evaledForm, e := evalForm(rt, scope, list.Rest().(*List))
 
@@ -381,7 +390,7 @@ tco:
 			// * It needs at least a collection of arguments
 			// * Defines an anonymous function.
 			case "fn":
-				ret, err = Fn(rt, scope, list.Rest().(*List))
+				ret, err = Fn(rt, scope, list)
 				continue body // no rewrite
 
 			// `if` evaluation rules:
@@ -392,7 +401,7 @@ tco:
 			case "if":
 				args := list.Rest().(*List)
 				if args.Count() != 3 {
-					return nil, MakeError(rt, "'if' needs exactly 3 aruments")
+					return nil, MakeError(rt, args, "'if' needs exactly 3 aruments")
 				}
 
 				pred, err := EvalForms(rt, scope, args.First())
@@ -436,7 +445,7 @@ tco:
 			//   the result.
 			case "eval":
 				if list.Count() != 2 {
-					return nil, MakeErrorFor(rt, list, "'eval' needs exactly 1 arguments")
+					return nil, MakeError(rt, list, "'eval' needs exactly 1 arguments")
 				}
 				form, err := evalForm(rt, scope, list.Rest().(*List))
 				if err != nil {
@@ -457,7 +466,7 @@ tco:
 			//   which is the result of the last expre in `BODY`
 			case "let":
 				if list.Count() < 2 {
-					return nil, MakeError(rt, "'let' needs at list 1 aruments")
+					return nil, MakeError(rt, list, "'let' needs at list 1 aruments")
 				}
 
 				letScope := MakeScope(scope.(*Scope))
@@ -470,7 +479,7 @@ tco:
 				body := list.Rest().Rest().(*List).ToSlice()
 
 				if bindings.Count()%2 != 0 {
-					return nil, MakeError(rt, "'let' bindings has to have even number of forms.")
+					return nil, MakeError(rt, list.Rest().First(), "'let' bindings has to have even number of forms.")
 				}
 
 				for {
@@ -485,7 +494,7 @@ tco:
 					// TODO: We need to destruct the bindings here and remove this check
 					//       for the symbol type
 					if name.GetType() != ast.Symbol {
-						err := MakeErrorFor(rt, name, "'let' doesn't support desbbtructuring yet, use a symbol.")
+						err := MakeError(rt, name, "'let' doesn't support desbbtructuring yet, use a symbol.")
 						return nil, err
 					}
 
@@ -546,7 +555,7 @@ tco:
 						break body //return
 					}
 
-					rt.Stack.Push(fn)
+					rt.Stack.Push(list, fn)
 					body := append(
 						fn.GetBody().ToSlice(),
 						// Add the PopStack instruction to clean up the stack after
@@ -561,7 +570,8 @@ tco:
 				// by the `NativeFunction` struct
 				case ast.NativeFn:
 					fn := f.(*NativeFunction)
-					rt.Stack.Push(fn)
+
+					rt.Stack.Push(list, fn)
 					ret, err = fn.Apply(
 						rt,
 						scope,
@@ -572,7 +582,7 @@ tco:
 					continue body // no rewrite
 
 				default:
-					err = MakeError(rt, "don't know how to execute anything beside function")
+					err = MakeError(rt, f, "don't know how to execute anything beside function")
 					ret = nil
 					break tco
 				}
@@ -613,7 +623,7 @@ func EvalNSBody(rt *Runtime, ns *Namespace) (*Namespace, IError) {
 	exprs := body.ToSlice()
 
 	if len(exprs) == 0 {
-		return nil, MakeError(rt, fmt.Sprintf("the 'ns' form is missing from '%s'", ns.GetName()))
+		return nil, MakeError(rt, ns, fmt.Sprintf("the 'ns' form is missing from '%s'", ns.GetName()))
 	}
 
 	if exprs[0].GetType() == ast.List {
@@ -627,5 +637,5 @@ func EvalNSBody(rt *Runtime, ns *Namespace) (*Namespace, IError) {
 		}
 	}
 
-	return nil, MakeError(rt, fmt.Sprintf("the 'ns' form is missing from '%s'", ns.GetName()))
+	return nil, MakeError(rt, ns, fmt.Sprintf("the 'ns' form is missing from '%s'", ns.GetName()))
 }

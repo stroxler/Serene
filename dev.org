@@ -35,6 +35,7 @@ https://www.reddit.com/r/ProgrammingLanguages/comments/8ggx2n/is_llvm_a_good_bac
 - Official LLVM tutorial C++ :: https://llvm.org/docs/tutorial/
 - Interactive C++ with Cling :: https://blog.llvm.org/posts/2020-11-30-interactive-cpp-with-cling/
 - My First LLVM Compiler :: https://www.wilfred.me.uk/blog/2015/02/21/my-first-llvm-compiler/
+- A Complete Guide to LLVM for Programming Language Creators :: https://mukulrathi.co.uk/create-your-own-programming-language/llvm-ir-cpp-api-tutorial/
 ** Data structures
 - Pure functional datastructures papaer :: https://www.cs.cmu.edu/~rwh/theses/okasaki.pdf
 - Dynamic typing: syntax and proof theory :: https://reader.elsevier.com/reader/sd/pii/0167642394000042?token=CEFF5C5D1B03FD680762FC4889A14C0CA2BB28FE390EC51099984536E12AC358F3D28A5C25C274296ACBBC32E5AE23CD

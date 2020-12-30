@@ -81,8 +81,8 @@ type Node struct {
 }
 
 // GetLocation returns the location of the Node in the source input
-func (n Node) GetLocation() ast.Location {
-	return n.location
+func (n Node) GetLocation() *ast.Location {
+	return &n.location
 }
 
 type ExecutionScope struct {
@@ -123,9 +123,9 @@ func toRepresentables(ast IColl) []IRepresentable {
 }
 
 // MakeNodeFromLocation creates a new Node for the given Location `loc`
-func MakeNodeFromLocation(loc ast.Location) Node {
+func MakeNodeFromLocation(loc *ast.Location) Node {
 	return Node{
-		location: loc,
+		location: *loc,
 	}
 }
 
@@ -136,14 +136,30 @@ func MakeNodeFromExpr(e IExpr) Node {
 	return MakeNodeFromLocation(e.GetLocation())
 }
 
+// MakeNodeFromExprs creates a new Node from the given slice of `IExpr`s.
+// We use the Node to pass it to other IExpr constructors to
+// keep the reference to the original form in the input string
+func MakeNodeFromExprs(es []IExpr) Node {
+	if len(es) == 0 {
+		// TODO: This is temporary, fix it.
+		panic("can't create a node from empty elements.")
+	}
+
+	firstLoc := es[0].GetLocation()
+	endLoc := es[len(es)-1].GetLocation()
+	loc := ast.MakeLocation(firstLoc.GetSource(), firstLoc.GetStart(), endLoc.GetEnd())
+
+	return MakeNodeFromLocation(loc)
+}
+
 // MakeNode creates a new Node in the the given `input` that points to a
 // range of characters starting from the `start` till the `end`.
-func MakeNode(input *[]string, start int, end int) Node {
+func MakeNode(input *ast.Source, start int, end int) Node {
 	return MakeNodeFromLocation(ast.MakeLocation(input, start, end))
 }
 
 // MakeSinglePointNode creates a not the points to a single char in the
 // input
-func MakeSinglePointNode(input *[]string, point int) Node {
+func MakeSinglePointNode(input *ast.Source, point int) Node {
 	return MakeNode(input, point, point)
 }

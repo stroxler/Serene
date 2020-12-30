@@ -147,8 +147,8 @@ func nsNameToPath(ns string) string {
 // LoadNS looks up the namespace specified by the given name `ns`
 // and reads the content as expressions (parse it) and returns the
 // expressions.
-func (r *Runtime) LoadNS(ns string) (*loadedForms, IError) {
-	nsFile := nsNameToPath(ns)
+func (r *Runtime) LoadNS(ns *Symbol) (*loadedForms, IError) {
+	nsFile := nsNameToPath(ns.GetName())
 	for _, loadPath := range r.paths {
 		possibleFile := path.Join(loadPath, nsFile)
 
@@ -167,13 +167,14 @@ func (r *Runtime) LoadNS(ns string) (*loadedForms, IError) {
 		if err != nil {
 			readError := MakeError(
 				r,
+				ns,
 				fmt.Sprintf("error while reading the file at %s", possibleFile),
 			)
 			readError.WithError(err)
 			return nil, readError
 		}
 
-		body, e := ReadString(string(data))
+		body, e := ReadString(possibleFile, string(data))
 		if e != nil {
 			return nil, e
 		}
@@ -182,7 +183,7 @@ func (r *Runtime) LoadNS(ns string) (*loadedForms, IError) {
 	}
 
 	// TODO: Add the load paths to the error message here
-	return nil, MakeError(r, fmt.Sprintf("Can't find the namespace '%s' in any of load paths.", ns))
+	return nil, MakeError(r, ns, fmt.Sprintf("Can't find the namespace '%s' in any of load paths.", ns))
 }
 
 func (r *Runtime) InsertNS(nsName string, ns *Namespace) {

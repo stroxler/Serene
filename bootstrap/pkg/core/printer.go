@@ -21,6 +21,8 @@ package core
 import (
 	"fmt"
 	"strings"
+
+	"github.com/gookit/color"
 )
 
 func toRepresanbleString(ast ...IRepresentable) string {
@@ -63,6 +65,36 @@ func Println(rt *Runtime, ast ...IRepresentable) {
 }
 
 func PrintError(rt *Runtime, err IError) {
+	trace := err.GetStackTrace()
+
+	for i, f := range *trace {
+		loc := f.Caller.GetLocation()
+		fmt.Println("===============")
+		fmt.Println(f.Fn.GetLocation())
+		fmt.Println(loc)
+		source := loc.GetSource()
+		// if loc.GetSource().Buffer != nil {
+		// 	fmt.Println(loc.GetSource().LineIndex)
+		// 	source = *loc.GetSource().Buffer
+		// }
+		startline := source.LineNumberFor(loc.GetStart()) - 1
+		endline := source.LineNumberFor(loc.GetEnd()) + 1
+
+		var lines string
+		for i := startline; i <= endline; i++ {
+			lines += fmt.Sprintf("%d:\t%s\n", i, source.GetLine(i))
+		}
+
+		color.Yellow.Printf(
+			"%d: In function '%s' at '%s'\n",
+			i,
+			f.Fn.GetName(),
+			loc.GetSource().Path,
+		)
+		color.White.Printf("%s\n", lines)
+	}
 	loc := err.GetLocation()
-	fmt.Printf("Error: %s\nAt: %d to %d\n", err.String(), loc.GetStart(), loc.GetEnd())
+
+	errTag := color.Red.Sprint("ERROR")
+	fmt.Printf("%s: %s\nAt: %d to %d\n", errTag, err.String(), loc.GetStart(), loc.GetEnd())
 }

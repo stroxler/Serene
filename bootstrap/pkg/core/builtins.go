@@ -53,9 +53,9 @@ func PrintlnNativeFn(rt *Runtime, scope IScope, n Node, args *List) (IExpr, IErr
 func RequireNativeFn(rt *Runtime, scope IScope, n Node, args *List) (IExpr, IError) {
 	switch args.Count() {
 	case 0:
-		return nil, MakeErrorFor(rt, args, "'require' function is missing")
+		return nil, MakeError(rt, args, "'require' function is missing")
 	case 1:
-		return nil, MakeErrorFor(rt, args.First(), "'require' function needs at least one argument")
+		return nil, MakeError(rt, args.First(), "'require' function needs at least one argument")
 	default:
 	}
 
@@ -74,7 +74,7 @@ func RequireNativeFn(rt *Runtime, scope IScope, n Node, args *List) (IExpr, IErr
 
 func HashNativeFn(rt *Runtime, scope IScope, n Node, args *List) (IExpr, IError) {
 	if args.Count() != 2 {
-		return nil, MakeErrorFor(rt, args.First(), "'hash' function needs exactly one argument")
+		return nil, MakeError(rt, args.First(), "'hash' function needs exactly one argument")
 	}
 
 	expr := args.Rest().First()

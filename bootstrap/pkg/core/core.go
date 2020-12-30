@@ -23,13 +23,14 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/chzyer/readline"
 	"serene-lang.org/bootstrap/pkg/ast"
 )
 
 func rep(rt *Runtime, line string) {
-	ast, err := ReadString(line)
+	ast, err := ReadString("*REPL*", line)
 
 	if err != nil {
 		PrintError(rt, err)
@@ -120,7 +121,17 @@ func Run(flags map[string]bool, args []string) {
 	}
 
 	ns := args[0]
-	loadedNS, err := requireNS(rt, ns)
+	nsAsBuffer := strings.Split(ns, "")
+	source := &ast.Source{Buffer: &nsAsBuffer, Path: "*input-argument*"}
+	node := MakeNode(source, 0, len(ns))
+	nsSym, err := MakeSymbol(node, ns)
+
+	if err != nil {
+		PrintError(rt, err)
+		os.Exit(1)
+	}
+
+	loadedNS, err := requireNS(rt, nsSym)
 
 	if err != nil {
 		PrintError(rt, err)
@@ -133,6 +144,7 @@ func Run(flags map[string]bool, args []string) {
 	if !inserted {
 		err := MakeError(
 			rt,
+			loadedNS,
 			fmt.Sprintf(
 				"the namespace '%s' didn't get inserted in the runtime.",
 				loadedNS.GetName()),
@@ -163,24 +175,22 @@ func Run(flags map[string]bool, args []string) {
 	mainFn := mainBinding.Value.(*Function)
 
 	var fnArgs []IExpr
+	var argNode Node
 
 	if len(args) > 1 {
 		for _, arg := range args[1:] {
 			node := MakeNodeFromExpr(mainFn)
 			fnArgs = append(fnArgs, MakeString(node, arg))
 		}
+		argNode = MakeNodeFromExprs(fnArgs)
+	} else {
+		argNode = node
 	}
 
-	//rt.Stack.Push(mainFn)
-	_, err = mainFn.Apply(rt, loadedNS.GetRootScope(), mainFn.Node, MakeList(fnArgs))
+	_, err = mainFn.Apply(rt, loadedNS.GetRootScope(), mainFn.Node, MakeList(argNode, fnArgs))
 
 	if err != nil {
 		PrintError(rt, err)
 		os.Exit(1)
 	}
-
-	// rt.Stack.Pop()
-	// if rt.Stack.Count() != 0 {
-	// 	panic("Call stack is not empty.")
-	// }
 }

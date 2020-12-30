@@ -36,7 +36,7 @@ func (n NothingType) Hash() uint32 {
 	return hash.HashOf(append([]byte{byte(ast.Block)}, bytes...))
 }
 
-func (n NothingType) GetLocation() ast.Location {
+func (n NothingType) GetLocation() *ast.Location {
 	return ast.MakeUnknownLocation()
 }
 

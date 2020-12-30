@@ -70,9 +70,16 @@ func (l *List) First() IExpr {
 
 func (l *List) Rest() ISeq {
 	if l.Count() < 2 {
-		return MakeEmptyList()
+		return MakeEmptyList(l.Node)
 	}
-	return MakeList(l.exprs[1:])
+
+	rest := l.exprs[1:]
+	node := l.Node
+	if len(rest) > 0 {
+		node = MakeNodeFromExprs(rest)
+	}
+
+	return MakeList(node, rest)
 }
 
 func (l *List) Hash() uint32 {
@@ -97,8 +104,8 @@ func (l *List) ToSlice() []IExpr {
 }
 
 func (l *List) Cons(e IExpr) IExpr {
-	elems := l.ToSlice()
-	return MakeList(append([]IExpr{e}, elems...))
+	elements := append([]IExpr{e}, l.ToSlice()...)
+	return MakeList(MakeNodeFromExprs(elements), elements)
 }
 
 // END: IColl ---
@@ -118,14 +125,16 @@ func ListStartsWith(l *List, sym string) bool {
 	return false
 }
 
-func MakeList(elements []IExpr) *List {
+func MakeList(n Node, elements []IExpr) *List {
 	return &List{
+		Node:  n,
 		exprs: elements,
 	}
 }
 
-func MakeEmptyList() *List {
+func MakeEmptyList(n Node) *List {
 	return &List{
+		Node:  n,
 		exprs: []IExpr{},
 	}
 }

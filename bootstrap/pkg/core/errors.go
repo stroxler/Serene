@@ -49,6 +49,7 @@ type IError interface {
 	IRepresentable
 	IDebuggable
 
+	GetStackTrace() *TraceBack
 	// To wrap Golan rrrrors
 	WithError(err error) IError
 
@@ -62,6 +63,7 @@ type Error struct {
 	Node
 	WrappedErr error
 	msg        string
+	trace      *TraceBack
 }
 
 func (e *Error) String() string {
@@ -89,32 +91,25 @@ func (e *Error) Error() string {
 	return e.msg
 }
 
+func (e *Error) GetStackTrace() *TraceBack {
+	return e.trace
+}
+
 func MakePlainError(msg string) IError {
 	return &Error{
 		msg: msg,
 	}
 }
 
-// MakeError creates an Error without any location.
-func MakeError(rt *Runtime, msg string) IError {
-	return MakePlainError(msg)
-}
-
-// MakeErrorFor creates an Error which points to the given IExpr `e` as
+// MakeError creates an Error which points to the given IExpr `e` as
 // the root of the error.
-func MakeErrorFor(rt *Runtime, e IExpr, msg string) IError {
-	loc := e.GetLocation()
+func MakeError(rt *Runtime, e IExpr, msg string) IError {
+	trace := append(*rt.Stack.ToTraceBack(), Frame{0, rt.Stack.GetCurrentFn(), e})
 
 	return &Error{
-		Node: MakeNodeFromLocation(loc),
-		msg:  msg,
-	}
-}
-
-//MakeRuntimeErrorf is a helper function which works like `fmt.Errorf`
-func MakeRuntimeErrorf(rt *Runtime, msg string, a ...interface{}) IError {
-	return &Error{
-		msg: fmt.Sprintf(msg, a...),
+		Node:  MakeNodeFromExpr(e),
+		msg:   msg,
+		trace: &trace,
 	}
 }
 

@@ -48,8 +48,9 @@ import (
 type nativeFnHandler = func(rt *Runtime, scope IScope, n Node, args *List) (IExpr, IError)
 
 type IFn interface {
-	ast.ILocatable
+	IExpr
 	Apply(rt *Runtime, scope IScope, n Node, args *List) (IExpr, IError)
+	GetName() string
 }
 
 // Function struct represent a user defined function.
@@ -142,8 +143,9 @@ func (f *Function) Apply(rt *Runtime, scope IScope, n Node, args *List) (IExpr, 
 
 // MakeFunction Create a function with the given `params` and `body` in
 // the given `scope`.
-func MakeFunction(scope IScope, params IColl, body *Block) *Function {
+func MakeFunction(n Node, scope IScope, params IColl, body *Block) *Function {
 	return &Function{
+		Node:    n,
 		scope:   scope,
 		params:  params,
 		body:    body,
@@ -173,7 +175,8 @@ func MakeFnScope(rt *Runtime, parent IScope, bindings IColl, values IColl) (*Sco
 			fmt.Printf("[DEBUG] Mismatch on bindings and values: Bindings: %s, Values: %s\n", bindings, values)
 		}
 
-		return nil, MakeError(rt,
+		fmt.Println("3333333", values.(IExpr).GetLocation(), bindings.(IExpr).GetLocation())
+		return nil, MakeError(rt, values.(IExpr),
 			fmt.Sprintf("expected '%d' arguments, got '%d'.", bindings.Count(), values.Count()))
 	}
 
@@ -185,20 +188,29 @@ func MakeFnScope(rt *Runtime, parent IScope, bindings IColl, values IColl) (*Sco
 		if binds[i].GetType() == ast.Symbol && binds[i].(*Symbol).IsRestable() {
 
 			if i != len(binds)-1 {
-				return nil, MakeErrorFor(rt, binds[i], "The function argument with '&' has to be the last argument.")
+				return nil, MakeError(rt, binds[i], "The function argument with '&' has to be the last argument.")
 			}
 
 			// if the number of values are one less than the number of bindings
 			// but the last binding is a Restable (e.g &x) the the last bindings
 			// has to be an empty list. Note the check for number of vlaues comes
 			// next.
-			rest := MakeEmptyList()
+			rest := MakeEmptyList(MakeNodeFromExpr(binds[i]))
 
 			if i == len(exprs)-1 {
 				// If the number of values matches the number of bindings
 				// or it is more than that create a list from them
 				// to pass it to the last argument that has to be Restable (e.g &x)
-				rest = MakeList(exprs[i:])
+				elements := exprs[i:]
+				var node Node
+
+				if len(elements) > 0 {
+					node = MakeNodeFromExprs(elements)
+				} else {
+					node = MakeNodeFromExpr(binds[i])
+				}
+
+				rest = MakeList(node, elements)
 			}
 
 			scope.Insert(binds[i].(*Symbol).GetName()[1:], rest, false)
@@ -213,6 +225,10 @@ func MakeFnScope(rt *Runtime, parent IScope, bindings IColl, values IColl) (*Sco
 
 func (f *NativeFunction) GetType() ast.NodeType {
 	return ast.NativeFn
+}
+
+func (f *NativeFunction) GetName() string {
+	return f.name
 }
 
 func (f *NativeFunction) String() string {

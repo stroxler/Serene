@@ -56,7 +56,7 @@ func (n *Namespace) GetType() ast.NodeType {
 	return ast.Namespace
 }
 
-func (n *Namespace) GetLocation() ast.Location {
+func (n *Namespace) GetLocation() *ast.Location {
 	return ast.MakeUnknownLocation()
 }
 
@@ -141,7 +141,7 @@ func (n *Namespace) getForms() *Block {
 
 // requireNS finds and loads the namespace addressed by the given
 // `ns` string.
-func requireNS(rt *Runtime, ns string) (*Namespace, IError) {
+func requireNS(rt *Runtime, ns *Symbol) (*Namespace, IError) {
 	// TODO: use a hashing algorithm to avoid reloading an unchanged namespace
 	loadedForms, err := rt.LoadNS(ns)
 
@@ -155,11 +155,12 @@ func requireNS(rt *Runtime, ns string) (*Namespace, IError) {
 	if body.Count() == 0 {
 		return nil, MakeError(
 			rt,
+			body,
 			fmt.Sprintf("The '%s' ns source code doesn't start with an 'ns' form.", ns),
 		)
 	}
 
-	namespace := MakeNS(ns, source)
+	namespace := MakeNS(ns.GetName(), source)
 	namespace.setForms(body)
 
 	return &namespace, nil
@@ -188,21 +189,21 @@ func RequireNamespace(rt *Runtime, namespace IExpr) (IExpr, IError) {
 		first := list.First()
 
 		if first.GetType() != ast.Symbol {
-			return nil, MakeErrorFor(rt, first, "The first element has to be a symbol")
+			return nil, MakeError(rt, first, "The first element has to be a symbol")
 		}
 
 		second := list.Rest().First()
 		if second.GetType() != ast.Symbol {
-			return nil, MakeErrorFor(rt, first, "The second element has to be a symbol")
+			return nil, MakeError(rt, first, "The second element has to be a symbol")
 		}
 
 		ns = first.(*Symbol)
 		alias = second.(*Symbol).GetName()
 	default:
-		return nil, MakeErrorFor(rt, ns, "Don't know how to load the given namespace")
+		return nil, MakeError(rt, ns, "Don't know how to load the given namespace")
 	}
 
-	loadedNS, err := requireNS(rt, ns.GetName())
+	loadedNS, err := requireNS(rt, ns)
 
 	if err != nil {
 		return nil, err
@@ -217,6 +218,7 @@ func RequireNamespace(rt *Runtime, namespace IExpr) (IExpr, IError) {
 	if !inserted {
 		return nil, MakeError(
 			rt,
+			loadedNS,
 			fmt.Sprintf(
 				"the namespace '%s' didn't get inserted in the runtime.",
 				loadedNS.GetName()),
@@ -231,6 +233,7 @@ func RequireNamespace(rt *Runtime, namespace IExpr) (IExpr, IError) {
 	if !inserted {
 		return nil, MakeError(
 			rt,
+			loadedNS,
 			fmt.Sprintf(
 				"can't set the current ns back to '%s' from '%s'.",
 				prevNS.GetName(),
