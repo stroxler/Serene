@@ -1,0 +1,7 @@
+theme = "anybodyhome"
+baseURL = "https://serene-lang.org/"
+languageCode = "en-us"
+title = "Serene"
+
+[params]
+  subtitle = "A Simple programming language"
