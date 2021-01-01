@@ -42,6 +42,7 @@ import (
 	"fmt"
 
 	"serene-lang.org/bootstrap/pkg/ast"
+	"serene-lang.org/bootstrap/pkg/errors"
 	"serene-lang.org/bootstrap/pkg/hash"
 )
 
@@ -175,9 +176,12 @@ func MakeFnScope(rt *Runtime, parent IScope, bindings IColl, values IColl) (*Sco
 			fmt.Printf("[DEBUG] Mismatch on bindings and values: Bindings: %s, Values: %s\n", bindings, values)
 		}
 
-		fmt.Println("3333333", values.(IExpr).GetLocation(), bindings.(IExpr).GetLocation())
-		return nil, MakeError(rt, values.(IExpr),
-			fmt.Sprintf("expected '%d' arguments, got '%d'.", bindings.Count(), values.Count()))
+		return nil, MakeSemanticError(
+			rt,
+			values.(IExpr),
+			errors.E0002,
+			fmt.Sprintf("expected '%d' arguments, got '%d'.", bindings.Count(), values.Count()),
+		)
 	}
 
 	for i := 0; i < len(binds); i += 1 {

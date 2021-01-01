@@ -66,13 +66,37 @@ type IParsable interface {
 // StringParser is an implementation of the  IParsable that operates on strings.
 // To put it simply it parses input strings
 type StringParser struct {
-	buffer    []string
-	pos       int
-	source    string
+	buffer []string
+	pos    int
+	source string
+
+	// This slice holds the boundaries of lines in the buffer. Basically
+	// each element determines the position which a line ends and the line
+	// number directly maps to the position of it's boundary in the slice.
 	lineIndex []int
 }
 
 // Implementing IParsable for StringParser ---
+
+// updateLineIndex reads the current character and if it is an end of line, then
+// it will update the line index to add the boundaries of the current line.
+func (sp *StringParser) updateLineIndex(pos int) {
+	if pos < len(sp.buffer) {
+		c := sp.buffer[pos]
+		if c == "\n" {
+			if len(sp.lineIndex) > 0 {
+				if sp.lineIndex[len(sp.lineIndex)-1] != pos+1 {
+					// Including the \n itself
+					sp.lineIndex = append(sp.lineIndex, pos+1)
+				}
+			} else {
+				sp.lineIndex = append(sp.lineIndex, pos+1)
+			}
+
+		}
+	}
+
+}
 
 // Returns the next character in the buffer
 func (sp *StringParser) next(skipWhitespace bool) *string {
@@ -80,12 +104,7 @@ func (sp *StringParser) next(skipWhitespace bool) *string {
 		return nil
 	}
 	char := sp.buffer[sp.pos]
-
-	if char == "\n" {
-		// Including the \n itself
-		sp.lineIndex = append(sp.lineIndex, sp.pos+1)
-	}
-
+	sp.updateLineIndex(sp.pos)
 	sp.pos = sp.pos + 1
 
 	if skipWhitespace && isSeparator(&char) {
@@ -121,6 +140,7 @@ func (sp *StringParser) peek(skipWhitespace bool) *string {
 
 	c := sp.buffer[sp.pos]
 	if isSeparator(&c) && skipWhitespace {
+		sp.updateLineIndex(sp.pos)
 		sp.pos = sp.pos + 1
 		return sp.peek(skipWhitespace)
 	}

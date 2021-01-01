@@ -22,6 +22,7 @@ import (
 	"fmt"
 
 	"serene-lang.org/bootstrap/pkg/ast"
+	"serene-lang.org/bootstrap/pkg/errors"
 )
 
 func restOfExprs(es []IExpr, i int) []IExpr {
@@ -623,7 +624,12 @@ func EvalNSBody(rt *Runtime, ns *Namespace) (*Namespace, IError) {
 	exprs := body.ToSlice()
 
 	if len(exprs) == 0 {
-		return nil, MakeError(rt, ns, fmt.Sprintf("the 'ns' form is missing from '%s'", ns.GetName()))
+		return nil, MakeSemanticError(
+			rt,
+			ns,
+			errors.E0001,
+			fmt.Sprintf("the 'ns' form is missing from '%s'", ns.GetName()),
+		)
 	}
 
 	if exprs[0].GetType() == ast.List {

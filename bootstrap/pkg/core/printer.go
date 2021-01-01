@@ -67,29 +67,29 @@ func Println(rt *Runtime, ast ...IRepresentable) {
 func PrintError(rt *Runtime, err IError) {
 	trace := err.GetStackTrace()
 
-	for i, f := range *trace {
-		loc := f.Caller.GetLocation()
-		fmt.Println("===============")
-		fmt.Println(f.Fn.GetLocation())
-		fmt.Println(loc)
-		source := loc.GetSource()
-		// if loc.GetSource().Buffer != nil {
-		// 	fmt.Println(loc.GetSource().LineIndex)
-		// 	source = *loc.GetSource().Buffer
-		// }
-		startline := source.LineNumberFor(loc.GetStart()) - 1
-		endline := source.LineNumberFor(loc.GetEnd()) + 1
+	for i, t := range *trace {
+		caller := t.Caller
+		callerLoc := caller.GetLocation()
+		callerSource := callerLoc.GetSource()
+
+		startline := callerSource.LineNumberFor(callerLoc.GetStart())
+
+		if startline > 0 {
+			startline -= 1
+		}
+
+		endline := callerSource.LineNumberFor(callerLoc.GetEnd()) + 1
 
 		var lines string
 		for i := startline; i <= endline; i++ {
-			lines += fmt.Sprintf("%d:\t%s\n", i, source.GetLine(i))
+			lines += fmt.Sprintf("%d:\t%s\n", i, t.Fn.GetLocation().GetSource().GetLine(i))
 		}
 
 		color.Yellow.Printf(
 			"%d: In function '%s' at '%s'\n",
 			i,
-			f.Fn.GetName(),
-			loc.GetSource().Path,
+			t.Fn.GetName(),
+			callerLoc.GetSource().Path,
 		)
 		color.White.Printf("%s\n", lines)
 	}

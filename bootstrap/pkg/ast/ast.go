@@ -53,23 +53,65 @@ type Source struct {
 	LineIndex *[]int
 }
 
+func (s *Source) GetPos(start, end int) *string {
+	if start < len(*s.Buffer) && start >= 0 && end < len(*s.Buffer) && end > 0 && start <= end {
+		result := strings.Join((*s.Buffer)[start:end], "")
+		return &result
+	} else {
+		return nil
+	}
+}
 func (s *Source) GetLine(linenum int) string {
 	lines := strings.Split(strings.Join(*s.Buffer, ""), "\n")
-	return lines[linenum-1]
+	if linenum > 0 && linenum < len(lines) {
+		return lines[linenum-1]
+	}
+	return "!!!"
 }
 
 func (s *Source) LineNumberFor(pos int) int {
+
+	// Some dirty print debugger code
+	// for i, r := range *s.LineIndex {
+	// 	empty := ""
+	// 	var line *string
+	// 	var num int
+	// 	if i == 0 {
+	// 		line = s.GetPos(0, r)
+	// 		num = 0
+	// 	} else {
+	// 		line = s.GetPos((*s.LineIndex)[i-1], r)
+	// 		num = (*s.LineIndex)[i-1]
+
+	// 	}
+
+	// 	if line == nil {
+	// 		line = &empty
+	// 	}
+
+	// 	fmt.Print(">>>> ", num, r, *line)
+	// }
+
 	if pos < 0 {
 		return -1
 	}
 
-	return sort.Search(len(*s.LineIndex), func(i int) bool {
+	result := sort.Search(len(*s.LineIndex), func(i int) bool {
 		if i == 0 {
 			return pos < (*s.LineIndex)[i]
 		} else {
 			return (*s.LineIndex)[i-1] < pos && pos < (*s.LineIndex)[i]
 		}
 	})
+
+	// We've found something
+	if result > -1 {
+		// Since line numbers start from 1 unlike arrays :))
+		result += 1
+	}
+
+	return result
+
 }
 
 type Location struct {

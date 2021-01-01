@@ -38,6 +38,7 @@ import (
 	"fmt"
 
 	"serene-lang.org/bootstrap/pkg/ast"
+	"serene-lang.org/bootstrap/pkg/errors"
 )
 
 // IError defines the necessary functionality of the internal errors.
@@ -49,6 +50,7 @@ type IError interface {
 	IRepresentable
 	IDebuggable
 
+	GetDescription() *string
 	GetStackTrace() *TraceBack
 	// To wrap Golan rrrrors
 	WithError(err error) IError
@@ -61,6 +63,7 @@ type IError interface {
 
 type Error struct {
 	Node
+	errno      errors.Errno
 	WrappedErr error
 	msg        string
 	trace      *TraceBack
@@ -95,6 +98,16 @@ func (e *Error) GetStackTrace() *TraceBack {
 	return e.trace
 }
 
+func (e *Error) GetDescription() *string {
+	desc, ok := errors.ErrorsDescription[e.errno]
+	if ok {
+		return &desc
+	}
+
+	desc = errors.ErrorsDescription[0]
+	return &desc
+}
+
 func MakePlainError(msg string) IError {
 	return &Error{
 		msg: msg,
@@ -104,7 +117,7 @@ func MakePlainError(msg string) IError {
 // MakeError creates an Error which points to the given IExpr `e` as
 // the root of the error.
 func MakeError(rt *Runtime, e IExpr, msg string) IError {
-	trace := append(*rt.Stack.ToTraceBack(), Frame{0, rt.Stack.GetCurrentFn(), e})
+	trace := append(*rt.Stack.ToTraceBack(), &Frame{0, rt.Stack.GetCurrentFn(), e})
 
 	return &Error{
 		Node:  MakeNodeFromExpr(e),
@@ -117,5 +130,20 @@ func MakeParsetimeErrorf(n Node, msg string, a ...interface{}) IError {
 	return &Error{
 		Node: n,
 		msg:  fmt.Sprintf(msg, a...),
+	}
+}
+
+func MakeSemanticError(rt *Runtime, e IExpr, errno errors.Errno, msg string) IError {
+	currentFn := rt.Stack.GetCurrentFn()
+
+	frames := &[]*Frame{
+		MakeFrame(e, currentFn, 1),
+	}
+
+	return &Error{
+		Node:  MakeNodeFromExpr(e),
+		errno: errno,
+		msg:   msg,
+		trace: frames,
 	}
 }

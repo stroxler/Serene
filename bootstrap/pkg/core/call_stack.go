@@ -52,7 +52,7 @@ type Frame struct {
 	Caller IExpr
 }
 
-type TraceBack = []Frame
+type TraceBack = []*Frame
 
 type CallStackItem struct {
 	prev *CallStackItem
@@ -158,7 +158,7 @@ func (c *CallStack) ToTraceBack() *TraceBack {
 		if item == nil {
 			break
 		}
-		tr = append(tr, item.data)
+		tr = append(tr, &item.data)
 		item = item.prev
 	}
 
@@ -170,5 +170,13 @@ func MakeCallStack(debugMode bool) CallStack {
 		count: 0,
 		head:  nil,
 		debug: debugMode,
+	}
+}
+
+func MakeFrame(caller IExpr, f IFn, count uint) *Frame {
+	return &Frame{
+		Count:  count,
+		Caller: caller,
+		Fn:     f,
 	}
 }
