@@ -218,6 +218,10 @@ tco:
 			// Evaluating forms one by one
 			if forms.GetType() != ast.List {
 				ret, err = evalForm(rt, scope, forms)
+				if err != nil {
+					return nil, err
+				}
+
 				continue body
 			}
 
@@ -271,6 +275,10 @@ tco:
 			// TODO: decide on the syntax and complete the docs
 			case "ns":
 				ret, err = NSForm(rt, scope, list)
+				if err != nil {
+					return nil, err
+				}
+
 				continue body // no rewrite
 
 			// `quote` evaluation rules:
@@ -298,6 +306,10 @@ tco:
 			// Creates a new list form it's arguments.
 			case "list":
 				ret, err = evalForm(rt, scope, list.Rest().(*List))
+				if err != nil {
+					return nil, err
+				}
+
 				continue body // no rewrite
 
 			// TODO: Implement `concat` in serene itself when we have protocols available
@@ -320,12 +332,19 @@ tco:
 					result = append(result, lst.(*List).ToSlice()...)
 				}
 
-				node := MakeNodeFromExpr(list)
-				if len(result) > 0 {
-					node = MakeNodeFromExprs(result)
+				n := MakeNodeFromExprs(result)
+
+				if n == nil {
+					n = &list.Node
 				}
 
+				node := *n
+
 				ret, err = MakeList(node, result), nil
+				if err != nil {
+					return nil, err
+				}
+
 				continue body // no rewrite
 
 			// TODO: Implement `list` in serene itself when we have destructuring available
@@ -349,6 +368,10 @@ tco:
 				}
 
 				ret, err = coll.Cons(evaledForms.(*List).First()), nil
+				if err != nil {
+					return nil, err
+				}
+
 				continue body // no rewrite
 
 			// `def` evaluation rules
@@ -359,6 +382,10 @@ tco:
 			//   the symbol name binded to the value
 			case "def":
 				ret, err = Def(rt, scope, list.Rest().(*List))
+				if err != nil {
+					return nil, err
+				}
+
 				continue body // no rewrite
 
 			// `defmacro` evaluation rules:
@@ -368,6 +395,10 @@ tco:
 			//   body of the macro.
 			case "defmacro":
 				ret, err = DefMacro(rt, scope, list.Rest().(*List))
+				if err != nil {
+					return nil, err
+				}
+
 				continue body // no rewrite
 
 			// `macroexpand` evaluation rules:
@@ -385,6 +416,9 @@ tco:
 				}
 
 				ret, err = macroexpand(rt, scope, evaledForm.(*List).First())
+				if err != nil {
+					return nil, err
+				}
 				continue body // no rewrite
 
 			// `fn` evaluation rules:
@@ -392,6 +426,9 @@ tco:
 			// * Defines an anonymous function.
 			case "fn":
 				ret, err = Fn(rt, scope, list)
+				if err != nil {
+					return nil, err
+				}
 				continue body // no rewrite
 
 			// `if` evaluation rules:
@@ -454,6 +491,10 @@ tco:
 				}
 
 				ret, err = EvalForms(rt, scope, form)
+				if err != nil {
+					return nil, err
+				}
+
 				continue body // no rewrite
 
 			// `let` evaluation rules:
@@ -525,9 +566,7 @@ tco:
 				// Evaluating all the elements of the list
 				listExprs, e := evalForm(rt, scope, list)
 				if e != nil {
-					err = e
-					ret = nil
-					break tco //return
+					return nil, e
 				}
 
 				f := listExprs.(*List).First()
@@ -541,19 +580,14 @@ tco:
 					// `expressions` to the body of function and loop again
 					fn := f.(*Function)
 					if e != nil {
-						err = e
-						ret = nil
-						break body //return
-
+						return nil, e
 					}
 
 					argList := listExprs.(*List).Rest().(*List)
 
 					fnScope, e := MakeFnScope(rt, fn.GetScope(), fn.GetParams(), argList)
 					if e != nil {
-						err = e
-						ret = nil
-						break body //return
+						return nil, e
 					}
 
 					rt.Stack.Push(list, fn)
@@ -579,6 +613,11 @@ tco:
 						MakeNodeFromExpr(fn),
 						listExprs.(*List),
 					)
+
+					if err != nil {
+						return nil, err
+					}
+
 					rt.Stack.Pop()
 					continue body // no rewrite
 

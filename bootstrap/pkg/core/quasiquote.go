@@ -103,8 +103,12 @@ func qqProcess(rt *Runtime, e IExpr) (IExpr, IError) {
 			e,
 		}
 
+		n := MakeNodeFromExprs(elems)
+		if n == nil {
+			n = &sym.Node
+		}
 		return MakeList(
-			MakeNodeFromExprs(elems),
+			*n,
 			elems,
 		), nil
 

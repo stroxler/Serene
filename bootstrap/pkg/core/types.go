@@ -122,6 +122,12 @@ func toRepresentables(ast IColl) []IRepresentable {
 	return params
 }
 
+// TODO: I don't like the current interface and signatures of these
+// 'Make*Node*' functions. Refactor them to have the same interface
+// For instance if we need to return a pointer to a Node all of them
+// has to return a pointer not just one of them. The return type
+// should be predictable
+
 // MakeNodeFromLocation creates a new Node for the given Location `loc`
 func MakeNodeFromLocation(loc *ast.Location) Node {
 	return Node{
@@ -139,17 +145,16 @@ func MakeNodeFromExpr(e IExpr) Node {
 // MakeNodeFromExprs creates a new Node from the given slice of `IExpr`s.
 // We use the Node to pass it to other IExpr constructors to
 // keep the reference to the original form in the input string
-func MakeNodeFromExprs(es []IExpr) Node {
+func MakeNodeFromExprs(es []IExpr) *Node {
 	if len(es) == 0 {
-		// TODO: This is temporary, fix it.
-		panic("can't create a node from empty elements.")
+		return nil
 	}
 
 	firstLoc := es[0].GetLocation()
 	endLoc := es[len(es)-1].GetLocation()
 	loc := ast.MakeLocation(firstLoc.GetSource(), firstLoc.GetStart(), endLoc.GetEnd())
-
-	return MakeNodeFromLocation(loc)
+	n := MakeNodeFromLocation(loc)
+	return &n
 }
 
 // MakeNode creates a new Node in the the given `input` that points to a

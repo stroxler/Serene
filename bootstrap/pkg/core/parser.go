@@ -176,7 +176,7 @@ func (sp *StringParser) Buffer() *[]string {
 // points at the current position of the buffer.
 func makeErrorAtPoint(p IParsable, msg string, a ...interface{}) IError {
 	n := MakeSinglePointNode(p.GetSource(), p.GetLocation())
-	return MakeParsetimeErrorf(n, msg, a...)
+	return MakeSyntaxErrorf(n, msg, a...)
 }
 
 // makeErrorFromError is a function which wraps a Golang error in an IError
@@ -407,9 +407,14 @@ func readList(parser IParsable) (IExpr, IError) {
 	}
 
 	node := MakeNodeFromExprs(list)
+	if node == nil {
+		n := MakeSinglePointNode(parser.GetSource(), parser.GetLocation())
+		node = &n
+	}
+
 	node.location.DecStart(1)
 	node.location.IncEnd(1)
-	return MakeList(node, list), nil
+	return MakeList(*node, list), nil
 }
 
 func readComment(parser IParsable) (IExpr, IError) {
@@ -443,9 +448,14 @@ func readQuotedExpr(parser IParsable) (IExpr, IError) {
 	}
 
 	listNode := MakeNodeFromExprs(listElems)
+	if listNode == nil {
+		n := MakeSinglePointNode(parser.GetSource(), parser.GetLocation())
+		listNode = &n
+	}
+
 	listNode.location.DecStart(1)
 	listNode.location.IncStart(1)
-	return MakeList(listNode, listElems), nil
+	return MakeList(*listNode, listElems), nil
 }
 
 // readUnquotedExpr reads different unquoting expressions from their short representaions.
@@ -489,10 +499,19 @@ func readUnquotedExpr(parser IParsable) (IExpr, IError) {
 	}
 
 	listElems := []IExpr{sym, expr}
+
 	listNode := MakeNodeFromExprs(listElems)
+
+	// listNode won't be nil in this case but it doesn't
+	// mean we shouldn't check
+	if listNode == nil {
+		n := MakeSinglePointNode(parser.GetSource(), parser.GetLocation())
+		listNode = &n
+	}
+
 	listNode.location.DecStart(1)
 	listNode.location.IncStart(1)
-	return MakeList(listNode, listElems), nil
+	return MakeList(*listNode, listElems), nil
 }
 
 // readQuasiquotedExpr reads the backquote and replace it with a call
@@ -512,10 +531,17 @@ func readQuasiquotedExpr(parser IParsable) (IExpr, IError) {
 
 	listElems := []IExpr{sym, expr}
 	listNode := MakeNodeFromExprs(listElems)
+	// listNode won't be nil in this case but it doesn't
+	// mean we shouldn't check
+	if listNode == nil {
+		n := MakeSinglePointNode(parser.GetSource(), parser.GetLocation())
+		listNode = &n
+	}
+
 	listNode.location.DecStart(1)
 	listNode.location.IncStart(1)
 
-	return MakeList(listNode, listElems), nil
+	return MakeList(*listNode, listElems), nil
 }
 
 // readExpr reads one expression from the input. This function is the most

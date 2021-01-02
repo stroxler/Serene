@@ -41,6 +41,14 @@ import (
 	"serene-lang.org/bootstrap/pkg/errors"
 )
 
+type ErrType uint8
+
+const (
+	SyntaxError ErrType = iota
+	SemanticError
+	RuntimeError
+)
+
 // IError defines the necessary functionality of the internal errors.
 type IError interface {
 	// In order to point to a specific point in the input
@@ -50,6 +58,7 @@ type IError interface {
 	IRepresentable
 	IDebuggable
 
+	GetErrType() ErrType
 	GetDescription() *string
 	GetStackTrace() *TraceBack
 	// To wrap Golan rrrrors
@@ -63,6 +72,7 @@ type IError interface {
 
 type Error struct {
 	Node
+	errtype    ErrType
 	errno      errors.Errno
 	WrappedErr error
 	msg        string
@@ -79,6 +89,10 @@ func (e *Error) ToDebugStr() string {
 		return fmt.Sprintf("%s:\n\t%s", e.msg, e.WrappedErr.(*Error).ToDebugStr())
 	}
 	return fmt.Sprintf("%s:\n\t%s", e.msg, e.WrappedErr.Error())
+}
+
+func (e *Error) GetErrType() ErrType {
+	return e.errtype
 }
 
 func (e *Error) WithError(err error) IError {
@@ -117,19 +131,22 @@ func MakePlainError(msg string) IError {
 // MakeError creates an Error which points to the given IExpr `e` as
 // the root of the error.
 func MakeError(rt *Runtime, e IExpr, msg string) IError {
-	trace := append(*rt.Stack.ToTraceBack(), &Frame{0, rt.Stack.GetCurrentFn(), e})
+	frame := MakeFrame(e, rt.Stack.GetCurrentFn(), 1)
+	trace := append(*rt.Stack.ToTraceBack(), frame)
 
 	return &Error{
-		Node:  MakeNodeFromExpr(e),
-		msg:   msg,
-		trace: &trace,
+		Node:    MakeNodeFromExpr(e),
+		errtype: RuntimeError,
+		msg:     msg,
+		trace:   &trace,
 	}
 }
 
-func MakeParsetimeErrorf(n Node, msg string, a ...interface{}) IError {
+func MakeSyntaxErrorf(n Node, msg string, a ...interface{}) IError {
 	return &Error{
-		Node: n,
-		msg:  fmt.Sprintf(msg, a...),
+		Node:    n,
+		errtype: SyntaxError,
+		msg:     fmt.Sprintf(msg, a...),
 	}
 }
 
@@ -141,9 +158,10 @@ func MakeSemanticError(rt *Runtime, e IExpr, errno errors.Errno, msg string) IEr
 	}
 
 	return &Error{
-		Node:  MakeNodeFromExpr(e),
-		errno: errno,
-		msg:   msg,
-		trace: frames,
+		Node:    MakeNodeFromExpr(e),
+		errtype: SemanticError,
+		errno:   errno,
+		msg:     msg,
+		trace:   frames,
 	}
 }

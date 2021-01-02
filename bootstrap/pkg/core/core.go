@@ -20,14 +20,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package core
 
 import (
+	"bytes"
 	"fmt"
+	"html/template"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/chzyer/readline"
-	"serene-lang.org/bootstrap/pkg/ast"
 )
+
+type mainRunner struct {
+	NS   string
+	Args string
+}
 
 func rep(rt *Runtime, line string) {
 	ast, err := ReadString("*REPL*", line)
@@ -113,6 +118,7 @@ func Run(flags map[string]bool, args []string) {
 	}
 
 	rt := MakeRuntime([]string{cwd}, flags)
+	rt.CreateNS("user", "REPL", true)
 
 	if len(args) == 0 {
 
@@ -120,77 +126,51 @@ func Run(flags map[string]bool, args []string) {
 		os.Exit(1)
 	}
 
+	var buf bytes.Buffer
+	arguments := ""
 	ns := args[0]
-	nsAsBuffer := strings.Split(ns, "")
-	source := &ast.Source{Buffer: &nsAsBuffer, Path: "*input-argument*"}
-	node := MakeNode(source, 0, len(ns))
-	nsSym, err := MakeSymbol(node, ns)
-
-	if err != nil {
-		PrintError(rt, err)
-		os.Exit(1)
-	}
-
-	loadedNS, err := requireNS(rt, nsSym)
-
-	if err != nil {
-		PrintError(rt, err)
-		os.Exit(1)
-	}
-
-	rt.InsertNS(ns, loadedNS)
-	inserted := rt.setCurrentNS(loadedNS.GetName())
-
-	if !inserted {
-		err := MakeError(
-			rt,
-			loadedNS,
-			fmt.Sprintf(
-				"the namespace '%s' didn't get inserted in the runtime.",
-				loadedNS.GetName()),
-		)
-		PrintError(rt, err)
-		os.Exit(1)
-	}
-
-	// Evaluating the body of the loaded ns (Check for ns validation happens here)
-	loadedNS, err = EvalNSBody(rt, loadedNS)
-	if err != nil {
-		PrintError(rt, err)
-		os.Exit(1)
-	}
-
-	mainBinding := loadedNS.GetRootScope().Lookup(rt, "main")
-
-	if mainBinding == nil {
-		PrintError(rt, MakePlainError(fmt.Sprintf("can't find the 'main' function in '%s' namespace", ns)))
-		os.Exit(1)
-	}
-
-	if mainBinding.Value.GetType() != ast.Fn {
-		PrintError(rt, MakePlainError("'main' is not a function"))
-		os.Exit(1)
-	}
-
-	mainFn := mainBinding.Value.(*Function)
-
-	var fnArgs []IExpr
-	var argNode Node
 
 	if len(args) > 1 {
 		for _, arg := range args[1:] {
-			node := MakeNodeFromExpr(mainFn)
-			fnArgs = append(fnArgs, MakeString(node, arg))
+			arguments += "\"" + arg + "\""
 		}
-		argNode = MakeNodeFromExprs(fnArgs)
-	} else {
-		argNode = node
 	}
 
-	_, err = mainFn.Apply(rt, loadedNS.GetRootScope(), mainFn.Node, MakeList(argNode, fnArgs))
+	tmpl, e := template.New("run").Parse(
+		`(def run-main
+     (fn ()
+       (require '({{.NS}} n))
+       (n/main {{.Args}})))
+
+(run-main)`,
+	)
+
+	if e != nil {
+		panic(e)
+	}
+
+	e = tmpl.Execute(&buf, &mainRunner{ns, arguments})
+
+	if e != nil {
+		panic(e)
+	}
+
+	if rt.IsDebugMode() {
+		fmt.Println("[DEBUG] Evaluating the following form to run the 'main' fn:")
+		fmt.Println(buf.String())
+	}
+
+	ast, err := ReadString("*RUN*", buf.String())
 
 	if err != nil {
 		PrintError(rt, err)
 		os.Exit(1)
+	}
+
+	_, err = Eval(rt, ast)
+
+	if err != nil {
+		PrintError(rt, err)
+		return
 	}
 }

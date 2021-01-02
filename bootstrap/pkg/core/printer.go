@@ -65,9 +65,11 @@ func Println(rt *Runtime, ast ...IRepresentable) {
 }
 
 func PrintError(rt *Runtime, err IError) {
-	trace := err.GetStackTrace()
 
+	trace := err.GetStackTrace()
+	fmt.Println(err)
 	for i, t := range *trace {
+		fmt.Println(*t)
 		caller := t.Caller
 		callerLoc := caller.GetLocation()
 		callerSource := callerLoc.GetSource()
@@ -82,7 +84,11 @@ func PrintError(rt *Runtime, err IError) {
 
 		var lines string
 		for i := startline; i <= endline; i++ {
-			lines += fmt.Sprintf("%d:\t%s\n", i, t.Fn.GetLocation().GetSource().GetLine(i))
+			fmt.Println(">>>>>>>>>> ", err)
+			fLoc := t.Fn.GetLocation()
+			fmt.Println(">>>>>>>>>> ", fLoc, fLoc.GetSource())
+
+			lines += fmt.Sprintf("%d:\t%s\n", i, fLoc.GetSource().GetLine(i))
 		}
 
 		color.Yellow.Printf(

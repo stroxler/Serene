@@ -19,7 +19,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package core
 
 import (
-	"fmt"
 	"strings"
 
 	"serene-lang.org/bootstrap/pkg/ast"
@@ -86,7 +85,7 @@ func MakeSymbol(n Node, s string) (*Symbol, IError) {
 		name = parts[1]
 		nsPart = parts[0]
 	default:
-		return nil, MakePlainError(fmt.Sprintf("can't create a symbol from '%s'. More that on '/' is illegal.", s))
+		return nil, MakeSyntaxErrorf(n, "can't create a symbol from '%s'. More that on '/' is illegal.", s)
 	}
 
 	return &Symbol{

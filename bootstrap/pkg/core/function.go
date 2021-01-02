@@ -209,7 +209,13 @@ func MakeFnScope(rt *Runtime, parent IScope, bindings IColl, values IColl) (*Sco
 				var node Node
 
 				if len(elements) > 0 {
-					node = MakeNodeFromExprs(elements)
+					n := MakeNodeFromExprs(elements)
+
+					if n == nil {
+						n = &values.(*List).Node
+					}
+
+					node = *n
 				} else {
 					node = MakeNodeFromExpr(binds[i])
 				}

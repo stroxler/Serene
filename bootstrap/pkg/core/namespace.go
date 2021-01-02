@@ -199,6 +199,7 @@ func RequireNamespace(rt *Runtime, namespace IExpr) (IExpr, IError) {
 
 		ns = first.(*Symbol)
 		alias = second.(*Symbol).GetName()
+
 	default:
 		return nil, MakeError(rt, ns, "Don't know how to load the given namespace")
 	}

@@ -76,7 +76,12 @@ func (l *List) Rest() ISeq {
 	rest := l.exprs[1:]
 	node := l.Node
 	if len(rest) > 0 {
-		node = MakeNodeFromExprs(rest)
+		// n won't be nil here but we should check anyway
+		n := MakeNodeFromExprs(rest)
+		if n == nil {
+			panic("'MakeNodeFromExprs' has returned nil for none empty array of exprs")
+		}
+		node = *n
 	}
 
 	return MakeList(node, rest)
@@ -105,7 +110,14 @@ func (l *List) ToSlice() []IExpr {
 
 func (l *List) Cons(e IExpr) IExpr {
 	elements := append([]IExpr{e}, l.ToSlice()...)
-	return MakeList(MakeNodeFromExprs(elements), elements)
+	node := MakeNodeFromExprs(elements)
+
+	// Since 'elements' is not empty node won't be nil but we should
+	// check anyway
+	if node == nil {
+		node = &l.Node
+	}
+	return MakeList(*node, elements)
 }
 
 // END: IColl ---

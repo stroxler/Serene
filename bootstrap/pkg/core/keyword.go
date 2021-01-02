@@ -181,11 +181,11 @@ func extractParts(s string) (string, string) {
 
 func MakeKeyword(n Node, name string) (*Keyword, IError) {
 	if strings.Count(name, ":") > 2 {
-		return nil, MakeParsetimeErrorf(n, "can't parse the keyword with more that two colons: '%s'", name)
+		return nil, MakeSyntaxErrorf(n, "can't parse the keyword with more that two colons: '%s'", name)
 	}
 
 	if strings.Count(name, "/") > 1 {
-		return nil, MakeParsetimeErrorf(n, "illegal namespace path for the given keyword: '%s'", name)
+		return nil, MakeSyntaxErrorf(n, "illegal namespace path for the given keyword: '%s'", name)
 	}
 
 	var nsName string
