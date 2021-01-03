@@ -29,6 +29,15 @@ package core
 // * Add the support for strings
 // * Add the support for kewords
 // * Add a shortcut for the `deref` function like `@x` => `(deref x)`
+// * A line of comment at the end of a list definition causes a synxtax error.
+//   We need to fix it. For example:
+//   (asdb xyz
+//   ;; problematic comment line
+//   )
+// Will fails. The reason being we call `readExpr` in `readList` and in the
+// `readExpr` when we read a line of comment we jump to a label and try to
+// read another expr which in our case it would read the end of list and throw
+// and error
 
 import (
 	"strings"
@@ -325,6 +334,8 @@ func readNumber(parser IParsable, neg bool) (IExpr, IError) {
 		r := rune(char[0])
 		if unicode.IsDigit(r) {
 			result = result + *c
+		} else if isValidForSymbol(char) {
+			return nil, makeErrorAtPoint(parser, "Illegal token while scanning for a number.")
 		} else {
 			parser.back()
 			break

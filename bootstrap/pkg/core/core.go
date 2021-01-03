@@ -118,7 +118,7 @@ func Run(flags map[string]bool, args []string) {
 	}
 
 	rt := MakeRuntime([]string{cwd}, flags)
-	rt.CreateNS("user", "REPL", true)
+	rt.CreateNS("user", "RUN", true)
 
 	if len(args) == 0 {
 
@@ -137,12 +137,8 @@ func Run(flags map[string]bool, args []string) {
 	}
 
 	tmpl, e := template.New("run").Parse(
-		`(def run-main
-     (fn ()
-       (require '({{.NS}} n))
-       (n/main {{.Args}})))
-
-(run-main)`,
+		`(require '({{.NS}} n))
+(n/main {{.Args}})`,
 	)
 
 	if e != nil {
@@ -160,7 +156,7 @@ func Run(flags map[string]bool, args []string) {
 		fmt.Println(buf.String())
 	}
 
-	ast, err := ReadString("*RUN*", buf.String())
+	ast, err := ReadString("*INTERNAL*", buf.String())
 
 	if err != nil {
 		PrintError(rt, err)

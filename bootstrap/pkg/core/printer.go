@@ -64,12 +64,43 @@ func Println(rt *Runtime, ast ...IRepresentable) {
 	fmt.Println(toPrintableString(ast...))
 }
 
-func PrintError(rt *Runtime, err IError) {
+func printError(rt *Runtime, err IError, stage int) {
+	loc := err.GetLocation()
+	source := loc.GetSource()
 
+	startline := source.LineNumberFor(loc.GetStart())
+
+	if startline > 0 {
+		startline -= 1
+	}
+
+	endline := source.LineNumberFor(loc.GetEnd()) + 1
+
+	var lines string
+	for i := startline; i <= endline; i++ {
+		line := source.GetLine(i)
+		if line != "----" {
+			lines += fmt.Sprintf("%d:\t%s\n", i, line)
+		}
+	}
+
+	color.Yellow.Printf(
+		"%d: At '%s'\n",
+		stage,
+		source.Path,
+	)
+
+	color.White.Printf("%s\n", lines)
+
+	errTag := color.Red.Sprint(err.GetErrType().String())
+	fmt.Printf("%s: %s\nAt: %d to %d\n", errTag, err.String(), loc.GetStart(), loc.GetEnd())
+
+}
+
+func printErrorWithTraceBack(rt *Runtime, err IError) {
 	trace := err.GetStackTrace()
-	fmt.Println(err)
+
 	for i, t := range *trace {
-		fmt.Println(*t)
 		caller := t.Caller
 		callerLoc := caller.GetLocation()
 		callerSource := callerLoc.GetSource()
@@ -84,23 +115,36 @@ func PrintError(rt *Runtime, err IError) {
 
 		var lines string
 		for i := startline; i <= endline; i++ {
-			fmt.Println(">>>>>>>>>> ", err)
 			fLoc := t.Fn.GetLocation()
-			fmt.Println(">>>>>>>>>> ", fLoc, fLoc.GetSource())
-
-			lines += fmt.Sprintf("%d:\t%s\n", i, fLoc.GetSource().GetLine(i))
+			line := fLoc.GetSource().GetLine(i)
+			if line != "----" {
+				lines += fmt.Sprintf("%d:\t%s\n", i, line)
+			}
 		}
 
 		color.Yellow.Printf(
-			"%d: In function '%s' at '%s'\n",
+			"%d: In function '%s' at '%s':%d\n",
 			i,
 			t.Fn.GetName(),
 			callerLoc.GetSource().Path,
+			callerSource.LineNumberFor(callerLoc.GetStart()),
 		)
 		color.White.Printf("%s\n", lines)
 	}
 	loc := err.GetLocation()
-
-	errTag := color.Red.Sprint("ERROR")
+	errTag := color.Red.Sprint(err.GetErrType().String())
 	fmt.Printf("%s: %s\nAt: %d to %d\n", errTag, err.String(), loc.GetStart(), loc.GetEnd())
+}
+
+func PrintError(rt *Runtime, err IError) {
+	switch err.GetErrType() {
+	case SyntaxError, SemanticError:
+		printError(rt, err, 0)
+		return
+	case RuntimeError:
+		printErrorWithTraceBack(rt, err)
+		return
+	default:
+		panic(fmt.Sprintf("Don't know about error type '%d'", err.GetErrType()))
+	}
 }

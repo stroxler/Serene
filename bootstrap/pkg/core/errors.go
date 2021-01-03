@@ -49,6 +49,10 @@ const (
 	RuntimeError
 )
 
+func (e ErrType) String() string {
+	return [...]string{"Syntax Error", "Semantic Error", "Runtime Error"}[e]
+}
+
 // IError defines the necessary functionality of the internal errors.
 type IError interface {
 	// In order to point to a specific point in the input

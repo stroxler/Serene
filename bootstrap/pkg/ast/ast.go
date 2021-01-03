@@ -66,7 +66,7 @@ func (s *Source) GetLine(linenum int) string {
 	if linenum > 0 && linenum < len(lines) {
 		return lines[linenum-1]
 	}
-	return "!!!"
+	return "----"
 }
 
 func (s *Source) LineNumberFor(pos int) int {
@@ -96,13 +96,7 @@ func (s *Source) LineNumberFor(pos int) int {
 		return -1
 	}
 
-	result := sort.Search(len(*s.LineIndex), func(i int) bool {
-		if i == 0 {
-			return pos < (*s.LineIndex)[i]
-		} else {
-			return (*s.LineIndex)[i-1] < pos && pos < (*s.LineIndex)[i]
-		}
-	})
+	result := sort.SearchInts(*s.LineIndex, pos)
 
 	// We've found something
 	if result > -1 {
@@ -111,7 +105,6 @@ func (s *Source) LineNumberFor(pos int) int {
 	}
 
 	return result
-
 }
 
 type Location struct {
