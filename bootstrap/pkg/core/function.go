@@ -157,7 +157,7 @@ func MakeFunction(n Node, scope IScope, params IColl, body *Block) *Function {
 // MakeFnScope a new scope for the body of a function. It binds the `bindings`
 // to the given `values`.
 func MakeFnScope(rt *Runtime, parent IScope, bindings IColl, values IColl) (*Scope, IError) {
-	scope := MakeScope(parent.(*Scope))
+	scope := MakeScope(rt, parent.(*Scope), nil)
 	// TODO: Implement destructuring
 	binds := bindings.ToSlice()
 	exprs := values.ToSlice()
@@ -168,6 +168,16 @@ func MakeFnScope(rt *Runtime, parent IScope, bindings IColl, values IColl) (*Sco
 
 		if lastBinding.GetType() == ast.Symbol && lastBinding.(*Symbol).IsRestable() {
 			numberOfBindings = len(binds) - 1
+		}
+
+		if lastBinding.GetType() == ast.Symbol && !lastBinding.(*Symbol).IsRestable() && numberOfBindings < len(exprs) {
+			return nil, MakeSemanticError(
+				rt,
+				values.(IExpr),
+				errors.E0002,
+				fmt.Sprintf("expected '%d' arguments, got '%d'.", bindings.Count(), values.Count()),
+			)
+
 		}
 	}
 
@@ -201,7 +211,7 @@ func MakeFnScope(rt *Runtime, parent IScope, bindings IColl, values IColl) (*Sco
 			// next.
 			rest := MakeEmptyList(MakeNodeFromExpr(binds[i]))
 
-			if i == len(exprs)-1 {
+			if i <= len(exprs)-1 {
 				// If the number of values matches the number of bindings
 				// or it is more than that create a list from them
 				// to pass it to the last argument that has to be Restable (e.g &x)
@@ -260,6 +270,7 @@ func (f *NativeFunction) Apply(rt *Runtime, scope IScope, n Node, args *List) (I
 
 func MakeNativeFn(name string, f nativeFnHandler) NativeFunction {
 	return NativeFunction{
+		Node: MakeNodeFromLocation(ast.MakeUnknownLocation()),
 		name: name,
 		fn:   f,
 	}

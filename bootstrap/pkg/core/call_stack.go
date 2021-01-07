@@ -65,6 +65,10 @@ type CallStack struct {
 	count uint
 }
 
+func (f *Frame) String() string {
+	return fmt.Sprintf("<Frame: FN: %s, Count: %d Caller: \n%s\n>", f.Fn, f.Count, f.Caller)
+}
+
 func (c *CallStack) Count() uint {
 	return c.count
 }
@@ -158,7 +162,8 @@ func (c *CallStack) ToTraceBack() *TraceBack {
 		if item == nil {
 			break
 		}
-		tr = append(tr, &item.data)
+		// TODO: This doesn't seem efficient. Fix it.
+		tr = append([]*Frame{&item.data}, tr...)
 		item = item.prev
 	}
 

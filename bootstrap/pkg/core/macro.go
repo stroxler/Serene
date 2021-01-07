@@ -18,7 +18,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package core
 
-import "serene-lang.org/bootstrap/pkg/ast"
+// TODO:
+// * Add support for `before` and `after` state in macroexpantion
+//   and call stack. So in case of an error. Users should be able
+//   to see the forms before and after expansion.
+
+import (
+	"serene-lang.org/bootstrap/pkg/ast"
+)
 
 // Serene macros are in fact functions with the `isMacro` flag set to true.
 // We have only normal macro implementation in bootstrap version of serene in
@@ -84,6 +91,7 @@ func macroexpand(rt *Runtime, scope IScope, form IExpr) (IExpr, IError) {
 	var macro *Function
 	var e IError
 	ok := false
+	//form := expr
 
 	for {
 		macro, ok = isMacroCall(rt, scope, form)

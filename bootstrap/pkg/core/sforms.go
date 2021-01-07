@@ -67,40 +67,40 @@ func DefMacro(rt *Runtime, scope IScope, args *List) (IExpr, IError) {
 
 	// TODO: Add support for docstrings and meta
 
-	switch args.Count() {
-	case 3:
-		name := args.First()
-
-		if name.GetType() != ast.Symbol {
-			return nil, MakeError(rt, name, "the first argument of 'defmacro' has to be a symbol")
-		}
-
-		sym := name.(*Symbol)
-
-		var params IColl
-		body := MakeEmptyBlock()
-
-		arguments := args.Rest().First()
-
-		// TODO: Add vector in here
-		// Or any other icoll
-		if arguments.GetType() == ast.List {
-			params = arguments.(IColl)
-		}
-
-		if args.Count() > 2 {
-			body.SetContent(args.Rest().Rest().(*List).ToSlice())
-		}
-
-		macro := MakeMacro(scope, sym.GetName(), params, body)
-
-		ns := rt.CurrentNS()
-		ns.DefineGlobal(sym.GetName(), macro, true)
-
-		return macro, nil
+	if args.Count() < 2 {
+		return nil, MakeError(rt, args, "'defmacro' form need at least 2 arguments")
 	}
 
-	return nil, MakeError(rt, args, "'defmacro' form need at least 2 arguments")
+	name := args.Rest().First()
+
+	if name.GetType() != ast.Symbol {
+		return nil, MakeError(rt, name, "the first argument of 'defmacro' has to be a symbol")
+	}
+
+	sym := name.(*Symbol)
+
+	var params IColl
+	body := MakeEmptyBlock()
+
+	arguments := args.Rest().Rest().First()
+
+	// TODO: Add vector in here
+	// Or any other icoll
+	if arguments.GetType() == ast.List {
+		params = arguments.(IColl)
+	}
+
+	if args.Count() > 2 {
+		body.SetContent(args.Rest().Rest().Rest().(*List).ToSlice())
+	}
+
+	macro := MakeMacro(scope, sym.GetName(), params, body)
+
+	ns := scope.GetNS(rt)
+	ns.DefineGlobal(sym.GetName(), macro, true)
+
+	return macro, nil
+
 }
 
 // Fn defines a function inside the given scope `scope` with the given `args`.

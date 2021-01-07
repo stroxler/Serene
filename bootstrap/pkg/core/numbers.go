@@ -158,7 +158,7 @@ func (d Double) F64() float64 {
 	return d.value
 }
 
-func MakeNumberFromStr(strValue string, isDouble bool) (INumber, error) {
+func MakeNumberFromStr(n Node, strValue string, isDouble bool) (INumber, error) {
 	var ret INumber
 
 	if isDouble {
@@ -169,6 +169,7 @@ func MakeNumberFromStr(strValue string, isDouble bool) (INumber, error) {
 		}
 
 		ret = Double{
+			Node:  n,
 			value: v,
 		}
 	} else {
@@ -178,6 +179,7 @@ func MakeNumberFromStr(strValue string, isDouble bool) (INumber, error) {
 		}
 
 		ret = Integer{
+			Node:  n,
 			value: v,
 		}
 	}

@@ -85,9 +85,10 @@ func printError(rt *Runtime, err IError, stage int) {
 	}
 
 	color.Yellow.Printf(
-		"%d: At '%s'\n",
+		"%d: At '%s':%d\n",
 		stage,
 		source.Path,
+		source.LineNumberFor(loc.GetStart()),
 	)
 
 	color.White.Printf("%s\n", lines)
@@ -115,11 +116,17 @@ func printErrorWithTraceBack(rt *Runtime, err IError) {
 
 		var lines string
 		for i := startline; i <= endline; i++ {
-			fLoc := t.Fn.GetLocation()
-			line := fLoc.GetSource().GetLine(i)
-			if line != "----" {
-				lines += fmt.Sprintf("%d:\t%s\n", i, line)
+			fLoc := t.Caller.GetLocation()
+
+			if fLoc.IsKnownLocaiton() {
+				line := fLoc.GetSource().GetLine(i)
+				if line != "----" {
+					lines += fmt.Sprintf("%d:\t%s\n", i, line)
+				}
+			} else {
+				lines += "Builtin\n"
 			}
+
 		}
 
 		color.Yellow.Printf(
@@ -137,6 +144,7 @@ func printErrorWithTraceBack(rt *Runtime, err IError) {
 }
 
 func PrintError(rt *Runtime, err IError) {
+
 	switch err.GetErrType() {
 	case SyntaxError, SemanticError:
 		printError(rt, err, 0)

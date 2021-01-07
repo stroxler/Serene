@@ -160,7 +160,7 @@ func requireNS(rt *Runtime, ns *Symbol) (*Namespace, IError) {
 		)
 	}
 
-	namespace := MakeNS(ns.GetName(), source)
+	namespace := MakeNS(rt, ns.GetName(), source)
 	namespace.setForms(body)
 
 	return &namespace, nil
@@ -252,8 +252,9 @@ func RequireNamespace(rt *Runtime, namespace IExpr) (IExpr, IError) {
 }
 
 // MakeNS creates a new namespace with the given `name` and `source`
-func MakeNS(name string, source string) Namespace {
-	s := MakeScope(nil)
+func MakeNS(rt *Runtime, name string, source string) Namespace {
+	s := MakeScope(rt, nil, &name)
+
 	return Namespace{
 		name:      name,
 		rootScope: *s,

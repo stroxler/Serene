@@ -74,6 +74,10 @@ type IExpr interface {
 	IScopable
 }
 
+// TODO: Add helper functions to reach methods on Node.location. For example
+// Node.location.DecStart() has to have a helper on the Node liek:
+// Node.DecStartLocation
+
 // Node struct is simply representing a Node in the AST which provides the
 // functionalities required to trace the code based on the location.
 type Node struct {

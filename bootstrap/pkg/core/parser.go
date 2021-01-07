@@ -341,8 +341,9 @@ func readNumber(parser IParsable, neg bool) (IExpr, IError) {
 			break
 		}
 	}
-
-	value, err := MakeNumberFromStr(result, isDouble)
+	n := MakeSinglePointNode(parser.GetSource(), parser.GetLocation())
+	n.location.DecStart(len(result))
+	value, err := MakeNumberFromStr(n, result, isDouble)
 
 	if err != nil {
 		return nil, makeErrorFromError(parser, err)
@@ -425,6 +426,7 @@ func readList(parser IParsable) (IExpr, IError) {
 
 	node.location.DecStart(1)
 	node.location.IncEnd(1)
+
 	return MakeList(*node, list), nil
 }
 

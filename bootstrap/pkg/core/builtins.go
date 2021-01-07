@@ -22,10 +22,10 @@ package core
 // the language which are implemented in Go
 var BUILTINS = map[string]NativeFunction{
 	"pr":      MakeNativeFn("pr", PrNativeFn),
-	"prn":     MakeNativeFn("pr", PrnNativeFn),
+	"prn":     MakeNativeFn("prn", PrnNativeFn),
 	"print":   MakeNativeFn("print", PrintNativeFn),
 	"println": MakeNativeFn("println", PrintlnNativeFn),
-	"require": MakeNativeFn("print", RequireNativeFn),
+	"require": MakeNativeFn("require", RequireNativeFn),
 	"hash":    MakeNativeFn("hash", HashNativeFn),
 }
 

@@ -23,6 +23,8 @@ import "fmt"
 type IScope interface {
 	Lookup(rt *Runtime, k string) *Binding
 	Insert(k string, v IExpr, public bool)
+	GetNS(rt *Runtime) *Namespace
+	SetNS(ns *string)
 }
 
 type Binding struct {
@@ -33,6 +35,7 @@ type Binding struct {
 type Scope struct {
 	bindings map[string]Binding
 	parent   *Scope
+	ns       *string
 }
 
 func (s *Scope) Lookup(rt *Runtime, k string) *Binding {
@@ -42,6 +45,9 @@ func (s *Scope) Lookup(rt *Runtime, k string) *Binding {
 
 	v, ok := s.bindings[k]
 	if ok {
+		if rt.IsDebugMode() {
+			fmt.Printf("[DEBUG] Found '%s': '%s'\n", k, v.Value.String())
+		}
 		return &v
 	}
 
@@ -52,6 +58,10 @@ func (s *Scope) Lookup(rt *Runtime, k string) *Binding {
 	builtin := rt.LookupBuiltin(k)
 
 	if builtin != nil {
+		if rt.IsDebugMode() {
+			fmt.Printf("[DEBUG] Found builtin '%s': '%s'\n", k, builtin)
+		}
+
 		return &Binding{builtin, true}
 	}
 
@@ -62,9 +72,36 @@ func (s *Scope) Insert(k string, v IExpr, public bool) {
 	s.bindings[k] = Binding{Value: v, Public: public}
 }
 
-func MakeScope(parent *Scope) *Scope {
+func (s *Scope) GetNS(rt *Runtime) *Namespace {
+	if s.ns == nil {
+		panic("A scope with no namespace !!!!")
+	}
+	ns, ok := rt.GetNS(*s.ns)
+	if !ok {
+		panic(fmt.Sprintf("A scope with the wrong namespace! '%s'", s.ns))
+	}
+	return ns
+}
+
+func (s *Scope) SetNS(ns *string) {
+	s.ns = ns
+}
+
+func MakeScope(rt *Runtime, parent *Scope, namespace *string) *Scope {
+	var belongsTo *string
+
+	if parent != nil {
+		nsName := parent.GetNS(rt).GetName()
+		belongsTo = &nsName
+	} else if namespace == nil {
+		panic("When the 'parent' is nil, you have to provide the 'namespace' name.")
+	} else {
+		belongsTo = namespace
+	}
+
 	return &Scope{
 		parent:   parent,
 		bindings: map[string]Binding{},
+		ns:       belongsTo,
 	}
 }

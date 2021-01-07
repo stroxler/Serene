@@ -82,19 +82,20 @@ func evalForm(rt *Runtime, scope IScope, form IExpr) (IExpr, IError) {
 			return MakeNil(MakeNodeFromExpr(form)), nil
 		default:
 			var expr *Binding
+			ns := scope.GetNS(rt)
 			if sym.IsNSQualified() {
 				// Whether a namespace with the given alias loaded or not
-				if !rt.CurrentNS().hasExternal(sym.GetNSPart()) {
+				if !ns.hasExternal(sym.GetNSPart()) {
 					return nil, MakeError(rt, sym,
 						fmt.Sprintf("Namespace '%s' is no loaded", sym.GetNSPart()),
 					)
 				}
 
-				expr = rt.CurrentNS().LookupGlobal(rt, sym)
+				expr = ns.LookupGlobal(rt, sym)
 				nsName = sym.GetNSPart()
 			} else {
 				expr = scope.Lookup(rt, symbolName)
-				nsName = rt.CurrentNS().GetName()
+				nsName = ns.GetName()
 			}
 
 			if expr == nil {
@@ -199,7 +200,7 @@ tco:
 			}
 
 			if rt.IsDebugMode() {
-				fmt.Printf("[DEBUG] Evaluating forms in NS: %s, Forms: %s\n", rt.CurrentNS().GetName(), forms)
+				fmt.Printf("[DEBUG] Evaluating forms in NS: %s, Forms: %s\n", scope.GetNS(rt).GetName(), forms)
 				fmt.Printf("[DEBUG] * State: I: %d, Exprs: %s\n", i, exprs)
 			}
 
@@ -394,7 +395,7 @@ tco:
 			// * The rest of the arguments will form a block that acts as the
 			//   body of the macro.
 			case "defmacro":
-				ret, err = DefMacro(rt, scope, list.Rest().(*List))
+				ret, err = DefMacro(rt, scope, list)
 				if err != nil {
 					return nil, err
 				}
@@ -511,7 +512,7 @@ tco:
 					return nil, MakeError(rt, list, "'let' needs at list 1 aruments")
 				}
 
-				letScope := MakeScope(scope.(*Scope))
+				letScope := MakeScope(rt, scope.(*Scope), nil)
 
 				// Since we're using IColl for the bindings, we can use either lists
 				// or vectors or even hashmaps for bindings
@@ -565,6 +566,7 @@ tco:
 			default:
 				// Evaluating all the elements of the list
 				listExprs, e := evalForm(rt, scope, list)
+
 				if e != nil {
 					return nil, e
 				}
@@ -589,8 +591,8 @@ tco:
 					if e != nil {
 						return nil, e
 					}
-
 					rt.Stack.Push(list, fn)
+
 					body := append(
 						fn.GetBody().ToSlice(),
 						// Add the PopStack instruction to clean up the stack after
@@ -607,6 +609,7 @@ tco:
 					fn := f.(*NativeFunction)
 
 					rt.Stack.Push(list, fn)
+
 					ret, err = fn.Apply(
 						rt,
 						scope,

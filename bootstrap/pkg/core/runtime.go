@@ -115,7 +115,7 @@ func (r *Runtime) GetNS(ns string) (*Namespace, bool) {
 // CreateNS is a helper function to create a namespace and set it to be
 // the current namespace of the runtime. `MakeNS` is much preferred
 func (r *Runtime) CreateNS(name string, source string, setAsCurrent bool) {
-	ns := MakeNS(name, source)
+	ns := MakeNS(r, name, source)
 
 	if setAsCurrent {
 		r.currentNS = name

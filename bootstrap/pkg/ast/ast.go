@@ -63,7 +63,7 @@ func (s *Source) GetPos(start, end int) *string {
 }
 func (s *Source) GetLine(linenum int) string {
 	lines := strings.Split(strings.Join(*s.Buffer, ""), "\n")
-	if linenum > 0 && linenum < len(lines) {
+	if linenum > 0 && linenum <= len(lines) {
 		return lines[linenum-1]
 	}
 	return "----"
@@ -107,6 +107,21 @@ func (s *Source) LineNumberFor(pos int) int {
 	return result
 }
 
+var builtinSource *Source
+
+func GetBuiltinSource() *Source {
+	if builtinSource == nil {
+		buf := strings.Split("builtin", "")
+		lineindex := []int{len(buf) - 1}
+		builtinSource = &Source{
+			Buffer:    &buf,
+			Path:      "Builtin",
+			LineIndex: &lineindex,
+		}
+	}
+	return builtinSource
+}
+
 type Location struct {
 	start         int
 	end           int
@@ -125,7 +140,10 @@ func (l *Location) GetEnd() int {
 }
 
 func (l *Location) GetSource() *Source {
-	return &l.source
+	if l.IsKnownLocaiton() {
+		return &l.source
+	}
+	return GetBuiltinSource()
 }
 
 func (l *Location) IncStart(x int) {
