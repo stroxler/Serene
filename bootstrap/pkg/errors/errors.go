@@ -26,7 +26,17 @@ const (
 	E0000 Errno = iota // THE DESCRIPTION IS NOT SET
 	E0001
 	E0002
+	E0003
 )
+
+func (e Errno) String() string {
+	return [...]string{
+		"E0000",
+		"E0001",
+		"E0002",
+		"E0003",
+	}[e]
+}
 
 var ErrorsDescription map[Errno]string = map[Errno]string{
 	E0000: `Can't find any description for this error.`,
@@ -51,4 +61,11 @@ Functions expect a certain number of argument. The number of arguments
 that you're passing to the function doesn't match with it's signature.
 To fix the problem double check the function signature and make sure
 that you're passing the correct number of arguments to it`,
+	E0003: `
+Do you have a typo ? Or did you forget to define a symbol that you're trying
+to evaluate ?
+
+This error happens when the symbol that you're trying to evaluate is not
+associated with any value in the current scope tree.
+`,
 }

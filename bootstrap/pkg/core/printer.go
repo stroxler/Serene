@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	"github.com/gookit/color"
+	"serene-lang.org/bootstrap/pkg/errors"
 )
 
 func toRepresanbleString(ast ...IRepresentable) string {
@@ -169,7 +170,17 @@ func printErrorWithTraceBack(rt *Runtime, err IError) {
 	}
 	loc := err.GetLocation()
 	errTag := color.Red.Sprint(err.GetErrType().String())
-	fmt.Printf("%s: %s\nAt: %d to %d\n", errTag, err.String(), loc.GetStart(), loc.GetEnd())
+	fmt.Printf(
+		"%s: %s\nAt: %d to %d\n",
+		errTag,
+		err.String(),
+		loc.GetStart(),
+		loc.GetEnd(),
+	)
+	if err.GetErrno() != errors.E0000 {
+		fmt.Printf("For more information on this error try: `serene explain %s`\n", err.GetErrno())
+	}
+
 }
 
 func PrintError(rt *Runtime, err IError) {

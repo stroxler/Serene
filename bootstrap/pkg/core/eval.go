@@ -99,9 +99,10 @@ func evalForm(rt *Runtime, scope IScope, form IExpr) (IExpr, IError) {
 			}
 
 			if expr == nil {
-				return nil, MakeError(
+				return nil, MakeRuntimeError(
 					rt,
 					sym,
+					errors.E0003,
 					fmt.Sprintf(
 						"can't resolve symbol '%s' in ns '%s'",
 						symbolName,

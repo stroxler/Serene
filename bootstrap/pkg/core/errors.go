@@ -63,6 +63,7 @@ type IError interface {
 	IDebuggable
 
 	GetErrType() ErrType
+	GetErrno() errors.Errno
 	GetDescription() *string
 	GetStackTrace() *TraceBack
 	// To wrap Golan rrrrors
@@ -116,6 +117,10 @@ func (e *Error) GetStackTrace() *TraceBack {
 	return e.trace
 }
 
+func (e *Error) GetErrno() errors.Errno {
+	return e.errno
+}
+
 func (e *Error) GetDescription() *string {
 	desc, ok := errors.ErrorsDescription[e.errno]
 	if ok {
@@ -136,8 +141,6 @@ func MakePlainError(msg string) IError {
 // the root of the error.
 func MakeError(rt *Runtime, e IExpr, msg string) IError {
 	rt.Stack.Push(e, rt.Stack.GetCurrentFn())
-	// frame := MakeFrame(e, rt.Stack.GetCurrentFn(), 1)
-	// trace := append(*rt.Stack.ToTraceBack(), frame)
 
 	return &Error{
 		Node:    MakeNodeFromExpr(e),
@@ -145,6 +148,19 @@ func MakeError(rt *Runtime, e IExpr, msg string) IError {
 		msg:     msg,
 		trace:   rt.Stack.ToTraceBack(),
 	}
+}
+
+func MakeRuntimeError(rt *Runtime, e IExpr, errno errors.Errno, msg string) IError {
+	rt.Stack.Push(e, rt.Stack.GetCurrentFn())
+
+	return &Error{
+		Node:    MakeNodeFromExpr(e),
+		errtype: RuntimeError,
+		msg:     msg,
+		errno:   errno,
+		trace:   rt.Stack.ToTraceBack(),
+	}
+
 }
 
 func MakeSyntaxErrorf(n Node, msg string, a ...interface{}) IError {
@@ -156,10 +172,8 @@ func MakeSyntaxErrorf(n Node, msg string, a ...interface{}) IError {
 }
 
 func MakeSemanticError(rt *Runtime, e IExpr, errno errors.Errno, msg string) IError {
-	//currentFn := rt.Stack.GetCurrentFn()
 	rt.Stack.Push(e, rt.Stack.GetCurrentFn())
 	frames := &[]*Frame{
-		//MakeFrame(e, currentFn, 1),
 		rt.Stack.Pop(),
 	}
 
