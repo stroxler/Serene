@@ -35,7 +35,7 @@ type mainRunner struct {
 }
 
 func rep(rt *Runtime, line string) {
-	ast, err := ReadString("*REPL*", line)
+	ast, err := ReadString("serene.internal", line)
 
 	if err != nil {
 		PrintError(rt, err)
@@ -118,7 +118,7 @@ func Run(flags map[string]bool, args []string) {
 	}
 
 	rt := MakeRuntime([]string{cwd}, flags)
-	rt.CreateNS("user", "RUN", true)
+	rt.CreateNS("serene.internal", "RUN", true)
 
 	if len(args) == 0 {
 
@@ -156,7 +156,7 @@ func Run(flags map[string]bool, args []string) {
 		fmt.Println(buf.String())
 	}
 
-	ast, err := ReadString("*INTERNAL*", buf.String())
+	ast, err := ReadString("serene.internal", buf.String())
 
 	if err != nil {
 		PrintError(rt, err)

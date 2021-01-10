@@ -135,14 +135,15 @@ func MakePlainError(msg string) IError {
 // MakeError creates an Error which points to the given IExpr `e` as
 // the root of the error.
 func MakeError(rt *Runtime, e IExpr, msg string) IError {
-	frame := MakeFrame(e, rt.Stack.GetCurrentFn(), 1)
-	trace := append(*rt.Stack.ToTraceBack(), frame)
+	rt.Stack.Push(e, rt.Stack.GetCurrentFn())
+	// frame := MakeFrame(e, rt.Stack.GetCurrentFn(), 1)
+	// trace := append(*rt.Stack.ToTraceBack(), frame)
 
 	return &Error{
 		Node:    MakeNodeFromExpr(e),
 		errtype: RuntimeError,
 		msg:     msg,
-		trace:   &trace,
+		trace:   rt.Stack.ToTraceBack(),
 	}
 }
 
@@ -155,10 +156,11 @@ func MakeSyntaxErrorf(n Node, msg string, a ...interface{}) IError {
 }
 
 func MakeSemanticError(rt *Runtime, e IExpr, errno errors.Errno, msg string) IError {
-	currentFn := rt.Stack.GetCurrentFn()
-
+	//currentFn := rt.Stack.GetCurrentFn()
+	rt.Stack.Push(e, rt.Stack.GetCurrentFn())
 	frames := &[]*Frame{
-		MakeFrame(e, currentFn, 1),
+		//MakeFrame(e, currentFn, 1),
+		rt.Stack.Pop(),
 	}
 
 	return &Error{

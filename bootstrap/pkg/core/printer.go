@@ -87,7 +87,7 @@ func printError(rt *Runtime, err IError, stage int) {
 	color.Yellow.Printf(
 		"%d: At '%s':%d\n",
 		stage,
-		source.Path,
+		source.NS,
 		source.LineNumberFor(loc.GetStart()),
 	)
 
@@ -98,45 +98,74 @@ func printError(rt *Runtime, err IError, stage int) {
 
 }
 
+func frameCaption(traces *TraceBack, frameIndex int) string {
+	if frameIndex >= len(*traces) || frameIndex < 0 {
+		panic("Out of range index for the traceback array. It shouldn't happen!!!")
+	}
+	var prevFrame *Frame
+	place := "*run*"
+	frame := (*traces)[frameIndex]
+
+	loc := frame.Caller.GetLocation()
+	source := loc.GetSource()
+
+	if frameIndex != 0 {
+		prevFrame = (*traces)[frameIndex-1]
+		place = prevFrame.Callee.GetName()
+	}
+
+	return color.Yellow.Sprintf(
+		"%d: In function '%s' at '%s':%d\n",
+		frameIndex,
+		place,
+		source.NS,
+		source.LineNumberFor(loc.GetStart()),
+	)
+
+}
+
+func frameSource(traces *TraceBack, frameIndex int) string {
+	if frameIndex >= len(*traces) || frameIndex < 0 {
+		panic("Out of range index for the traceback array. It shouldn't happen!!!")
+	}
+
+	frame := (*traces)[frameIndex]
+	caller := frame.Caller
+	callerLoc := caller.GetLocation()
+	callerSource := callerLoc.GetSource()
+
+	startline := callerSource.LineNumberFor(callerLoc.GetStart())
+
+	if startline > 0 {
+		startline -= 1
+	}
+
+	endline := callerSource.LineNumberFor(callerLoc.GetEnd()) + 1
+
+	var lines string
+	for i := startline; i <= endline; i++ {
+		fLoc := frame.Caller.GetLocation()
+
+		if fLoc.IsKnownLocaiton() {
+			line := fLoc.GetSource().GetLine(i)
+			if line != "----" {
+				lines += fmt.Sprintf("%d:\t%s\n", i, line)
+			}
+		} else {
+			lines += "Builtin\n"
+		}
+
+	}
+
+	return lines
+}
+
 func printErrorWithTraceBack(rt *Runtime, err IError) {
 	trace := err.GetStackTrace()
 
-	for i, t := range *trace {
-		caller := t.Caller
-		callerLoc := caller.GetLocation()
-		callerSource := callerLoc.GetSource()
-
-		startline := callerSource.LineNumberFor(callerLoc.GetStart())
-
-		if startline > 0 {
-			startline -= 1
-		}
-
-		endline := callerSource.LineNumberFor(callerLoc.GetEnd()) + 1
-
-		var lines string
-		for i := startline; i <= endline; i++ {
-			fLoc := t.Caller.GetLocation()
-
-			if fLoc.IsKnownLocaiton() {
-				line := fLoc.GetSource().GetLine(i)
-				if line != "----" {
-					lines += fmt.Sprintf("%d:\t%s\n", i, line)
-				}
-			} else {
-				lines += "Builtin\n"
-			}
-
-		}
-
-		color.Yellow.Printf(
-			"%d: In function '%s' at '%s':%d\n",
-			i,
-			t.Fn.GetName(),
-			callerLoc.GetSource().Path,
-			callerSource.LineNumberFor(callerLoc.GetStart()),
-		)
-		color.White.Printf("%s\n", lines)
+	for i := range *trace {
+		fmt.Print(frameCaption(trace, i))
+		color.White.Printf(frameSource(trace, i))
 	}
 	loc := err.GetLocation()
 	errTag := color.Red.Sprint(err.GetErrType().String())

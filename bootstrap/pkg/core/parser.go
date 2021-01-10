@@ -170,7 +170,7 @@ func (sp *StringParser) GetLocation() int {
 func (sp *StringParser) GetSource() *ast.Source {
 	return &ast.Source{
 		Buffer:    &sp.buffer,
-		Path:      sp.source,
+		NS:        sp.source,
 		LineIndex: &sp.lineIndex,
 	}
 }
@@ -610,13 +610,13 @@ loop:
 // just anbstraction for a ordered collection of expressions.
 // It doesn't have anything to do with the concept of blocks
 // from other programming languages.
-func ParseToAST(source string, input string) (*Block, IError) {
+func ParseToAST(ns string, input string) (*Block, IError) {
 
 	var ast Block
 	parser := StringParser{
 		buffer: strings.Split(input, ""),
 		pos:    0,
-		source: source,
+		source: ns,
 	}
 
 	for {

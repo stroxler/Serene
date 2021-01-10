@@ -47,8 +47,12 @@ type ICallStack interface {
 
 type Frame struct {
 	// Number of recursive calls to this function
-	Count  uint
-	Fn     IFn
+	Count uint
+
+	// Function to call
+	Callee IFn
+
+	// Where is the call happening
 	Caller IExpr
 }
 
@@ -66,7 +70,7 @@ type CallStack struct {
 }
 
 func (f *Frame) String() string {
-	return fmt.Sprintf("<Frame: FN: %s, Count: %d Caller: \n%s\n>", f.Fn, f.Count, f.Caller)
+	return fmt.Sprintf("<Frame: FN: %s, Count: %d Caller: \n%s\n>", f.Callee, f.Count, f.Caller)
 }
 
 func (c *CallStack) Count() uint {
@@ -78,7 +82,7 @@ func (c *CallStack) GetCurrentFn() IFn {
 		return nil
 	}
 
-	return c.head.data.Fn
+	return c.head.data.Callee
 }
 
 func (c *CallStack) Push(caller IExpr, f IFn) IError {
@@ -98,7 +102,7 @@ func (c *CallStack) Push(caller IExpr, f IFn) IError {
 	if c.head == nil {
 		c.head = &CallStackItem{
 			data: Frame{
-				Fn:     f,
+				Callee: f,
 				Caller: caller,
 				Count:  0,
 			},
@@ -109,14 +113,14 @@ func (c *CallStack) Push(caller IExpr, f IFn) IError {
 	nodeData := &c.head.data
 
 	// If the same function was on top of the stack
-	if nodeData.Fn == f && caller == nodeData.Caller {
+	if nodeData.Callee == f && caller == nodeData.Caller {
 		// TODO: expand the check here to support address and location as well
 		nodeData.Count++
 	} else {
 		c.head = &CallStackItem{
 			prev: c.head,
 			data: Frame{
-				Fn:     f,
+				Callee: f,
 				Caller: caller,
 				Count:  0,
 			},
@@ -138,7 +142,7 @@ func (c *CallStack) Pop() *Frame {
 	c.head = result.prev
 	c.count--
 	if c.debug {
-		fmt.Printf("[Stack] <-- %s\n", result.data.Fn)
+		fmt.Printf("[Stack] <-- %s\n", result.data.Callee)
 	}
 	return &result.data
 }
@@ -178,10 +182,10 @@ func MakeCallStack(debugMode bool) CallStack {
 	}
 }
 
-func MakeFrame(caller IExpr, f IFn, count uint) *Frame {
+func MakeFrame(rt *Runtime, caller IExpr, f IFn, count uint) *Frame {
 	return &Frame{
 		Count:  count,
 		Caller: caller,
-		Fn:     f,
+		Callee: f,
 	}
 }

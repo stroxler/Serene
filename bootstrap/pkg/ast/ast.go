@@ -47,9 +47,9 @@ const (
 
 type Source struct {
 	Buffer *[]string
-	// It can be the path to the source file or something like "*in*"
-	// for standard in
-	Path      string
+
+	// The namespace name which this source is describing
+	NS        string
 	LineIndex *[]int
 }
 
@@ -115,7 +115,7 @@ func GetBuiltinSource() *Source {
 		lineindex := []int{len(buf) - 1}
 		builtinSource = &Source{
 			Buffer:    &buf,
-			Path:      "Builtin",
+			NS:        "Serene.builtins",
 			LineIndex: &lineindex,
 		}
 	}

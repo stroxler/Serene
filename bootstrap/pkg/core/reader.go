@@ -18,6 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package core
 
-func ReadString(src string, input string) (*Block, IError) {
-	return ParseToAST(src, input)
+func ReadString(ns string, input string) (*Block, IError) {
+	return ParseToAST(ns, input)
 }

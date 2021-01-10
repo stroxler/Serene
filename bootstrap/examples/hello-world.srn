@@ -12,17 +12,14 @@
 (defmacro defn
   (name args &body)
   (list 'do
-        (list 'def name (cons 'fn (cons args body)))
-        (list 'a1 ~args)))
-
-
-
-
+        (list 'def name (cons 'fn (list args body)))))
 
 (defn pp (x y)
+  (asd)
   (println x))
 
+(macroexpand '(pp 33 22))
 (def main
-     (fn (&args)
+     (fn ()
          (pp "sam" 2)
          (hello-world "world")))

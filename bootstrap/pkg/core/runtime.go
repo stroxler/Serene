@@ -174,7 +174,7 @@ func (r *Runtime) LoadNS(ns *Symbol) (*loadedForms, IError) {
 			return nil, readError
 		}
 
-		body, e := ReadString(possibleFile, string(data))
+		body, e := ReadString(ns.GetName(), string(data))
 		if e != nil {
 			return nil, e
 		}
