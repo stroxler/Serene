@@ -41,7 +41,7 @@ func (t *True) ToDebugStr() string {
 }
 func (t *True) Hash() uint32 {
 	bytes := []byte("true")
-	return hash.HashOf(append([]byte{byte(ast.True)}, bytes...))
+	return hash.Of(append([]byte{byte(ast.True)}, bytes...))
 }
 func MakeTrue(n Node) *True {
 	return &True{Node: n}

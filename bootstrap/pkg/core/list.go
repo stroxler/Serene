@@ -89,7 +89,7 @@ func (l *List) Rest() ISeq {
 
 func (l *List) Hash() uint32 {
 	bytes := []byte("TODO")
-	return hash.HashOf(append([]byte{byte(ast.List)}, bytes...))
+	return hash.Of(append([]byte{byte(ast.List)}, bytes...))
 }
 
 // END: ISeq ---

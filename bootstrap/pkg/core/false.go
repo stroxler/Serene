@@ -42,7 +42,7 @@ func (f *False) ToDebugStr() string {
 
 func (f *False) Hash() uint32 {
 	bytes := []byte("false")
-	return hash.HashOf(append([]byte{byte(ast.False)}, bytes...))
+	return hash.Of(append([]byte{byte(ast.False)}, bytes...))
 }
 
 func MakeFalse(n Node) *False {

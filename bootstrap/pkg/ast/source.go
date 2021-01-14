@@ -47,9 +47,9 @@ func (s *Source) GetSubstr(start, end int) *string {
 	if start < len(*s.Buffer) && start >= 0 && end < len(*s.Buffer) && end > 0 && start <= end {
 		result := strings.Join((*s.Buffer)[start:end], "")
 		return &result
-	} else {
-		return nil
 	}
+
+	return nil
 }
 
 // GetLine returns the line specified by the `linenum` from the buffer. It will return "----" if the
@@ -65,28 +65,6 @@ func (s *Source) GetLine(linenum int) string {
 // LineNumberFor returns the line number associated with the given position `pos` in
 // the buffer
 func (s *Source) LineNumberFor(pos int) int {
-
-	// Some dirty print debugger code
-	// for i, r := range *s.LineIndex {
-	// 	empty := ""
-	// 	var line *string
-	// 	var num int
-	// 	if i == 0 {
-	// 		line = s.GetSubstr(0, r)
-	// 		num = 0
-	// 	} else {
-	// 		line = s.GetSubstr((*s.LineIndex)[i-1], r)
-	// 		num = (*s.LineIndex)[i-1]
-
-	// 	}
-
-	// 	if line == nil {
-	// 		line = &empty
-	// 	}
-
-	// 	fmt.Print(">>>> ", num, r, *line)
-	// }
-
 	if pos < 0 {
 		return -1
 	}
@@ -96,7 +74,7 @@ func (s *Source) LineNumberFor(pos int) int {
 	// We've found something
 	if result > -1 {
 		// Since line numbers start from 1 unlike arrays :))
-		result += 1
+		result++
 	}
 
 	return result

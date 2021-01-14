@@ -109,7 +109,7 @@ func (n *Namespace) GetName() string {
 }
 
 func (n *Namespace) Hash() uint32 {
-	return hash.HashOf([]byte(n.String()))
+	return hash.Of([]byte(n.String()))
 }
 
 func (n *Namespace) hasExternal(nsName string) bool {

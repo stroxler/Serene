@@ -70,7 +70,7 @@ func (n *Instruction) ToDebugStr() string {
 
 func (n *Instruction) Hash() uint32 {
 	bytes := []byte(fmt.Sprintf("%d", n.Type))
-	return hash.HashOf(append([]byte{byte(ast.Instruction)}, bytes...))
+	return hash.Of(append([]byte{byte(ast.Instruction)}, bytes...))
 }
 
 func MakeStackPop(rt *Runtime) IExpr {

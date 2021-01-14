@@ -74,7 +74,6 @@ func (l *Location) DecStart(x int) {
 	} else {
 		l.start = 0
 	}
-
 }
 
 // IncEnd increases the end pointer of the location by `x` with respect
@@ -85,7 +84,6 @@ func (l *Location) IncEnd(x int) {
 	} else {
 		l.end = len(*l.source.Buffer) - 1
 	}
-
 }
 
 // DecEnd decreases the end pointer of the location by `x` with respect
@@ -102,9 +100,9 @@ func (l *Location) IsKnownLocaiton() bool {
 	return l.knownLocation
 }
 
-// MakeLocation returns a pointer to a `Location` in the given source `input`
+// MakeLocation return a pointer to a `Location` in the given source `input`
 // specified by the `start` and `end` boundaries
-func MakeLocation(input *Source, start int, end int) *Location {
+func MakeLocation(input *Source, start, end int) *Location {
 	return &Location{
 		source:        *input,
 		start:         start,

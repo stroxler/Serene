@@ -58,7 +58,7 @@ func (s *Symbol) ToDebugStr() string {
 
 func (s *Symbol) Hash() uint32 {
 	// TODO: Return a combined hash of nsPart and name
-	return hash.HashOf([]byte(s.nsPart + "/" + s.name))
+	return hash.Of([]byte(s.nsPart + "/" + s.name))
 }
 
 func (s *Symbol) IsRestable() bool {

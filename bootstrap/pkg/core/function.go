@@ -93,7 +93,7 @@ func (f *Function) GetType() ast.NodeType {
 
 func (f *Function) Hash() uint32 {
 	// TODO: Fix this function to return an appropriate hash for a function
-	return hash.HashOf([]byte(f.String()))
+	return hash.Of([]byte(f.String()))
 }
 
 func (f *Function) IsMacro() bool {
@@ -257,7 +257,7 @@ func (f *NativeFunction) String() string {
 
 func (f *NativeFunction) Hash() uint32 {
 	// TODO: Fix this function to return an appropriate hash for a function
-	return hash.HashOf([]byte(f.String()))
+	return hash.Of([]byte(f.String()))
 }
 
 func (f *NativeFunction) ToDebugStr() string {

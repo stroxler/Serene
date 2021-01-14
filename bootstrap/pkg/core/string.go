@@ -50,7 +50,7 @@ func (s *String) ToDebugStr() string {
 
 func (s *String) Hash() uint32 {
 	bytes := []byte(s.content)
-	return hash.HashOf(append([]byte{byte(ast.String)}, bytes...))
+	return hash.Of(append([]byte{byte(ast.String)}, bytes...))
 }
 
 func (s *String) Escape() string {

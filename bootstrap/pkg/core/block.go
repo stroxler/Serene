@@ -60,7 +60,7 @@ func (b *Block) GetLocation() *ast.Location {
 
 func (l *Block) Hash() uint32 {
 	bytes := []byte("TODO")
-	return hash.HashOf(append([]byte{byte(ast.Block)}, bytes...))
+	return hash.Of(append([]byte{byte(ast.Block)}, bytes...))
 }
 
 func (b *Block) ToSlice() []IExpr {

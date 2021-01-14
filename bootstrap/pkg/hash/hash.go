@@ -23,7 +23,7 @@ import "hash/crc32"
 
 var hashTable *crc32.Table = crc32.MakeTable(crc32.Castagnoli)
 
-//IHashable is the interface types which allows expressions to have a hash
+// IHashable is the interface types which allows expressions to have a hash
 // value that doesn't change through out their life time. The origin
 // of each expression can be checked by comparing their hashes. Basically
 // two expressions with the same hash consider to be the same.
@@ -33,7 +33,7 @@ type IHashable interface {
 	Hash() uint32
 }
 
-func HashOf(in []byte) uint32 {
+func Of(in []byte) uint32 {
 	return crc32.Checksum(in, hashTable)
 }
 

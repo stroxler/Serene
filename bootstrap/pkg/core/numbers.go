@@ -71,7 +71,7 @@ func (i Integer) GetType() ast.NodeType {
 func (i Integer) Hash() uint32 {
 	b := make([]byte, 8)
 	binary.LittleEndian.PutUint64(b, uint64(i.value))
-	return hash.HashOf(b)
+	return hash.Of(b)
 }
 
 func (i Integer) GetExecutionScope() IScope {
@@ -130,7 +130,7 @@ func (d Double) Hash() uint32 {
 	b := make([]byte, 8)
 
 	binary.BigEndian.PutUint64(b, math.Float64bits(d.value))
-	return hash.HashOf(b)
+	return hash.Of(b)
 }
 
 func (d Double) String() string {

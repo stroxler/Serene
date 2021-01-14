@@ -33,7 +33,7 @@ func (n NothingType) GetType() ast.NodeType {
 
 func (n NothingType) Hash() uint32 {
 	bytes := []byte("Nothing")
-	return hash.HashOf(append([]byte{byte(ast.Block)}, bytes...))
+	return hash.Of(append([]byte{byte(ast.Block)}, bytes...))
 }
 
 func (n NothingType) GetLocation() *ast.Location {

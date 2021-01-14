@@ -129,11 +129,11 @@ func (k *Keyword) ToDebugStr() string {
 
 func (k *Keyword) Hash() uint32 {
 	bytes := []byte(k.name)
-	nameHash := hash.HashOf(append([]byte{byte(ast.Keyword)}, bytes...))
+	nameHash := hash.Of(append([]byte{byte(ast.Keyword)}, bytes...))
 
 	if k.nsQualified {
 		if k.ns != nil {
-			return hash.CombineHashes(hash.HashOf([]byte(k.ns.GetName())), nameHash)
+			return hash.CombineHashes(hash.Of([]byte(k.ns.GetName())), nameHash)
 		}
 	}
 
