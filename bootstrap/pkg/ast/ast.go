@@ -25,8 +25,7 @@ type NodeType int
 const (
 	Nil NodeType = iota
 	Nothing
-	True
-	False
+	Bool
 	Instruction
 	Symbol
 	Keyword

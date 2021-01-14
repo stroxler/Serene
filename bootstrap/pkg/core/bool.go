@@ -23,28 +23,44 @@ import (
 	"serene-lang.org/bootstrap/pkg/hash"
 )
 
-type False struct {
+type Bool struct {
 	Node
 	ExecutionScope
+	value bool
 }
 
-func (f *False) GetType() ast.NodeType {
-	return ast.False
+func (t *Bool) GetType() ast.NodeType {
+	return ast.Bool
 }
 
-func (f *False) String() string {
+func (t *Bool) String() string {
+	if t.value {
+		return "true"
+	}
 	return "false"
 }
 
-func (f *False) ToDebugStr() string {
-	return "false"
+func (t *Bool) ToDebugStr() string {
+	return t.String()
 }
 
-func (f *False) Hash() uint32 {
-	bytes := []byte("false")
-	return hash.Of(append([]byte{byte(ast.False)}, bytes...))
+func (t *Bool) Hash() uint32 {
+	bytes := []byte(t.String())
+	return hash.Of(append([]byte{byte(ast.Bool)}, bytes...))
 }
 
-func MakeFalse(n Node) *False {
-	return &False{Node: n}
+func (t *Bool) isTrue() bool {
+	return t.value
+}
+
+func (t *Bool) isFalse() bool {
+	return !t.value
+}
+
+func MakeTrue(n Node) *Bool {
+	return &Bool{Node: n, value: true}
+}
+
+func MakeFalse(n Node) *Bool {
+	return &Bool{Node: n, value: false}
 }

@@ -451,13 +451,13 @@ tco:
 					return nil, err
 				}
 
-				if result != ast.False && result != ast.Nil {
-					// Truthy clause
-					exprs = append([]IExpr{args.Rest().First()}, restOfExprs(exprs, i)...)
-				} else {
-
+				if (result == ast.Bool && pred.(*Bool).isFalse()) || result == ast.Nil {
 					// Falsy clause
 					exprs = append([]IExpr{args.Rest().Rest().First()}, restOfExprs(exprs, i)...)
+				} else {
+					// Truthy clause
+					exprs = append([]IExpr{args.Rest().First()}, restOfExprs(exprs, i)...)
+
 				}
 				i = 0
 				goto body // rewrite
