@@ -78,10 +78,11 @@ func REPL(flags map[string]bool) {
 		EOFPrompt:         "exit",
 		HistorySearchFold: true,
 	})
+
 	if err != nil {
 		panic(err)
-
 	}
+
 	rl.HistoryEnable()
 	defer rl.Close()
 
@@ -108,7 +109,6 @@ for details take a look at the LICENSE file.
 		}
 		rep(rt, line)
 	}
-
 }
 
 func Run(flags map[string]bool, args []string) {
@@ -121,7 +121,6 @@ func Run(flags map[string]bool, args []string) {
 	rt.CreateNS("serene.internal", "RUN", true)
 
 	if len(args) == 0 {
-
 		PrintError(rt, MakePlainError("'run' command needs at least one argument"))
 		os.Exit(1)
 	}

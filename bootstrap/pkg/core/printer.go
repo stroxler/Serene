@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	"github.com/gookit/color"
+	"serene-lang.org/bootstrap/pkg/ast"
 	"serene-lang.org/bootstrap/pkg/errors"
 )
 
@@ -149,7 +150,7 @@ func frameSource(traces *TraceBack, frameIndex int) string {
 
 		if fLoc.IsKnownLocaiton() {
 			line := fLoc.GetSource().GetLine(i)
-			if line != "----" {
+			if line != ast.OutOfRangeLine {
 				lines += fmt.Sprintf("%d:\t%s\n", i, line)
 			}
 		} else {

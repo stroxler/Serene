@@ -27,6 +27,7 @@ import (
 )
 
 var builtinSource *Source
+var OutOfRangeLine string = "----"
 
 type Source struct {
 	// A Pointer to the buffer where the parser used for parsing the source
@@ -59,7 +60,7 @@ func (s *Source) GetLine(linenum int) string {
 	if linenum > 0 && linenum <= len(lines) {
 		return lines[linenum-1]
 	}
-	return "----"
+	return OutOfRangeLine
 }
 
 // LineNumberFor returns the line number associated with the given position `pos` in
