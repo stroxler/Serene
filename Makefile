@@ -1,6 +1,6 @@
-THIS_DIR=$(dir $(realpath $(firstword $(MAKEFILE_LIST))))
+ROOT_DIR=$(dir $(realpath $(firstword $(MAKEFILE_LIST))))
 
-include $(THIS_DIR)/bootstrap/Makefile
+include $(ROOT_DIR)/bootstrap/Makefile
 
 .PHONY: compile
 compile: compile-bootstrap

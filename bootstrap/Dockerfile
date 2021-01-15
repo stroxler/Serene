@@ -5,7 +5,7 @@ RUN mkdir -p /usr/src/serene
 WORKDIR /usr/src/serene
 
 COPY go.mod go.sum ./
-RUN go mod download
+RUN go mod download -x
 COPY . .
 # Build the Go app
 RUN go build -v ./serene.go
