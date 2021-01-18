@@ -79,6 +79,7 @@ on ADF
 - Chicken Scheme - Easy-to-use compiler and interpreter, with lots of libraries :: https://call-cc.org
 - Stalin - Brutally optimizing Scheme compiler, with lots of optimization flags :: https://github.com/barak/stalin
 ** Utilities
+- Pointers Are Complicated :: https://www.ralfj.de/blog/2020/12/14/provenance.html
 *** Emacs mode
 - Adding A New Language to Emacs :: https://www.wilfred.me.uk/blog/2015/03/19/adding-a-new-language-to-emacs/
 - The Definitive Guide To Syntax Highlighting :: https://www.wilfred.me.uk/blog/2014/09/27/the-definitive-guide-to-syntax-highlighting/
