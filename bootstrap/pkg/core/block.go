@@ -58,7 +58,7 @@ func (b *Block) GetLocation() *ast.Location {
 	return ast.MakeUnknownLocation()
 }
 
-func (l *Block) Hash() uint32 {
+func (b *Block) Hash() uint32 {
 	bytes := []byte("TODO")
 	return hash.Of(append([]byte{byte(ast.Block)}, bytes...))
 }

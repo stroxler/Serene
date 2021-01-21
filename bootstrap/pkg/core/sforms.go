@@ -29,8 +29,7 @@ import (
 // the second param should be the value of the binding
 func Def(rt *Runtime, scope IScope, args *List) (IExpr, IError) {
 	// TODO: Add support for docstrings and meta
-	switch args.Count() {
-	case 2:
+	if args.Count() == 2 {
 		name := args.First()
 
 		if name.GetType() != ast.Symbol {
@@ -104,7 +103,7 @@ func DefMacro(rt *Runtime, scope IScope, args *List) (IExpr, IError) {
 }
 
 // Fn defines a function inside the given scope `scope` with the given `args`.
-// `args` contains the arugment list, docstring and body of the function.
+// `args` contains the argument list, docstring and body of the function.
 func Fn(rt *Runtime, scope IScope, args *List) (IExpr, IError) {
 
 	if args.Count() < 2 {

@@ -34,7 +34,7 @@ linters-settings:
   gomnd:
     settings:
       mnd:
-        checks: argument,case,condition,return
+        checks: argument,return
   govet:
     check-shadowing: true
   maligned:
@@ -100,4 +100,3 @@ run:
   tests: true
   skip-dirs-use-default: true
   allow-parallel-runners: true
-

@@ -78,7 +78,7 @@ func (s *Scope) GetNS(rt *Runtime) *Namespace {
 	}
 	ns, ok := rt.GetNS(*s.ns)
 	if !ok {
-		panic(fmt.Sprintf("A scope with the wrong namespace! '%s'", s.ns))
+		panic(fmt.Sprintf("A scope with the wrong namespace! '%s'", *(s.ns)))
 	}
 	return ns
 }
