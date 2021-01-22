@@ -147,7 +147,7 @@ func nsNameToPath(ns string) string {
 // LoadNS looks up the namespace specified by the given name `ns`
 // and reads the content as expressions (parse it) and returns the
 // expressions.
-func (r *Runtime) LoadNS(ns *Symbol) (*loadedForms, IError) {
+func (r *Runtime) loadNS(ns *Symbol) (*loadedForms, IError) {
 	nsFile := nsNameToPath(ns.GetName())
 	for _, loadPath := range r.paths {
 		possibleFile := path.Join(loadPath, nsFile)

@@ -35,9 +35,9 @@ func (t *Bool) GetType() ast.NodeType {
 
 func (t *Bool) String() string {
 	if t.value {
-		return "true"
+		return TRUEFORM
 	}
-	return "false"
+	return FALSEFORM
 }
 
 func (t *Bool) ToDebugStr() string {

@@ -186,6 +186,7 @@ func makeErrorAtPoint(p IParsable, msg string, a ...interface{}) IError {
 
 // makeErrorFromError is a function which wraps a Golang error in an IError
 func makeErrorFromError(parser IParsable, e error) IError {
+	//nolint:govet
 	return makeErrorAtPoint(parser, "%w", e)
 }
 
@@ -424,6 +425,7 @@ func readList(parser IParsable) (IExpr, IError) {
 	return MakeList(*node, list), nil
 }
 
+//nolint:unparam
 func readComment(parser IParsable) (IExpr, IError) {
 	for {
 		c := parser.next(false)

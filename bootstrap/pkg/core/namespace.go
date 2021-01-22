@@ -143,7 +143,7 @@ func (n *Namespace) getForms() *Block {
 // `ns` string.
 func requireNS(rt *Runtime, ns *Symbol) (*Namespace, IError) {
 	// TODO: use a hashing algorithm to avoid reloading an unchanged namespace
-	loadedForms, err := rt.LoadNS(ns)
+	loadedForms, err := rt.loadNS(ns)
 
 	if err != nil {
 		return nil, err

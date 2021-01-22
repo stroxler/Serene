@@ -18,29 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package core
 
-import "serene-lang.org/bootstrap/pkg/ast"
-
-type Nil struct {
-	Node
-	ExecutionScope
-}
-
-func (n *Nil) GetType() ast.NodeType {
-	return ast.Nil
-}
-
-func (n *Nil) String() string {
-	return NILFORM
-}
-
-func (n *Nil) ToDebugStr() string {
-	return NILFORM
-}
-
-func (n *Nil) Hash() uint32 {
-	return 0
-}
-
-func MakeNil(n Node) *Nil {
-	return &Nil{Node: n}
-}
+const NSFORM string = "ns"
+const NILFORM string = "nil"
+const FALSEFORM string = "false"
+const TRUEFORM string = "true"

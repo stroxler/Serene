@@ -46,7 +46,7 @@ func MakeMacro(scope IScope, name string, params IColl, body *Block) *Function {
 // isMacroCall looks up the given `form` in the given `scope` if it is a symbol.
 // If there is a value associated with the symbol in the scope, it will be checked
 // to be a macro.
-func isMacroCall(rt *Runtime, scope IScope, form IExpr) (*Function, bool) {
+func isMacroCall(rt *Runtime, scope IScope, form IExpr) (*Function, bool) { //nolint:interfacer
 	if form.GetType() == ast.List {
 		list := form.(*List)
 		if list.Count() == 0 {
@@ -74,7 +74,7 @@ func isMacroCall(rt *Runtime, scope IScope, form IExpr) (*Function, bool) {
 // applyMacro works very similar to how we evaluate function calls the only difference
 // is that we don't evaluate the arguments and create the bindings in the scope of the
 // body directly as they are. It's Lisp Macroes after all.
-func applyMacro(rt *Runtime, macro *Function, args *List) (IExpr, IError) {
+func applyMacro(rt *Runtime, macro *Function, args IColl) (IExpr, IError) {
 	mscope, e := MakeFnScope(rt, macro.GetScope(), macro.GetParams(), args)
 
 	if e != nil {
@@ -90,7 +90,6 @@ func macroexpand(rt *Runtime, scope IScope, form IExpr) (IExpr, IError) {
 	var macro *Function
 	var e IError
 	ok := false
-	//form := expr
 
 	for {
 		macro, ok = isMacroCall(rt, scope, form)

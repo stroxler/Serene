@@ -138,10 +138,10 @@ func MakeNodeFromLocation(loc *ast.Location) Node {
 	}
 }
 
-// MakeNodeFromExpr creates a new Node from the given `IExpr`.
+// MakeNodeFromExpr creates a new Node from the given `ILocatable`.
 // We use the Node to pass it to other IExpr constructors to
 // keep the reference to the original form in the input string
-func MakeNodeFromExpr(e IExpr) Node {
+func MakeNodeFromExpr(e ast.ILocatable) Node {
 	return MakeNodeFromLocation(e.GetLocation())
 }
 

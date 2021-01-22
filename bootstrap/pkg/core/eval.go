@@ -36,7 +36,7 @@ func restOfExprs(es []IExpr, i int) []IExpr {
 // evaluation rules. For example if `form` is a list instead of the formal
 // evaluation of a list it will evaluate all the elements and return the
 // evaluated list
-func evalForm(rt *Runtime, scope IScope, form IExpr) (IExpr, IError) {
+func evalForm(rt *Runtime, scope IScope, form IExpr) (IExpr, IError) { //nolint:gocyclo
 	switch form.GetType() {
 	case ast.Nil:
 		return form, nil
@@ -73,11 +73,11 @@ func evalForm(rt *Runtime, scope IScope, form IExpr) (IExpr, IError) {
 		symbolName := sym.GetName()
 
 		switch symbolName {
-		case "true":
+		case TRUEFORM:
 			return MakeTrue(MakeNodeFromExpr(form)), nil
-		case "false":
+		case FALSEFORM:
 			return MakeFalse(MakeNodeFromExpr(form)), nil
-		case "nil":
+		case NILFORM:
 			return MakeNil(MakeNodeFromExpr(form)), nil
 		default:
 			var expr *Binding
@@ -141,7 +141,7 @@ func evalForm(rt *Runtime, scope IScope, form IExpr) (IExpr, IError) {
 
 // EvalForms evaluates the given expr `expressions` (it can be a list, block, symbol or anything else)
 // with the given runtime `rt` and the scope `scope`.
-func EvalForms(rt *Runtime, scope IScope, expressions IExpr) (IExpr, IError) {
+func EvalForms(rt *Runtime, scope IScope, expressions IExpr) (IExpr, IError) { //nolint:funlen,gocyclo
 	// EvalForms is the main and the most important evaluation function on Serene.
 	// It's a long loooooooooooong function. Why? Well, Because we don't want to
 	// waste call stack spots in order to have a well organized code.
@@ -246,7 +246,7 @@ tco:
 			// Empty list evaluates to itself
 			if list.Count() == 0 {
 				ret = list
-				break tco // return &Nil, nil
+				break tco // return &Nil, nil here
 			}
 
 			rawFirst := list.First()
@@ -273,7 +273,8 @@ tco:
 			//   name of the namespace. ( We won't evaluate the first
 			//   element )
 			// TODO: decide on the syntax and complete the docs
-			case "ns":
+			case NSFORM:
+				// TODO: Move this to a native function
 				ret, err = NSForm(rt, scope, list)
 				if err != nil {
 					return nil, err
@@ -598,8 +599,9 @@ tco:
 						MakeStackPop(rt),
 					)
 					changeExecutionScope(body, fnScope)
-					exprs = append(body, restOfExprs(exprs, i)...)
-					goto body // rewrite
+					body = append(body, restOfExprs(exprs, i)...)
+					exprs = body // Just because of the stupid linters
+					goto body    // rewrite
 
 				// If the function was a native function which is represented
 				// by the `NativeFunction` struct
@@ -674,7 +676,7 @@ func EvalNSBody(rt *Runtime, ns *Namespace) (*Namespace, IError) {
 
 	if exprs[0].GetType() == ast.List {
 		firstForm := exprs[0].(*List).First()
-		if firstForm.GetType() == ast.Symbol && firstForm.(*Symbol).GetName() == "ns" {
+		if firstForm.GetType() == ast.Symbol && firstForm.(*Symbol).GetName() == NSFORM {
 			_, err := EvalForms(rt, ns.GetRootScope(), body)
 			if err != nil {
 				return nil, err

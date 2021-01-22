@@ -27,20 +27,20 @@ import (
 	"serene-lang.org/bootstrap/pkg/errors"
 )
 
-func toRepresanbleString(ast ...IRepresentable) string {
+func toRepresanbleString(forms ...IRepresentable) string {
 	var results []string
 
-	for _, x := range ast {
+	for _, x := range forms {
 		results = append(results, x.String())
 	}
 
 	return strings.Join(results, " ")
 }
 
-func toPrintableString(ast ...IRepresentable) string {
+func toPrintableString(forms ...IRepresentable) string {
 	var results []string
 
-	for _, x := range ast {
+	for _, x := range forms {
 		if printable, ok := x.(IPrintable); ok {
 			results = append(results, printable.PrintToString())
 			continue
@@ -51,30 +51,30 @@ func toPrintableString(ast ...IRepresentable) string {
 	return strings.Join(results, " ")
 }
 
-func Pr(rt *Runtime, ast ...IRepresentable) {
-	fmt.Print(toRepresanbleString(ast...))
+func Pr(rt *Runtime, forms ...IRepresentable) {
+	fmt.Print(toRepresanbleString(forms...))
 }
 
-func Prn(rt *Runtime, ast ...IRepresentable) {
-	fmt.Println(toRepresanbleString(ast...))
+func Prn(rt *Runtime, forms ...IRepresentable) {
+	fmt.Println(toRepresanbleString(forms...))
 }
 
-func Print(rt *Runtime, ast ...IRepresentable) {
-	fmt.Print(toPrintableString(ast...))
+func Print(rt *Runtime, forms ...IRepresentable) {
+	fmt.Print(toPrintableString(forms...))
 }
 
-func Println(rt *Runtime, ast ...IRepresentable) {
-	fmt.Println(toPrintableString(ast...))
+func Println(rt *Runtime, forms ...IRepresentable) {
+	fmt.Println(toPrintableString(forms...))
 }
 
-func printError(rt *Runtime, err IError, stage int) {
+func printError(_ *Runtime, err IError, stage int) {
 	loc := err.GetLocation()
 	source := loc.GetSource()
 
 	startline := source.LineNumberFor(loc.GetStart())
 
 	if startline > 0 {
-		startline -= 1
+		startline--
 	}
 
 	endline := source.LineNumberFor(loc.GetEnd()) + 1
@@ -138,7 +138,7 @@ func frameSource(traces *TraceBack, frameIndex int) string {
 	startline := callerSource.LineNumberFor(callerLoc.GetStart())
 
 	if startline > 0 {
-		startline -= 1
+		startline--
 	}
 
 	endline := callerSource.LineNumberFor(callerLoc.GetEnd()) + 1
@@ -160,7 +160,7 @@ func frameSource(traces *TraceBack, frameIndex int) string {
 	return lines
 }
 
-func printErrorWithTraceBack(rt *Runtime, err IError) {
+func printErrorWithTraceBack(_ *Runtime, err IError) {
 	trace := err.GetStackTrace()
 
 	for i := range *trace {
