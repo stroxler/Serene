@@ -42,7 +42,7 @@ type INumber interface {
 	// UI32() uint32
 	// UI64() uint64
 
-	//F32() float32
+	// F32() float32
 	F64() float64
 
 	// Add(n Number) Number
@@ -64,47 +64,47 @@ type Integer struct {
 	value int64
 }
 
-func (i Integer) GetType() ast.NodeType {
+func (i *Integer) GetType() ast.NodeType {
 	return ast.Number
 }
 
-func (i Integer) Hash() uint32 {
+func (i *Integer) Hash() uint32 {
 	b := make([]byte, 8)
 	binary.LittleEndian.PutUint64(b, uint64(i.value))
 	return hash.Of(b)
 }
 
-func (i Integer) GetExecutionScope() IScope {
+func (i *Integer) GetExecutionScope() IScope {
 	return i.scope
 }
 
-func (i Integer) SetExecutionScope(scope IScope) {
+func (i *Integer) SetExecutionScope(scope IScope) {
 	i.scope = scope
 }
 
-func (i Integer) String() string {
+func (i *Integer) String() string {
 	return fmt.Sprintf("%d", i.value)
 }
 
-func (i Integer) ToDebugStr() string {
+func (i *Integer) ToDebugStr() string {
 	return fmt.Sprintf("%#v", i)
 }
 
-func (i Integer) I64() int64 {
+func (i *Integer) I64() int64 {
 	return i.value
 }
 
-func (i Integer) F64() float64 {
+func (i *Integer) F64() float64 {
 	return float64(i.value)
 }
 
 func MakeInteger(x interface{}) (*Integer, IError) {
 	var value int64
-	switch x.(type) {
+	switch x := x.(type) {
 	case uint32:
-		value = int64(x.(uint32))
+		value = int64(x)
 	case int32:
-		value = int64(x.(int32))
+		value = int64(x)
 	default:
 		return nil, MakePlainError(fmt.Sprintf("don't know how to make 'integer' out of '%s'", x))
 	}
@@ -121,38 +121,38 @@ type Double struct {
 	value float64
 }
 
-func (d Double) GetType() ast.NodeType {
+func (d *Double) GetType() ast.NodeType {
 	return ast.Number
 }
 
-func (d Double) Hash() uint32 {
+func (d *Double) Hash() uint32 {
 	b := make([]byte, 8)
 
 	binary.BigEndian.PutUint64(b, math.Float64bits(d.value))
 	return hash.Of(b)
 }
 
-func (d Double) String() string {
+func (d *Double) String() string {
 	return fmt.Sprintf("%f", d.value)
 }
 
-func (d Double) ToDebugStr() string {
+func (d *Double) ToDebugStr() string {
 	return fmt.Sprintf("%#v", d)
 }
 
-func (d Double) GetExecutionScope() IScope {
+func (d *Double) GetExecutionScope() IScope {
 	return d.scope
 }
 
-func (d Double) SetExecutionScope(scope IScope) {
+func (d *Double) SetExecutionScope(scope IScope) {
 	d.scope = scope
 }
 
-func (d Double) I64() int64 {
+func (d *Double) I64() int64 {
 	return int64(d.value)
 }
 
-func (d Double) F64() float64 {
+func (d *Double) F64() float64 {
 	return d.value
 }
 
@@ -166,7 +166,7 @@ func MakeNumberFromStr(n Node, strValue string, isDouble bool) (INumber, error) 
 			return nil, err
 		}
 
-		ret = Double{
+		ret = &Double{
 			Node:  n,
 			value: v,
 		}
@@ -176,7 +176,7 @@ func MakeNumberFromStr(n Node, strValue string, isDouble bool) (INumber, error) 
 			return nil, err
 		}
 
-		ret = Integer{
+		ret = &Integer{
 			Node:  n,
 			value: v,
 		}
@@ -187,13 +187,13 @@ func MakeNumberFromStr(n Node, strValue string, isDouble bool) (INumber, error) 
 
 func MakeDouble(x interface{}) (*Double, IError) {
 	var value float64
-	switch x.(type) {
+	switch x := x.(type) {
 	case uint32:
-		value = float64(x.(uint32))
+		value = float64(x)
 	case int32:
-		value = float64(x.(int32))
+		value = float64(x)
 	case float32:
-		value = float64(x.(float32))
+		value = float64(x)
 	default:
 		return nil, MakePlainError(fmt.Sprintf("don't know how to make 'double' out of '%s'", x))
 	}
