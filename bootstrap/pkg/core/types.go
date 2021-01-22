@@ -115,11 +115,11 @@ func changeExecutionScope(es []IExpr, scope IScope) {
 // IRepresentable. Since golangs type system is weird ( if A is an interface
 // that embeds interface B you []A should be usable as []B but that's not the
 // case in Golang), we need this convertor helper
-func toRepresentables(ast IColl) []IRepresentable {
+func toRepresentables(forms IColl) []IRepresentable {
 	var params []IRepresentable
 
-	for _, x := range ast.ToSlice() {
-		params = append(params, x.(IRepresentable))
+	for _, x := range forms.ToSlice() {
+		params = append(params, x)
 	}
 
 	return params
@@ -162,7 +162,7 @@ func MakeNodeFromExprs(es []IExpr) *Node {
 
 // MakeNode creates a new Node in the the given `input` that points to a
 // range of characters starting from the `start` till the `end`.
-func MakeNode(input *ast.Source, start int, end int) Node {
+func MakeNode(input *ast.Source, start, end int) Node {
 	return MakeNodeFromLocation(ast.MakeLocation(input, start, end))
 }
 

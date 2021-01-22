@@ -156,7 +156,8 @@ func MakeFunction(n Node, scope IScope, params IColl, body *Block) *Function {
 
 // MakeFnScope a new scope for the body of a function. It binds the `bindings`
 // to the given `values`.
-func MakeFnScope(rt *Runtime, parent IScope, bindings IColl, values IColl) (*Scope, IError) {
+func MakeFnScope(rt *Runtime, parent IScope, bindings, values IColl) (*Scope, IError) { //nolint:gocyclo
+	// TODO: Break this function into smaller functions
 	scope := MakeScope(rt, parent.(*Scope), nil)
 	// TODO: Implement destructuring
 	binds := bindings.ToSlice()
@@ -193,7 +194,7 @@ func MakeFnScope(rt *Runtime, parent IScope, bindings IColl, values IColl) (*Sco
 		)
 	}
 
-	for i := 0; i < len(binds); i += 1 {
+	for i := 0; i < len(binds); i++ {
 		// If an argument started with char `&` use it to represent
 		// rest of values.
 		//
