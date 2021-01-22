@@ -37,7 +37,6 @@ func restOfExprs(es []IExpr, i int) []IExpr {
 // evaluation of a list it will evaluate all the elements and return the
 // evaluated list
 func evalForm(rt *Runtime, scope IScope, form IExpr) (IExpr, IError) {
-
 	switch form.GetType() {
 	case ast.Nil:
 		return form, nil

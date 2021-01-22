@@ -63,7 +63,6 @@ func Def(rt *Runtime, scope IScope, args *List) (IExpr, IError) {
 // expressions in Serene `defmacro` DOES NOT evaluate its arguments.
 // That is what makes macros great
 func DefMacro(rt *Runtime, scope IScope, args *List) (IExpr, IError) {
-
 	// TODO: Add support for docstrings and meta
 
 	if args.Count() < 2 {
@@ -99,13 +98,11 @@ func DefMacro(rt *Runtime, scope IScope, args *List) (IExpr, IError) {
 	ns.DefineGlobal(sym.GetName(), macro, true)
 
 	return macro, nil
-
 }
 
 // Fn defines a function inside the given scope `scope` with the given `args`.
 // `args` contains the argument list, docstring and body of the function.
 func Fn(rt *Runtime, scope IScope, args *List) (IExpr, IError) {
-
 	if args.Count() < 2 {
 		return nil, MakeError(rt, args, "'fn' needs at least an arguments list")
 	}
@@ -156,5 +153,4 @@ func NSForm(rt *Runtime, scope IScope, args *List) (IExpr, IError) {
 	return ns, nil
 	// TODO: Handle the params like `require` and `meta`
 	// params := args.Rest().Rest()
-
 }

@@ -66,7 +66,6 @@ func isMacroCall(rt *Runtime, scope IScope, form IExpr) (*Function, bool) {
 			if macro.GetType() == ast.Fn && macro.(*Function).IsMacro() {
 				return macro.(*Function), true
 			}
-
 		}
 	}
 	return nil, false

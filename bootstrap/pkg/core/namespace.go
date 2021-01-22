@@ -76,7 +76,7 @@ func (n *Namespace) SetExecutionScope(scope IScope) {}
 
 // DefineGlobal inserts the given expr `v` to the root scope of
 // `n`. The `public` parameter determines whether the public
-// value is accessable publicly or not (in other namespaces).
+// value is accessible publicly or not (in other namespaces).
 func (n *Namespace) DefineGlobal(k string, v IExpr, public bool) {
 	n.rootScope.Insert(k, v, public)
 }

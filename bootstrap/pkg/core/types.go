@@ -75,7 +75,7 @@ type IExpr interface {
 }
 
 // TODO: Add helper functions to reach methods on Node.location. For example
-// Node.location.DecStart() has to have a helper on the Node liek:
+// Node.location.DecStart() has to have a helper on the Node like:
 // Node.DecStartLocation
 
 // Node struct is simply representing a Node in the AST which provides the
@@ -95,7 +95,6 @@ type ExecutionScope struct {
 
 func (e *ExecutionScope) GetExecutionScope() IScope {
 	return e.scope
-
 }
 
 func (e *ExecutionScope) SetExecutionScope(scope IScope) {

@@ -177,7 +177,6 @@ func MakeFnScope(rt *Runtime, parent IScope, bindings IColl, values IColl) (*Sco
 				errors.E0002,
 				fmt.Sprintf("expected '%d' arguments, got '%d'.", bindings.Count(), values.Count()),
 			)
-
 		}
 	}
 
@@ -200,7 +199,6 @@ func MakeFnScope(rt *Runtime, parent IScope, bindings IColl, values IColl) (*Sco
 		//
 		// for example: `(fn (x y &z) ...)`
 		if binds[i].GetType() == ast.Symbol && binds[i].(*Symbol).IsRestable() {
-
 			if i != len(binds)-1 {
 				return nil, MakeError(rt, binds[i], "The function argument with '&' has to be the last argument.")
 			}

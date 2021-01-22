@@ -28,7 +28,7 @@ import (
 
 /** WARNING:
 This List implementation may look simple and performant but since
-we're using a slice here. But in fact it's not memory effecient at
+we're using a slice here. But in fact it's not memory efficient at
 all. We need to rewrite this later to be a immutable and persistent
 link list of cons.
 */

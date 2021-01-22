@@ -76,7 +76,6 @@ func (i Integer) Hash() uint32 {
 
 func (i Integer) GetExecutionScope() IScope {
 	return i.scope
-
 }
 
 func (i Integer) SetExecutionScope(scope IScope) {
@@ -143,7 +142,6 @@ func (d Double) ToDebugStr() string {
 
 func (d Double) GetExecutionScope() IScope {
 	return d.scope
-
 }
 
 func (d Double) SetExecutionScope(scope IScope) {

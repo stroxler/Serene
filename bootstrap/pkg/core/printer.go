@@ -98,7 +98,6 @@ func printError(rt *Runtime, err IError, stage int) {
 
 	errTag := color.Red.Sprint(err.GetErrType().String())
 	fmt.Printf("%s: %s\nAt: %d to %d\n", errTag, err.String(), loc.GetStart(), loc.GetEnd())
-
 }
 
 func frameCaption(traces *TraceBack, frameIndex int) string {
@@ -124,7 +123,6 @@ func frameCaption(traces *TraceBack, frameIndex int) string {
 		source.NS,
 		source.LineNumberFor(loc.GetStart()),
 	)
-
 }
 
 func frameSource(traces *TraceBack, frameIndex int) string {
@@ -157,7 +155,6 @@ func frameSource(traces *TraceBack, frameIndex int) string {
 		} else {
 			lines += "Builtin\n"
 		}
-
 	}
 
 	return lines
@@ -182,7 +179,6 @@ func printErrorWithTraceBack(rt *Runtime, err IError) {
 	if err.GetErrno() != errors.E0000 {
 		fmt.Printf("For more information on this error try: `serene explain %s`\n", err.GetErrno())
 	}
-
 }
 
 func PrintError(rt *Runtime, err IError) {

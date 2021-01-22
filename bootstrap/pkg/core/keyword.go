@@ -67,7 +67,7 @@ package core
 // able to use the alias in a keyword.
 //
 // TODO: Cache the keywords in the runtime on the first eval so we
-// done have to evaluate them over and over agian. It can be achieved
+// done have to evaluate them over and over again. It can be achieved
 // by caching the `hash` value in the keyword itself and maintain a
 // hashmap in the runtime from hash codes to a pointer to the keyword.
 // But garbage collecting it would be an issue since Golang doesn't support

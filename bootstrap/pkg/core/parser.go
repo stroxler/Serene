@@ -53,7 +53,7 @@ var validChars = []rune{'!', '$', '%', '&', '*', '+', '-', '.', '~', '/', ':', '
 type IParsable interface {
 	// Reads the next character in the buffer with respect to skipWhitespace
 	// parameter which basically jumps over whitespace and some conceptual
-	// equivilant of a whitespace like '\n'
+	// equivalent of a whitespace like '\n'
 	next(skipWhitespace bool) *string
 
 	// Similar to the `next` but it won't change the position in the buffer
@@ -101,10 +101,8 @@ func (sp *StringParser) updateLineIndex(pos int) {
 			} else {
 				sp.lineIndex = append(sp.lineIndex, pos+1)
 			}
-
 		}
 	}
-
 }
 
 // Returns the next character in the buffer
@@ -137,7 +135,6 @@ func isSeparator(c *string) bool {
 	}
 
 	return false
-
 }
 
 // Return the character of the buffer without consuming it
@@ -389,7 +386,6 @@ func readSymbol(parser IParsable) (IExpr, IError) {
 			parser.back()
 			return readRawSymbol(parser)
 		}
-
 	}
 	return readRawSymbol(parser)
 }
@@ -413,7 +409,6 @@ func readList(parser IParsable) (IExpr, IError) {
 				return nil, err
 			}
 			list = append(list, val)
-
 		}
 	}
 
@@ -474,7 +469,7 @@ func readQuotedExpr(parser IParsable) (IExpr, IError) {
 // ~a => (unquote a)
 // ~@a => (unquote-splicing a)
 // Note: `unquote` and `unquote-splicing` are not global functions or special, they are bounded
-// to quasiquoted experssions only.
+// to quasiquoted expressions only.
 func readUnquotedExpr(parser IParsable) (IExpr, IError) {
 	c := parser.peek(true)
 
@@ -496,7 +491,6 @@ func readUnquotedExpr(parser IParsable) (IExpr, IError) {
 		} else {
 			expr, err = readExpr(parser)
 		}
-
 	} else {
 		sym, err = MakeSymbol(node, "unquote")
 		if err != nil {
@@ -599,7 +593,6 @@ loop:
 	// }
 	parser.back()
 	return readSymbol(parser)
-
 }
 
 //ParseToAST is the entry function to the reader/parser which
@@ -609,7 +602,6 @@ loop:
 // It doesn't have anything to do with the concept of blocks
 // from other programming languages.
 func ParseToAST(ns string, input string) (*Block, IError) {
-
 	var ast Block
 	parser := StringParser{
 		buffer: strings.Split(input, ""),

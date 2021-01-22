@@ -125,7 +125,7 @@ func (r *Runtime) CreateNS(name string, source string, setAsCurrent bool) {
 
 // IsQQSimplificationEnabled returns a boolean value indicating whether
 // simplification of quasiquotation is enabled or not. If yes, we have
-// to replace the quasiquote expanded forms with a simplier form to gain
+// to replace the quasiquote expanded forms with a simpler form to gain
 // a better performance.
 func (r *Runtime) IsQQSimplificationEnabled() bool {
 	// TODO: read the value of this flag from the arguments of serene
@@ -133,7 +133,7 @@ func (r *Runtime) IsQQSimplificationEnabled() bool {
 	return false
 }
 
-// nsNameToPath converts a namespace name to the filesystem equivilant path
+// nsNameToPath converts a namespace name to the filesystem equivalent path
 func nsNameToPath(ns string) string {
 	replacer := strings.NewReplacer(
 		".", "/",
