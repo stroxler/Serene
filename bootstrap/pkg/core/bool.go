@@ -49,11 +49,11 @@ func (t *Bool) Hash() uint32 {
 	return hash.Of(append([]byte{byte(ast.Bool)}, bytes...))
 }
 
-func (t *Bool) isTrue() bool {
+func (t *Bool) IsTrue() bool {
 	return t.value
 }
 
-func (t *Bool) isFalse() bool {
+func (t *Bool) IsFalse() bool {
 	return !t.value
 }
 

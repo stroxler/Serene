@@ -86,7 +86,7 @@ func REPL(flags map[string]bool) {
 	rl.HistoryEnable()
 	defer rl.Close()
 
-	fmt.Println(`
+	fmt.Print(`
  _______ _______ ______ _______ _______ _______
 |     __|    ___|   __ \    ___|    |  |    ___|
 |__     |    ___|      <    ___|       |    ___|
@@ -99,7 +99,7 @@ bootstrap the Serene's compiler.
 It comes with ABSOLUTELY NO WARRANTY;
 This is free software, and you are welcome
 to redistribute it under certain conditions;
-for details take a look at the LICENSE file.
+for details take a look at the LICENSE file.\n\n
 `)
 	for {
 		rl.SetPrompt(fmt.Sprintf("%s> ", rt.CurrentNS().GetName()))

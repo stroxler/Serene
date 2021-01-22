@@ -35,7 +35,6 @@ func PrNativeFn(rt *Runtime, scope IScope, n Node, args *List) (IExpr, IError) {
 }
 
 func PrnNativeFn(rt *Runtime, scope IScope, n Node, args *List) (IExpr, IError) {
-
 	Prn(rt, toRepresentables(args.Rest().(IColl))...)
 	return MakeNil(n), nil
 }
@@ -69,7 +68,6 @@ func RequireNativeFn(rt *Runtime, scope IScope, n Node, args *List) (IExpr, IErr
 	}
 
 	return result, nil
-
 }
 
 func HashNativeFn(rt *Runtime, scope IScope, n Node, args *List) (IExpr, IError) {

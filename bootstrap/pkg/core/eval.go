@@ -209,9 +209,9 @@ tco:
 			// Instructions should change the return value, but errors
 			// are ok
 			if forms.GetType() == ast.Instruction {
-				err := ProcessInstruction(rt, forms.(*Instruction))
-				if err != nil {
-					return nil, err
+				e := ProcessInstruction(rt, forms.(*Instruction))
+				if e != nil {
+					return nil, e
 				}
 
 				continue
@@ -269,7 +269,6 @@ tco:
 			}
 
 			switch sform {
-
 			// `ns` evaluation rules:
 			// * The first element has to be a symbol representing the
 			//   name of the namespace. ( We won't evaluate the first
@@ -317,10 +316,10 @@ tco:
 			// TODO: Implement `concat` in serene itself when we have protocols available
 			// Concats all the collections together.
 			case "concat":
-				evaledForms, err := evalForm(rt, scope, list.Rest().(*List))
+				evaledForms, e := evalForm(rt, scope, list.Rest().(*List))
 
-				if err != nil {
-					return nil, err
+				if e != nil {
+					return nil, e
 				}
 
 				lists := evaledForms.(*List).ToSlice()
@@ -358,10 +357,10 @@ tco:
 					return nil, MakeError(rt, list, "'cons' needs exactly 3 arguments")
 				}
 
-				evaledForms, err := evalForm(rt, scope, list.Rest().(*List))
+				evaledForms, e := evalForm(rt, scope, list.Rest().(*List))
 
-				if err != nil {
-					return nil, err
+				if e != nil {
+					return nil, e
 				}
 				coll, ok := evaledForms.(*List).Rest().First().(IColl)
 
@@ -444,21 +443,21 @@ tco:
 					return nil, MakeError(rt, args, "'if' needs exactly 3 aruments")
 				}
 
-				pred, err := EvalForms(rt, scope, args.First())
+				pred, e := EvalForms(rt, scope, args.First())
 				result := pred.GetType()
 
-				if err != nil {
-					return nil, err
+				if e != nil {
+					return nil, e
 				}
 
-				if (result == ast.Bool && pred.(*Bool).isFalse()) || result == ast.Nil {
+				if (result == ast.Bool && pred.(*Bool).IsFalse()) || result == ast.Nil {
 					// Falsy clause
 					exprs = append([]IExpr{args.Rest().Rest().First()}, restOfExprs(exprs, i)...)
 				} else {
 					// Truthy clause
 					exprs = append([]IExpr{args.Rest().First()}, restOfExprs(exprs, i)...)
-
 				}
+
 				i = 0
 				goto body // rewrite
 
@@ -487,9 +486,9 @@ tco:
 				if list.Count() != 2 {
 					return nil, MakeError(rt, list, "'eval' needs exactly 1 arguments")
 				}
-				form, err := evalForm(rt, scope, list.Rest().(*List))
-				if err != nil {
-					return nil, err
+				form, e := evalForm(rt, scope, list.Rest().(*List))
+				if e != nil {
+					return nil, e
 				}
 
 				ret, err = EvalForms(rt, scope, form)
@@ -538,8 +537,7 @@ tco:
 					// TODO: We need to destruct the bindings here and remove this check
 					//       for the symbol type
 					if name.GetType() != ast.Symbol {
-						err := MakeError(rt, name, "'let' doesn't support desbbtructuring yet, use a symbol.")
-						return nil, err
+						return nil, MakeError(rt, name, "'let' doesn't support desbbtructuring yet, use a symbol.")
 					}
 
 					// You might be wondering why we're using `EvalForms` here to evaluate

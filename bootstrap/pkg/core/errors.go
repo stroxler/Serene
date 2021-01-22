@@ -160,7 +160,6 @@ func MakeRuntimeError(rt *Runtime, e IExpr, errno errors.Errno, msg string) IErr
 		errno:   errno,
 		trace:   rt.Stack.ToTraceBack(),
 	}
-
 }
 
 func MakeSyntaxErrorf(n Node, msg string, a ...interface{}) IError {

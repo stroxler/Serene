@@ -29,24 +29,25 @@ import (
 
 func toRepresanbleString(ast ...IRepresentable) string {
 	var results []string
+
 	for _, x := range ast {
 		results = append(results, x.String())
-
 	}
+
 	return strings.Join(results, " ")
 }
 
 func toPrintableString(ast ...IRepresentable) string {
 	var results []string
-	for _, x := range ast {
 
+	for _, x := range ast {
 		if printable, ok := x.(IPrintable); ok {
 			results = append(results, printable.PrintToString())
 			continue
 		}
 		results = append(results, x.String())
-
 	}
+
 	return strings.Join(results, " ")
 }
 
@@ -185,7 +186,6 @@ func printErrorWithTraceBack(rt *Runtime, err IError) {
 }
 
 func PrintError(rt *Runtime, err IError) {
-
 	switch err.GetErrType() {
 	case SyntaxError, SemanticError:
 		printError(rt, err, 0)

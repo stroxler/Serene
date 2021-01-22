@@ -127,7 +127,6 @@ func (sp *StringParser) next(skipWhitespace bool) *string {
 // contains a separator or not. In a Lisp whitespace and someother characters
 // are conceptually the same and we need to treat them the same as well.
 func isSeparator(c *string) bool {
-
 	if c == nil {
 		return false
 	}
@@ -561,7 +560,6 @@ func readQuasiquotedExpr(parser IParsable) (IExpr, IError) {
 // important function in the parser which dispatches the call to different
 // reader functions based on the first character
 func readExpr(parser IParsable) (IExpr, IError) {
-
 loop:
 	c := parser.next(true)
 

@@ -18,8 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package core
 
-import "serene-lang.org/bootstrap/pkg/ast"
-
 // func qqLoop(xs []IExpr) IExpr {
 // 	acc := MakeEmptyList()
 // 	for i := len(xs) - 1; 0 <= i; i -= 1 {
@@ -62,114 +60,114 @@ import "serene-lang.org/bootstrap/pkg/ast"
 // 		return e
 // 	}
 // }
-const qqQUOTE string = "*quote*"
+// const qqQUOTE string = "*quote*"
 
-func isSymbolEqual(e IExpr, name string) bool {
-	if e.GetType() == ast.Symbol && e.(*Symbol).GetName() == name {
-		return true
-	}
-	return false
-}
-func isQuasiQuote(e IExpr) bool {
-	return isSymbolEqual(e, "quasiquote")
-}
+// func isSymbolEqual(e IExpr, name string) bool {
+// 	if e.GetType() == ast.Symbol && e.(*Symbol).GetName() == name {
+// 		return true
+// 	}
+// 	return false
+// }
+// func isQuasiQuote(e IExpr) bool {
+// 	return isSymbolEqual(e, "quasiquote")
+// }
 
-func isUnquote(e IExpr) bool {
-	return isSymbolEqual(e, "unquote")
-}
+// func isUnquote(e IExpr) bool {
+// 	return isSymbolEqual(e, "unquote")
+// }
 
-func isUnquoteSplicing(e IExpr) bool {
-	return isSymbolEqual(e, "unquote-splicing")
-}
+// func isUnquoteSplicing(e IExpr) bool {
+// 	return isSymbolEqual(e, "unquote-splicing")
+// }
 
-func qqSimplify(e IExpr) (IExpr, IError) {
-	return e, nil
-}
+// func qqSimplify(e IExpr) (IExpr, IError) {
+// 	return e, nil
+// }
 
-func qqProcess(rt *Runtime, e IExpr) (IExpr, IError) {
-	switch e.GetType() {
+// func qqProcess(rt *Runtime, e IExpr) (IExpr, IError) {
+// 	switch e.GetType() {
 
-	// Example: `x => (*quote* x) => (quote x)
-	case ast.Symbol:
-		sym, err := MakeSymbol(MakeNodeFromExpr(e), qqQUOTE)
-		if err != nil {
-			//newErr := makeErrorAtPoint()
-			// TODO: uncomment next line when we have stackable errors
-			// newErr.stack(err)
-			return nil, err
-		}
-		elems := []IExpr{
-			sym,
-			e,
-		}
+// 	// Example: `x => (*quote* x) => (quote x)
+// 	case ast.Symbol:
+// 		sym, err := MakeSymbol(MakeNodeFromExpr(e), qqQUOTE)
+// 		if err != nil {
+// 			//newErr := makeErrorAtPoint()
+// 			// TODO: uncomment next line when we have stackable errors
+// 			// newErr.stack(err)
+// 			return nil, err
+// 		}
+// 		elems := []IExpr{
+// 			sym,
+// 			e,
+// 		}
 
-		n := MakeNodeFromExprs(elems)
-		if n == nil {
-			n = &sym.Node
-		}
-		return MakeList(
-			*n,
-			elems,
-		), nil
+// 		n := MakeNodeFromExprs(elems)
+// 		if n == nil {
+// 			n = &sym.Node
+// 		}
+// 		return MakeList(
+// 			*n,
+// 			elems,
+// 		), nil
 
-	case ast.List:
-		list := e.(*List)
-		first := list.First()
+// 	case ast.List:
+// 		list := e.(*List)
+// 		first := list.First()
 
-		// Example: ``... reads as (quasiquote (quasiquote ...)) and this if will check
-		// for the second `quasiquote`
-		if isQuasiQuote(first) {
-			result, err := qqCompletelyProcess(rt, list.Rest().First())
+// 		// Example: ``... reads as (quasiquote (quasiquote ...)) and this if will check
+// 		// for the second `quasiquote`
+// 		if isQuasiQuote(first) {
+// 			result, err := qqCompletelyProcess(rt, list.Rest().First())
 
-			if err != nil {
-				return nil, err
-			}
+// 			if err != nil {
+// 				return nil, err
+// 			}
 
-			return qqProcess(rt, result)
-		}
+// 			return qqProcess(rt, result)
+// 		}
 
-		// Example: `~x reads as (quasiquote (unquote x))
-		if isUnquote(first) {
-			return list.Rest().First(), nil
-		}
-		// ???
-		if isUnquoteSplicing(first) {
-			return nil, MakeError(rt, first, "'unquote-splicing' is not allowed out of a collection.")
-		}
+// 		// Example: `~x reads as (quasiquote (unquote x))
+// 		if isUnquote(first) {
+// 			return list.Rest().First(), nil
+// 		}
+// 		// ???
+// 		if isUnquoteSplicing(first) {
+// 			return nil, MakeError(rt, first, "'unquote-splicing' is not allowed out of a collection.")
+// 		}
 
-		// p := list
-		// q := MakeEmptyList()
-		// for {
-		// 	p = p.Rest().(*List)
-		// }
+// 		// p := list
+// 		// q := MakeEmptyList()
+// 		// for {
+// 		// 	p = p.Rest().(*List)
+// 		// }
 
-	}
+// 	}
 
-	return e, nil
-}
+// 	return e, nil
+// }
 
-func qqRemoveQQFunctions(e IExpr) (IExpr, IError) {
-	return e, nil
-}
+// func qqRemoveQQFunctions(e IExpr) (IExpr, IError) {
+// 	return e, nil
+// }
 
-func qqCompletelyProcess(rt *Runtime, e IExpr) (IExpr, IError) {
-	rawResult, err := qqProcess(rt, e)
+// func qqCompletelyProcess(rt *Runtime, e IExpr) (IExpr, IError) {
+// 	rawResult, err := qqProcess(rt, e)
 
-	if err != nil {
-		return nil, err
-	}
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	if rt.IsQQSimplificationEnabled() {
-		rawResult, err = qqSimplify(rawResult)
+// 	if rt.IsQQSimplificationEnabled() {
+// 		rawResult, err = qqSimplify(rawResult)
 
-		if err != nil {
-			return nil, err
-		}
-	}
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 	}
 
-	return qqRemoveQQFunctions(rawResult)
-}
+// 	return qqRemoveQQFunctions(rawResult)
+// }
 
-func quasiquote(rt *Runtime, e IExpr) (IExpr, IError) {
-	return qqCompletelyProcess(rt, e)
-}
+// func quasiquote(rt *Runtime, e IExpr) (IExpr, IError) {
+// 	return qqCompletelyProcess(rt, e)
+// }
