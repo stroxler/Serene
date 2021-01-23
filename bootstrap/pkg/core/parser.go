@@ -112,7 +112,7 @@ func (sp *StringParser) next(skipWhitespace bool) *string {
 	}
 	char := sp.buffer[sp.pos]
 	sp.updateLineIndex(sp.pos)
-	sp.pos = sp.pos + 1
+	sp.pos++
 
 	if skipWhitespace && isSeparator(&char) {
 		return sp.next(skipWhitespace)
@@ -146,7 +146,7 @@ func (sp *StringParser) peek(skipWhitespace bool) *string {
 	c := sp.buffer[sp.pos]
 	if isSeparator(&c) && skipWhitespace {
 		sp.updateLineIndex(sp.pos)
-		sp.pos = sp.pos + 1
+		sp.pos++
 		return sp.peek(skipWhitespace)
 	}
 	return &c
@@ -155,7 +155,7 @@ func (sp *StringParser) peek(skipWhitespace bool) *string {
 // Move the char pointer back by one character
 func (sp *StringParser) back() {
 	if sp.pos > 0 {
-		sp.pos = sp.pos - 1
+		sp.pos--
 	}
 }
 
@@ -215,7 +215,7 @@ func readKeyword(parser IParsable) (IExpr, IError) {
 	return MakeKeyword(node, ":"+symbol.(*Symbol).String())
 }
 
-//readRawSymbol reads a symbol from the current position forward
+// readRawSymbol reads a symbol from the current position forward
 func readRawSymbol(parser IParsable) (IExpr, IError) {
 	c := parser.peek(false)
 	var symbol string
@@ -245,7 +245,7 @@ func readRawSymbol(parser IParsable) (IExpr, IError) {
 		}
 
 		if isValidForSymbol(*c) {
-			symbol = symbol + *c
+			symbol += *c
 		} else {
 			parser.back()
 			break
@@ -281,20 +281,20 @@ func readString(parser IParsable) (IExpr, IError) {
 			c = parser.next(false)
 			switch *c {
 			case "n":
-				str = str + "\n"
+				str += "\n"
 			case "t":
-				str = str + "\t"
+				str += "\t"
 			case "r":
-				str = str + "\r"
+				str += "\r"
 			case "\\":
-				str = str + "\\"
+				str += "\\"
 			case "\"":
-				str = str + "\""
+				str += "\""
 			default:
 				return nil, makeErrorAtPoint(parser, "Unsupported escape character: \\%s", *c)
 			}
 		} else {
-			str = str + *c
+			str += *c
 		}
 	}
 }
@@ -322,7 +322,7 @@ func readNumber(parser IParsable, neg bool) (IExpr, IError) {
 
 		if *c == "." {
 			isDouble = true
-			result = result + *c
+			result += *c
 			continue
 		}
 
@@ -330,7 +330,7 @@ func readNumber(parser IParsable, neg bool) (IExpr, IError) {
 		char := *c
 		r := rune(char[0])
 		if unicode.IsDigit(r) {
-			result = result + *c
+			result += *c
 		} else if isValidForSymbol(char) {
 			return nil, makeErrorAtPoint(parser, "Illegal token while scanning for a number.")
 		} else {
@@ -382,11 +382,10 @@ func readSymbol(parser IParsable) (IExpr, IError) {
 
 		if unicode.IsDigit(r) {
 			return readNumber(parser, true)
-		} else {
-			// Unread '-'
-			parser.back()
-			return readRawSymbol(parser)
 		}
+		// Unread '-'
+		parser.back()
+		return readRawSymbol(parser)
 	}
 	return readRawSymbol(parser)
 }
@@ -435,28 +434,25 @@ func readComment(parser IParsable) (IExpr, IError) {
 	}
 }
 
-// readQuotedExpr reads quoted expression ( lie 'something ) by replaceing the
-// quote with a call to `quote` special form so 'something => (quote something)
-func readQuotedExpr(parser IParsable) (IExpr, IError) {
+// readQuotedExpr reads the backquote and replace it with a call
+// to the `quasiquote` macro.
+func readQuotedExpr(parser IParsable, quote string) (IExpr, IError) {
 	expr, err := readExpr(parser)
 	if err != nil {
 		return nil, err
 	}
 
-	symNode := MakeNode(parser.GetSource(), parser.GetLocation(), parser.GetLocation())
-	sym, err := MakeSymbol(symNode, "quote")
-
+	node := MakeNode(parser.GetSource(), parser.GetLocation(), parser.GetLocation())
+	sym, err := MakeSymbol(node, quote)
 	if err != nil {
-		err.SetNode(&symNode)
+		err.SetNode(&node)
 		return nil, err
 	}
 
-	listElems := []IExpr{
-		sym,
-		expr,
-	}
-
+	listElems := []IExpr{sym, expr}
 	listNode := MakeNodeFromExprs(listElems)
+	// listNode won't be nil in this case but it doesn't
+	// mean we shouldn't check
 	if listNode == nil {
 		n := MakeSinglePointNode(parser.GetSource(), parser.GetLocation())
 		listNode = &n
@@ -464,6 +460,7 @@ func readQuotedExpr(parser IParsable) (IExpr, IError) {
 
 	listNode.location.DecStart(1)
 	listNode.location.IncStart(1)
+
 	return MakeList(*listNode, listElems), nil
 }
 
@@ -522,36 +519,6 @@ func readUnquotedExpr(parser IParsable) (IExpr, IError) {
 	return MakeList(*listNode, listElems), nil
 }
 
-// readQuasiquotedExpr reads the backquote and replace it with a call
-// to the `quasiquote` macro.
-func readQuasiquotedExpr(parser IParsable) (IExpr, IError) {
-	expr, err := readExpr(parser)
-	if err != nil {
-		return nil, err
-	}
-
-	node := MakeNode(parser.GetSource(), parser.GetLocation(), parser.GetLocation())
-	sym, err := MakeSymbol(node, "quasiquote")
-	if err != nil {
-		err.SetNode(&node)
-		return nil, err
-	}
-
-	listElems := []IExpr{sym, expr}
-	listNode := MakeNodeFromExprs(listElems)
-	// listNode won't be nil in this case but it doesn't
-	// mean we shouldn't check
-	if listNode == nil {
-		n := MakeSinglePointNode(parser.GetSource(), parser.GetLocation())
-		listNode = &n
-	}
-
-	listNode.location.DecStart(1)
-	listNode.location.IncStart(1)
-
-	return MakeList(*listNode, listElems), nil
-}
-
 // readExpr reads one expression from the input. This function is the most
 // important function in the parser which dispatches the call to different
 // reader functions based on the first character
@@ -565,7 +532,7 @@ loop:
 	}
 
 	if *c == "'" {
-		return readQuotedExpr(parser)
+		return readQuotedExpr(parser, "quote")
 	}
 
 	if *c == "~" {
@@ -573,7 +540,7 @@ loop:
 	}
 
 	if *c == "`" {
-		return readQuasiquotedExpr(parser)
+		return readQuotedExpr(parser, "quasiquote")
 	}
 	if *c == "(" {
 		return readList(parser)
@@ -586,25 +553,19 @@ loop:
 	if *c == ":" {
 		return readKeyword(parser)
 	}
-	// if *c == "[" {
-	// 	readVector(parser)
-	// }
 
-	// if *c == "{" {
-	// 	readMap(parser)
-	// }
 	parser.back()
 	return readSymbol(parser)
 }
 
-//ParseToAST is the entry function to the reader/parser which
+// ParseToAST is the entry function to the reader/parser which
 // converts the `input` string to a `Block` of code. A block
 // by itself is not something available to the language. It's
 // just anbstraction for a ordered collection of expressions.
 // It doesn't have anything to do with the concept of blocks
 // from other programming languages.
-func ParseToAST(ns string, input string) (*Block, IError) {
-	var ast Block
+func ParseToAST(ns, input string) (*Block, IError) {
+	var forms Block
 	parser := StringParser{
 		buffer: strings.Split(input, ""),
 		pos:    0,
@@ -621,8 +582,8 @@ func ParseToAST(ns string, input string) (*Block, IError) {
 			break
 		}
 
-		ast.Append(expr)
+		forms.Append(expr)
 	}
 
-	return &ast, nil
+	return &forms, nil
 }
