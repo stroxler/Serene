@@ -169,14 +169,16 @@ func (k *Keyword) Eval(rt *Runtime, scope IScope) (*Keyword, IError) {
 }
 
 // Extracts the different parts of the keyword
-func extractParts(s string) (string, string) {
+func extractParts(s string) (nspart, namepart string) {
 	parts := strings.Split(s, "/")
+	namepart = parts[0]
 
 	if len(parts) == 2 {
-		return parts[0], parts[1]
+		nspart = parts[0]
+		namepart = parts[1]
 	}
 
-	return "", parts[0]
+	return
 }
 
 func MakeKeyword(n Node, name string) (*Keyword, IError) {

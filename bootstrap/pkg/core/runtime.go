@@ -114,7 +114,7 @@ func (r *Runtime) GetNS(ns string) (*Namespace, bool) {
 
 // CreateNS is a helper function to create a namespace and set it to be
 // the current namespace of the runtime. `MakeNS` is much preferred
-func (r *Runtime) CreateNS(name string, source string, setAsCurrent bool) {
+func (r *Runtime) CreateNS(name, source string, setAsCurrent bool) {
 	ns := MakeNS(r, name, source)
 
 	if setAsCurrent {
@@ -139,7 +139,7 @@ func nsNameToPath(ns string) string {
 		".", "/",
 		// TODO: checkout the different OSs for character supports in
 		// the filesystem level
-		//"-", "_",
+		// "-", "_",
 	)
 	return replacer.Replace(ns) + ".srn"
 }

@@ -252,7 +252,7 @@ func RequireNamespace(rt *Runtime, namespace IExpr) (IExpr, IError) {
 }
 
 // MakeNS creates a new namespace with the given `name` and `source`
-func MakeNS(rt *Runtime, name string, source string) Namespace {
+func MakeNS(rt *Runtime, name, source string) Namespace {
 	s := MakeScope(rt, nil, &name)
 
 	return Namespace{
