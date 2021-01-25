@@ -6,3 +6,6 @@ compile-bootstrap:
 
 clean-bootstrap:
 	docker rmi serene-lang/serene-bootstrap:$(BOOTSTRAP_TAG)
+
+lint-bootstrap:
+	docker run --rm -v $(BOOTSTRAP_DIR):/app -w /app golangci/golangci-lint:v1.35.2 golangci-lint run pkg/core
