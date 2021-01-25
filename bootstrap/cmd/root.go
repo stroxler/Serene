@@ -15,6 +15,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+// Package cmd provides the sub commands for the Serene binary.
 package cmd
 
 import (
@@ -62,7 +64,7 @@ func Execute() {
 	}
 }
 
-func init() {
+func init() { // nolint:gochecknoinits
 	cobra.OnInitialize()
 	rootCmd.PersistentFlags().BoolVar(
 		&debugMode,
@@ -75,5 +77,4 @@ func init() {
 		"debug-stack",
 		false,
 		"Turns on the call stack debug mode.")
-
 }
