@@ -3,10 +3,10 @@
 command=$1
 
 
-export CCC_CC=clang-11
-export CCC_CXX=clang++-11
-export CC=clang-11
-export CXX=clang++-11
+export CCC_CC=clang
+export CCC_CXX=clang++
+export CC=clang
+export CXX=clang++
 
 ROOT_DIR=`pwd`
 BUILD_DIR=$ROOT_DIR/build
@@ -65,12 +65,11 @@ function tests() {
 
 
 case "$command" in
+    # We need to fix this to have some instructions about how to build the dependencies
     "deps")
-        sudo apt update
-        sudo apt install -y llvm-10 llvm-10-tools \
-             clang-10 clang-format-10 clang-tidy-10 \
-             clang-tools-10 valgrind cmake ninja-build \
-             doxygen
+        echo "You need the following dependencies"
+        echo "sudo apt update"
+        echo "sudo apt install -y llvm-10 llvm-10-tools clang-10 clang-format-10 clang-tidy-10 clang-tools-10 valgrind cmake ninja-build doxygen"
         ;;
     "setup")
         pushd ./scripts

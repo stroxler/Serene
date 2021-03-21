@@ -20,7 +20,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   set(BIN_DIR ${CMAKE_SOURCE_DIR}/bin)
 
   set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
-  set(CMAKE_CXX_CLANG_TIDY clang-tidy-10)
+  set(CMAKE_CXX_CLANG_TIDY clang-tidy)
   # Let's ensure -std=c++xx instead of -std=g++xx
   set(CMAKE_CXX_EXTENSIONS OFF)
   set(CMAKE_CXX_FLAGS_DEBUG

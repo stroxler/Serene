@@ -25,14 +25,32 @@
 #include "serene/serene.hpp"
 #include "serene/compiler.hpp"
 #include <iostream>
+#include <llvm/Support/CommandLine.h>
 
 using namespace std;
 using namespace serene;
 
-int main(int argc, char *argv[]) {
-  UNUSED(argc);
-  cout << "Serene >>" << endl;
+namespace cl = llvm::cl;
 
+namespace {
+enum Action { None, DumpAST }
+}
+
+static cl::opt<enum Action>
+    emitAction("emit", cl::desc("Select what to dump."),
+               cl::values(clEnumValN(DumpAST, "ast", "Output the AST only")));
+
+
+
+int main(int argc, char *argv[]) {
+  cl::ParseCommandLineOptions(argc, argv, "Serene compiler \n");
+
+
+  switch (emitAction) {
+  case Action::DumpAST:
+    Reader r = Reader(input);
+    r->dump();
+  }
   string input_file(argv[1]);
 
   Compiler c;
