@@ -43,6 +43,7 @@ public:
 
   ExprId id() const override { return symbol; }
   std::string string_repr() const override;
+  std::string dumpAST() const override;
 
   llvm::Value *codegen(Compiler &compiler, State &state) override;
 };

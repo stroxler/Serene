@@ -60,35 +60,17 @@ std::string List::string_repr() const {
   return fmt::format("({})", s);
 }
 
+std::string List::dumpAST() const {
+  std::string s;
+
+  for (auto &n : nodes_) {
+    s = fmt::format("{} {}", s, n->dumpAST());
+  }
+
+  return fmt::format("<List: {}>", s);
+}
+
 inline size_t List::length() const { return nodes_.size(); }
 
-Value *List::codegen(Compiler &compiler, State &state) {
-  if (length() == 0) {
-    compiler.log_error("Can't eveluate empty list.");
-    return nullptr;
-  }
-
-  auto def_ptr = at(0).value_or(nullptr);
-  auto name_ptr = at(1).value_or(nullptr);
-  auto body_ptr = at(2).value_or(nullptr);
-
-  if (def_ptr && def_ptr->id() == symbol &&
-      static_cast<Symbol *>(def_ptr.get())->name() == "def") {
-
-    if (!name_ptr && def_ptr->id() != symbol) {
-      return compiler.log_error("First argument of 'def' has to be a symbol.");
-    }
-
-    if (!body_ptr) {
-      return compiler.log_error("'def' needs 3 arguments, two has been given.");
-    }
-
-    special_forms::Def def(static_cast<Symbol *>(name_ptr.get()),
-                           body_ptr.get());
-    return def.codegen(compiler, state);
-  }
-
-  EXPR_LOG("Not implemented in list.");
-  return nullptr;
-}
+Value *List::codegen(Compiler &compiler, State &state) { return nullptr; }
 } // namespace serene

@@ -72,10 +72,32 @@ private:
   ast_node read_expr();
 
 public:
-  Reader(const std::string &);
+  Reader() : input_stream(""){};
+  Reader(const std::string);
+
+  void setInput(const std::string);
+
   ast_tree &read();
 
+  // Dumps the AST data to stdout
+  void dumpAST();
+
   ~Reader();
+};
+
+class FileReader {
+  std::string file;
+  Reader *reader;
+
+public:
+  FileReader(const std::string file_name)
+      : file(file_name), reader(new Reader()) {}
+  // Dumps the AST data to stdout
+  void dumpAST();
+
+  ast_tree &read();
+
+  ~FileReader();
 };
 } // namespace serene
 

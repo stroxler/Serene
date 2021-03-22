@@ -7,6 +7,7 @@ project(Serene
   LANGUAGES CXX)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+
 # Only do these if this is the main project, and not if it is included through add_subdirectory
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 
@@ -33,6 +34,8 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 
   set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
   set(MemoryCheckCommand "valgrind")
+
+  add_compile_options(-fno-rtti)
 
   configure_file(${INCLUDE_DIR}/config.h.in config.h)
 
@@ -92,5 +95,6 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   if((CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME OR SERENE_CMAKE_BUILD_TESTING) AND BUILD_TESTING)
     add_subdirectory(tests)
   endif()
+
 
 endif()

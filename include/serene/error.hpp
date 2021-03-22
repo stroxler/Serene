@@ -22,39 +22,31 @@
  * SOFTWARE.
  */
 
-#ifndef EXPR_H
-#define EXPR_H
+#ifndef ERROR_H
+#define ERROR_H
 
 #include "serene/compiler.hpp"
+#include "serene/expr.hpp"
 #include "serene/llvm/IR/Value.h"
-#include "serene/logger.hpp"
 #include "serene/state.hpp"
 #include <string>
 
-#if defined(ENABLE_LOG) || defined(ENABLE_EXPR_LOG)
-#define EXPR_LOG(...) __LOG("EXPR", __VA_ARGS__);
-#else
-#define EXPR_LOG(...) ;
-#endif
-
 namespace serene {
+class Error : public AExpr {
+  const std::string msg;
 
-// TODO: Rename this enum and move it to a namespace
-enum ExprId : unsigned char { aexpr = 0, symbol, list, def, error };
-
-class AExpr {
 public:
-  virtual ~AExpr() = default;
+  Error(const std::string &msg) : msg(msg) {}
+  virtual ~Error();
 
-  virtual ExprId id() const = 0;
-  virtual std::string string_repr() const = 0;
-  virtual llvm::Value *codegen(Compiler &compiler, State &state) = 0;
-  virtual std::string dumpAST() const = 0;
+  const std::string &message() const;
+
+  ExprId id() const override { return error; }
+  std::string string_repr() const override;
+  std::string dumpAST() const override;
+
+  llvm::Value *codegen(Compiler &compiler, State &state) override;
 };
-
-using ast_node = std::shared_ptr<AExpr>;
-using ast_tree = std::vector<ast_node>;
-
 } // namespace serene
 
 #endif

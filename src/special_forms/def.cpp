@@ -72,6 +72,8 @@ string Def::string_repr() const {
   return "Def";
 }
 
+string Def::dumpAST() const { return "<Def>"; }
+
 Value *Def::codegen(Compiler &compiler, State &state) {
   state.set_in_current_ns_root_scope(m_sym->name(),
                                      m_value->codegen(compiler, state));

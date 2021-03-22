@@ -38,6 +38,7 @@ class List : public AExpr {
 public:
   ExprId id() const override { return list; }
 
+  std::string dumpAST() const override;
   std::string string_repr() const override;
   size_t length() const;
 

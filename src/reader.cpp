@@ -23,9 +23,11 @@
  */
 
 #include "serene/reader.hpp"
+#include "serene/error.hpp"
 #include "serene/list.hpp"
 #include "serene/symbol.hpp"
 #include <assert.h>
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -33,7 +35,9 @@
 using namespace std;
 
 namespace serene {
-Reader::Reader(const string &input) {
+Reader::Reader(const string input) { this->setInput(input); };
+
+void Reader::setInput(const string input) {
   input_stream.write(input.c_str(), input.size());
 };
 
@@ -153,5 +157,48 @@ ast_tree &Reader::read() {
   }
 
   return this->ast;
-};
+}
+
+void Reader::dumpAST() {
+  ast_tree &ast = this->read();
+  std::string result = "";
+  for (auto &node : ast) {
+    result = fmt::format("{0} {1}", result, node->dumpAST());
+  }
+}
+
+ast_tree &FileReader::read() {
+  std::string buffer;
+
+  std::ifstream f(file.c_str());
+
+  if (f) {
+    f.seekg(0, std::ios::end);
+    buffer.resize(f.tellg());
+    f.seekg(0);
+    f.read(buffer.data(), buffer.size());
+    f.close();
+
+    reader->setInput(buffer);
+
+    return reader->read();
+  }
+
+  throw ReadError((char *)fmt::format("Can't find file '{}'", file).c_str());
+}
+
+void FileReader::dumpAST() {
+  ast_tree &ast = this->read();
+  std::string result = "";
+  for (auto &node : ast) {
+    result = fmt::format("{0} {1}", result, node->dumpAST());
+  }
+  cout << result << endl;
+}
+
+FileReader::~FileReader() {
+  delete this->reader;
+  READER_LOG("Destroying the file reader");
+}
+
 } // namespace serene

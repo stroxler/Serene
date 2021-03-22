@@ -41,6 +41,10 @@ namespace serene {
 
 string Symbol::string_repr() const { return name_; }
 
+string Symbol::dumpAST() const {
+  return fmt::format("<Symbol: {}>", this->name());
+}
+
 const string &Symbol::name() const { return name_; }
 
 Symbol::Symbol(const string &name) : name_(name) {}

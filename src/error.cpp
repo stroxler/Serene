@@ -22,39 +22,28 @@
  * SOFTWARE.
  */
 
-#ifndef EXPR_H
-#define EXPR_H
-
+#include "serene/error.hpp"
 #include "serene/compiler.hpp"
+#include "serene/expr.hpp"
 #include "serene/llvm/IR/Value.h"
-#include "serene/logger.hpp"
+#include "serene/namespace.hpp"
 #include "serene/state.hpp"
+#include <assert.h>
+#include <fmt/core.h>
+#include <llvm/IR/Constants.h>
+#include <llvm/IR/Type.h>
 #include <string>
 
-#if defined(ENABLE_LOG) || defined(ENABLE_EXPR_LOG)
-#define EXPR_LOG(...) __LOG("EXPR", __VA_ARGS__);
-#else
-#define EXPR_LOG(...) ;
-#endif
+using namespace std;
+using namespace llvm;
 
 namespace serene {
 
-// TODO: Rename this enum and move it to a namespace
-enum ExprId : unsigned char { aexpr = 0, symbol, list, def, error };
+string Error::string_repr() const { return fmt::format("Error: {}", msg); }
 
-class AExpr {
-public:
-  virtual ~AExpr() = default;
+string Error::dumpAST() const { return fmt::format("<Error: {}>", this->msg); }
 
-  virtual ExprId id() const = 0;
-  virtual std::string string_repr() const = 0;
-  virtual llvm::Value *codegen(Compiler &compiler, State &state) = 0;
-  virtual std::string dumpAST() const = 0;
-};
+Value *Error::codegen(Compiler &compiler, State &state) { return nullptr; }
 
-using ast_node = std::shared_ptr<AExpr>;
-using ast_tree = std::vector<ast_node>;
-
+Error::~Error() { EXPR_LOG("Destroying Error"); }
 } // namespace serene
-
-#endif
