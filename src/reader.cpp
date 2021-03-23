@@ -26,6 +26,8 @@
 #include "serene/error.hpp"
 #include "serene/list.hpp"
 #include "serene/symbol.hpp"
+#include "llvm/Support/ErrorOr.h"
+#include "llvm/Support/MemoryBuffer.h"
 #include <assert.h>
 #include <fstream>
 #include <iostream>
@@ -144,7 +146,7 @@ ast_node Reader::read_expr() {
   }
 }
 
-ast_tree &Reader::read() {
+std::unique_ptr<ast_tree> Reader::read() {
   char c = get_char(true);
 
   while (c != EOF) {
@@ -156,39 +158,38 @@ ast_tree &Reader::read() {
     c = get_char(true);
   }
 
-  return this->ast;
+  return std::make_unique<ast_tree>(this->ast);
 }
 
 void Reader::dumpAST() {
-  ast_tree &ast = this->read();
+  ast_tree ast = *this->read();
   std::string result = "";
   for (auto &node : ast) {
     result = fmt::format("{0} {1}", result, node->dumpAST());
   }
 }
 
-ast_tree &FileReader::read() {
-  std::string buffer;
+std::unique_ptr<ast_tree> FileReader::read() {
+  llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> fileOrErr =
+      llvm::MemoryBuffer::getFileOrSTDIN(file);
 
-  std::ifstream f(file.c_str());
-
-  if (f) {
-    f.seekg(0, std::ios::end);
-    buffer.resize(f.tellg());
-    f.seekg(0);
-    f.read(buffer.data(), buffer.size());
-    f.close();
-
-    reader->setInput(buffer);
-
-    return reader->read();
+  if (std::error_code EC = fileOrErr.getError()) {
+    llvm::errs() << "Could not open input file: " << EC.message() << "\n";
+    return nullptr;
   }
 
-  throw ReadError((char *)fmt::format("Can't find file '{}'", file).c_str());
+  reader->setInput(fileOrErr.get()->getBuffer().str());
+  return reader->read();
 }
 
 void FileReader::dumpAST() {
-  ast_tree &ast = this->read();
+  auto maybeAst = this->read();
+  ast_tree ast;
+
+  if (maybeAst) {
+    ast = *maybeAst;
+  }
+
   std::string result = "";
   for (auto &node : ast) {
     result = fmt::format("{0} {1}", result, node->dumpAST());

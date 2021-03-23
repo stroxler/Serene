@@ -23,7 +23,6 @@
  */
 
 #include "serene/serene.hpp"
-#include "serene/compiler.hpp"
 #include "serene/reader.hpp"
 #include <iostream>
 #include <llvm/Support/CommandLine.h>

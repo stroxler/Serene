@@ -25,7 +25,6 @@
 #include "serene/list.hpp"
 #include "serene/expr.hpp"
 #include "serene/llvm/IR/Value.h"
-#include "serene/special_forms/def.hpp"
 #include "serene/symbol.hpp"
 #include <bits/c++config.h>
 #include <fmt/core.h>
@@ -72,5 +71,4 @@ std::string List::dumpAST() const {
 
 inline size_t List::length() const { return nodes_.size(); }
 
-Value *List::codegen(Compiler &compiler, State &state) { return nullptr; }
 } // namespace serene

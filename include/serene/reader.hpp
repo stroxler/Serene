@@ -77,7 +77,7 @@ public:
 
   void setInput(const std::string);
 
-  ast_tree &read();
+  std::unique_ptr<ast_tree> read();
 
   // Dumps the AST data to stdout
   void dumpAST();
@@ -95,7 +95,7 @@ public:
   // Dumps the AST data to stdout
   void dumpAST();
 
-  ast_tree &read();
+  std::unique_ptr<ast_tree> read();
 
   ~FileReader();
 };

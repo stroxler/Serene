@@ -25,7 +25,6 @@
 #ifndef ERROR_H
 #define ERROR_H
 
-#include "serene/compiler.hpp"
 #include "serene/expr.hpp"
 #include "serene/llvm/IR/Value.h"
 #include "serene/state.hpp"
@@ -44,8 +43,6 @@ public:
   ExprId id() const override { return error; }
   std::string string_repr() const override;
   std::string dumpAST() const override;
-
-  llvm::Value *codegen(Compiler &compiler, State &state) override;
 };
 } // namespace serene
 

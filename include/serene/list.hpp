@@ -46,8 +46,6 @@ public:
   void append(ast_node t);
 
   std::optional<ast_node> at(uint index) const;
-
-  llvm::Value *codegen(Compiler &compiler, State &state) override;
 };
 
 using ast_list_node = std::unique_ptr<List>;

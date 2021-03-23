@@ -23,7 +23,6 @@
  */
 
 #include "serene/symbol.hpp"
-#include "serene/compiler.hpp"
 #include "serene/expr.hpp"
 #include "serene/llvm/IR/Value.h"
 #include "serene/namespace.hpp"
@@ -48,24 +47,6 @@ string Symbol::dumpAST() const {
 const string &Symbol::name() const { return name_; }
 
 Symbol::Symbol(const string &name) : name_(name) {}
-
-Value *Symbol::codegen(Compiler &compiler, State &state) {
-  if (name() == "false") {
-    return ConstantInt::get(Type::getInt1Ty(compiler.context), 0);
-  }
-
-  if (name() == "true") {
-    return ConstantInt::get(Type::getInt1Ty(compiler.context), 1);
-  }
-
-  Value *V = state.lookup_in_current_scope(name());
-
-  if (!V) {
-    return compiler.log_error(
-        fmt::format("Unable to resolve symbol '{}'.", name()).c_str());
-  }
-  return V;
-}
 
 Symbol::~Symbol() { EXPR_LOG("Destroying symbol"); }
 } // namespace serene

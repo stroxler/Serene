@@ -39,18 +39,13 @@
 namespace serene {
 class AExpr;
 class List;
-class Compiler;
 class State;
 
 class Namespace {
   // Why not ast_node ? because i have to include expr.hpp which
   // causes a circular dependency
-  using MakerFn =
-      std::function<std::shared_ptr<AExpr>(Compiler &, State &, const List *)>;
-  using BuiltinMap = std::map<std::string, MakerFn>;
   std::unique_ptr<llvm::Module> module;
   std::map<std::string, llvm::Value *> scope;
-  static BuiltinMap builtins;
 
 public:
   std::string name;

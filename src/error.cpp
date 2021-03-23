@@ -23,7 +23,6 @@
  */
 
 #include "serene/error.hpp"
-#include "serene/compiler.hpp"
 #include "serene/expr.hpp"
 #include "serene/llvm/IR/Value.h"
 #include "serene/namespace.hpp"
@@ -42,8 +41,6 @@ namespace serene {
 string Error::string_repr() const { return fmt::format("Error: {}", msg); }
 
 string Error::dumpAST() const { return fmt::format("<Error: {}>", this->msg); }
-
-Value *Error::codegen(Compiler &compiler, State &state) { return nullptr; }
 
 Error::~Error() { EXPR_LOG("Destroying Error"); }
 } // namespace serene
