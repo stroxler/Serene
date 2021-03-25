@@ -22,34 +22,22 @@
  * SOFTWARE.
  */
 
-#ifndef LIST_H
-#define LIST_H
+#ifndef DIALECT_H_
+#define DIALECT_H_
 
-#include "serene/expr.hpp"
-#include "serene/llvm/IR/Value.h"
-#include "llvm/ADT/Optional.h"
-#include <list>
-#include <string>
+#include "mlir/IR/BuiltinOps.h"
+#include "mlir/IR/Dialect.h"
+#include "mlir/Interfaces/SideEffectInterfaces.h"
 
-namespace serene {
+// Include the auto-generated header file containing the declaration of the
+// serene's dialect.
+#include "serene/sir/dialect.hpp.inc"
 
-class List : public AExpr {
-  std::list<ast_node> nodes_;
+// Include the auto-generated header file containing the declarations of the
+// serene's operations.
+// for more on GET_OP_CLASSES: https://mlir.llvm.org/docs/OpDefinitions/
+#define GET_OP_CLASSES
 
-public:
-  ExprId id() const override { return list; }
+#include "serene/sir/ops.hpp.inc"
 
-  std::string dumpAST() const override;
-  std::string string_repr() const override;
-  size_t length() const;
-
-  void cons(ast_node f);
-  void append(ast_node t);
-
-  llvm::Optional<ast_node> at(uint index) const;
-};
-
-using ast_list_node = std::unique_ptr<List>;
-} // namespace serene
-
-#endif
+#endif // DIALECT_H_

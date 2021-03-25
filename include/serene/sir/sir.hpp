@@ -21,35 +21,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#ifndef SIR_H
+#define SIR_H
 
-#ifndef LIST_H
-#define LIST_H
-
+#include "mlir/IR/MLIRContext.h"
 #include "serene/expr.hpp"
-#include "serene/llvm/IR/Value.h"
-#include "llvm/ADT/Optional.h"
-#include <list>
-#include <string>
 
 namespace serene {
+namespace sir {
 
-class List : public AExpr {
-  std::list<ast_node> nodes_;
+class SIR {
+  mlir::MLIRContext context;
 
 public:
-  ExprId id() const override { return list; }
-
-  std::string dumpAST() const override;
-  std::string string_repr() const override;
-  size_t length() const;
-
-  void cons(ast_node f);
-  void append(ast_node t);
-
-  llvm::Optional<ast_node> at(uint index) const;
+  SIR();
+  ~SIR();
 };
 
-using ast_list_node = std::unique_ptr<List>;
+void dumpSIR(std::unique_ptr<ast_tree>);
+} // namespace sir
+
 } // namespace serene
 
 #endif

@@ -113,7 +113,7 @@ ast_list_node Reader::read_list(List *list) {
 
     switch (c) {
     case EOF:
-      throw ReadError((char *)"EOF reached before closing of list");
+      throw ReadError(const_cast<char *>("EOF reached before closing of list"));
     case ')':
       list_terminated = true;
       break;
@@ -170,11 +170,15 @@ void Reader::dumpAST() {
 }
 
 std::unique_ptr<ast_tree> FileReader::read() {
+
+  // TODO: Add support for relative path as well
   llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> fileOrErr =
       llvm::MemoryBuffer::getFileOrSTDIN(file);
 
   if (std::error_code EC = fileOrErr.getError()) {
     llvm::errs() << "Could not open input file: " << EC.message() << "\n";
+    llvm::errs() << fmt::format("File: '{}'\n", file);
+    llvm::errs() << "Use absolute path for now\n";
     return nullptr;
   }
 

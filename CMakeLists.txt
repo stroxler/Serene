@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.16)
 project(Serene
   VERSION 0.1.0
   DESCRIPTION "Serene language is a modern Lisp."
-  LANGUAGES CXX)
+  LANGUAGES CXX C)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
@@ -13,7 +13,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 
   ## Settings -----------------------------------------
   # specify the C++ standard
-  set(CMAKE_CXX_STANDARD 20)
+  set(CMAKE_CXX_STANDARD 14)
   set(CMAKE_CXX_STANDARD_REQUIRED True)
 
   set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
@@ -66,14 +66,36 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   include(FetchContent)
 
   find_package(LLVM REQUIRED CONFIG)
+  find_package(MLIR REQUIRED CONFIG)
 
   message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
   message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+  message(STATUS "Using MLIRConfig.cmake in: ${MLIR_DIR}")
+
+  set(LLVM_RUNTIME_OUTPUT_INTDIR ${CMAKE_BINARY_DIR}/bin)
+  set(LLVM_LIBRARY_OUTPUT_INTDIR ${CMAKE_BINARY_DIR}/lib)
+  set(MLIR_BINARY_DIR ${CMAKE_BINARY_DIR})
+
+  list(APPEND CMAKE_MODULE_PATH "${MLIR_CMAKE_DIR}")
+  list(APPEND CMAKE_MODULE_PATH "${LLVM_CMAKE_DIR}")
+
+  include(TableGen)
+  include(AddLLVM)
+  include(AddMLIR)
+  include(HandleLLVMOptions)
+
+  include_directories(${LLVM_INCLUDE_DIRS})
+  include_directories(${MLIR_INCLUDE_DIRS})
+  include_directories(${PROJECT_SOURCE_DIR}/include)
+  include_directories(${PROJECT_BINARY_DIR}/include)
+  link_directories(${LLVM_BUILD_LIBRARY_DIR})
+  add_definitions(${LLVM_DEFINITIONS})
 
   include_directories(${LLVM_INCLUDE_DIRS})
   add_definitions(${LLVM_DEFINITIONS})
 
   llvm_map_components_to_libnames(llvm_libs support core irreader)
+
 
   # Formatting library
   FetchContent_Declare(
@@ -90,6 +112,8 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   # The executable code is here
   add_subdirectory(bin)
 
+  add_subdirectory(include)
+  include_directories(${CMAKE_CURRENT_BINARY_DIR}/include/)
   # Testing only available if this is the main app
   # Emergency override SERENE_CMAKE_BUILD_TESTING provided as well
   if((CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME OR SERENE_CMAKE_BUILD_TESTING) AND BUILD_TESTING)

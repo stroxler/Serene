@@ -21,35 +21,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#include "serene/sir/dialect.hpp"
 
-#ifndef LIST_H
-#define LIST_H
-
-#include "serene/expr.hpp"
-#include "serene/llvm/IR/Value.h"
-#include "llvm/ADT/Optional.h"
-#include <list>
-#include <string>
+#include "mlir/IR/Builders.h"
+#include "mlir/IR/BuiltinTypes.h"
+#include "mlir/IR/OpImplementation.h"
 
 namespace serene {
+namespace sir {
 
-class List : public AExpr {
-  std::list<ast_node> nodes_;
+/// Dialect initialization, the instance will be owned by the context. This is
+/// the point of registration of types and operations for the dialect.
+void SereneDialect::initialize() {
+  addOperations<
+#define GET_OP_LIST
+#include "serene/sir/ops.cpp.inc"
+      >();
+}
 
-public:
-  ExprId id() const override { return list; }
-
-  std::string dumpAST() const override;
-  std::string string_repr() const override;
-  size_t length() const;
-
-  void cons(ast_node f);
-  void append(ast_node t);
-
-  llvm::Optional<ast_node> at(uint index) const;
-};
-
-using ast_list_node = std::unique_ptr<List>;
+} // namespace sir
 } // namespace serene
-
-#endif

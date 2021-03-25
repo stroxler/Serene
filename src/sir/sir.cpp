@@ -22,34 +22,15 @@
  * SOFTWARE.
  */
 
-#ifndef LIST_H
-#define LIST_H
-
+#include "serene/sir/sir.hpp"
+#include "mlir/IR/MLIRContext.h"
 #include "serene/expr.hpp"
-#include "serene/llvm/IR/Value.h"
-#include "llvm/ADT/Optional.h"
-#include <list>
-#include <string>
+#include "serene/sir/dialect.hpp"
 
 namespace serene {
+namespace sir {
+SIR::SIR() { context.getOrLoadDialect<serene::sir::SereneDialect>(); }
 
-class List : public AExpr {
-  std::list<ast_node> nodes_;
-
-public:
-  ExprId id() const override { return list; }
-
-  std::string dumpAST() const override;
-  std::string string_repr() const override;
-  size_t length() const;
-
-  void cons(ast_node f);
-  void append(ast_node t);
-
-  llvm::Optional<ast_node> at(uint index) const;
-};
-
-using ast_list_node = std::unique_ptr<List>;
+void dumpSIR(std::unique_ptr<ast_tree> tree) {}
+} // namespace sir
 } // namespace serene
-
-#endif

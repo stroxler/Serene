@@ -24,6 +24,7 @@
 
 #include "serene/serene.hpp"
 #include "serene/reader.hpp"
+#include "serene/sir/sir.hpp"
 #include <iostream>
 #include <llvm/Support/CommandLine.h>
 
@@ -33,7 +34,7 @@ using namespace serene;
 namespace cl = llvm::cl;
 
 namespace {
-enum Action { None, DumpAST };
+enum Action { None, DumpAST, DumpIR };
 }
 
 static cl::opt<std::string> inputFile(cl::Positional,
@@ -43,6 +44,7 @@ static cl::opt<std::string> inputFile(cl::Positional,
 
 static cl::opt<enum Action>
     emitAction("emit", cl::desc("Select what to dump."),
+               cl::values(clEnumValN(DumpIR, "sir", "Output the SLIR only")),
                cl::values(clEnumValN(DumpAST, "ast", "Output the AST only")));
 
 int main(int argc, char *argv[]) {
@@ -52,6 +54,14 @@ int main(int argc, char *argv[]) {
   case Action::DumpAST: {
     FileReader *r = new FileReader(inputFile);
     r->dumpAST();
+    delete r;
+    return 0;
+  }
+  case Action::DumpIR: {
+    FileReader *r = new FileReader(inputFile);
+
+    serene::sir::dumpSIR(r->read());
+    delete r;
     return 0;
   }
   default: {

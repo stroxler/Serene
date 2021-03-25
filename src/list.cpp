@@ -26,6 +26,7 @@
 #include "serene/expr.hpp"
 #include "serene/llvm/IR/Value.h"
 #include "serene/symbol.hpp"
+#include "llvm/ADT/Optional.h"
 #include <bits/c++config.h>
 #include <fmt/core.h>
 #include <string>
@@ -34,14 +35,14 @@ using namespace llvm;
 
 namespace serene {
 
-std::optional<ast_node> List::at(uint index) const {
+llvm::Optional<ast_node> List::at(uint index) const {
   if (index >= nodes_.size()) {
-    return std::nullopt;
+    return llvm::None;
   }
 
   auto itr = cbegin(nodes_);
   std::advance(itr, index);
-  return std::make_optional(*itr);
+  return llvm::Optional<ast_node>(*itr);
 }
 
 void List::cons(ast_node node) { nodes_.push_front(std::move(node)); }

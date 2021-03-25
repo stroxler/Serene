@@ -5,6 +5,8 @@ set(HEADER_LIST
   "${INCLUDE_DIR}/serene/expr.hpp"
   "${INCLUDE_DIR}/serene/serene.hpp"
   "${INCLUDE_DIR}/serene/state.hpp"
+  "${INCLUDE_DIR}/serene/sir/sir.hpp"
+  "${INCLUDE_DIR}/serene/sir/dialect.hpp"
   "${INCLUDE_DIR}/serene/namespace.hpp")
 
 # Make an automatic library - will be static or dynamic based on user setting
@@ -15,11 +17,15 @@ add_library(lserene
   list.cpp
   namespace.cpp
   state.cpp
+  sir/sir.cpp
+  sir/dialect.cpp
   ${HEADER_LIST})
 
+# Make sure to generate files related to the dialects first
+add_dependencies(lserene SereneDialectGen)
 
 # We need this directory, and users of our library will need it too
-target_compile_features(lserene PUBLIC cxx_std_20)
+target_compile_features(lserene PUBLIC cxx_std_14)
 target_include_directories(lserene PRIVATE ${INCLUDE_DIR})
 target_include_directories(lserene PUBLIC ${PROJECT_BINARY_DIR})
 

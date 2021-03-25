@@ -1,0 +1,5 @@
+set(LLVM_TARGET_DEFINITIONS dialect.td)
+mlir_tablegen(ops.hpp.inc -gen-op-decls)
+mlir_tablegen(ops.cpp.inc -gen-op-defs)
+mlir_tablegen(dialect.hpp.inc -gen-dialect-decls)
+add_public_tablegen_target(SereneDialectGen)
