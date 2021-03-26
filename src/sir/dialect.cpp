@@ -41,3 +41,6 @@ void SereneDialect::initialize() {
 
 } // namespace sir
 } // namespace serene
+
+#define GET_OP_CLASSES
+#include "serene/sir/ops.cpp.inc"

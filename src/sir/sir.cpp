@@ -29,7 +29,7 @@
 
 namespace serene {
 namespace sir {
-SIR::SIR() { context.getOrLoadDialect<serene::sir::SereneDialect>(); }
+SIR::SIR() { context.getOrLoadDialect<::serene::sir::SereneDialect>(); }
 
 void dumpSIR(std::unique_ptr<ast_tree> tree) {}
 } // namespace sir
