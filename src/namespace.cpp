@@ -22,6 +22,7 @@
  * SOFTWARE.
  */
 
+#include "serene/namespace.hpp"
 #include "serene/expr.hpp"
 #include "serene/llvm/IR/Value.h"
 #include <fmt/core.h>
@@ -32,18 +33,36 @@ using namespace llvm;
 
 namespace serene {
 
-Value *Namespace::lookup(const string &name) { return scope[name]; };
+ast_tree &Namespace::Tree() { return this->tree; }
 
-void Namespace::insert_symbol(const string &name, Value *v) { scope[name] = v; }
-
-void Namespace::print_scope() {
-  typedef map<string, Value *>::const_iterator Iter;
-
-  fmt::print("Scope of '{}' ns.\n", name);
-  for (Iter iter = scope.begin(); iter != scope.end(); iter++) {
-    fmt::print("{}\n", iter->first);
+mlir::Value Namespace::lookup(mlir::StringRef name) {
+  if (auto value = scope.lookup(name)) {
+    return value;
   }
+
+  return nullptr;
 };
+
+mlir::LogicalResult Namespace::setTree(ast_tree t) {
+  if (initialized) {
+    return mlir::failure();
+  }
+  this->tree = t;
+  this->initialized = true;
+  return mlir::success();
+}
+
+mlir::LogicalResult Namespace::insert_symbol(mlir::StringRef name,
+                                             mlir::Value v) {
+  if (scope.count(name)) {
+    return mlir::failure();
+  }
+
+  scope.insert(name, v);
+  return mlir::success();
+}
+
+void Namespace::print_scope(){};
 
 Namespace::~Namespace() {}
 

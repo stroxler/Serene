@@ -22,46 +22,28 @@
  * SOFTWARE.
  */
 
-#ifndef NAMESPACE_H
-#define NAMESPACE_H
-
+#include "serene/sir/generator.hpp"
+#include "mlir/IR/Builders.h"
 #include "mlir/IR/BuiltinOps.h"
+#include "mlir/IR/MLIRContext.h"
 #include "serene/expr.hpp"
-#include "serene/llvm/IR/Value.h"
-#include "serene/logger.hpp"
-#include "llvm/ADT/ScopedHashTable.h"
-#include <llvm/IR/Module.h>
-#include <string>
-
-#if defined(ENABLE_LOG) || defined(ENABLE_NAMESPACE_LOG)
-#define NAMESPACE_LOG(...) __LOG("NAMESPACE", __VA_ARGS__);
-#else
-#define NAMESPACE_LOG(...) ;
-#endif
+#include "serene/sir/dialect.hpp"
 
 namespace serene {
-class AExpr;
+namespace sir {
 
-class Namespace {
-private:
-  ast_tree tree{};
-  bool initialized = false;
+mlir::ModuleOp Generator::generate(::serene::Namespace &ns) {
+  auto module = mlir::ModuleOp::create(builder.getUnknownLoc());
 
-  llvm::ScopedHashTable<mlir::StringRef, mlir::Value> scope;
-
-public:
-  mlir::StringRef name;
-
-  Namespace(mlir::StringRef ns_name) : name(ns_name){};
-  ast_tree &Tree();
-  mlir::LogicalResult setTree(ast_tree);
-  mlir::Value lookup(mlir::StringRef name);
-  mlir::LogicalResult insert_symbol(mlir::StringRef name, mlir::Value v);
-
-  void print_scope();
-  ~Namespace();
+  // for (auto &x : ns.Tree()) {
+  //   this->generate(x);
+  // }
+  module.push_back(
+      builder.create<ValueOp>(builder.getUnknownLoc(), (uint64_t)3));
+  return module;
 };
 
-} // namespace serene
+Generator::~Generator(){};
+} // namespace sir
 
-#endif
+} // namespace serene

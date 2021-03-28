@@ -26,11 +26,33 @@
 #include "mlir/IR/MLIRContext.h"
 #include "serene/expr.hpp"
 #include "serene/sir/dialect.hpp"
+#include "serene/sir/generator.hpp"
 
 namespace serene {
 namespace sir {
 SIR::SIR() { context.getOrLoadDialect<::serene::sir::SereneDialect>(); }
 
-void dumpSIR(std::unique_ptr<ast_tree> tree) {}
+mlir::OwningModuleRef SIR::generate(::serene::Namespace &ns) {
+  Generator g{context};
+
+  return g.generate(ns);
+};
+
+SIR::~SIR() {}
+
+void dumpSIR(ast_tree &t) {
+  auto ns = std::make_unique<Namespace>("user");
+
+  SIR s{};
+
+  if (failed(ns->setTree(t))) {
+    llvm::errs() << "Can't set the body of the namespace";
+    return;
+  }
+
+  auto module = s.generate(*ns);
+  module->dump();
+};
+
 } // namespace sir
 } // namespace serene

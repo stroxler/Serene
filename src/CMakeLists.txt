@@ -7,6 +7,7 @@ set(HEADER_LIST
   "${INCLUDE_DIR}/serene/state.hpp"
   "${INCLUDE_DIR}/serene/sir/sir.hpp"
   "${INCLUDE_DIR}/serene/sir/dialect.hpp"
+    "${INCLUDE_DIR}/serene/sir/generator.hpp"
   "${INCLUDE_DIR}/serene/namespace.hpp")
 
 # Make an automatic library - will be static or dynamic based on user setting
@@ -19,6 +20,8 @@ add_library(lserene
   state.cpp
   sir/sir.cpp
   sir/dialect.cpp
+  sir/value_op.cpp
+  sir/generator.cpp
   ${HEADER_LIST})
 
 # Make sure to generate files related to the dialects first

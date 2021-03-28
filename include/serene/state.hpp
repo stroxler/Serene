@@ -27,7 +27,7 @@
 
 #include "serene/llvm/IR/Value.h"
 #include "serene/logger.hpp"
-#include "serene/namespace.hpp"
+//#include "serene/namespace.hpp"
 #include <llvm/IR/Module.h>
 #include <string>
 
@@ -37,20 +37,6 @@
 #define STATE_LOG(...) ;
 #endif
 
-namespace serene {
-class State {
-public:
-  std::map<std::string, Namespace *> namespaces;
-  Namespace *current_ns;
-
-  State();
-
-  void add_namespace(Namespace *ns, bool set_current, bool overwrite);
-  bool set_current_ns(Namespace *ns);
-  llvm::Value *lookup_in_current_scope(const std::string &name);
-  void set_in_current_ns_root_scope(std::string name, llvm::Value *v);
-  ~State();
-};
-} // namespace serene
+namespace serene {} // namespace serene
 
 #endif

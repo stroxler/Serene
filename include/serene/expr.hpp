@@ -27,7 +27,6 @@
 
 #include "serene/llvm/IR/Value.h"
 #include "serene/logger.hpp"
-#include "serene/state.hpp"
 #include <string>
 
 #if defined(ENABLE_LOG) || defined(ENABLE_EXPR_LOG)

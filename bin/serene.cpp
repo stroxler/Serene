@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
   case Action::DumpIR: {
     FileReader *r = new FileReader(inputFile);
 
-    serene::sir::dumpSIR(r->read());
+    serene::sir::dumpSIR(*r->read());
     delete r;
     return 0;
   }

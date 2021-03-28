@@ -22,46 +22,17 @@
  * SOFTWARE.
  */
 
-#ifndef NAMESPACE_H
-#define NAMESPACE_H
-
-#include "mlir/IR/BuiltinOps.h"
-#include "serene/expr.hpp"
-#include "serene/llvm/IR/Value.h"
-#include "serene/logger.hpp"
-#include "llvm/ADT/ScopedHashTable.h"
-#include <llvm/IR/Module.h>
-#include <string>
-
-#if defined(ENABLE_LOG) || defined(ENABLE_NAMESPACE_LOG)
-#define NAMESPACE_LOG(...) __LOG("NAMESPACE", __VA_ARGS__);
-#else
-#define NAMESPACE_LOG(...) ;
-#endif
+#include "mlir/IR/Builders.h"
+#include "mlir/IR/MLIRContext.h"
+#include "serene/sir/dialect.hpp"
+#include "serene/sir/sir.hpp"
 
 namespace serene {
-class AExpr;
-
-class Namespace {
-private:
-  ast_tree tree{};
-  bool initialized = false;
-
-  llvm::ScopedHashTable<mlir::StringRef, mlir::Value> scope;
-
-public:
-  mlir::StringRef name;
-
-  Namespace(mlir::StringRef ns_name) : name(ns_name){};
-  ast_tree &Tree();
-  mlir::LogicalResult setTree(ast_tree);
-  mlir::Value lookup(mlir::StringRef name);
-  mlir::LogicalResult insert_symbol(mlir::StringRef name, mlir::Value v);
-
-  void print_scope();
-  ~Namespace();
-};
-
+namespace sir {
+void ValueOp::build(::mlir::OpBuilder &odsBuilder,
+                    ::mlir::OperationState &odsState, int value) {
+  ValueOp::build(odsBuilder, odsState, odsBuilder.getI64Type(),
+                 (uint64_t)value);
+}
+} // namespace sir
 } // namespace serene
-
-#endif

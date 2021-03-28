@@ -24,21 +24,28 @@
 #ifndef SIR_H
 #define SIR_H
 
+#include "mlir/IR/BuiltinOps.h"
 #include "mlir/IR/MLIRContext.h"
 #include "serene/expr.hpp"
+#include "serene/sir/generator.hpp"
 
 namespace serene {
 namespace sir {
 
 class SIR {
+
+private:
   mlir::MLIRContext context;
 
 public:
   SIR();
+
+  mlir::OwningModuleRef generate(::serene::Namespace &ns);
+
   ~SIR();
 };
 
-void dumpSIR(std::unique_ptr<ast_tree>);
+void dumpSIR(ast_tree &t);
 } // namespace sir
 
 } // namespace serene
