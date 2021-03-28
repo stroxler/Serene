@@ -28,11 +28,5 @@
 #include "serene/sir/sir.hpp"
 
 namespace serene {
-namespace sir {
-void ValueOp::build(::mlir::OpBuilder &odsBuilder,
-                    ::mlir::OperationState &odsState, int value) {
-  ValueOp::build(odsBuilder, odsState, odsBuilder.getI64Type(),
-                 (uint64_t)value);
-}
-} // namespace sir
+namespace sir {} // namespace sir
 } // namespace serene

@@ -1,11 +1,11 @@
-add_executable(serene serene.cpp)
+add_executable(serenec serene.cpp)
 # Make sure to generate files related to the dialects first
-add_dependencies(serene SereneDialectGen)
+add_dependencies(serenec SereneDialectGen)
 
-target_compile_features(serene PRIVATE cxx_std_14)
+target_compile_features(serenec PRIVATE cxx_std_14)
 
-target_link_libraries(serene PRIVATE
-  lserene
+target_link_libraries(serenec PRIVATE
+  serene
   ${llvm_libs}
   fmt::fmt
   MLIRAnalysis
@@ -19,6 +19,6 @@ target_link_libraries(serene PRIVATE
 target_include_directories(serene SYSTEM PRIVATE $ENV{INCLUDE})
 target_include_directories(serene PRIVATE ${INCLUDE_DIR})
 
-install(TARGETS serene DESTINATION bin)
+install(TARGETS serenec DESTINATION bin)
 install(FILES "${PROJECT_BINARY_DIR}/config.h" DESTINATION include)
-cotire(serene)
+cotire(serenec)

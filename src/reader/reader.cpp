@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-#include "serene/reader.hpp"
+#include "serene/reader/reader.hpp"
 #include "serene/error.hpp"
 #include "serene/list.hpp"
 #include "serene/symbol.hpp"
@@ -37,18 +37,31 @@
 using namespace std;
 
 namespace serene {
+
+namespace reader {
 Reader::Reader(const string input) { this->setInput(input); };
 
+/**
+ * Set the input of the reader.
+ * @param input Set the input to the given string
+ */
 void Reader::setInput(const string input) {
   input_stream.write(input.c_str(), input.size());
 };
 
 Reader::~Reader() { READER_LOG("Destroying the reader"); }
 
+/**
+ * Return the next character in the buffer.
+ * @param skip_whitespace If true it will skip whitespaces and EOL chars
+ */
 char Reader::get_char(bool skip_whitespace) {
   for (;;) {
     char c = input_stream.get();
+    inc_location(current_location, c == '\n');
+
     if (skip_whitespace == true && isspace(c)) {
+
       continue;
     } else {
       return c;
@@ -205,5 +218,5 @@ FileReader::~FileReader() {
   delete this->reader;
   READER_LOG("Destroying the file reader");
 }
-
+} // namespace reader
 } // namespace serene

@@ -22,6 +22,27 @@
  * SOFTWARE.
  */
 
-#include "serene/serene.hpp"
-#include "serene/reader/reader.hpp"
-#include <iostream>
+#include "serene/reader/location.hpp"
+
+namespace serene {
+namespace reader {
+
+/**
+ * Increase the given location by one and set the line/col value in respect to
+ * the `newline` in place.
+ * @param loc The `Location` data
+ * @param newline Whether or not we reached a new line
+ */
+void inc_location(Location &loc, bool newline) {
+  loc.pos++;
+
+  if (!newline) {
+    loc.col++;
+  } else {
+    loc.col = 0;
+    loc.line++;
+  }
+}
+
+} // namespace reader
+} // namespace serene

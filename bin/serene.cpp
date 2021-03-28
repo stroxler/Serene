@@ -23,7 +23,7 @@
  */
 
 #include "serene/serene.hpp"
-#include "serene/reader.hpp"
+#include "serene/reader/reader.hpp"
 #include "serene/sir/sir.hpp"
 #include <iostream>
 #include <llvm/Support/CommandLine.h>
@@ -52,13 +52,13 @@ int main(int argc, char *argv[]) {
 
   switch (emitAction) {
   case Action::DumpAST: {
-    FileReader *r = new FileReader(inputFile);
+    reader::FileReader *r = new reader::FileReader(inputFile);
     r->dumpAST();
     delete r;
     return 0;
   }
   case Action::DumpIR: {
-    FileReader *r = new FileReader(inputFile);
+    reader::FileReader *r = new reader::FileReader(inputFile);
 
     serene::sir::dumpSIR(*r->read());
     delete r;

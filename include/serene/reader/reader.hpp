@@ -36,6 +36,7 @@
 #include "serene/expr.hpp"
 #include "serene/list.hpp"
 #include "serene/logger.hpp"
+#include "serene/reader/location.hpp"
 #include "serene/serene.hpp"
 #include "serene/symbol.hpp"
 
@@ -46,6 +47,7 @@
 #endif
 
 namespace serene {
+namespace reader {
 
 class ReadError : public std::exception {
 private:
@@ -59,6 +61,7 @@ public:
 class Reader {
 private:
   std::stringstream input_stream;
+  Location current_location{0, 0, 0};
 
   char get_char(bool skip_whitespace);
   void unget_char();
@@ -99,6 +102,6 @@ public:
 
   ~FileReader();
 };
+} // namespace reader
 } // namespace serene
-
 #endif

@@ -47,7 +47,7 @@ function clean() {
 
 function run() {
     pushed_build
-    $BUILD_DIR/bin/serene "$@"
+    $BUILD_DIR/bin/serenec "$@"
     popd_build
 }
 

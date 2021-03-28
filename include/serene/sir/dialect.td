@@ -74,7 +74,10 @@ def ValueOp: Serene_Op<"value"> {
     // let verifier = [{ return serene::sir::verify(*this); }];
 
     let builders = [
-        OpBuilder<(ins "int":$value)>,
+        OpBuilder<(ins "int":$value), [{
+        // Build from fix 64 bit int
+        build(odsBuilder, odsState, odsBuilder.getI64Type(), (uint64_t) value);
+        }]>,
     ];
 }
 

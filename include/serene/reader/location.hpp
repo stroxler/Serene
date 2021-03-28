@@ -22,6 +22,27 @@
  * SOFTWARE.
  */
 
-#include "serene/serene.hpp"
-#include "serene/reader/reader.hpp"
-#include <iostream>
+#ifndef LOCATION_H
+#define LOCATION_H
+
+namespace serene {
+namespace reader {
+/**
+ * It represents a location in the input string to the parser via `line`,
+ */
+struct Location {
+  int pos; // Position of in the input string.
+  int line;
+  int col;
+};
+
+struct LocationRange {
+  Location start;
+  Location end;
+};
+
+void inc_location(Location &, bool);
+
+} // namespace reader
+} // namespace serene
+#endif
