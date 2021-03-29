@@ -27,6 +27,7 @@
 
 #include "serene/expr.hpp"
 #include "serene/llvm/IR/Value.h"
+#include "serene/reader/location.hpp"
 #include "serene/state.hpp"
 #include <string>
 
@@ -35,7 +36,7 @@ class Symbol : public AExpr {
   const std::string name_;
 
 public:
-  Symbol(const std::string &);
+  Symbol(reader::LocationRange loc, const std::string &);
   virtual ~Symbol();
 
   const std::string &name() const;
@@ -44,6 +45,8 @@ public:
   std::string string_repr() const override;
   std::string dumpAST() const override;
 };
+
+std::unique_ptr<Symbol> makeSymbol(reader::LocationRange, std::string);
 } // namespace serene
 
 #endif

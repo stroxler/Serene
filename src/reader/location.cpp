@@ -24,8 +24,22 @@
 
 #include "serene/reader/location.hpp"
 
+#include <fmt/core.h>
+
 namespace serene {
 namespace reader {
+
+LocationRange::LocationRange(LocationRange &loc) {
+  start = loc.start;
+  end = loc.end;
+}
+
+/**
+ * Return the string represenation of the location.
+ */
+std::string Location::toString() {
+  return fmt::format("{}:{}:{}", line, col, pos);
+};
 
 /**
  * Increase the given location by one and set the line/col value in respect to
@@ -44,5 +58,15 @@ void inc_location(Location &loc, bool newline) {
   }
 }
 
+void dec_location(Location &loc, bool newline) {
+  loc.pos = loc.pos == 0 ? 0 : loc.pos - 1;
+
+  if (newline) {
+    loc.line = loc.line == 0 ? 0 : loc.line - 1;
+    // We don't move back the `col` value because we simply don't know it
+  } else {
+    loc.col = loc.col == 0 ? 0 : loc.col - 1;
+  }
+}
 } // namespace reader
 } // namespace serene

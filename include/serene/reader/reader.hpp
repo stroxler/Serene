@@ -60,6 +60,7 @@ public:
 
 class Reader {
 private:
+  char current_char = ';'; // Some arbitary char to begin with
   std::stringstream input_stream;
   Location current_location{0, 0, 0};
 
@@ -71,7 +72,7 @@ private:
   ast_tree ast;
 
   ast_node read_symbol();
-  ast_list_node read_list(List *list);
+  ast_list_node read_list();
   ast_node read_expr();
 
 public:

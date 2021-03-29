@@ -27,6 +27,7 @@
 
 #include "serene/expr.hpp"
 #include "serene/llvm/IR/Value.h"
+#include "serene/reader/location.hpp"
 #include "llvm/ADT/Optional.h"
 #include <list>
 #include <string>
@@ -37,6 +38,9 @@ class List : public AExpr {
   std::list<ast_node> nodes_;
 
 public:
+  List(){};
+  List(reader::Location start);
+
   ExprId id() const override { return list; }
 
   std::string dumpAST() const override;
@@ -48,6 +52,9 @@ public:
 
   llvm::Optional<ast_node> at(uint index) const;
 };
+
+std::unique_ptr<List> makeList(reader::Location);
+std::unique_ptr<List> makeList(reader::Location, List *);
 
 using ast_list_node = std::unique_ptr<List>;
 } // namespace serene

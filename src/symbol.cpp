@@ -41,12 +41,21 @@ namespace serene {
 string Symbol::string_repr() const { return name_; }
 
 string Symbol::dumpAST() const {
-  return fmt::format("<Symbol: {}>", this->name());
+  return fmt::format("<Symbol [loc: {} | {}]: {}>",
+                     this->location->start.toString(),
+                     this->location->end.toString(), this->name());
 }
 
 const string &Symbol::name() const { return name_; }
 
-Symbol::Symbol(const string &name) : name_(name) {}
+Symbol::Symbol(reader::LocationRange loc, const string &name) : name_(name) {
+  this->location.reset(new reader::LocationRange(loc));
+}
 
 Symbol::~Symbol() { EXPR_LOG("Destroying symbol"); }
+
+std::unique_ptr<Symbol> makeSymbol(reader::LocationRange loc,
+                                   std::string name) {
+  return std::make_unique<Symbol>(loc, name);
+}
 } // namespace serene

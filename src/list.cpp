@@ -35,6 +35,10 @@ using namespace llvm;
 
 namespace serene {
 
+List::List(reader::Location startLoc) {
+  this->location.reset(new reader::LocationRange(startLoc));
+}
+
 llvm::Optional<ast_node> List::at(uint index) const {
   if (index >= nodes_.size()) {
     return llvm::None;
@@ -67,9 +71,24 @@ std::string List::dumpAST() const {
     s = fmt::format("{} {}", s, n->dumpAST());
   }
 
-  return fmt::format("<List: {}>", s);
+  return fmt::format("<List [loc: {} | {}]: {} >",
+                     this->location->start.toString(),
+                     this->location->end.toString(), s);
 }
 
 inline size_t List::length() const { return nodes_.size(); }
+
+/**
+ * Make an empty List in starts at the given location `loc`.
+ */
+std::unique_ptr<List> makeList(reader::Location loc) {
+  return std::make_unique<List>(loc);
+}
+/**
+ * Make a list out of the given pointer to a List
+ */
+std::unique_ptr<List> makeList(List *list) {
+  return std::unique_ptr<List>(list);
+}
 
 } // namespace serene

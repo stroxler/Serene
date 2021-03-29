@@ -58,6 +58,8 @@ Reader::~Reader() { READER_LOG("Destroying the reader"); }
 char Reader::get_char(bool skip_whitespace) {
   for (;;) {
     char c = input_stream.get();
+
+    this->current_char = c;
     inc_location(current_location, c == '\n');
 
     if (skip_whitespace == true && isspace(c)) {
@@ -69,7 +71,11 @@ char Reader::get_char(bool skip_whitespace) {
   }
 };
 
-void Reader::unget_char() { input_stream.unget(); };
+void Reader::unget_char() {
+  input_stream.unget();
+  // The char that we just unget
+  dec_location(current_location, this->current_char == '\n');
+};
 
 bool Reader::is_valid_for_identifier(char c) {
   switch (c) {
@@ -98,7 +104,9 @@ ast_node Reader::read_symbol() {
     exit(1);
   }
 
-  string sym("");
+  std::string sym("");
+  LocationRange loc;
+  loc.start = current_location;
 
   while (c != EOF && ((!(isspace(c)) && this->is_valid_for_identifier(c)))) {
     sym += c;
@@ -108,14 +116,17 @@ ast_node Reader::read_symbol() {
 
   if (!empty) {
     unget_char();
-    return make_unique<Symbol>(sym);
+    loc.end = current_location;
+    return makeSymbol(loc, sym);
   }
 
   // TODO: it should never happens
   return nullptr;
 };
+// std::unique_ptr<List> list
+ast_list_node Reader::read_list() {
+  auto list = makeList(current_location);
 
-ast_list_node Reader::read_list(List *list) {
   char c = get_char(true);
   assert(c == '(');
 
@@ -129,6 +140,8 @@ ast_list_node Reader::read_list(List *list) {
       throw ReadError(const_cast<char *>("EOF reached before closing of list"));
     case ')':
       list_terminated = true;
+      list->location->end = current_location;
+
       break;
 
     default:
@@ -138,7 +151,7 @@ ast_list_node Reader::read_list(List *list) {
 
   } while (!list_terminated);
 
-  return unique_ptr<List>(list);
+  return list;
 }
 
 ast_node Reader::read_expr() {
@@ -148,9 +161,10 @@ ast_node Reader::read_expr() {
   unget_char();
 
   switch (c) {
-  case '(':
-    return read_list(new List());
+  case '(': {
 
+    return read_list();
+  }
   case EOF:
     return nullptr;
 

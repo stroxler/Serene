@@ -25,8 +25,8 @@
 #ifndef EXPR_H
 #define EXPR_H
 
-#include "serene/llvm/IR/Value.h"
 #include "serene/logger.hpp"
+#include "serene/reader/location.hpp"
 #include <string>
 
 #if defined(ENABLE_LOG) || defined(ENABLE_EXPR_LOG)
@@ -42,6 +42,8 @@ enum ExprId : unsigned char { aexpr = 0, symbol, list, def, error };
 
 class AExpr {
 public:
+  std::unique_ptr<reader::LocationRange> location;
+
   virtual ~AExpr() = default;
 
   virtual ExprId id() const = 0;

@@ -25,6 +25,8 @@
 #ifndef LOCATION_H
 #define LOCATION_H
 
+#include <string>
+
 namespace serene {
 namespace reader {
 /**
@@ -34,14 +36,23 @@ struct Location {
   int pos; // Position of in the input string.
   int line;
   int col;
+
+  ::std::string toString();
 };
 
-struct LocationRange {
+class LocationRange {
+public:
   Location start;
   Location end;
+
+  LocationRange() : start(Location{0, 0, 0}), end(Location{0, 0, 0}){};
+  LocationRange(Location _start) : start(_start), end(_start){};
+  LocationRange(Location _start, Location _end) : start(_start), end(_end){};
+  LocationRange(LocationRange &);
 };
 
 void inc_location(Location &, bool);
+void dec_location(Location &, bool);
 
 } // namespace reader
 } // namespace serene
