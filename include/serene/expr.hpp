@@ -37,8 +37,13 @@
 
 namespace serene {
 
-// TODO: Rename this enum and move it to a namespace
-enum ExprId : unsigned char { aexpr = 0, symbol, list, def, error };
+enum class SereneType {
+  Expression,
+  Symbol,
+  List,
+  Error,
+  Number,
+};
 
 class AExpr {
 public:
@@ -46,7 +51,7 @@ public:
 
   virtual ~AExpr() = default;
 
-  virtual ExprId id() const = 0;
+  virtual SereneType getType() const = 0;
   virtual std::string string_repr() const = 0;
   virtual std::string dumpAST() const = 0;
 };

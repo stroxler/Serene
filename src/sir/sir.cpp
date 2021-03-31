@@ -33,9 +33,9 @@ namespace sir {
 SIR::SIR() { context.getOrLoadDialect<::serene::sir::SereneDialect>(); }
 
 mlir::OwningModuleRef SIR::generate(::serene::Namespace &ns) {
-  Generator g{context};
+  Generator g{context, ns};
 
-  return g.generate(ns);
+  return g.generate();
 };
 
 SIR::~SIR() {}

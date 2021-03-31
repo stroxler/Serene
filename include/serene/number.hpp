@@ -22,43 +22,37 @@
  * SOFTWARE.
  */
 
-#ifndef LIST_H
-#define LIST_H
+#ifndef NUMBER_H
+#define NUMBER_H
 
 #include "serene/expr.hpp"
 #include "serene/llvm/IR/Value.h"
 #include "serene/reader/location.hpp"
-#include "llvm/ADT/Optional.h"
-#include <list>
+#include "serene/state.hpp"
 #include <string>
 
 namespace serene {
-
-class List : public AExpr {
-  std::vector<ast_node> nodes_;
+class Number : public AExpr {
+  const std::string num_;
 
 public:
-  List(){};
-  List(std::vector<ast_node> elements);
-  List(reader::Location start);
+  bool isNeg;
+  bool isFloat;
 
-  SereneType getType() const override { return SereneType::List; }
+  Number(reader::LocationRange loc, const std::string &, bool, bool);
+  ~Number();
 
-  std::string dumpAST() const override;
+  SereneType getType() const override { return SereneType::Number; }
   std::string string_repr() const override;
-  size_t count() const;
-  void append(ast_node t);
+  std::string dumpAST() const override;
 
-  std::unique_ptr<List> from(uint begin);
-  llvm::Optional<ast_node> at(uint index) const;
+  int64_t toI64();
 
   static bool classof(const AExpr *);
 };
 
-std::unique_ptr<List> makeList(reader::Location);
-std::unique_ptr<List> makeList(reader::Location, List *);
-
-using ast_list_node = std::unique_ptr<List>;
+std::unique_ptr<Number> makeNumber(reader::LocationRange, std::string, bool,
+                                   bool);
 } // namespace serene
 
 #endif

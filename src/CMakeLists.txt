@@ -1,6 +1,11 @@
 set(HEADER_LIST
   "${INCLUDE_DIR}/serene/expr.hpp"
   "${INCLUDE_DIR}/serene/serene.hpp"
+  "${INCLUDE_DIR}/serene/number.hpp"
+  "${INCLUDE_DIR}/serene/symbol.hpp"
+  "${INCLUDE_DIR}/serene/list.hpp"
+  "${INCLUDE_DIR}/serene/error.hpp"
+
   "${INCLUDE_DIR}/serene/state.hpp"
   # Reader
   "${INCLUDE_DIR}/serene/reader/reader.hpp"
@@ -19,6 +24,8 @@ add_library(serene
   list.cpp
   namespace.cpp
   state.cpp
+  error.cpp
+  number.cpp
 
   # Reader
   reader/reader.cpp

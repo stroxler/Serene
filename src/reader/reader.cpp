@@ -25,6 +25,7 @@
 #include "serene/reader/reader.hpp"
 #include "serene/error.hpp"
 #include "serene/list.hpp"
+#include "serene/number.hpp"
 #include "serene/symbol.hpp"
 #include "llvm/Support/ErrorOr.h"
 #include "llvm/Support/MemoryBuffer.h"
@@ -55,7 +56,7 @@ Reader::~Reader() { READER_LOG("Destroying the reader"); }
  * Return the next character in the buffer.
  * @param skip_whitespace If true it will skip whitespaces and EOL chars
  */
-char Reader::get_char(bool skip_whitespace) {
+char Reader::getChar(bool skip_whitespace) {
   for (;;) {
     char c = input_stream.get();
 
@@ -71,16 +72,32 @@ char Reader::get_char(bool skip_whitespace) {
   }
 };
 
-void Reader::unget_char() {
+void Reader::ungetChar() {
   input_stream.unget();
   // The char that we just unget
   dec_location(current_location, this->current_char == '\n');
 };
 
-bool Reader::is_valid_for_identifier(char c) {
+bool Reader::isValidForIdentifier(char c) {
   switch (c) {
-  case '!' | '$' | '%' | '&' | '*' | '+' | '-' | '.' | '~' | '/' | ':' | '<' |
-      '=' | '>' | '?' | '@' | '^' | '_':
+  case '!':
+  case '$':
+  case '%':
+  case '&':
+  case '*':
+  case '+':
+  case '-':
+  case '.':
+  case '~':
+  case '/':
+  case ':':
+  case '<':
+  case '=':
+  case '>':
+  case '?':
+  case '@':
+  case '^':
+  case '_':
     return true;
   }
 
@@ -91,31 +108,82 @@ bool Reader::is_valid_for_identifier(char c) {
   return false;
 }
 
-ast_node Reader::read_symbol() {
+ast_node Reader::readNumber(bool neg) {
+  std::string number(neg ? "-" : "");
+  bool floatNum = false;
+  bool empty = false;
+
+  LocationRange loc;
+  char c = getChar(false);
+
+  loc.start = current_location;
+
+  while (c != EOF &&
+         ((!(isspace(c)) && ((c >= '0' && c <= '9') | (c == '.'))))) {
+
+    if (c == '.' && floatNum == true) {
+
+      llvm::errs() << "Two float points in a number?\n";
+      // TODO: Return a proper error
+      return nullptr;
+    }
+
+    if (c == '.') {
+      floatNum = true;
+    }
+    number += c;
+    c = getChar(false);
+    empty = false;
+  }
+
+  if (!empty) {
+    ungetChar();
+    loc.end = current_location;
+    return makeNumber(loc, number, neg, floatNum);
+  }
+
+  return nullptr;
+};
+
+ast_node Reader::readSymbol() {
   bool empty = true;
-  char c = get_char(false);
+  char c = getChar(false);
 
   READER_LOG("Reading symbol");
-  if (!this->is_valid_for_identifier(c)) {
+  if (!this->isValidForIdentifier(c)) {
 
     // TODO: Replece this with a tranceback function or something to raise
     // synatx error.
-    fmt::print("Invalid character at the start of a symbol: '{}'\n", c);
+    // fmt::print("Invalid character at the start of a symbol: '{}'\n", c);
+    llvm::errs() << fmt::format(
+        "Invalid character at the start of a symbol: '{}'\n", c);
     exit(1);
+  }
+
+  if (c == '-') {
+    char next = getChar(false);
+    if (next >= '0' && next <= '9') {
+      ungetChar();
+      return readNumber(true);
+    }
+  }
+  if (c >= '0' && c <= '9') {
+    ungetChar();
+    return readNumber(false);
   }
 
   std::string sym("");
   LocationRange loc;
   loc.start = current_location;
 
-  while (c != EOF && ((!(isspace(c)) && this->is_valid_for_identifier(c)))) {
+  while (c != EOF && ((!(isspace(c)) && this->isValidForIdentifier(c)))) {
     sym += c;
-    c = get_char(false);
+    c = getChar(false);
     empty = false;
   }
 
   if (!empty) {
-    unget_char();
+    ungetChar();
     loc.end = current_location;
     return makeSymbol(loc, sym);
   }
@@ -123,17 +191,18 @@ ast_node Reader::read_symbol() {
   // TODO: it should never happens
   return nullptr;
 };
+
 // std::unique_ptr<List> list
-ast_list_node Reader::read_list() {
+ast_list_node Reader::readList() {
   auto list = makeList(current_location);
 
-  char c = get_char(true);
+  char c = getChar(true);
   assert(c == '(');
 
   bool list_terminated = false;
 
   do {
-    char c = get_char(true);
+    char c = getChar(true);
 
     switch (c) {
     case EOF:
@@ -145,8 +214,8 @@ ast_list_node Reader::read_list() {
       break;
 
     default:
-      unget_char();
-      list->append(read_expr());
+      ungetChar();
+      list->append(readExpr());
     }
 
   } while (!list_terminated);
@@ -154,35 +223,35 @@ ast_list_node Reader::read_list() {
   return list;
 }
 
-ast_node Reader::read_expr() {
-  char c = get_char(false);
+ast_node Reader::readExpr() {
+  char c = getChar(false);
   READER_LOG("CHAR: {}", c);
 
-  unget_char();
+  ungetChar();
 
   switch (c) {
   case '(': {
 
-    return read_list();
+    return readList();
   }
   case EOF:
     return nullptr;
 
   default:
-    return read_symbol();
+    return readSymbol();
   }
 }
 
 std::unique_ptr<ast_tree> Reader::read() {
-  char c = get_char(true);
+  char c = getChar(true);
 
   while (c != EOF) {
-    unget_char();
-    auto tmp{read_expr()};
+    ungetChar();
+    auto tmp{readExpr()};
     if (tmp) {
       this->ast.push_back(move(tmp));
     }
-    c = get_char(true);
+    c = getChar(true);
   }
 
   return std::make_unique<ast_tree>(this->ast);

@@ -64,16 +64,16 @@ private:
   std::stringstream input_stream;
   Location current_location{0, 0, 0};
 
-  char get_char(bool skip_whitespace);
-  void unget_char();
-  bool is_valid_for_identifier(char c);
+  char getChar(bool skip_whitespace);
+  void ungetChar();
+  bool isValidForIdentifier(char c);
 
   // The property to store the ast tree
   ast_tree ast;
-
-  ast_node read_symbol();
-  ast_list_node read_list();
-  ast_node read_expr();
+  ast_node readSymbol();
+  ast_node readNumber(bool);
+  ast_list_node readList();
+  ast_node readExpr();
 
 public:
   Reader() : input_stream(""){};

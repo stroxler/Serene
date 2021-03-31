@@ -16,3 +16,10 @@ _deps
 .clangd
 .cache/
 .vscode/
+CMakeDoxyfile.in
+CMakeDoxygenDefaults.cmake
+DartConfiguration.tcl
+bin/serenec_CXX_cotire.cmake
+/config.h
+
+docs/Doxyfile.docs

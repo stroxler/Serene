@@ -39,17 +39,20 @@ List::List(reader::Location startLoc) {
   this->location.reset(new reader::LocationRange(startLoc));
 }
 
+List::List(std::vector<ast_node> elements) {
+  auto startLoc = elements[0]->location->start;
+  auto endLoc = elements[elements.size() - 1]->location->end;
+  this->location.reset(new reader::LocationRange(startLoc, endLoc));
+  this->nodes_ = elements;
+}
+
 llvm::Optional<ast_node> List::at(uint index) const {
   if (index >= nodes_.size()) {
     return llvm::None;
   }
 
-  auto itr = cbegin(nodes_);
-  std::advance(itr, index);
-  return llvm::Optional<ast_node>(*itr);
+  return llvm::Optional<ast_node>(this->nodes_[index]);
 }
-
-void List::cons(ast_node node) { nodes_.push_front(std::move(node)); }
 
 void List::append(ast_node node) { nodes_.push_back(std::move(node)); }
 
@@ -76,7 +79,35 @@ std::string List::dumpAST() const {
                      this->location->end.toString(), s);
 }
 
-inline size_t List::length() const { return nodes_.size(); }
+/**
+ * Return a sub set of elements starting from the `begin` index to the end
+ * and an empty list otherwise.
+ */
+
+std::unique_ptr<List> List::from(uint begin) {
+  if (this->count() - begin < 1) {
+    return makeList(this->location->end);
+  }
+
+  std::vector<ast_node>::const_iterator first = this->nodes_.begin() + begin;
+  std::vector<ast_node>::const_iterator last = this->nodes_.end();
+  fmt::print("#### {} {} \n", this->nodes_.size(), this->nodes_.max_size());
+  fmt::print("MM {}\n", this->string_repr());
+
+  std::vector<ast_node> newCopy(first, last);
+
+  return std::make_unique<List>(newCopy);
+};
+
+size_t List::count() const { return nodes_.size(); }
+
+/**
+ * `classof` is a enabler static method that belongs to the LLVM RTTI interface
+ * `llvm::isa`, `llvm::cast` and `llvm::dyn_cast` use this method.
+ */
+bool List::classof(const AExpr *expr) {
+  return expr->getType() == SereneType::List;
+}
 
 /**
  * Make an empty List in starts at the given location `loc`.

@@ -22,43 +22,50 @@
  * SOFTWARE.
  */
 
-#ifndef LIST_H
-#define LIST_H
-
+#include "serene/number.hpp"
 #include "serene/expr.hpp"
 #include "serene/llvm/IR/Value.h"
-#include "serene/reader/location.hpp"
-#include "llvm/ADT/Optional.h"
-#include <list>
+#include "serene/namespace.hpp"
+#include "serene/state.hpp"
+#include <assert.h>
+#include <fmt/core.h>
+#include <llvm/IR/Constants.h>
+#include <llvm/IR/Type.h>
 #include <string>
 
 namespace serene {
 
-class List : public AExpr {
-  std::vector<ast_node> nodes_;
+std::string Number::string_repr() const { return num_; }
 
-public:
-  List(){};
-  List(std::vector<ast_node> elements);
-  List(reader::Location start);
+std::string Number::dumpAST() const {
+  return fmt::format("<Number [loc: {} | {}]: {}>",
+                     this->location->start.toString(),
+                     this->location->end.toString(), this->num_);
+}
 
-  SereneType getType() const override { return SereneType::List; }
-
-  std::string dumpAST() const override;
-  std::string string_repr() const override;
-  size_t count() const;
-  void append(ast_node t);
-
-  std::unique_ptr<List> from(uint begin);
-  llvm::Optional<ast_node> at(uint index) const;
-
-  static bool classof(const AExpr *);
+Number::Number(reader::LocationRange loc, const std::string &num, bool isNeg,
+               bool isFloat)
+    : num_(num), isNeg(isNeg), isFloat(isFloat) {
+  this->location.reset(new reader::LocationRange(loc));
+}
+int64_t Number::toI64() {
+  // TODO: Handle float case as well
+  return std::stoi(num_);
 };
 
-std::unique_ptr<List> makeList(reader::Location);
-std::unique_ptr<List> makeList(reader::Location, List *);
+/**
+ * `classof` is a enabler static method that belongs to the LLVM RTTI interface
+ * `llvm::isa`, `llvm::cast` and `llvm::dyn_cast` use this method.
+ */
+bool Number::classof(const AExpr *expr) {
+  return expr->getType() == SereneType::Number;
+}
 
-using ast_list_node = std::unique_ptr<List>;
+Number::~Number() { EXPR_LOG("Destroying number"); }
+
+std::unique_ptr<Number> makeNumber(reader::LocationRange loc, std::string num,
+                                   bool isNeg, bool isFloat) {
+  return std::make_unique<Number>(loc, num, isNeg, isFloat);
+}
+
 } // namespace serene
-
-#endif

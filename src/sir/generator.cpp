@@ -32,15 +32,51 @@
 namespace serene {
 namespace sir {
 
-mlir::ModuleOp Generator::generate(::serene::Namespace &ns) {
+mlir::ModuleOp Generator::generate() {
   auto module = mlir::ModuleOp::create(builder.getUnknownLoc());
 
-  // for (auto &x : ns.Tree()) {
-  //   this->generate(x);
-  // }
-  module.push_back(
-      builder.create<ValueOp>(builder.getUnknownLoc(), (uint64_t)3));
+  for (auto x : ns.Tree()) {
+    module.push_back(generateExpression(x.get()));
+  }
+
   return module;
+};
+
+mlir::Operation *Generator::generateExpression(AExpr *x) {
+  switch (x->getType()) {
+  case SereneType::Number: {
+    return generateNumber(llvm::cast<Number>(x));
+  }
+
+  case SereneType::List: {
+    return generateList(llvm::cast<List>(x));
+  }
+
+  default: {
+    return builder.create<ValueOp>(builder.getUnknownLoc(), (uint64_t)3);
+  }
+  }
+};
+
+mlir::Operation *Generator::generateList(List *l) {
+  auto first = l->at(0);
+
+  if (!first) {
+    // Empty list.
+    // TODO: Return Nil or empty list.
+
+    // Just for now.
+    return builder.create<ValueOp>(builder.getUnknownLoc(), (uint64_t)0);
+  }
+
+  // for (auto x : l->from(1)) {
+  //   generateExpression(x);
+  // }
+  return builder.create<ValueOp>(builder.getUnknownLoc(), (uint64_t)0);
+};
+
+mlir::Operation *Generator::generateNumber(Number *x) {
+  return builder.create<ValueOp>(builder.getUnknownLoc(), x->toI64());
 };
 
 Generator::~Generator(){};

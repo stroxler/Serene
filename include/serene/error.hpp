@@ -40,7 +40,7 @@ public:
 
   const std::string &message() const;
 
-  ExprId id() const override { return error; }
+  SereneType getType() const override { return SereneType::Error; }
   std::string string_repr() const override;
   std::string dumpAST() const override;
 };

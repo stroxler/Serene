@@ -28,7 +28,10 @@
 #include "mlir/IR/BuiltinOps.h"
 #include "mlir/IR/MLIRContext.h"
 #include "serene/expr.hpp"
+#include "serene/list.hpp"
 #include "serene/namespace.hpp"
+#include "serene/number.hpp"
+#include "serene/symbol.hpp"
 
 namespace serene {
 namespace sir {
@@ -36,11 +39,16 @@ namespace sir {
 class Generator {
 private:
   ::mlir::OpBuilder builder;
+  ::serene::Namespace &ns;
 
 public:
-  Generator(mlir::MLIRContext &context) : builder(&context) {}
+  Generator(mlir::MLIRContext &context, ::serene::Namespace &ns)
+      : builder(&context), ns(ns) {}
 
-  mlir::ModuleOp generate(::serene::Namespace &ns);
+  mlir::Operation *generateNumber(Number *);
+  mlir::Operation *generateExpression(AExpr *);
+  mlir::Operation *generateList(List *);
+  mlir::ModuleOp generate();
   ~Generator();
 };
 

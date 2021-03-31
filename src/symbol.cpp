@@ -52,6 +52,14 @@ Symbol::Symbol(reader::LocationRange loc, const string &name) : name_(name) {
   this->location.reset(new reader::LocationRange(loc));
 }
 
+/**
+ * `classof` is a enabler static method that belongs to the LLVM RTTI interface
+ * `llvm::isa`, `llvm::cast` and `llvm::dyn_cast` use this method.
+ */
+bool Symbol::classof(const AExpr *expr) {
+  return expr->getType() == SereneType::Symbol;
+}
+
 Symbol::~Symbol() { EXPR_LOG("Destroying symbol"); }
 
 std::unique_ptr<Symbol> makeSymbol(reader::LocationRange loc,

@@ -41,9 +41,11 @@ public:
 
   const std::string &name() const;
 
-  ExprId id() const override { return symbol; }
+  SereneType getType() const override { return SereneType::Symbol; }
   std::string string_repr() const override;
   std::string dumpAST() const override;
+
+  static bool classof(const AExpr *);
 };
 
 std::unique_ptr<Symbol> makeSymbol(reader::LocationRange, std::string);
