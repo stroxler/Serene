@@ -23,6 +23,7 @@
  */
 
 #include "serene/reader/location.hpp"
+#include "mlir/IR/Identifier.h"
 
 #include <fmt/core.h>
 
@@ -68,5 +69,6 @@ void dec_location(Location &loc, bool newline) {
     loc.col = loc.col == 0 ? 0 : loc.col - 1;
   }
 }
+
 } // namespace reader
 } // namespace serene

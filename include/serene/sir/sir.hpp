@@ -28,6 +28,7 @@
 #include "mlir/IR/MLIRContext.h"
 #include "serene/expr.hpp"
 #include "serene/sir/generator.hpp"
+#include <memory>
 
 namespace serene {
 namespace sir {
@@ -40,7 +41,7 @@ private:
 public:
   SIR();
 
-  mlir::OwningModuleRef generate(::serene::Namespace &ns);
+  mlir::OwningModuleRef generate(::serene::Namespace *ns);
 
   ~SIR();
 };

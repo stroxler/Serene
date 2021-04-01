@@ -32,6 +32,7 @@
 #include "serene/namespace.hpp"
 #include "serene/number.hpp"
 #include "serene/symbol.hpp"
+#include <memory>
 
 namespace serene {
 namespace sir {
@@ -39,15 +40,22 @@ namespace sir {
 class Generator {
 private:
   ::mlir::OpBuilder builder;
-  ::serene::Namespace &ns;
+  std::unique_ptr<::serene::Namespace> ns;
+  ::mlir::ModuleOp module;
+
+  // TODO: Should we use builder here? maybe there is a better option
+  ::mlir::Location toMLIRLocation(serene::reader::Location *);
 
 public:
-  Generator(mlir::MLIRContext &context, ::serene::Namespace &ns)
-      : builder(&context), ns(ns) {}
+  Generator(mlir::MLIRContext &context, ::serene::Namespace *ns)
+      : builder(&context),
+        module(mlir::ModuleOp::create(builder.getUnknownLoc())) {
+    this->ns.reset(ns);
+  }
 
-  mlir::Operation *generateNumber(Number *);
-  mlir::Operation *generateExpression(AExpr *);
-  mlir::Operation *generateList(List *);
+  mlir::Operation *generate(Number *);
+  mlir::Operation *generate(AExpr *);
+  mlir::Operation *generate(List *);
   mlir::ModuleOp generate();
   ~Generator();
 };

@@ -30,6 +30,7 @@
 #include "serene/llvm/IR/Value.h"
 #include "serene/logger.hpp"
 #include "llvm/ADT/ScopedHashTable.h"
+#include "llvm/ADT/StringRef.h"
 #include <llvm/IR/Module.h>
 #include <string>
 
@@ -46,13 +47,15 @@ class Namespace {
 private:
   ast_tree tree{};
   bool initialized = false;
-
   llvm::ScopedHashTable<mlir::StringRef, mlir::Value> scope;
 
 public:
+  llvm::Optional<llvm::StringRef> filename;
   mlir::StringRef name;
 
-  Namespace(mlir::StringRef ns_name) : name(ns_name){};
+  Namespace(mlir::StringRef ns_name, llvm::Optional<llvm::StringRef> filename)
+      : filename(filename), name(ns_name){};
+
   ast_tree &Tree();
   mlir::LogicalResult setTree(ast_tree);
   mlir::Value lookup(mlir::StringRef name);

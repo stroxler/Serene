@@ -39,7 +39,7 @@ public:
   Symbol(reader::LocationRange loc, const std::string &);
   virtual ~Symbol();
 
-  const std::string &name() const;
+  const std::string &getName() const;
 
   SereneType getType() const override { return SereneType::Symbol; }
   std::string string_repr() const override;

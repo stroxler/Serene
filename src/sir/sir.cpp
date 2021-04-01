@@ -27,21 +27,22 @@
 #include "serene/expr.hpp"
 #include "serene/sir/dialect.hpp"
 #include "serene/sir/generator.hpp"
+#include <memory>
 
 namespace serene {
 namespace sir {
 SIR::SIR() { context.getOrLoadDialect<::serene::sir::SereneDialect>(); }
 
-mlir::OwningModuleRef SIR::generate(::serene::Namespace &ns) {
-  Generator g{context, ns};
+mlir::OwningModuleRef SIR::generate(::serene::Namespace *ns) {
+  auto g = std::make_unique<Generator>(context, ns);
 
-  return g.generate();
+  return g->generate();
 };
 
 SIR::~SIR() {}
 
 void dumpSIR(ast_tree &t) {
-  auto ns = std::make_unique<Namespace>("user");
+  auto ns = new ::serene::Namespace("user", llvm::None);
 
   SIR s{};
 
@@ -50,7 +51,7 @@ void dumpSIR(ast_tree &t) {
     return;
   }
 
-  auto module = s.generate(*ns);
+  auto module = s.generate(ns);
   module->dump();
 };
 

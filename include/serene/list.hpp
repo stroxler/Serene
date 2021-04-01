@@ -52,6 +52,8 @@ public:
   std::unique_ptr<List> from(uint begin);
   llvm::Optional<ast_node> at(uint index) const;
 
+  std::vector<ast_node>::const_iterator begin();
+  std::vector<ast_node>::const_iterator end();
   static bool classof(const AExpr *);
 };
 

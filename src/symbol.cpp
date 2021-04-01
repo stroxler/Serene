@@ -43,10 +43,10 @@ string Symbol::string_repr() const { return name_; }
 string Symbol::dumpAST() const {
   return fmt::format("<Symbol [loc: {} | {}]: {}>",
                      this->location->start.toString(),
-                     this->location->end.toString(), this->name());
+                     this->location->end.toString(), this->getName());
 }
 
-const string &Symbol::name() const { return name_; }
+const string &Symbol::getName() const { return name_; }
 
 Symbol::Symbol(reader::LocationRange loc, const string &name) : name_(name) {
   this->location.reset(new reader::LocationRange(loc));

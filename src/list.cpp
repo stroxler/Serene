@@ -78,6 +78,17 @@ std::string List::dumpAST() const {
                      this->location->start.toString(),
                      this->location->end.toString(), s);
 }
+/**
+ * Return an iterator to be used with the `for` loop. It's implicitly called by
+ * the for loop.
+ */
+std::vector<ast_node>::const_iterator List::begin() { return nodes_.begin(); }
+
+/**
+ * Return an iterator to be used with the `for` loop. It's implicitly called by
+ * the for loop.
+ */
+std::vector<ast_node>::const_iterator List::end() { return nodes_.end(); }
 
 /**
  * Return a sub set of elements starting from the `begin` index to the end
