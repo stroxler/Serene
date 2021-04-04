@@ -25,6 +25,7 @@
 #include "serene/namespace.hpp"
 #include "serene/expr.hpp"
 #include "serene/llvm/IR/Value.h"
+#include "llvm/ADT/StringRef.h"
 #include <fmt/core.h>
 #include <string>
 
@@ -33,14 +34,21 @@ using namespace llvm;
 
 namespace serene {
 
+Namespace::Namespace(llvm::StringRef ns_name,
+                     llvm::Optional<llvm::StringRef> filename) {
+
+  this->filename = filename;
+  this->name = ns_name;
+};
+
 ast_tree &Namespace::Tree() { return this->tree; }
 
-mlir::Value Namespace::lookup(mlir::StringRef name) {
-  if (auto value = scope.lookup(name)) {
+llvm::Optional<mlir::Value> Namespace::lookup(llvm::StringRef name) {
+  if (auto value = rootScope.lookup(name)) {
     return value;
   }
 
-  return nullptr;
+  return llvm::None;
 };
 
 mlir::LogicalResult Namespace::setTree(ast_tree t) {
@@ -54,11 +62,8 @@ mlir::LogicalResult Namespace::setTree(ast_tree t) {
 
 mlir::LogicalResult Namespace::insert_symbol(mlir::StringRef name,
                                              mlir::Value v) {
-  if (scope.count(name)) {
-    return mlir::failure();
-  }
 
-  scope.insert(name, v);
+  rootScope.insert(PairT(name, v));
   return mlir::success();
 }
 

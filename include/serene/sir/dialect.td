@@ -78,7 +78,27 @@ def ValueOp: Serene_Op<"value"> {
         // Build from fix 64 bit int
         build(odsBuilder, odsState, odsBuilder.getI64Type(), (uint64_t) value);
         }]>,
+
     ];
 }
 
+def FnIdOp: Serene_Op<"fn_id"> {
+
+    let summary = "This operation is just a place holder for an anonymouse function";
+    let description = [{
+        A place holder for an anonymous function. For example consider an expression
+        like `(def a (fn (x) x))`, in this case we don't immediately create an anonymous
+        function since we need to set the name and create the function later.
+    }];
+
+    let arguments = (ins StrAttr:$name);
+    let results = (outs NoneType);
+
+    let builders = [
+        OpBuilder<(ins "std::string":$name), [{
+        // Build from fix 64 bit int
+        build(odsBuilder, odsState, odsBuilder.getNoneType(), odsBuilder.getStringAttr(name));
+        }]>,
+    ];
+}
 #endif // SERENE_DIALECT

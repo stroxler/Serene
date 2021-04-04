@@ -24,8 +24,10 @@
 
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/MLIRContext.h"
+#include "mlir/IR/Value.h"
 #include "serene/sir/dialect.hpp"
 #include "serene/sir/sir.hpp"
+#include "llvm/Support/Casting.h"
 
 namespace serene {
 namespace sir {} // namespace sir

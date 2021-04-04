@@ -26,11 +26,11 @@
 #define NAMESPACE_H
 
 #include "mlir/IR/BuiltinOps.h"
+#include "mlir/IR/Value.h"
 #include "serene/expr.hpp"
 #include "serene/llvm/IR/Value.h"
 #include "serene/logger.hpp"
-#include "llvm/ADT/ScopedHashTable.h"
-#include "llvm/ADT/StringRef.h"
+#include "llvm/ADT/DenseMap.h"
 #include <llvm/IR/Module.h>
 #include <string>
 
@@ -40,6 +40,9 @@
 #define NAMESPACE_LOG(...) ;
 #endif
 
+using ScopeMap = llvm::DenseMap<llvm::StringRef, mlir::Value>;
+using PairT = std::pair<llvm::StringRef, mlir::Value>;
+
 namespace serene {
 class AExpr;
 
@@ -47,19 +50,20 @@ class Namespace {
 private:
   ast_tree tree{};
   bool initialized = false;
-  llvm::ScopedHashTable<mlir::StringRef, mlir::Value> scope;
+
+  ScopeMap rootScope;
 
 public:
   llvm::Optional<llvm::StringRef> filename;
   mlir::StringRef name;
 
-  Namespace(mlir::StringRef ns_name, llvm::Optional<llvm::StringRef> filename)
-      : filename(filename), name(ns_name){};
+  Namespace(llvm::StringRef ns_name, llvm::Optional<llvm::StringRef> filename);
 
   ast_tree &Tree();
   mlir::LogicalResult setTree(ast_tree);
-  mlir::Value lookup(mlir::StringRef name);
-  mlir::LogicalResult insert_symbol(mlir::StringRef name, mlir::Value v);
+  // TODO: Fix it to return llvm::Optional<mlir::Value> instead
+  llvm::Optional<mlir::Value> lookup(llvm::StringRef name);
+  mlir::LogicalResult insert_symbol(llvm::StringRef name, mlir::Value v);
 
   void print_scope();
   ~Namespace();

@@ -26,36 +26,48 @@
 
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/BuiltinOps.h"
+#include "mlir/IR/Identifier.h"
 #include "mlir/IR/MLIRContext.h"
 #include "serene/expr.hpp"
 #include "serene/list.hpp"
 #include "serene/namespace.hpp"
 #include "serene/number.hpp"
 #include "serene/symbol.hpp"
+#include "llvm/ADT/ScopedHashTable.h"
+#include <atomic>
 #include <memory>
+#include <utility>
 
 namespace serene {
 namespace sir {
 
+using FnIdPair = std::pair<mlir::Identifier, mlir::FuncOp>;
+
 class Generator {
 private:
   ::mlir::OpBuilder builder;
-  std::unique_ptr<::serene::Namespace> ns;
   ::mlir::ModuleOp module;
+  std::unique_ptr<::serene::Namespace> ns;
+  std::atomic_int anonymousFnCounter{1};
+  llvm::DenseMap<mlir::Identifier, mlir::FuncOp> anonymousFunctions;
+  llvm::ScopedHashTable<llvm::StringRef, mlir::Value> symbolTable;
 
   // TODO: Should we use builder here? maybe there is a better option
   ::mlir::Location toMLIRLocation(serene::reader::Location *);
 
+  mlir::FuncOp generateFn(serene::reader::Location, std::string, List *,
+                          List *);
+
 public:
   Generator(mlir::MLIRContext &context, ::serene::Namespace *ns)
       : builder(&context),
-        module(mlir::ModuleOp::create(builder.getUnknownLoc())) {
+        module(mlir::ModuleOp::create(builder.getUnknownLoc(), ns->name)) {
     this->ns.reset(ns);
   }
 
   mlir::Operation *generate(Number *);
   mlir::Operation *generate(AExpr *);
-  mlir::Operation *generate(List *);
+  mlir::Value generate(List *);
   mlir::ModuleOp generate();
   ~Generator();
 };

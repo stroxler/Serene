@@ -25,9 +25,13 @@
 #include "serene/sir/generator.hpp"
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/BuiltinOps.h"
+#include "mlir/IR/Identifier.h"
 #include "mlir/IR/MLIRContext.h"
+#include "mlir/IR/Value.h"
 #include "serene/expr.hpp"
 #include "serene/sir/dialect.hpp"
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/ADT/ScopedHashTable.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
@@ -37,7 +41,8 @@ namespace sir {
 
 mlir::ModuleOp Generator::generate() {
   for (auto x : ns->Tree()) {
-    module.push_back(generate(x.get()));
+    auto _ = generate(x.get());
+    UNUSED(_);
   }
 
   return module;
@@ -50,7 +55,8 @@ mlir::Operation *Generator::generate(AExpr *x) {
   }
 
   case SereneType::List: {
-    return generate(llvm::cast<List>(x));
+    generate(llvm::cast<List>(x));
+    return nullptr;
   }
 
   default: {
@@ -59,53 +65,115 @@ mlir::Operation *Generator::generate(AExpr *x) {
   }
 };
 
-mlir::Operation *Generator::generate(List *l) {
-  // auto first = l->at(0);
+mlir::Value Generator::generate(List *l) {
+  auto first = l->at(0);
 
-  // if (!first) {
-  //   // Empty list.
-  //   // TODO: Return Nil or empty list.
+  if (!first) {
+    // Empty list.
+    // TODO: Return Nil or empty list.
 
-  //   // Just for now.
-  //   return builder.create<ValueOp>(builder.getUnknownLoc(), (uint64_t)0);
-  // }
+    // Just for now.
+    return builder.create<ValueOp>(builder.getUnknownLoc(), (uint64_t)0);
+  }
 
-  // if (first->get()->getType() == SereneType::Symbol) {
-  //   auto fnNameSymbol = llvm::dyn_cast<Symbol>(first->get());
+  if (first->get()->getType() == SereneType::Symbol) {
+    auto fnNameSymbol = llvm::dyn_cast<Symbol>(first->get());
 
-  //   switch (fnNameSymbol->getName()) {
-  //   case "def": {
-  //     if (l->count() != 3) {
-  //       llvm_unreachable("'def' form needs exactly 2 arguments.");
-  //     }
+    if (fnNameSymbol->getName() == "fn") {
+      if (l->count() <= 3) {
+        module.emitError("'fn' form needs exactly 2 arguments.");
+      }
 
-  //     auto nameSymbol = llvm::dyn_cast<Symbol>(l->at(1).getValue().get());
+      auto args = llvm::dyn_cast<List>(l->at(1).getValue().get());
+      auto body = llvm::dyn_cast<List>(l->from(2).get());
 
-  //     if (!nameSymbol) {
-  //       llvm_unreachable("The first element of 'def' has to be a symbol.");
-  //     }
-  //     auto value = l->at(2).getValue().get();
-  //     auto fn = generate(value);
-  //     auto loc(value->location->start);
-  //     // Define a function
+      if (!args) {
+        module.emitError("The first element of 'def' has to be a symbol.");
+      }
 
-  //     ns.insert_symbol(nameSymbol->getName(), llvm::cast<llvm::Value>(fn));
-  //     // This is a generic function, the return type will be inferred later.
-  //     // Arguments type are uniformly unranked tensors.
-  //     break;
-  //   }
-  //   default: {
-  //   }
-  //   }
-  // }
+      // Create a new anonymous function and push it to the anonymous functions
+      // map, later on we
+      auto loc(fnNameSymbol->location->start);
+      auto anonymousName = fmt::format("__fn_{}__", anonymousFnCounter);
+      anonymousFnCounter++;
+
+      auto fn = generateFn(loc, anonymousName, args, body);
+      mlir::Identifier fnid = builder.getIdentifier(anonymousName);
+      anonymousFunctions.insert({fnid, fn});
+      return builder.create<FnIdOp>(builder.getUnknownLoc(), fnid.str());
+    }
+  }
   // auto rest = l->from(1);
-
+  // auto loc = toMLIRLocation(&first->get()->location->start);
   // for (auto x : *rest) {
   //   generate(x.get());
   // }
 
-  return builder.create<ValueOp>(builder.getUnknownLoc(), (uint64_t)0);
+  return builder.create<ValueOp>(builder.getUnknownLoc(), (uint64_t)100);
 };
+
+mlir::FuncOp Generator::generateFn(serene::reader::Location loc,
+                                   std::string name, List *args, List *body) {
+
+  auto location = toMLIRLocation(&loc);
+  llvm::SmallVector<mlir::Type, 4> arg_types(args->count(),
+                                             builder.getI64Type());
+  auto func_type = builder.getFunctionType(arg_types, builder.getI64Type());
+  auto proto = mlir::FuncOp::create(location, name, func_type);
+  mlir::FuncOp fn(proto);
+
+  if (!fn) {
+    module.emitError("Can not create the function.");
+  }
+
+  auto &entryBlock = *fn.addEntryBlock();
+  llvm::ScopedHashTableScope<llvm::StringRef, mlir::Value> scope(symbolTable);
+
+  // Declare all the function arguments in the symbol table.
+  for (const auto arg :
+       llvm::zip(args->asArrayRef(), entryBlock.getArguments())) {
+
+    auto argSymbol = llvm::dyn_cast<Symbol>(std::get<0>(arg).get());
+    if (!argSymbol) {
+      module.emitError("Function parameters must be symbols");
+    }
+    if (symbolTable.count(argSymbol->getName())) {
+      return nullptr;
+    }
+    symbolTable.insert(argSymbol->getName(), std::get<1>(arg));
+  }
+
+  // Set the insertion point in the builder to the beginning of the function
+  // body, it will be used throughout the codegen to create operations in this
+  // function.
+  builder.setInsertionPointToStart(&entryBlock);
+
+  // Emit the body of the function.
+  if (!generate(body)) {
+    fn.erase();
+    return nullptr;
+  }
+
+  // // Implicitly return void if no return statement was emitted.
+  // // FIXME: we may fix the parser instead to always return the last
+  // expression
+  // // (this would possibly help the REPL case later)
+  // ReturnOp returnOp;
+
+  // if (!entryBlock.empty())
+  //   returnOp = dyn_cast<ReturnOp>(entryBlock.back());
+  // if (!returnOp) {
+  //   builder.create<ReturnOp>(loc(funcAST.getProto()->loc()));
+  // } else if (returnOp.hasOperand()) {
+  //   // Otherwise, if this return operation has an operand then add a result
+  //   to
+  //   // the function.
+  //   function.setType(builder.getFunctionType(function.getType().getInputs(),
+  //                                            getType(VarType{})));
+  // }
+
+  return fn;
+}
 
 mlir::Operation *Generator::generate(Number *x) {
   return builder.create<ValueOp>(builder.getUnknownLoc(), x->toI64());

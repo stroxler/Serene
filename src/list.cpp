@@ -26,6 +26,7 @@
 #include "serene/expr.hpp"
 #include "serene/llvm/IR/Value.h"
 #include "serene/symbol.hpp"
+#include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/Optional.h"
 #include <bits/c++config.h>
 #include <fmt/core.h>
@@ -102,13 +103,15 @@ std::unique_ptr<List> List::from(uint begin) {
 
   std::vector<ast_node>::const_iterator first = this->nodes_.begin() + begin;
   std::vector<ast_node>::const_iterator last = this->nodes_.end();
-  fmt::print("#### {} {} \n", this->nodes_.size(), this->nodes_.max_size());
-  fmt::print("MM {}\n", this->string_repr());
 
   std::vector<ast_node> newCopy(first, last);
 
   return std::make_unique<List>(newCopy);
 };
+
+llvm::ArrayRef<ast_node> List::asArrayRef() {
+  return llvm::makeArrayRef<ast_node>(this->nodes_);
+}
 
 size_t List::count() const { return nodes_.size(); }
 

@@ -28,6 +28,7 @@
 #include "serene/expr.hpp"
 #include "serene/llvm/IR/Value.h"
 #include "serene/reader/location.hpp"
+#include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/Optional.h"
 #include <list>
 #include <string>
@@ -54,6 +55,8 @@ public:
 
   std::vector<ast_node>::const_iterator begin();
   std::vector<ast_node>::const_iterator end();
+  llvm::ArrayRef<ast_node> asArrayRef();
+
   static bool classof(const AExpr *);
 };
 
