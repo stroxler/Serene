@@ -53,15 +53,6 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   # main CMakeLists.
   include(CTest)
 
-  # Docs only available if this is the main app
-  find_package(Doxygen)
-  if(Doxygen_FOUND)
-    add_subdirectory(docs)
-  else()
-    message(STATUS "Doxygen not found, not building docs")
-  endif()
-
-
   include(cotire)
   include(FetchContent)
 
@@ -118,6 +109,20 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   # Emergency override SERENE_CMAKE_BUILD_TESTING provided as well
   if((CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME OR SERENE_CMAKE_BUILD_TESTING) AND BUILD_TESTING)
     add_subdirectory(tests)
+  endif()
+
+  if (CMAKE_BUILD_TYPE STREQUAL "Release")
+    # Docs only available if this is the main app
+
+    find_package(Doxygen
+      REQUIRED dot
+      OPTIONAL_COMPONENTS dia)
+
+    if(Doxygen_FOUND)
+      add_subdirectory(docs)
+    else()
+      message(STATUS "Doxygen not found, not building docs")
+    endif()
   endif()
 
 

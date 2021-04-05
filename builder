@@ -41,6 +41,13 @@ function build-release() {
     popd_build
 }
 
+function build-docs() {
+    pushed_build
+    cmake -G Ninja -DCMAKE_BUILD_TYPE=Docs $ROOT_DIR
+    ninja -j `nproc`
+    popd_build
+}
+
 function clean() {
     rm -rf $BUILD_DIR
 }
@@ -81,10 +88,16 @@ case "$command" in
         mkdir -p $BUILD_DIR
         build "${@:2}"
         ;;
+    "build-docs")
+        clean
+        mkdir -p $BUILD_DIR
+        build-docs "${@:2}"
+        ;;
+
     "build-release")
         clean
         mkdir -p $BUILD_DIR
-        build "${@:2}"
+        build-release "${@:2}"
         ;;
     "compile")
         compile

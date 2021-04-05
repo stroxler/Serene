@@ -41,8 +41,7 @@ namespace sir {
 
 mlir::ModuleOp Generator::generate() {
   for (auto x : ns->Tree()) {
-    auto _ = generate(x.get());
-    UNUSED(_);
+    generate(x.get());
   }
 
   return module;
