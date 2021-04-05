@@ -37,7 +37,7 @@
 #include "serene/list.hpp"
 #include "serene/logger.hpp"
 #include "serene/reader/location.hpp"
-#include "serene/serene.hpp"
+#include "serene/serene.h"
 #include "serene/symbol.hpp"
 
 #if defined(ENABLE_READER_LOG) || defined(ENABLE_LOG)

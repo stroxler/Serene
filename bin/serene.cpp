@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-#include "serene/serene.hpp"
+#include "serene/serene.h"
 #include "serene/reader/reader.hpp"
 #include "serene/sir/sir.hpp"
 #include <iostream>

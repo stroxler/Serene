@@ -55,8 +55,8 @@ private:
   // TODO: Should we use builder here? maybe there is a better option
   ::mlir::Location toMLIRLocation(serene::reader::Location *);
 
-  mlir::FuncOp generateFn(serene::reader::Location, std::string, List *,
-                          List *);
+  // mlir::FuncOp generateFn(serene::reader::Location, std::string, List *,
+  //                         List *);
 
 public:
   Generator(mlir::MLIRContext &context, ::serene::Namespace *ns)

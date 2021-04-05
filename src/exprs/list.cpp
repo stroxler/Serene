@@ -1,7 +1,7 @@
-/**
+/*
  * Serene programming language.
  *
- *  Copyright (c) 2020 Sameer Rahmani <lxsameer@gnu.org>
+ *  Copyright (c) 2019-2021 Sameer Rahmani <lxsameer@gnu.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,12 +22,4 @@
  * SOFTWARE.
  */
 
-#ifndef SERENE_H
-#define SERENE_H
-
-// Sometimes we need this to make both analyzer happy
-// and the fn signature right.
-#define UNUSED(x) (void)(x)
-
-namespace serene {}
-#endif
+#include "serene/exprs/list.h"
