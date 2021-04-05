@@ -33,6 +33,12 @@ namespace serene {
 /// the syntax directly. Like function definitions.
 namespace exprs {
 
+/// This enum represent the expression type and **not** the value type.
+enum class ExprType {
+  Symbol,
+  List,
+};
+
 /// The polymorphic type that works as the entry point to the exprs system.
 /// Each expression has to define the interface of the `ExpressionConcept`
 /// class as generic functions. **REMEMBER TO NOT INHERIT FROM THESE CLASSES**
@@ -40,20 +46,32 @@ class Expression {
 public:
   template <typename T>
   Expression(T e) : self(new ExpressionImpl<T>(std::move(e))){};
+  Expression(const Expression &e) : self(e.self->copy()){}; // Copy ctor
+  Expression(Expression &&e) noexcept = default;            // Move ctor
+
+  Expression &operator=(const Expression &e);
+  Expression &operator=(Expression &&e) noexcept = default;
+
+  ExprType getType();
 
 private:
   /// The generic interface which each type of expression has to implement
   /// in order to act like an `Expression`
   struct ExpressionConcept {
     virtual ~ExpressionConcept() = default;
-    virtual ExpressionConcept *copy_() const = 0;
+    virtual ExpressionConcept *copy() const = 0;
+
+    virtual ExprType getType();
   };
 
   /// The generic implementation of `ExpressionConcept` which acts as the
   /// dispatcher on type.
   template <typename T> struct ExpressionImpl : ExpressionConcept {
     ExpressionImpl(T e) : expr(std::move(e)){};
-    ExpressionConcept *copy_() const { return new ExpressionImpl(*this); }
+    ExpressionConcept *copy() const { return new ExpressionImpl(*this); }
+
+    /// In order to make llvm's RTTI to work we need this method.
+    ExprType getType() { return expr.getType(); }
 
     T expr;
   };

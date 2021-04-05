@@ -64,9 +64,14 @@ function memcheck() {
     popd_build
 }
 
+function run-tests() {
+    $BUILD_DIR/tests/tests
+}
+
 function tests() {
     pushed_build
-    ctest
+    cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON $ROOT_DIR
+    ninja -j `nproc`
     popd_build
 }
 
@@ -102,6 +107,10 @@ case "$command" in
     "compile")
         compile
         ;;
+    "compile-and-test")
+        compile
+        run-tests
+        ;;
     "run")
         run "${@:2}"
         ;;
@@ -117,8 +126,11 @@ case "$command" in
     "memcheck")
         memcheck
         ;;
-    "memcheck")
+    "tests")
+        clean
+        mkdir -p $BUILD_DIR
         tests
+        run-tests
         ;;
     "clean")
         rm -rf $BUILD_DIR
@@ -128,6 +140,7 @@ case "$command" in
         mkdir -p $BUILD_DIR
         build
         tests
+        run-tests
         memcheck
         ;;
     *)

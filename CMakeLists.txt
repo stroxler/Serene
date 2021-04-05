@@ -46,12 +46,8 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   option(ENABLE_LOG "Enable logging" OFF)
   option(ENABLE_EXPR_LOG "Enable AExpr logging" OFF)
   option(ENABLE_READER_LOG "Enable reader logging" OFF)
+  option(BUILD_TESTING "Enable tests" OFF)
 
-  # Testing only available if this is the main app
-  # Note this needs to be done in the main CMakeLists
-  # since it calls enable_testing, which must be in the
-  # main CMakeLists.
-  include(CTest)
 
   include(cotire)
   include(FetchContent)
@@ -107,7 +103,8 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/include/)
   # Testing only available if this is the main app
   # Emergency override SERENE_CMAKE_BUILD_TESTING provided as well
-  if((CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME OR SERENE_CMAKE_BUILD_TESTING) AND BUILD_TESTING)
+  if(BUILD_TESTING)
+    message("Build the test binary")
     add_subdirectory(tests)
   endif()
 
