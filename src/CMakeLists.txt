@@ -5,6 +5,9 @@ set(HEADER_LIST
   "${INCLUDE_DIR}/serene/exprs/symbol.h"
   "${INCLUDE_DIR}/serene/exprs/list.h"
 
+  # Reader
+  "${INCLUDE_DIR}/serene/reader/reader.h"
+  "${INCLUDE_DIR}/serene/reader/location.h"
 
 
   "${INCLUDE_DIR}/serene/expr.hpp"
@@ -15,9 +18,6 @@ set(HEADER_LIST
   "${INCLUDE_DIR}/serene/error.hpp"
 
   "${INCLUDE_DIR}/serene/state.hpp"
-  # Reader
-  "${INCLUDE_DIR}/serene/reader/reader.hpp"
-  "${INCLUDE_DIR}/serene/reader/location.hpp"
 
 
   "${INCLUDE_DIR}/serene/sir/sir.hpp"

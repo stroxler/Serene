@@ -1,7 +1,7 @@
-/**
+/* -*- C++ -*-
  * Serene programming language.
  *
- *  Copyright (c) 2020 Sameer Rahmani <lxsameer@gnu.org>
+ *  Copyright (c) 2019-2021 Sameer Rahmani <lxsameer@gnu.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,9 @@
 #include "serene/number.hpp"
 #include "serene/symbol.hpp"
 #include "llvm/Support/ErrorOr.h"
+#include "llvm/Support/FormatVariadic.h"
 #include "llvm/Support/MemoryBuffer.h"
+
 #include <assert.h>
 #include <fstream>
 #include <iostream>
@@ -154,8 +156,7 @@ ast_node Reader::readSymbol() {
 
     // TODO: Replece this with a tranceback function or something to raise
     // synatx error.
-    // fmt::print("Invalid character at the start of a symbol: '{}'\n", c);
-    llvm::errs() << fmt::format(
+    llvm::errs() << llvm::formatv(
         "Invalid character at the start of a symbol: '{}'\n", c);
     exit(1);
   }
@@ -225,7 +226,7 @@ ast_list_node Reader::readList() {
 
 ast_node Reader::readExpr() {
   char c = getChar(false);
-  READER_LOG("CHAR: {}", c);
+  READER_LOG("CHAR: " << c);
 
   ungetChar();
 

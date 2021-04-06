@@ -25,8 +25,6 @@
 #ifndef READER_H
 #define READER_H
 
-#include <fmt/core.h>
-
 #include <memory>
 #include <sstream>
 #include <stdexcept>
@@ -39,12 +37,10 @@
 #include "serene/reader/location.h"
 #include "serene/serene.h"
 #include "serene/symbol.hpp"
+#include "llvm/Support/Debug.h"
 
-#if defined(ENABLE_READER_LOG) || defined(ENABLE_LOG)
-#define READER_LOG(...) __LOG("READER", __VA_ARGS__);
-#else
-#define READER_LOG(...) ;
-#endif
+#define READER_LOG(...)                                                        \
+  DEBUG_WITH_TYPE("READER", llvm::dbgs() << __VA_ARGS__ << "\n");
 
 namespace serene {
 namespace reader {
