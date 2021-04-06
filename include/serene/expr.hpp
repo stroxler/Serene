@@ -26,7 +26,7 @@
 #define EXPR_H
 
 #include "serene/logger.hpp"
-#include "serene/reader/location.hpp"
+#include "serene/reader/location.h"
 #include <string>
 
 #if defined(ENABLE_LOG) || defined(ENABLE_EXPR_LOG)

@@ -27,7 +27,7 @@
 
 #include "serene/expr.hpp"
 #include "serene/llvm/IR/Value.h"
-#include "serene/reader/location.hpp"
+#include "serene/reader/location.h"
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/Optional.h"
 #include <list>

@@ -36,7 +36,7 @@
 #include "serene/expr.hpp"
 #include "serene/list.hpp"
 #include "serene/logger.hpp"
-#include "serene/reader/location.hpp"
+#include "serene/reader/location.h"
 #include "serene/serene.h"
 #include "serene/symbol.hpp"
 

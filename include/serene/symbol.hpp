@@ -27,7 +27,7 @@
 
 #include "serene/expr.hpp"
 #include "serene/llvm/IR/Value.h"
-#include "serene/reader/location.hpp"
+#include "serene/reader/location.h"
 #include "serene/state.hpp"
 #include <string>
 

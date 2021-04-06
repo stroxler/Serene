@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-#include "serene/reader/location.hpp"
+#include "serene/reader/location.h"
 #include "mlir/IR/Identifier.h"
 
 #include <fmt/core.h>

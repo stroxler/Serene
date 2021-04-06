@@ -1,7 +1,7 @@
-/**
+/* -*- C++ -*-
  * Serene programming language.
  *
- *  Copyright (c) 2020 Sameer Rahmani <lxsameer@gnu.org>
+ *  Copyright (c) 2019-2021 Sameer Rahmani <lxsameer@gnu.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +32,7 @@
 
 namespace serene {
 namespace reader {
+
 /**
  * It represents a location in the input string to the parser via `line`,
  */
