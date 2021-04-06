@@ -25,6 +25,8 @@
 #ifndef EXPRS_SYMBOL_H
 #define EXPRS_SYMBOL_H
 
+#include "serene/exprs/expression.h"
+#include "llvm/ADT/StringRef.h"
 #include <string>
 
 namespace serene {
@@ -33,6 +35,9 @@ namespace exprs {
 
 struct Symbol {
   std::string name;
+
+  Symbol(llvm::StringRef name) : name(name){};
+  ExprType getType() { return ExprType::Symbol; };
 };
 
 } // namespace exprs

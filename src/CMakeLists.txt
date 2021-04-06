@@ -27,6 +27,7 @@ set(HEADER_LIST
 
 # Make an automatic library - will be static or dynamic based on user setting
 add_library(serene
+  exprs/expression.cpp
   exprs/symbol.cpp
   exprs/list.cpp
 

@@ -44,9 +44,9 @@ enum class ExprType {
 /// class as generic functions. **REMEMBER TO NOT INHERIT FROM THESE CLASSES**
 class Expression {
 public:
-  template <typename T>
-  Expression(T e) : self(new ExpressionImpl<T>(std::move(e))){};
-  Expression(const Expression &e) : self(e.self->copy()){}; // Copy ctor
+  template <typename T> Expression(T e) : self(new Impl<T>(std::move(e))){};
+
+  Expression(const Expression &e) : self(e.self->copy_()){}; // Copy ctor
   Expression(Expression &&e) noexcept = default;            // Move ctor
 
   Expression &operator=(const Expression &e);
@@ -54,21 +54,27 @@ public:
 
   ExprType getType();
 
-private:
+  template <typename T, typename... Args>
+  static Expression make(Args &&...args) {
+    Expression e(T(std::forward<Args>(args)...));
+    return e;
+  }
+
+
   /// The generic interface which each type of expression has to implement
   /// in order to act like an `Expression`
-  struct ExpressionConcept {
-    virtual ~ExpressionConcept() = default;
-    virtual ExpressionConcept *copy() const = 0;
-
-    virtual ExprType getType();
+  class ExpressionConcept {
+  public:
+    virtual ~ExpressionConcept()= default;
+    virtual ExpressionConcept *copy_() const = 0;
+    virtual ExprType getType() = 0;
   };
 
   /// The generic implementation of `ExpressionConcept` which acts as the
   /// dispatcher on type.
-  template <typename T> struct ExpressionImpl : ExpressionConcept {
-    ExpressionImpl(T e) : expr(std::move(e)){};
-    ExpressionConcept *copy() const { return new ExpressionImpl(*this); }
+  template <typename T> struct Impl : ExpressionConcept {
+    Impl(T e) : expr(std::move(e)){};
+    ExpressionConcept *copy_() const { return new Impl(*this); }
 
     /// In order to make llvm's RTTI to work we need this method.
     ExprType getType() { return expr.getType(); }

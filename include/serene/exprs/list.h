@@ -35,6 +35,11 @@ namespace exprs {
 
 struct List {
   llvm::SmallVector<Expression, 0> elements;
+
+  List() : elements({}){};
+  List(Expression a) : elements({a}){};
+
+  ExprType getType() { return ExprType::List; };
 };
 
 } // namespace exprs

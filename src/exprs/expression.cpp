@@ -34,7 +34,7 @@ Expression &Expression::operator=(const Expression &e) {
   return *this;
 };
 
-ExprType Expression::getType() { return self->getType(); }
+ExprType Expression::getType() { return self->getType(); };
 
 } // namespace exprs
 } // namespace serene
