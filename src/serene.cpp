@@ -23,5 +23,5 @@
  */
 
 #include "serene/serene.h"
-#include "serene/reader/reader.hpp"
+#include "serene/reader/reader.h"
 #include <iostream>

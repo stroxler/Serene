@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-#include "serene/reader/reader.hpp"
+#include "serene/reader/reader.h"
 #include "serene/error.hpp"
 #include "serene/list.hpp"
 #include "serene/number.hpp"
