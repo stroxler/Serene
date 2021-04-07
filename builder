@@ -34,6 +34,13 @@ function build() {
     popd_build
 }
 
+function build-20() {
+    pushed_build
+    cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCPP_20_SUPPORT=ON "$@" $ROOT_DIR
+    ninja -j `nproc`
+    popd_build
+}
+
 function build-release() {
     pushed_build
     cmake -G Ninja -DCMAKE_BUILD_TYPE=Release $ROOT_DIR
@@ -93,6 +100,12 @@ case "$command" in
         mkdir -p $BUILD_DIR
         build "${@:2}"
         ;;
+    "build-20")
+        clean
+        mkdir -p $BUILD_DIR
+        build-20 "${@:2}"
+        ;;
+
     "build-docs")
         clean
         mkdir -p $BUILD_DIR

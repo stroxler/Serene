@@ -2,7 +2,14 @@ add_executable(serenec serene.cpp)
 # Make sure to generate files related to the dialects first
 add_dependencies(serenec SereneDialectGen)
 
-target_compile_features(serenec PRIVATE cxx_std_14)
+if (CPP_20_SUPPORT)
+  target_compile_features(serenec PRIVATE cxx_std_20)
+else()
+  target_compile_features(serenec PRIVATE cxx_std_14)
+endif()
+
+
+
 
 target_link_libraries(serenec PRIVATE
   serene

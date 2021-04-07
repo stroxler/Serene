@@ -54,8 +54,15 @@ add_library(serene
 # Make sure to generate files related to the dialects first
 add_dependencies(serene SereneDialectGen)
 
+
+if (CPP_20_SUPPORT)
+  target_compile_features(serene PUBLIC cxx_std_20)
+else()
+  target_compile_features(serene PUBLIC cxx_std_14)
+endif()
+
+
 # We need this directory, and users of our library will need it too
-target_compile_features(serene PUBLIC cxx_std_14)
 target_include_directories(serene PRIVATE ${INCLUDE_DIR})
 target_include_directories(serene PUBLIC ${PROJECT_BINARY_DIR})
 

@@ -7,13 +7,19 @@ project(Serene
   LANGUAGES CXX C)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+option(CPP_20_SUPPORT "C++20 Support" OFF)
 
 # Only do these if this is the main project, and not if it is included through add_subdirectory
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 
   ## Settings -----------------------------------------
   # specify the C++ standard
-  set(CMAKE_CXX_STANDARD 14)
+  if (CPP_20_SUPPORT)
+    set(CMAKE_CXX_STANDARD 20)
+  else()
+    set(CMAKE_CXX_STANDARD 14)
+  endif()
+
   set(CMAKE_CXX_STANDARD_REQUIRED True)
 
   set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
