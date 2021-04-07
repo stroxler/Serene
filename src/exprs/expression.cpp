@@ -27,7 +27,6 @@
 namespace serene {
 namespace exprs {
 
-/// Move \p `e` and replace the current object with it
 Expression &Expression::operator=(const Expression &e) {
   Expression tmp(e);
   *this = std::move(tmp);
@@ -35,6 +34,8 @@ Expression &Expression::operator=(const Expression &e) {
 };
 
 ExprType Expression::getType() { return self->getType(); };
+
+std::string Expression::toString() { return self->toString(); }
 
 } // namespace exprs
 } // namespace serene

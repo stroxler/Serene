@@ -44,30 +44,63 @@ enum class ExprType {
 /// class as generic functions. **REMEMBER TO NOT INHERIT FROM THESE CLASSES**
 class Expression {
 public:
+  /// Creates a new expression by moving the given object of the type T into
+  /// a new internal container.
+  ///
+  /// \param e and expression of type T
   template <typename T> Expression(T e) : self(new Impl<T>(std::move(e))){};
 
+  /// The copy constructor which actually just move the other expression into
+  /// a new implementation container.
+  ///
+  /// \param e is the other expression to copy from
   Expression(const Expression &e) : self(e.self->copy_()){}; // Copy ctor
-  Expression(Expression &&e) noexcept = default;            // Move ctor
+  Expression(Expression &&e) noexcept = default;             // Move ctor
 
   Expression &operator=(const Expression &e);
   Expression &operator=(Expression &&e) noexcept = default;
 
+  /// Returns the type of the expression. More precisely, It returns the type
+  /// of the expression that it contains.
+  ///
+  /// \return The type of expression.
   ExprType getType();
 
+  /// Return the string representation of the expression in the context
+  /// of the AST. Think of it as dump of the AST for each expression.
+  ///
+  /// \return the exoression in string format.
+  std::string toString();
+
+  /// Create a new Expression of type `T` and forwards any given parameter
+  /// to the constructor of type `T`. This is the **official way** to create
+  /// a new `Expression`. Here is an example:
+  /// \code
+  /// auto list = Expression::make<List>();
+  /// \endcode
+  ///
+  /// \param[args] Any argument with any type passed to this function will be
+  ///              passed to the constructor of type T.
+  /// \return A new expression containing a value of type T and act as tyep T.
   template <typename T, typename... Args>
   static Expression make(Args &&...args) {
     Expression e(T(std::forward<Args>(args)...));
     return e;
   }
 
-
   /// The generic interface which each type of expression has to implement
   /// in order to act like an `Expression`
   class ExpressionConcept {
   public:
-    virtual ~ExpressionConcept()= default;
+    virtual ~ExpressionConcept() = default;
     virtual ExpressionConcept *copy_() const = 0;
+
+    /// Return the type of the expression
     virtual ExprType getType() = 0;
+
+    /// Return the string representation of the expression in the context
+    /// of the AST. Think of it as dump of the AST for each expression
+    virtual std::string toString() = 0;
   };
 
   /// The generic implementation of `ExpressionConcept` which acts as the
@@ -78,6 +111,8 @@ public:
 
     /// In order to make llvm's RTTI to work we need this method.
     ExprType getType() { return expr.getType(); }
+
+    std::string toString() { return toString(expr); }
 
     T expr;
   };
