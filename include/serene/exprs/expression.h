@@ -25,6 +25,7 @@
 #ifndef EXPRS_EXPRESSION_H
 #define EXPRS_EXPRESSION_H
 
+#include "serene/reader/location.h"
 #include <memory>
 
 namespace serene {
@@ -37,6 +38,13 @@ namespace exprs {
 enum class ExprType {
   Symbol,
   List,
+};
+
+/// An abstract class which locatable expressions should inherit from
+class Locatable {
+public:
+  Locatable(reader::LocationRange loc) : location(loc){};
+  reader::LocationRange location;
 };
 
 /// The polymorphic type that works as the entry point to the exprs system.
@@ -79,14 +87,20 @@ public:
   /// auto list = Expression::make<List>();
   /// \endcode
   ///
+  /// \param loc A `serene::reader::LocationRange` instance to point to exact
+  /// location of the expression in the input string.
   /// \param[args] Any argument with any type passed to this function will be
   ///              passed to the constructor of type T.
   /// \return A new expression containing a value of type T and act as tyep T.
   template <typename T, typename... Args>
   static Expression make(Args &&...args) {
-    Expression e(T(std::forward<Args>(args)...));
-    return e;
-  }
+    return Expression(T::build(std::forward<Args>(args)...));
+  };
+
+  // template <typename T> static Expression make(reader::LocationRange &&loc) {
+  //   Expression e(T(std::forward<reader::LocationRange>(loc)));
+  //   return e;
+  // };
 
   /// The generic interface which each type of expression has to implement
   /// in order to act like an `Expression`
@@ -107,12 +121,13 @@ public:
   /// dispatcher on type.
   template <typename T> struct Impl : ExpressionConcept {
     Impl(T e) : expr(std::move(e)){};
+
     ExpressionConcept *copy_() const { return new Impl(*this); }
 
     /// In order to make llvm's RTTI to work we need this method.
     ExprType getType() { return expr.getType(); }
 
-    std::string toString() { return toString(expr); }
+    std::string toString() { return expr.toString(); }
 
     T expr;
   };

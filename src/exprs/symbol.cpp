@@ -23,3 +23,15 @@
  */
 
 #include "serene/exprs/symbol.h"
+#include "llvm/Support/FormatVariadic.h"
+
+namespace serene {
+namespace exprs {
+std::string Symbol::toString() {
+  return llvm::formatv("<Symbol [loc: {0} | {1}]: {2}>",
+                       this->location.start.toString(),
+                       this->location.end.toString(), this->name);
+}
+
+} // namespace exprs
+} // namespace serene

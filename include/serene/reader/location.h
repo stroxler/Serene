@@ -33,10 +33,9 @@
 namespace serene {
 namespace reader {
 
-/**
- * It represents a location in the input string to the parser via `line`,
- */
+/// It represents a location in the input string to the parser via `line`,
 struct Location {
+
   int pos; // Position of in the input string.
   int line;
   int col;
@@ -52,7 +51,7 @@ public:
   LocationRange() : start(Location{0, 0, 0}), end(Location{0, 0, 0}){};
   LocationRange(Location _start) : start(_start), end(_start){};
   LocationRange(Location _start, Location _end) : start(_start), end(_end){};
-  LocationRange(LocationRange &);
+  LocationRange(const LocationRange &);
 };
 
 void inc_location(Location &, bool);

@@ -127,6 +127,9 @@ case "$command" in
     "run")
         run "${@:2}"
         ;;
+    "run-tests")
+        run-tests "${@:2}"
+        ;;
 
     "scan-build")
         clean

@@ -23,3 +23,20 @@
  */
 
 #include "serene/exprs/list.h"
+#include "llvm/Support/FormatVariadic.h"
+
+namespace serene {
+namespace exprs {
+std::string List::toString() {
+  std::string s{this->elements.empty() ? "-" : ""};
+
+  for (auto &n : this->elements) {
+    s = llvm::formatv("{0} {1}", s, n.toString());
+  }
+
+  return llvm::formatv("<List [loc: {0} | {1}]: {2}>",
+                       this->location.start.toString(),
+                       this->location.end.toString(), s);
+}
+} // namespace exprs
+} // namespace serene

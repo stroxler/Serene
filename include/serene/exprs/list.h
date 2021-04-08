@@ -33,13 +33,22 @@ namespace serene {
 
 namespace exprs {
 
-struct List {
+class List {
+public:
+  reader::LocationRange location;
   llvm::SmallVector<Expression, 0> elements;
 
-  List() : elements({}){};
-  List(Expression a) : elements({a}){};
+  List(const reader::LocationRange &loc) : location(loc), elements({}){};
+
+  List(const reader::LocationRange &loc, llvm::ArrayRef<Expression> elems)
+      : location(loc), elements(elems.begin(), elems.end()){};
 
   ExprType getType() { return ExprType::List; };
+  std::string toString();
+
+  ~List() = default;
+
+  static List build(const reader::LocationRange &loc) { return List(loc); }
 };
 
 } // namespace exprs

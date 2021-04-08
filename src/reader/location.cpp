@@ -29,14 +29,14 @@
 namespace serene {
 namespace reader {
 
-LocationRange::LocationRange(LocationRange &loc) {
+LocationRange::LocationRange(const LocationRange &loc) {
   start = loc.start;
   end = loc.end;
 }
 
 /// Return the string represenation of the location.
 std::string Location::toString() {
-  return llvm::formatv("{}:{}:{}", line, col, pos);
+  return llvm::formatv("{0}:{1}:{2}", line, col, pos);
 };
 
 /// Increase the given location by one and set the line/col value in respect to
