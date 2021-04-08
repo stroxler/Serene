@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#ifndef EXPRS_SYMBOL_H
-#define EXPRS_SYMBOL_H
+#ifndef EXPRS_LIST_H
+#define EXPRS_LIST_H
 
 #include "serene/exprs/expression.h"
 #include "llvm/ADT/SmallVector.h"
@@ -39,6 +39,9 @@ public:
   llvm::SmallVector<Expression, 0> elements;
 
   List(const reader::LocationRange &loc) : location(loc), elements({}){};
+  List(const reader::LocationRange &loc, Expression e) : location(loc) {
+    elements.push_back(e);
+  };
 
   List(const reader::LocationRange &loc, llvm::ArrayRef<Expression> elems)
       : location(loc), elements(elems.begin(), elems.end()){};
@@ -46,9 +49,11 @@ public:
   ExprType getType() { return ExprType::List; };
   std::string toString();
 
-  ~List() = default;
+  static bool classof(const Expression *e) {
+    return e->getType() == ExprType::List;
+  };
 
-  static List build(const reader::LocationRange &loc) { return List(loc); }
+  ~List() = default;
 };
 
 } // namespace exprs

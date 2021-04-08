@@ -94,9 +94,10 @@ public:
   /// \return A new expression containing a value of type T and act as tyep T.
   template <typename T, typename... Args>
   static Expression make(Args &&...args) {
-    return Expression(T::build(std::forward<Args>(args)...));
+    return Expression(T(std::forward<Args>(args)...));
   };
 
+  template <typename T> std::unique_ptr<T> *to();
   // template <typename T> static Expression make(reader::LocationRange &&loc) {
   //   Expression e(T(std::forward<reader::LocationRange>(loc)));
   //   return e;
@@ -125,7 +126,7 @@ public:
     ExpressionConcept *copy_() const { return new Impl(*this); }
 
     /// In order to make llvm's RTTI to work we need this method.
-    ExprType getType() { return expr.getType(); }
+    ExprType getType() const { return expr.getType(); }
 
     std::string toString() { return expr.toString(); }
 

@@ -37,5 +37,8 @@ ExprType Expression::getType() { return self->getType(); };
 
 std::string Expression::toString() { return self->toString(); }
 
+template <typename T> std::unique_ptr<T> *Expression::to() {
+  return &this->self;
+}
 } // namespace exprs
 } // namespace serene
