@@ -25,7 +25,7 @@
 #include "serene/number.hpp"
 #include "serene/expr.hpp"
 #include "serene/llvm/IR/Value.h"
-#include "serene/namespace.hpp"
+#include "serene/namespace.h"
 #include "serene/state.hpp"
 #include <assert.h>
 #include <fmt/core.h>

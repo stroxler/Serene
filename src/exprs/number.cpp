@@ -1,7 +1,7 @@
-/**
+/*
  * Serene programming language.
  *
- *  Copyright (c) 2020 Sameer Rahmani <lxsameer@gnu.org>
+ *  Copyright (c) 2019-2021 Sameer Rahmani <lxsameer@gnu.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,53 +22,29 @@
  * SOFTWARE.
  */
 
-#include "serene/namespace.h"
-#include "serene/exprs/expression.h"
-#include "serene/llvm/IR/Value.h"
-#include "llvm/ADT/StringRef.h"
-#include <fmt/core.h>
-#include <string>
-
-using namespace std;
-using namespace llvm;
+#include "serene/exprs/number.h"
+#include "llvm/Support/FormatVariadic.h"
 
 namespace serene {
+namespace exprs {
 
-Namespace::Namespace(llvm::StringRef ns_name,
-                     llvm::Optional<llvm::StringRef> filename) {
-
-  this->filename = filename;
-  this->name = ns_name;
+int64_t Number::toI64() {
+  // TODO: Handle float case as well
+  // TODO: Cache the value
+  return std::stoi(value);
 };
 
-exprs::ast &Namespace::Tree() { return this->tree; }
+ExprType Number::getType() const { return ExprType::Number; };
 
-llvm::Optional<mlir::Value> Namespace::lookup(llvm::StringRef name) {
-  if (auto value = rootScope.lookup(name)) {
-    return value;
-  }
+std::string Number::toString() const {
+  return llvm::formatv("<Symbol [loc: {0} | {1}]: {2}>",
+                       this->location.start.toString(),
+                       this->location.end.toString(), this->value);
+}
 
-  return llvm::None;
+bool Number::classof(const Expression *e) {
+  return e->getType() == ExprType::Number;
 };
 
-mlir::LogicalResult Namespace::setTree(exprs::ast &t) {
-  if (initialized) {
-    return mlir::failure();
-  }
-  this->tree = t;
-  this->initialized = true;
-  return mlir::success();
-}
-
-mlir::LogicalResult Namespace::insert_symbol(mlir::StringRef name,
-                                             mlir::Value v) {
-
-  rootScope.insert(PairT(name, v));
-  return mlir::success();
-}
-
-void Namespace::print_scope(){};
-
-Namespace::~Namespace() {}
-
+} // namespace exprs
 } // namespace serene

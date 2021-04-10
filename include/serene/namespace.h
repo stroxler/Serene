@@ -27,18 +27,15 @@
 
 #include "mlir/IR/BuiltinOps.h"
 #include "mlir/IR/Value.h"
-#include "serene/expr.hpp"
+#include "serene/exprs/expression.h"
 #include "serene/llvm/IR/Value.h"
 #include "serene/logger.hpp"
 #include "llvm/ADT/DenseMap.h"
 #include <llvm/IR/Module.h>
 #include <string>
 
-#if defined(ENABLE_LOG) || defined(ENABLE_NAMESPACE_LOG)
-#define NAMESPACE_LOG(...) __LOG("NAMESPACE", __VA_ARGS__);
-#else
-#define NAMESPACE_LOG(...) ;
-#endif
+#define NAMESPACE_LOG(...)                                                     \
+  DEBUG_WITH_TYPE("NAMESPACE", llvm::dbgs() << __VA_ARGS__ << "\n");
 
 using ScopeMap = llvm::DenseMap<llvm::StringRef, mlir::Value>;
 using PairT = std::pair<llvm::StringRef, mlir::Value>;
@@ -48,7 +45,7 @@ class AExpr;
 
 class Namespace {
 private:
-  ast_tree tree{};
+  exprs::ast tree{};
   bool initialized = false;
 
   ScopeMap rootScope;
@@ -59,8 +56,8 @@ public:
 
   Namespace(llvm::StringRef ns_name, llvm::Optional<llvm::StringRef> filename);
 
-  ast_tree &Tree();
-  mlir::LogicalResult setTree(ast_tree);
+  exprs::ast &Tree();
+  mlir::LogicalResult setTree(exprs::ast &);
   // TODO: Fix it to return llvm::Optional<mlir::Value> instead
   llvm::Optional<mlir::Value> lookup(llvm::StringRef name);
   mlir::LogicalResult insert_symbol(llvm::StringRef name, mlir::Value v);

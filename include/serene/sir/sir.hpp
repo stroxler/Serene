@@ -26,7 +26,7 @@
 
 #include "mlir/IR/BuiltinOps.h"
 #include "mlir/IR/MLIRContext.h"
-#include "serene/expr.hpp"
+#include "serene/exprs/expression.h"
 #include "serene/sir/generator.hpp"
 #include <memory>
 
@@ -41,12 +41,12 @@ private:
 public:
   SIR();
 
-  mlir::OwningModuleRef generate(::serene::Namespace *ns);
+  mlir::OwningModuleRef generate(serene::Namespace *ns);
 
   ~SIR();
 };
 
-void dumpSIR(ast_tree &t);
+void dumpSIR(exprs::ast &t);
 } // namespace sir
 
 } // namespace serene

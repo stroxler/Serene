@@ -24,49 +24,48 @@
 
 #include "serene/reader/reader.h"
 #include "serene/error.hpp"
-#include "serene/list.hpp"
-#include "serene/number.hpp"
-#include "serene/symbol.hpp"
+#include "serene/exprs/list.h"
+#include "serene/exprs/number.h"
+#include "serene/exprs/symbol.h"
+#include "llvm/Support/Error.h"
 #include "llvm/Support/ErrorOr.h"
 #include "llvm/Support/FormatVariadic.h"
 #include "llvm/Support/MemoryBuffer.h"
 
 #include <assert.h>
 #include <fstream>
-#include <iostream>
 #include <memory>
 #include <string>
-
-using namespace std;
 
 namespace serene {
 
 namespace reader {
-Reader::Reader(const string input) { this->setInput(input); };
 
-/**
- * Set the input of the reader.
- * @param input Set the input to the given string
- */
-void Reader::setInput(const string input) {
-  input_stream.write(input.c_str(), input.size());
+Reader::Reader(const llvm::StringRef input) { this->setInput(input); };
+
+/// Set the input of the reader.
+///\param input Set the input to the given string
+void Reader::setInput(const llvm::StringRef input) {
+  input_stream.write(input.str().c_str(), input.size());
 };
 
 Reader::~Reader() { READER_LOG("Destroying the reader"); }
 
-/**
- * Return the next character in the buffer.
- * @param skip_whitespace If true it will skip whitespaces and EOL chars
- */
+/// Return the next character in the buffer and moves the location.
+///\param skip_whitespace If true it will skip whitespaces and EOL chars
+/// \return next char in the buffer.
 char Reader::getChar(bool skip_whitespace) {
   for (;;) {
     char c = input_stream.get();
 
     this->current_char = c;
+
+    // TODO: Handle the end of line with respect to the OS.
+    // increase the current position in the buffer with respect to the end
+    // of line.
     inc_location(current_location, c == '\n');
 
     if (skip_whitespace == true && isspace(c)) {
-
       continue;
     } else {
       return c;
@@ -74,12 +73,15 @@ char Reader::getChar(bool skip_whitespace) {
   }
 };
 
+/// Moves back the location by one char. Basically unreads the last character.
 void Reader::ungetChar() {
   input_stream.unget();
   // The char that we just unget
   dec_location(current_location, this->current_char == '\n');
 };
 
+/// A predicate function indicating whether the given char `c` is a valid
+/// char for the starting point of a symbol or not.
 bool Reader::isValidForIdentifier(char c) {
   switch (c) {
   case '!':
@@ -110,7 +112,7 @@ bool Reader::isValidForIdentifier(char c) {
   return false;
 }
 
-ast_node Reader::readNumber(bool neg) {
+exprs::node Reader::readNumber(bool neg) {
   std::string number(neg ? "-" : "");
   bool floatNum = false;
   bool empty = false;
@@ -141,13 +143,13 @@ ast_node Reader::readNumber(bool neg) {
   if (!empty) {
     ungetChar();
     loc.end = current_location;
-    return makeNumber(loc, number, neg, floatNum);
+    return exprs::make<exprs::Number>(loc, number, neg, floatNum);
   }
 
   return nullptr;
 };
 
-ast_node Reader::readSymbol() {
+exprs::node Reader::readSymbol() {
   bool empty = true;
   char c = getChar(false);
 
@@ -186,16 +188,15 @@ ast_node Reader::readSymbol() {
   if (!empty) {
     ungetChar();
     loc.end = current_location;
-    return makeSymbol(loc, sym);
+    return exprs::make<exprs::Symbol>(loc, sym);
   }
 
   // TODO: it should never happens
   return nullptr;
 };
 
-// std::unique_ptr<List> list
-ast_list_node Reader::readList() {
-  auto list = makeList(current_location);
+exprs::node Reader::readList() {
+  auto list = exprs::makeAndCast<exprs::List>(current_location);
 
   char c = getChar(true);
   assert(c == '(');
@@ -210,7 +211,7 @@ ast_list_node Reader::readList() {
       throw ReadError(const_cast<char *>("EOF reached before closing of list"));
     case ')':
       list_terminated = true;
-      list->location->end = current_location;
+      list->location.end = current_location;
 
       break;
 
@@ -222,9 +223,9 @@ ast_list_node Reader::readList() {
   } while (!list_terminated);
 
   return list;
-}
+};
 
-ast_node Reader::readExpr() {
+exprs::node Reader::readExpr() {
   char c = getChar(false);
   READER_LOG("CHAR: " << c);
 
@@ -241,9 +242,9 @@ ast_node Reader::readExpr() {
   default:
     return readSymbol();
   }
-}
+};
 
-std::unique_ptr<ast_tree> Reader::read() {
+llvm::Expected<exprs::ast> Reader::read() {
   char c = getChar(true);
 
   while (c != EOF) {
@@ -255,18 +256,25 @@ std::unique_ptr<ast_tree> Reader::read() {
     c = getChar(true);
   }
 
-  return std::make_unique<ast_tree>(this->ast);
-}
+  return this->ast;
+};
 
 void Reader::dumpAST() {
-  ast_tree ast = *this->read();
+  auto maybeAst = read();
   std::string result = "";
-  for (auto &node : ast) {
-    result = fmt::format("{0} {1}", result, node->dumpAST());
-  }
-}
 
-std::unique_ptr<ast_tree> FileReader::read() {
+  if (!maybeAst) {
+    throw maybeAst.takeError();
+  }
+
+  exprs::ast ast = *maybeAst;
+
+  for (auto &node : ast) {
+    result = llvm::formatv("{0} {1}", result, node->toString());
+  }
+};
+
+llvm::Expected<exprs::ast> FileReader::read() {
 
   // TODO: Add support for relative path as well
   llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> fileOrErr =
@@ -276,7 +284,7 @@ std::unique_ptr<ast_tree> FileReader::read() {
     llvm::errs() << "Could not open input file: " << EC.message() << "\n";
     llvm::errs() << fmt::format("File: '{}'\n", file);
     llvm::errs() << "Use absolute path for now\n";
-    return nullptr;
+    return llvm::make_error<MissingFileError>(file);
   }
 
   reader->setInput(fileOrErr.get()->getBuffer().str());
@@ -285,17 +293,19 @@ std::unique_ptr<ast_tree> FileReader::read() {
 
 void FileReader::dumpAST() {
   auto maybeAst = this->read();
-  ast_tree ast;
+  exprs::ast ast;
 
-  if (maybeAst) {
-    ast = *maybeAst;
+  if (!maybeAst) {
+    throw maybeAst.takeError();
   }
+
+  ast = *maybeAst;
 
   std::string result = "";
   for (auto &node : ast) {
-    result = fmt::format("{0} {1}", result, node->dumpAST());
+    result = llvm::formatv("{0} {1}", result, node->toString());
   }
-  cout << result << endl;
+  llvm::outs() << result << "\n";
 }
 
 FileReader::~FileReader() {

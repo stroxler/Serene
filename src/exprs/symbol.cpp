@@ -28,7 +28,6 @@
 namespace serene {
 namespace exprs {
 
-
 ExprType Symbol::getType() const { return ExprType::Symbol; };
 
 std::string Symbol::toString() const {
@@ -37,7 +36,7 @@ std::string Symbol::toString() const {
                        this->location.end.toString(), this->name);
 }
 
-  bool Symbol::classof(const Expression *e) {
+bool Symbol::classof(const Expression *e) {
   return e->getType() == ExprType::List;
 };
 

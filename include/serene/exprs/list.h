@@ -33,8 +33,12 @@ namespace serene {
 
 namespace exprs {
 
+/// This class represents a List in the AST level and not the List as the data
+/// type.
 class List : public Expression {
 public:
+  // Internal elements of the lest (small vector of shared pointers to
+  // expressions)
   ast elements;
 
   List(const List &l);               // Copy ctor
@@ -46,6 +50,8 @@ public:
 
   ExprType getType() const;
   std::string toString() const;
+
+  void append(node);
 
   static bool classof(const Expression *e);
 

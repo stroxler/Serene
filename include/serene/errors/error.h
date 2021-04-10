@@ -1,4 +1,4 @@
-/*
+/* -*- C++ -*-
  * Serene programming language.
  *
  *  Copyright (c) 2019-2021 Sameer Rahmani <lxsameer@gnu.org>
@@ -22,37 +22,9 @@
  * SOFTWARE.
  */
 
-#include "serene/exprs/list.h"
-#include "llvm/Support/FormatVariadic.h"
+#ifndef SERENE_ERRORS_ERROR_H
+#define SERENE_ERRORS_ERROR_H
 
-namespace serene {
-namespace exprs {
+#include "llvm/Support/Error.h"
 
-List::List(const List &l) : Expression(l.location){};
-List::List(const reader::LocationRange &loc, node e) : Expression(loc) {
-  elements.push_back(std::move(e));
-};
-
-List::List(const reader::LocationRange &loc, llvm::ArrayRef<node> elems)
-    : Expression(loc), elements(elems.begin(), elems.end()){};
-
-ExprType List::getType() const { return ExprType::List; };
-std::string List::toString() const {
-  std::string s{this->elements.empty() ? "-" : ""};
-
-  for (auto &n : this->elements) {
-    s = llvm::formatv("{0} {1}", s, n->toString());
-  }
-
-  return llvm::formatv("<List [loc: {0} | {1}]: {2}>",
-                       this->location.start.toString(),
-                       this->location.end.toString(), s);
-};
-
-bool List::classof(const Expression *e) {
-  return e->getType() == ExprType::List;
-};
-
-void List::append(node n) { elements.push_back(n); }
-} // namespace exprs
-} // namespace serene
+#endif

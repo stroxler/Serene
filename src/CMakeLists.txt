@@ -4,10 +4,16 @@ set(HEADER_LIST
   "${INCLUDE_DIR}/serene/exprs/expression.h"
   "${INCLUDE_DIR}/serene/exprs/symbol.h"
   "${INCLUDE_DIR}/serene/exprs/list.h"
+  "${INCLUDE_DIR}/serene/exprs/number.h"
 
   # Reader
   "${INCLUDE_DIR}/serene/reader/reader.h"
   "${INCLUDE_DIR}/serene/reader/location.h"
+  "${INCLUDE_DIR}/serene/reader/errors.h"
+
+  "${INCLUDE_DIR}/serene/errors.h"
+  "${INCLUDE_DIR}/serene/errors/error.h"
+  "${INCLUDE_DIR}/serene/errors/errc.h"
 
 
   "${INCLUDE_DIR}/serene/expr.hpp"
@@ -23,13 +29,15 @@ set(HEADER_LIST
   "${INCLUDE_DIR}/serene/sir/sir.hpp"
   "${INCLUDE_DIR}/serene/sir/dialect.hpp"
   "${INCLUDE_DIR}/serene/sir/generator.hpp"
-  "${INCLUDE_DIR}/serene/namespace.hpp")
+  "${INCLUDE_DIR}/serene/namespace.h")
 
 # Make an automatic library - will be static or dynamic based on user setting
 add_library(serene
   exprs/expression.cpp
   exprs/symbol.cpp
   exprs/list.cpp
+  exprs/number.cpp
+
 
   serene.cpp
   symbol.cpp
@@ -42,6 +50,7 @@ add_library(serene
   # Reader
   reader/reader.cpp
   reader/location.cpp
+  reader/errors.cpp
 
   # IR
   sir/sir.cpp

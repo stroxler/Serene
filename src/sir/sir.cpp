@@ -24,7 +24,7 @@
 
 #include "serene/sir/sir.hpp"
 #include "mlir/IR/MLIRContext.h"
-#include "serene/expr.hpp"
+#include "serene/exprs/expression.h"
 #include "serene/sir/dialect.hpp"
 #include "serene/sir/generator.hpp"
 #include <memory>
@@ -41,7 +41,7 @@ mlir::OwningModuleRef SIR::generate(::serene::Namespace *ns) {
 
 SIR::~SIR() {}
 
-void dumpSIR(ast_tree &t) {
+void dumpSIR(exprs::ast &t) {
   auto ns = new ::serene::Namespace("user", llvm::None);
 
   SIR s{};

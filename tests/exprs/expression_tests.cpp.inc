@@ -37,30 +37,9 @@ TEST_CASE("Public Expression API", "[expression]") {
 
   REQUIRE(sym->getType() == ExprType::Symbol);
   REQUIRE(sym->toString() == "<Symbol [loc: 2:20:40 | 3:30:80]: example>");
-};
 
-TEST_CASE("List Expression", "[expression]") {
-  std::unique_ptr<reader::LocationRange> range(dummyLocation());
-  auto sym = make<Symbol>(*range.get(), llvm::StringRef("example"));
+  auto list = makeAndCast<List>(*range.get(), sym);
 
-  auto list = make<List>(*range.get());
-  auto list2 = make<List>(*range.get(), list);
-  auto list3 = make<List>(*range.get(), llvm::ArrayRef<node>{list, list2, sym});
-
-  REQUIRE(list->toString() == "<List [loc: 2:20:40 | 3:30:80]: ->");
-  REQUIRE(list->getType() == ExprType::List);
-
-  REQUIRE(
-      list2->toString() ==
-      "<List [loc: 2:20:40 | 3:30:80]:  <List [loc: 2:20:40 | 3:30:80]: ->>");
-  REQUIRE(list3->toString() ==
-          "<List [loc: 2:20:40 | 3:30:80]:  <List [loc: 2:20:40 | 3:30:80]: -> "
-          "<List [loc: 2:20:40 | 3:30:80]:  <List [loc: 2:20:40 | 3:30:80]: "
-          "->> <Symbol [loc: 2:20:40 | 3:30:80]: example>>");
-
-  list->elements.push_back(sym);
-
-  REQUIRE(list->getType() == ExprType::List);
   REQUIRE(list->toString() == "<List [loc: 2:20:40 | 3:30:80]:  <Symbol [loc: "
                               "2:20:40 | 3:30:80]: example>>");
 };

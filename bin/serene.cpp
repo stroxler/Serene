@@ -60,7 +60,13 @@ int main(int argc, char *argv[]) {
   case Action::DumpIR: {
     reader::FileReader *r = new reader::FileReader(inputFile);
 
-    serene::sir::dumpSIR(*r->read());
+    auto ast = r->read();
+
+    if (!ast) {
+      throw ast.takeError();
+    }
+
+    serene::sir::dumpSIR(*ast);
     delete r;
     return 0;
   }

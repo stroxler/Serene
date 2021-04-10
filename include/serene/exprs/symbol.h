@@ -33,6 +33,8 @@ namespace serene {
 
 namespace exprs {
 
+/// This data structure represent the Lisp symbol. Just a symbol
+/// in the context of the AST and nothing else.
 struct Symbol : public Expression {
   std::string name;
 

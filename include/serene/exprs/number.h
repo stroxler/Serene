@@ -1,7 +1,7 @@
-/**
+/* -*- C++ -*-
  * Serene programming language.
  *
- *  Copyright (c) 2020 Sameer Rahmani <lxsameer@gnu.org>
+ *  Copyright (c) 2019-2021 Sameer Rahmani <lxsameer@gnu.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,53 +22,38 @@
  * SOFTWARE.
  */
 
-#include "serene/namespace.h"
-#include "serene/exprs/expression.h"
-#include "serene/llvm/IR/Value.h"
-#include "llvm/ADT/StringRef.h"
-#include <fmt/core.h>
-#include <string>
+#ifndef EXPRS_NUMBER_H
+#define EXPRS_NUMBER_H
 
-using namespace std;
-using namespace llvm;
+#include "serene/exprs/expression.h"
 
 namespace serene {
 
-Namespace::Namespace(llvm::StringRef ns_name,
-                     llvm::Optional<llvm::StringRef> filename) {
+namespace exprs {
 
-  this->filename = filename;
-  this->name = ns_name;
+/// This data structure represent the Lisp symbol. Just a symbol
+/// in the context of the AST and nothing else.
+struct Number : public Expression {
+  std::string value;
+
+  bool isNeg;
+  bool isFloat;
+
+  Number(reader::LocationRange &loc, const std::string &num, bool isNeg,
+         bool isFloat)
+      : Expression(loc), value(num), isNeg(isNeg), isFloat(isFloat){};
+
+  ExprType getType() const;
+  std::string toString() const;
+
+  int64_t toI64();
+
+  static bool classof(const Expression *e);
+
+  ~Number() = default;
 };
 
-exprs::ast &Namespace::Tree() { return this->tree; }
-
-llvm::Optional<mlir::Value> Namespace::lookup(llvm::StringRef name) {
-  if (auto value = rootScope.lookup(name)) {
-    return value;
-  }
-
-  return llvm::None;
-};
-
-mlir::LogicalResult Namespace::setTree(exprs::ast &t) {
-  if (initialized) {
-    return mlir::failure();
-  }
-  this->tree = t;
-  this->initialized = true;
-  return mlir::success();
-}
-
-mlir::LogicalResult Namespace::insert_symbol(mlir::StringRef name,
-                                             mlir::Value v) {
-
-  rootScope.insert(PairT(name, v));
-  return mlir::success();
-}
-
-void Namespace::print_scope(){};
-
-Namespace::~Namespace() {}
-
+} // namespace exprs
 } // namespace serene
+
+#endif

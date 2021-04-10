@@ -1,7 +1,7 @@
-/**
+/* -*- C++ -*-
  * Serene programming language.
  *
- *  Copyright (c) 2020 Sameer Rahmani <lxsameer@gnu.org>
+ *  Copyright (c) 2019-2021 Sameer Rahmani <lxsameer@gnu.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,53 +22,43 @@
  * SOFTWARE.
  */
 
-#include "serene/namespace.h"
-#include "serene/exprs/expression.h"
-#include "serene/llvm/IR/Value.h"
-#include "llvm/ADT/StringRef.h"
-#include <fmt/core.h>
-#include <string>
-
-using namespace std;
-using namespace llvm;
+#ifndef SERENE_READER_ERRORS_H
+#define SERENE_READER_ERRORS_H
+#include "serene/errors.h"
 
 namespace serene {
+namespace reader {
 
-Namespace::Namespace(llvm::StringRef ns_name,
-                     llvm::Optional<llvm::StringRef> filename) {
+class ReadError : public std::exception {
+private:
+  char *message;
 
-  this->filename = filename;
-  this->name = ns_name;
+public:
+  ReadError(char *msg) : message(msg){};
+  const char *what() const throw() { return message; }
 };
 
-exprs::ast &Namespace::Tree() { return this->tree; }
+class MissingFileError : public llvm::ErrorInfo<MissingFileError> {
 
-llvm::Optional<mlir::Value> Namespace::lookup(llvm::StringRef name) {
-  if (auto value = rootScope.lookup(name)) {
-    return value;
+  using llvm::ErrorInfo<MissingFileError>::log;
+  using llvm::ErrorInfo<MissingFileError>::convertToErrorCode;
+
+public:
+  static char ID;
+  std::string path;
+
+  // TODO: Move this to an error namespace somewhere.
+  int file_is_missing = int();
+
+  void log(llvm::raw_ostream &os) const {
+    os << "File does not exist: " << path << "\n";
   }
 
-  return llvm::None;
+  MissingFileError(llvm::StringRef path) : path(path.str()){};
+  std::error_code convertToErrorCode() const {
+    return make_error_code(errc::no_such_file_or_directory);
+  }
 };
-
-mlir::LogicalResult Namespace::setTree(exprs::ast &t) {
-  if (initialized) {
-    return mlir::failure();
-  }
-  this->tree = t;
-  this->initialized = true;
-  return mlir::success();
-}
-
-mlir::LogicalResult Namespace::insert_symbol(mlir::StringRef name,
-                                             mlir::Value v) {
-
-  rootScope.insert(PairT(name, v));
-  return mlir::success();
-}
-
-void Namespace::print_scope(){};
-
-Namespace::~Namespace() {}
-
+} // namespace reader
 } // namespace serene
+#endif

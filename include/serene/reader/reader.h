@@ -29,30 +29,25 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <system_error>
 #include <vector>
 
-#include "serene/expr.hpp"
-#include "serene/list.hpp"
+#include "serene/errors.h"
+#include "serene/exprs/expression.h"
+#include "serene/exprs/list.h"
+#include "serene/exprs/symbol.h"
 #include "serene/logger.hpp"
+#include "serene/reader/errors.h"
 #include "serene/reader/location.h"
 #include "serene/serene.h"
-#include "serene/symbol.hpp"
 #include "llvm/Support/Debug.h"
+#include "llvm/Support/raw_ostream.h"
 
 #define READER_LOG(...)                                                        \
   DEBUG_WITH_TYPE("READER", llvm::dbgs() << __VA_ARGS__ << "\n");
 
 namespace serene {
 namespace reader {
-
-class ReadError : public std::exception {
-private:
-  char *message;
-
-public:
-  ReadError(char *msg) : message(msg){};
-  const char *what() const throw() { return message; }
-};
 
 class Reader {
 private:
@@ -65,19 +60,19 @@ private:
   bool isValidForIdentifier(char c);
 
   // The property to store the ast tree
-  ast_tree ast;
-  ast_node readSymbol();
-  ast_node readNumber(bool);
-  ast_list_node readList();
-  ast_node readExpr();
+  exprs::ast ast;
+  exprs::node readSymbol();
+  exprs::node readNumber(bool);
+  exprs::node readList();
+  exprs::node readExpr();
 
 public:
   Reader() : input_stream(""){};
-  Reader(const std::string);
+  Reader(const llvm::StringRef string);
 
-  void setInput(const std::string);
+  void setInput(const llvm::StringRef string);
 
-  std::unique_ptr<ast_tree> read();
+  llvm::Expected<exprs::ast> read();
 
   // Dumps the AST data to stdout
   void dumpAST();
@@ -95,7 +90,7 @@ public:
   // Dumps the AST data to stdout
   void dumpAST();
 
-  std::unique_ptr<ast_tree> read();
+  llvm::Expected<exprs::ast> read();
 
   ~FileReader();
 };

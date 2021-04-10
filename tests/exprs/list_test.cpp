@@ -1,4 +1,4 @@
-/*
+/* -*- C++ -*-
  * Serene programming language.
  *
  *  Copyright (c) 2019-2021 Sameer Rahmani <lxsameer@gnu.org>
@@ -22,37 +22,40 @@
  * SOFTWARE.
  */
 
+#include "../test_helpers.cpp.inc"
 #include "serene/exprs/list.h"
-#include "llvm/Support/FormatVariadic.h"
+#include "serene/exprs/symbol.h"
 
 namespace serene {
 namespace exprs {
 
-List::List(const List &l) : Expression(l.location){};
-List::List(const reader::LocationRange &loc, node e) : Expression(loc) {
-  elements.push_back(std::move(e));
+TEST_CASE("List Expression", "[expression]") {
+  std::unique_ptr<reader::LocationRange> range(dummyLocation());
+
+  auto sym = make<Symbol>(*range.get(), llvm::StringRef("example"));
+  auto list = make<List>(*range.get());
+  auto list2 = make<List>(*range.get(), list);
+  auto list3 = make<List>(*range.get(), llvm::ArrayRef<node>{list, list2, sym});
+
+  REQUIRE(list->toString() == "<List [loc: 2:20:40 | 3:30:80]: ->");
+  REQUIRE(list->getType() == ExprType::List);
+
+  REQUIRE(
+      list2->toString() ==
+      "<List [loc: 2:20:40 | 3:30:80]:  <List [loc: 2:20:40 | 3:30:80]: ->>");
+  REQUIRE(list3->toString() ==
+          "<List [loc: 2:20:40 | 3:30:80]:  <List [loc: 2:20:40 | 3:30:80]: -> "
+          "<List [loc: 2:20:40 | 3:30:80]:  <List [loc: 2:20:40 | 3:30:80]: "
+          "->> <Symbol [loc: 2:20:40 | 3:30:80]: example>>");
+
+  auto l = llvm::dyn_cast<List>(list);
+
+  l.append(sym);
+
+  REQUIRE(list->getType() == ExprType::List);
+  REQUIRE(list->toString() == "<List [loc: 2:20:40 | 3:30:80]:  <Symbol [loc: "
+                              "2:20:40 | 3:30:80]: example>>");
 };
 
-List::List(const reader::LocationRange &loc, llvm::ArrayRef<node> elems)
-    : Expression(loc), elements(elems.begin(), elems.end()){};
-
-ExprType List::getType() const { return ExprType::List; };
-std::string List::toString() const {
-  std::string s{this->elements.empty() ? "-" : ""};
-
-  for (auto &n : this->elements) {
-    s = llvm::formatv("{0} {1}", s, n->toString());
-  }
-
-  return llvm::formatv("<List [loc: {0} | {1}]: {2}>",
-                       this->location.start.toString(),
-                       this->location.end.toString(), s);
-};
-
-bool List::classof(const Expression *e) {
-  return e->getType() == ExprType::List;
-};
-
-void List::append(node n) { elements.push_back(n); }
 } // namespace exprs
 } // namespace serene

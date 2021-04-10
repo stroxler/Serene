@@ -27,7 +27,7 @@
 
 #include "serene/llvm/IR/Value.h"
 #include "serene/logger.hpp"
-//#include "serene/namespace.hpp"
+//#include "serene/namespace.h"
 #include <llvm/IR/Module.h>
 #include <string>
 

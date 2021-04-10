@@ -30,136 +30,67 @@
 
 namespace serene {
 
-/// Contains all the builtin expressions including those which do not appear in
-/// the syntax directly. Like function definitions.
+/// Contains all the builtin AST expressions including those which do not appear
+/// in the syntax directly. Like function definitions.
 namespace exprs {
 
 /// This enum represent the expression type and **not** the value type.
 enum class ExprType {
   Symbol,
   List,
+  Number,
 };
 
-/// The polymorphic type that works as the entry point to the exprs system.
-/// Each expression has to define the interface of the `ExpressionConcept`
-/// class as generic functions. **REMEMBER TO NOT INHERIT FROM THESE CLASSES**
+/// The base class of the expressions which provides the common interface for
+/// the expressions to implement.
 class Expression {
 public:
+  /// The location range provide information regarding to where in the input
+  /// string the current expression is used.
   reader::LocationRange location;
 
   Expression(const reader::LocationRange &loc) : location(loc){};
   virtual ~Expression() = default;
 
+  /// Returns the type of the expression. We need this funciton to perform
+  /// dynamic casting of expression object to implementations such as lisp or
+  /// symbol.
   virtual ExprType getType() const = 0;
+
+  /// The AST representation of an expression
   virtual std::string toString() const = 0;
 };
+using node = std::shared_ptr<Expression>;
+using ast = llvm::SmallVector<node, 0>;
 
-/// Create a new Expression of type `T` and forwards any given parameter
+/// Create a new `node` of type `T` and forwards any given parameter
 /// to the constructor of type `T`. This is the **official way** to create
 /// a new `Expression`. Here is an example:
 /// \code
-/// auto list = Expression::make<List>();
+/// auto list = make<List>();
 /// \endcode
 ///
-/// \param loc A `serene::reader::LocationRange` instance to point to exact
-/// location of the expression in the input string.
 /// \param[args] Any argument with any type passed to this function will be
 ///              passed to the constructor of type T.
-/// \return A new expression containing a value of type T and act as tyep T.
-// template <typename T, typename... Args> std::shared_ptr<T> make(Args
-// &&...args);
-template <typename T, typename... Args>
-std::shared_ptr<T> make(Args &&...args) {
+/// \return A shared pointer to an Expression
+template <typename T, typename... Args> node make(Args &&...args) {
   return std::shared_ptr<T>(new T(std::forward<Args>(args)...));
 };
 
-using node = std::shared_ptr<Expression>;
-using ast = llvm::SmallVector<node, 0>;
-// /// Creates a new expression by moving the given object of the type T into
-// /// a new internal container.
-// ///
-// /// \param e and expression of type T
-// template <typename T> Expression(T e) : self(new Impl<T>(std::move(e))){};
-
-// /// The copy constructor which actually just move the other expression into
-// /// a new implementation container.
-// ///
-// /// \param e is the other expression to copy from
-// Expression(const Expression &e) : self(e.self->copy_()){}; // Copy ctor
-// Expression(Expression &&e) noexcept = default;             // Move ctor
-
-// Expression &operator=(const Expression &e);
-// Expression &operator=(Expression &&e) noexcept = default;
-
-// /// Returns the type of the expression. More precisely, It returns the type
-// /// of the expression that it contains.
-// ///
-// /// \return The type of expression.
-// ExprType getType();
-
-// /// Return the string representation of the expression in the context
-// /// of the AST. Think of it as dump of the AST for each expression.
-// ///
-// /// \return the exoression in string format.
-// std::string toString();
-
-// /// Create a new Expression of type `T` and forwards any given parameter
-// /// to the constructor of type `T`. This is the **official way** to create
-// /// a new `Expression`. Here is an example:
-// /// \code
-// /// auto list = Expression::make<List>();
-// /// \endcode
-// ///
-// /// \param loc A `serene::reader::LocationRange` instance to point to exact
-// /// location of the expression in the input string.
-// /// \param[args] Any argument with any type passed to this function will be
-// ///              passed to the constructor of type T.
-// /// \return A new expression containing a value of type T and act as tyep T.
-// template <typename T, typename... Args>
-// static Expression make(Args &&...args) {
-//   return Expression(T(std::forward<Args>(args)...));
-// };
-
-// template <typename T> std::unique_ptr<T> *to();
-// // template <typename T> static Expression make(reader::LocationRange &&loc)
-// {
-// //   Expression e(T(std::forward<reader::LocationRange>(loc)));
-// //   return e;
-// // };
-
-// /// The generic interface which each type of expression has to implement
-// /// in order to act like an `Expression`
-// class ExpressionConcept {
-// public:
-//   virtual ~ExpressionConcept() = default;
-//   virtual ExpressionConcept *copy_() const = 0;
-
-//   /// Return the type of the expression
-//   virtual ExprType getType() = 0;
-
-//   /// Return the string representation of the expression in the context
-//   /// of the AST. Think of it as dump of the AST for each expression
-//   virtual std::string toString() = 0;
-// };
-
-// /// The generic implementation of `ExpressionConcept` which acts as the
-// /// dispatcher on type.
-// template <typename T> struct Impl : ExpressionConcept {
-//   Impl(T e) : expr(std::move(e)){};
-
-//   ExpressionConcept *copy_() const { return new Impl(*this); }
-
-//   /// In order to make llvm's RTTI to work we need this method.
-//   ExprType getType() const { return expr.getType(); }
-
-//   std::string toString() { return expr.toString(); }
-
-//   T expr;
-// };
-
-// /// The internal container to keep the object implementing the
-// /// `ExpressionConcept`. This might be a `List` for example or a `Symbol`.
-// std::unique_ptr<ExpressionConcept> self;
+/// Create a new `node` of type `T` and forwards any given parameter
+/// to the constructor of type `T`. This is the **official way** to create
+/// a new `Expression`. Here is an example:
+/// \code
+/// auto list = make<List>();
+/// \endcode
+///
+/// \param[args] Any argument with any type passed to this function will be
+///              passed to the constructor of type T.
+/// \return A shared pointer to a value of type T.
+template <typename T, typename... Args>
+std::shared_ptr<T> makeAndCast(Args &&...args) {
+  return std::shared_ptr<T>(new T(std::forward<Args>(args)...));
+};
 
 } // namespace exprs
 } // namespace serene
