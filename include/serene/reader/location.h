@@ -40,7 +40,7 @@ struct Location {
   int line;
   int col;
 
-  ::std::string toString();
+  ::std::string toString() const;
 };
 
 class LocationRange {

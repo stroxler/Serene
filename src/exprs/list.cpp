@@ -27,16 +27,31 @@
 
 namespace serene {
 namespace exprs {
-std::string List::toString() {
+
+List::List(const List &l) : Expression(l.location){};
+List::List(const reader::LocationRange &loc, node e) : Expression(loc) {
+  elements.push_back(std::move(e));
+};
+
+List::List(const reader::LocationRange &loc, llvm::ArrayRef<node> elems)
+    : Expression(loc), elements(elems.begin(), elems.end()){};
+
+ExprType List::getType() const { return ExprType::List; };
+std::string List::toString() const {
   std::string s{this->elements.empty() ? "-" : ""};
 
   for (auto &n : this->elements) {
-    s = llvm::formatv("{0} {1}", s, n.toString());
+    s = llvm::formatv("{0} {1}", s, n->toString());
   }
 
   return llvm::formatv("<List [loc: {0} | {1}]: {2}>",
                        this->location.start.toString(),
                        this->location.end.toString(), s);
-}
+};
+
+bool List::classof(const Expression *e) {
+  return e->getType() == ExprType::List;
+};
+
 } // namespace exprs
 } // namespace serene

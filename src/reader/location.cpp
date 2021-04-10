@@ -35,7 +35,7 @@ LocationRange::LocationRange(const LocationRange &loc) {
 }
 
 /// Return the string represenation of the location.
-std::string Location::toString() {
+std::string Location::toString() const {
   return llvm::formatv("{0}:{1}:{2}", line, col, pos);
 };
 

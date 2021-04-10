@@ -33,25 +33,21 @@ namespace serene {
 
 namespace exprs {
 
-class List {
+class List : public Expression {
 public:
-  reader::LocationRange location;
-  llvm::SmallVector<Expression, 0> elements;
+  ast elements;
 
-  List(const reader::LocationRange &loc) : location(loc), elements({}){};
-  List(const reader::LocationRange &loc, Expression e) : location(loc) {
-    elements.push_back(e);
-  };
+  List(const List &l);               // Copy ctor
+  List(List &&e) noexcept = default; // Move ctor
 
-  List(const reader::LocationRange &loc, llvm::ArrayRef<Expression> elems)
-      : location(loc), elements(elems.begin(), elems.end()){};
+  List(const reader::LocationRange &loc) : Expression(loc){};
+  List(const reader::LocationRange &loc, node e);
+  List(const reader::LocationRange &loc, llvm::ArrayRef<node> elems);
 
-  ExprType getType() { return ExprType::List; };
-  std::string toString();
+  ExprType getType() const;
+  std::string toString() const;
 
-  static bool classof(const Expression *e) {
-    return e->getType() == ExprType::List;
-  };
+  static bool classof(const Expression *e);
 
   ~List() = default;
 };

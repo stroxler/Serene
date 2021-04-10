@@ -22,7 +22,31 @@
  * SOFTWARE.
  */
 
-#define CATCH_CONFIG_MAIN
-#include "./exprs/expression_tests.cpp.inc"
-#include "./exprs/symbol_tests.cpp.inc"
+#ifndef TEST_HEALPERS_H
+#define TEST_HEALPERS_H
+
 #include "catch2/catch.hpp"
+#include "serene/reader/location.h"
+
+namespace serene {
+namespace exprs {
+
+reader::LocationRange *dummyLocation() {
+  reader::Location start;
+  reader::Location end;
+
+  start.line = 2;
+  start.col = 20;
+  start.pos = 40;
+
+  end.line = 3;
+  end.col = 30;
+  end.pos = 80;
+
+  return new reader::LocationRange(start, end);
+};
+
+} // namespace exprs
+} // namespace serene
+
+#endif

@@ -33,13 +33,18 @@ namespace serene {
 
 namespace exprs {
 
-struct Symbol : public Locatable {
+struct Symbol : public Expression {
   std::string name;
 
-  Symbol(reader::LocationRange loc, llvm::StringRef name)
-      : Locatable(loc), name(name){};
-  ExprType getType() { return ExprType::Symbol; };
-  std::string toString();
+  Symbol(reader::LocationRange &loc, llvm::StringRef name)
+      : Expression(loc), name(name){};
+
+  ExprType getType() const;
+  std::string toString() const;
+
+  static bool classof(const Expression *e);
+
+  ~Symbol() = default;
 };
 
 } // namespace exprs

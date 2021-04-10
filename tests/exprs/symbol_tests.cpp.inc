@@ -22,7 +22,19 @@
  * SOFTWARE.
  */
 
-#define CATCH_CONFIG_MAIN
-#include "./exprs/expression_tests.cpp.inc"
-#include "./exprs/symbol_tests.cpp.inc"
-#include "catch2/catch.hpp"
+#include "../test_helpers.cpp.inc"
+#include "serene/exprs/expression.h"
+#include "serene/exprs/symbol.h"
+
+namespace serene {
+namespace exprs {
+
+TEST_CASE("Public Symbol API", "[expression]") {
+  std::unique_ptr<reader::LocationRange> range(dummyLocation());
+  auto sym = make<Symbol>(*range.get(), "example");
+
+  REQUIRE(sym->getType() == ExprType::Symbol);
+  REQUIRE(sym->toString() == "<Symbol [loc: 2:20:40 | 3:30:80]: example>");
+};
+} // namespace exprs
+} // namespace serene

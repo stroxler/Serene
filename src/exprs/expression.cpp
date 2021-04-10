@@ -27,18 +27,10 @@
 namespace serene {
 namespace exprs {
 
-Expression &Expression::operator=(const Expression &e) {
-  Expression tmp(e);
-  *this = std::move(tmp);
-  return *this;
-};
+// template <typename T, typename... Args>
+// T* make(Args &&...args) {
+//   return new T(std::forward<Args>(args)...);
+// };
 
-ExprType Expression::getType() { return self->getType(); };
-
-std::string Expression::toString() { return self->toString(); }
-
-template <typename T> std::unique_ptr<T> *Expression::to() {
-  return &this->self;
-}
 } // namespace exprs
 } // namespace serene

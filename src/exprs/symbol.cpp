@@ -27,11 +27,19 @@
 
 namespace serene {
 namespace exprs {
-std::string Symbol::toString() {
+
+
+ExprType Symbol::getType() const { return ExprType::Symbol; };
+
+std::string Symbol::toString() const {
   return llvm::formatv("<Symbol [loc: {0} | {1}]: {2}>",
                        this->location.start.toString(),
                        this->location.end.toString(), this->name);
 }
+
+  bool Symbol::classof(const Expression *e) {
+  return e->getType() == ExprType::List;
+};
 
 } // namespace exprs
 } // namespace serene
