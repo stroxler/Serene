@@ -37,24 +37,23 @@ TEST_CASE("List Expression", "[expression]") {
   auto list2 = make<List>(*range.get(), list);
   auto list3 = make<List>(*range.get(), llvm::ArrayRef<node>{list, list2, sym});
 
-  REQUIRE(list->toString() == "<List [loc: 2:20:40 | 3:30:80]: ->");
   REQUIRE(list->getType() == ExprType::List);
+  CHECK(list->toString() == "<List [loc: 2:20:40 | 3:30:80]: ->");
 
-  REQUIRE(
-      list2->toString() ==
-      "<List [loc: 2:20:40 | 3:30:80]:  <List [loc: 2:20:40 | 3:30:80]: ->>");
-  REQUIRE(list3->toString() ==
-          "<List [loc: 2:20:40 | 3:30:80]:  <List [loc: 2:20:40 | 3:30:80]: -> "
-          "<List [loc: 2:20:40 | 3:30:80]:  <List [loc: 2:20:40 | 3:30:80]: "
-          "->> <Symbol [loc: 2:20:40 | 3:30:80]: example>>");
+  CHECK(list2->toString() ==
+        "<List [loc: 2:20:40 | 3:30:80]:  <List [loc: 2:20:40 | 3:30:80]: ->>");
+  CHECK(list3->toString() ==
+        "<List [loc: 2:20:40 | 3:30:80]:  <List [loc: 2:20:40 | 3:30:80]: -> "
+        "<List [loc: 2:20:40 | 3:30:80]:  <List [loc: 2:20:40 | 3:30:80]: "
+        "->> <Symbol [loc: 2:20:40 | 3:30:80]: example>>");
 
   auto l = llvm::dyn_cast<List>(list);
 
   l.append(sym);
 
   REQUIRE(list->getType() == ExprType::List);
-  REQUIRE(list->toString() == "<List [loc: 2:20:40 | 3:30:80]:  <Symbol [loc: "
-                              "2:20:40 | 3:30:80]: example>>");
+  CHECK(list->toString() == "<List [loc: 2:20:40 | 3:30:80]:  <Symbol [loc: "
+                            "2:20:40 | 3:30:80]: example>>");
 };
 
 } // namespace exprs

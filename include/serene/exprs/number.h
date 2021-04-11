@@ -26,13 +26,16 @@
 #define EXPRS_NUMBER_H
 
 #include "serene/exprs/expression.h"
+#include "llvm/Support/FormatVariadic.h"
 
 namespace serene {
 
 namespace exprs {
 
-/// This data structure represent the Lisp symbol. Just a symbol
-/// in the context of the AST and nothing else.
+/// This data structure represent a number. I handles float points, integers,
+/// positive and negative numbers. This is not a data type representative.
+/// So it won't cast to actual numeric types and it has a string container
+/// to hold the parsed value.
 struct Number : public Expression {
   std::string value;
 
@@ -45,8 +48,6 @@ struct Number : public Expression {
 
   ExprType getType() const;
   std::string toString() const;
-
-  int64_t toI64();
 
   static bool classof(const Expression *e);
 

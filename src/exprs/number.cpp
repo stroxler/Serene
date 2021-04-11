@@ -23,23 +23,16 @@
  */
 
 #include "serene/exprs/number.h"
-#include "llvm/Support/FormatVariadic.h"
 
 namespace serene {
 namespace exprs {
 
-int64_t Number::toI64() {
-  // TODO: Handle float case as well
-  // TODO: Cache the value
-  return std::stoi(value);
-};
-
 ExprType Number::getType() const { return ExprType::Number; };
 
 std::string Number::toString() const {
-  return llvm::formatv("<Symbol [loc: {0} | {1}]: {2}>",
+  return llvm::formatv("<Number [loc: {0} | {1}]: {2}>",
                        this->location.start.toString(),
-                       this->location.end.toString(), this->value);
+                       this->location.end.toString(), value);
 }
 
 bool Number::classof(const Expression *e) {

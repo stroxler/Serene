@@ -53,13 +53,12 @@ int main(int argc, char *argv[]) {
   switch (emitAction) {
   case Action::DumpAST: {
     reader::FileReader *r = new reader::FileReader(inputFile);
-    r->dumpAST();
+    r->toString();
     delete r;
     return 0;
   }
   case Action::DumpIR: {
     reader::FileReader *r = new reader::FileReader(inputFile);
-
     auto ast = r->read();
 
     if (!ast) {

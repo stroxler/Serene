@@ -22,42 +22,27 @@
  * SOFTWARE.
  */
 
-#ifndef LOCATION_H
-#define LOCATION_H
-
-#include "mlir/IR/Location.h"
-#include "mlir/IR/MLIRContext.h"
-#include "mlir/IR/OpDefinition.h"
-#include <string>
+#include "../test_helpers.cpp.inc"
+#include "serene/exprs/number.h"
+#include <catch2/catch.hpp>
 
 namespace serene {
-namespace reader {
+namespace exprs {
+TEST_CASE("Number Expression", "[expression]") {
+  std::unique_ptr<reader::LocationRange> range(dummyLocation());
 
-/// It represents a location in the input string to the parser via `line`,
-struct Location {
+  auto num1 = makeAndCast<Number>(*range.get(), "3", false, false);
+  auto num2 = makeAndCast<Number>(*range.get(), "3.4", false, true);
+  // Hence the `isNeg` being true. We need to provide the sign as the input
+  // anyway
+  auto num3 = makeAndCast<Number>(*range.get(), "3", true, false);
+  auto num4 = makeAndCast<Number>(*range.get(), "-3", true, false);
 
-  int pos; // Position of in the input string.
-  int line;
-  int col;
-
-  ::std::string toString() const;
-  static Location unit() { return {0, 0, 0}; };
+  CHECK(num1->toString() == "<Number [loc: 2:20:40 | 3:30:80]: 3>");
+  CHECK(num2->toString() == "<Number [loc: 2:20:40 | 3:30:80]: 3.4>");
+  CHECK(num3->toString() == "<Number [loc: 2:20:40 | 3:30:80]: 3>");
+  CHECK(num4->toString() == "<Number [loc: 2:20:40 | 3:30:80]: -3>");
 };
 
-class LocationRange {
-public:
-  Location start;
-  Location end;
-
-  LocationRange() : start(Location{0, 0, 0}), end(Location{0, 0, 0}){};
-  LocationRange(Location _start) : start(_start), end(_start){};
-  LocationRange(Location _start, Location _end) : start(_start), end(_end){};
-  LocationRange(const LocationRange &);
-};
-
-void inc_location(Location &, bool);
-void dec_location(Location &, bool);
-
-} // namespace reader
+} // namespace exprs
 } // namespace serene
-#endif

@@ -46,6 +46,9 @@ Reader::Reader(const llvm::StringRef input) { this->setInput(input); };
 /// Set the input of the reader.
 ///\param input Set the input to the given string
 void Reader::setInput(const llvm::StringRef input) {
+  current_location = Location::unit();
+  ast.clear();
+  input_stream.clear();
   input_stream.write(input.str().c_str(), input.size());
 };
 
@@ -112,6 +115,8 @@ bool Reader::isValidForIdentifier(char c) {
   return false;
 }
 
+/// Reads a number,
+/// \param neg whether to read a negative number or not.
 exprs::node Reader::readNumber(bool neg) {
   std::string number(neg ? "-" : "");
   bool floatNum = false;
@@ -149,6 +154,8 @@ exprs::node Reader::readNumber(bool neg) {
   return nullptr;
 };
 
+/// Reads a symbol. If the symbol looks like a number
+/// If reads it as number
 exprs::node Reader::readSymbol() {
   bool empty = true;
   char c = getChar(false);
@@ -170,6 +177,7 @@ exprs::node Reader::readSymbol() {
       return readNumber(true);
     }
   }
+
   if (c >= '0' && c <= '9') {
     ungetChar();
     return readNumber(false);
@@ -195,6 +203,7 @@ exprs::node Reader::readSymbol() {
   return nullptr;
 };
 
+/// Reads a list recursively
 exprs::node Reader::readList() {
   auto list = exprs::makeAndCast<exprs::List>(current_location);
 
@@ -225,6 +234,7 @@ exprs::node Reader::readList() {
   return list;
 };
 
+/// Reads an expression by dispatching to the proper reader function.
 exprs::node Reader::readExpr() {
   char c = getChar(false);
   READER_LOG("CHAR: " << c);
@@ -244,22 +254,28 @@ exprs::node Reader::readExpr() {
   }
 };
 
+/// Reads all the expressions in the reader's buffer as an AST.
+/// Each expression type (from the reader perspective) has a
+/// reader function.
 llvm::Expected<exprs::ast> Reader::read() {
   char c = getChar(true);
 
   while (c != EOF) {
     ungetChar();
     auto tmp{readExpr()};
+
     if (tmp) {
       this->ast.push_back(move(tmp));
     }
+
     c = getChar(true);
   }
 
   return this->ast;
 };
 
-void Reader::dumpAST() {
+/// Reads the input into an AST and prints it out as string again.
+void Reader::toString() {
   auto maybeAst = read();
   std::string result = "";
 
@@ -274,6 +290,10 @@ void Reader::dumpAST() {
   }
 };
 
+/// Reads all the expressions from the file provided via its path
+// in the reader as an AST.
+/// Each expression type (from the reader perspective) has a
+/// reader function.
 llvm::Expected<exprs::ast> FileReader::read() {
 
   // TODO: Add support for relative path as well
@@ -291,7 +311,8 @@ llvm::Expected<exprs::ast> FileReader::read() {
   return reader->read();
 }
 
-void FileReader::dumpAST() {
+/// Reads the input into an AST and prints it out as string again.
+void FileReader::toString() {
   auto maybeAst = this->read();
   exprs::ast ast;
 

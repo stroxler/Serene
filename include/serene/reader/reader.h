@@ -49,6 +49,7 @@
 namespace serene {
 namespace reader {
 
+/// Base reader class which reads from a string directly.
 class Reader {
 private:
   char current_char = ';'; // Some arbitary char to begin with
@@ -75,11 +76,12 @@ public:
   llvm::Expected<exprs::ast> read();
 
   // Dumps the AST data to stdout
-  void dumpAST();
+  void toString();
 
   ~Reader();
 };
 
+/// A reader to read the content of a file as AST
 class FileReader {
   std::string file;
   Reader *reader;
@@ -88,7 +90,7 @@ public:
   FileReader(const std::string file_name)
       : file(file_name), reader(new Reader()) {}
   // Dumps the AST data to stdout
-  void dumpAST();
+  void toString();
 
   llvm::Expected<exprs::ast> read();
 
