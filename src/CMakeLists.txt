@@ -67,7 +67,7 @@ add_dependencies(serene SereneDialectGen)
 if (CPP_20_SUPPORT)
   target_compile_features(serene PUBLIC cxx_std_20)
 else()
-  target_compile_features(serene PUBLIC cxx_std_14)
+  target_compile_features(serene PUBLIC cxx_std_17)
 endif()
 
 

@@ -6,7 +6,7 @@ add_executable(tests serenetests.cpp)
 add_dependencies(tests SereneDialectGen)
 add_dependencies(tests serene)
 
-target_compile_features(tests PRIVATE cxx_std_14)
+target_compile_features(tests PRIVATE cxx_std_17)
 
 # Should be linked to the main library, as well as the Catch2 testing library
 target_link_libraries(tests PUBLIC serene Catch2::Catch2)

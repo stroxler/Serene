@@ -5,7 +5,7 @@ add_dependencies(serenec SereneDialectGen)
 if (CPP_20_SUPPORT)
   target_compile_features(serenec PRIVATE cxx_std_20)
 else()
-  target_compile_features(serenec PRIVATE cxx_std_14)
+  target_compile_features(serenec PRIVATE cxx_std_17)
 endif()
 
 
