@@ -1,5 +1,6 @@
 set(HEADER_LIST
   "${INCLUDE_DIR}/serene/serene.h"
+  "${INCLUDE_DIR}/serene/utils.h"
 
   "${INCLUDE_DIR}/serene/exprs/expression.h"
   "${INCLUDE_DIR}/serene/exprs/symbol.h"

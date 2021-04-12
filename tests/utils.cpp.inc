@@ -21,42 +21,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
-#ifndef EXPRS_SYMBOL_H
-#define EXPRS_SYMBOL_H
-
-#include "serene/exprs/expression.h"
-#include "llvm/ADT/StringRef.h"
-#include <string>
+#include "./test_helpers.cpp.inc"
+#include "serene/utils.h"
 
 namespace serene {
+TEST_CASE("Result Type", "[utils]") {
+  auto r = Result<int>::Success(4);
 
-namespace exprs {
-
-/// This data structure represent the Lisp symbol. Just a symbol
-/// in the context of the AST and nothing else.
-class Symbol : public Expression {
-
-  // private:
-  //   using Expression::analyze;
-
-public:
-  std::string name;
-
-  Symbol(reader::LocationRange &loc, llvm::StringRef name)
-      : Expression(loc), name(name){};
-
-  ExprType getType() const;
-  std::string toString() const;
-
-  static bool classof(const Expression *e);
-
-  Result<Expression> analyze(reader::SemanticContext &);
-
-  ~Symbol() = default;
+  REQUIRE(r == true);
+  CHECK(r.getValue() == 4);
 };
-
-} // namespace exprs
 } // namespace serene
-
-#endif

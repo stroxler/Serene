@@ -26,9 +26,14 @@
 #define EXPRS_EXPRESSION_H
 
 #include "serene/reader/location.h"
+#include "serene/utils.h"
 #include <memory>
 
 namespace serene {
+
+namespace reader {
+class SemanticContext;
+}
 
 /// Contains all the builtin AST expressions including those which do not appear
 /// in the syntax directly. Like function definitions.
@@ -59,7 +64,10 @@ public:
 
   /// The AST representation of an expression
   virtual std::string toString() const = 0;
+
+  virtual Result<Expression> analyze(reader::SemanticContext &) = 0;
 };
+
 using node = std::shared_ptr<Expression>;
 using ast = llvm::SmallVector<node, 0>;
 

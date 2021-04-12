@@ -22,41 +22,25 @@
  * SOFTWARE.
  */
 
-#ifndef EXPRS_SYMBOL_H
-#define EXPRS_SYMBOL_H
-
+#include "serene/reader/semantics.h"
 #include "serene/exprs/expression.h"
-#include "llvm/ADT/StringRef.h"
-#include <string>
 
-namespace serene {
+namespace serene::reader {
+exprs::ast Semantics::analyze(exprs::ast &inputAst) {
+  // TODO: Fetch the current namespace from the JIT engine later and if it is
+  // `nil` then the given `ast` has to start with a namespace definition.
 
-namespace exprs {
+  exprs::ast ast;
+  for (auto &element : inputAst) {
+    auto maybeNode = element->analyze(context);
 
-/// This data structure represent the Lisp symbol. Just a symbol
-/// in the context of the AST and nothing else.
-class Symbol : public Expression {
-
-  // private:
-  //   using Expression::analyze;
-
-public:
-  std::string name;
-
-  Symbol(reader::LocationRange &loc, llvm::StringRef name)
-      : Expression(loc), name(name){};
-
-  ExprType getType() const;
-  std::string toString() const;
-
-  static bool classof(const Expression *e);
-
-  Result<Expression> analyze(reader::SemanticContext &);
-
-  ~Symbol() = default;
+    if (!maybeNode) {
+      // TODO: Check the error type to see whether we can continue or not.
+      // If not, raise otherwise push it to the exception queue and move on.
+      auto err = maybeNode.takeError();
+      throw err;
+    }
+  }
 };
 
-} // namespace exprs
-} // namespace serene
-
-#endif
+}; // namespace serene::reader

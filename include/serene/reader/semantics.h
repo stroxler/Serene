@@ -22,41 +22,23 @@
  * SOFTWARE.
  */
 
-#ifndef EXPRS_SYMBOL_H
-#define EXPRS_SYMBOL_H
+#ifndef READER_SEMANTICS_H
+#define READER_SEMANTICS_H
 
 #include "serene/exprs/expression.h"
-#include "llvm/ADT/StringRef.h"
-#include <string>
 
-namespace serene {
+namespace serene::reader {
 
-namespace exprs {
+class SemanticContext {};
 
-/// This data structure represent the Lisp symbol. Just a symbol
-/// in the context of the AST and nothing else.
-class Symbol : public Expression {
-
-  // private:
-  //   using Expression::analyze;
+class Semantics {
+  SemanticContext context;
 
 public:
-  std::string name;
+  Semantics(){};
 
-  Symbol(reader::LocationRange &loc, llvm::StringRef name)
-      : Expression(loc), name(name){};
-
-  ExprType getType() const;
-  std::string toString() const;
-
-  static bool classof(const Expression *e);
-
-  Result<Expression> analyze(reader::SemanticContext &);
-
-  ~Symbol() = default;
+  exprs::ast analyze(exprs::ast &);
 };
-
-} // namespace exprs
-} // namespace serene
+}; // namespace serene::reader
 
 #endif
