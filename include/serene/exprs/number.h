@@ -48,6 +48,7 @@ struct Number : public Expression {
 
   ExprType getType() const;
   std::string toString() const;
+  Result<Expression *> analyze(reader::SemanticContext &ctx);
 
   static bool classof(const Expression *e);
 

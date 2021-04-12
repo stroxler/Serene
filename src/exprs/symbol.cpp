@@ -36,8 +36,8 @@ std::string Symbol::toString() const {
                        this->location.end.toString(), this->name);
 }
 
-Result<Expression> Symbol::analyze(reader::SemanticContext &ctx) {
-  return Result<Expression>(this);
+Result<Expression *> Symbol::analyze(reader::SemanticContext &ctx) {
+  return Result<Expression *>::Success(this);
 };
 
 bool Symbol::classof(const Expression *e) {

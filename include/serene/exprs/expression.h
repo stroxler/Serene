@@ -65,7 +65,7 @@ public:
   /// The AST representation of an expression
   virtual std::string toString() const = 0;
 
-  virtual Result<Expression> analyze(reader::SemanticContext &) = 0;
+  virtual Result<Expression *> analyze(reader::SemanticContext &) = 0;
 };
 
 using node = std::shared_ptr<Expression>;

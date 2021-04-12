@@ -52,6 +52,7 @@ public:
   std::string toString() const;
 
   void append(node);
+  Result<Expression *> analyze(reader::SemanticContext &);
 
   static bool classof(const Expression *e);
 

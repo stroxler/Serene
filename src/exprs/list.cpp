@@ -49,6 +49,10 @@ std::string List::toString() const {
                        this->location.end.toString(), s);
 };
 
+Result<Expression *> List::analyze(reader::SemanticContext &ctx) {
+  return Result<Expression *>::Success(this);
+};
+
 bool List::classof(const Expression *e) {
   return e->getType() == ExprType::List;
 };

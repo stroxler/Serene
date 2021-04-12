@@ -1,3 +1,4 @@
+
 /*
  * Serene programming language.
  *
@@ -34,6 +35,10 @@ std::string Number::toString() const {
                        this->location.start.toString(),
                        this->location.end.toString(), value);
 }
+
+Result<Expression *> Number::analyze(reader::SemanticContext &ctx) {
+  return Result<Expression *>::Success(this);
+};
 
 bool Number::classof(const Expression *e) {
   return e->getType() == ExprType::Number;
