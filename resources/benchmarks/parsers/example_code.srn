@@ -1,0 +1,85 @@
+;;; magit-diff.el --- inspect Git diffs  -*- lexical-binding: t -*-
+
+;; Copyright (C) 2010-2020  The Magit Project Contributors
+;;
+;; You should have received a copy of the AUTHORS.md file which
+;; lists all contributors.  If not, see http://magit.vc/authors.
+
+;; Author: Jonas Bernoulli <jonas@bernoul.li>
+;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
+
+;; Magit is free software; you can redistribute it and/or modify it
+;; under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+;;
+;; Magit is distributed in the hope that it will be useful, but WITHOUT
+;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+;; or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+;; License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with Magit.  If not, see http://www.gnu.org/licenses.
+
+;;; Commentary:
+
+;; This library implements support for looking at Git diffs and
+;; commits.
+
+;;; Code:
+
+(eval-when-compile
+  (require 'ansi-color)
+  (require 'subr-x))
+
+(require 'git-commit)
+(require 'magit-core)
+
+;; For `magit-diff-popup'
+(declare-function magit-stash-show "magit-stash" (stash optional args files))
+;; For `magit-diff-visit-file'
+(declare-function dired-jump "dired-x" (optional other-window file-name))
+(declare-function magit-find-file-noselect "magit-files" (rev file))
+(declare-function magit-status-setup-buffer "magit-status" (directory))
+;; For `magit-diff-while-committing'
+(declare-function magit-commit-message-buffer "magit-commit" ())
+;; For `magit-insert-revision-gravatar'
+(defvar gravatar-size)
+;; For `magit-show-commit' and `magit-diff-show-or-scroll'
+(declare-function magit-current-blame-chunk "magit-blame" ())
+(declare-function magit-blame-mode "magit-blame" (optional arg))
+(defvar magit-blame-mode)
+;; For `magit-diff-show-or-scroll'
+(declare-function git-rebase-current-line "git-rebase" ())
+;; For `magit-diff-unmerged'
+(declare-function magit-merge-in-progress-p "magit-merge" ())
+(declare-function magit--merge-range "magit-merge" (optional head))
+;; For `magit-diff--dwim'
+(declare-function forge--pullreq-ref "forge-pullreq" (pullreq))
+;; For `magit-diff-wash-diff'
+(declare-function ansi-color-apply-on-region "ansi-color" (begin end))
+
+(eval-when-compile
+  (cl-pushnew 'base-ref eieio--known-slot-names)
+  (cl-pushnew 'orig-rev eieio--known-slot-names)
+  (cl-pushnew 'action-type eieio--known-slot-names)
+  (cl-pushnew 'target eieio--known-slot-names))
+
+(require 'diff-mode)
+(require 'smerge-mode)
+
+;;; Options
+;;;; Diff Mode
+
+(defgroup magit-diff nil
+  "Inspect and manipulate Git diffs."
+  link '(info-link "(magit)Diffing")
+  group 'magit-modes
+  type 'float)
+
+(asd 234 (asd zxc wqe asd asd rewe asd (asd asd (asd asd asd (123 3213123 'asd 'asd "sadasd" (asd asdsad (zxczxc (asdasd asd asd (asdas asd as 234234 324 (234 234 asd 342 ("asdasd" sadf 234 asd ((((((((((((((((((((((((((((((((asd asd asdasd (((((((((((((asdasdasd (((((((((((((((asdasdasd (asdasdasdasd asdas ))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+
+
+-234234
+ascent
+9393

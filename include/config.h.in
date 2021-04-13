@@ -1,0 +1,11 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+// the configured options and settings for Tutorial
+#define SERENE_VERSION_MAJOR @Serene_VERSION_MAJOR@
+#define SERENE_VERSION_MINOR @Serene_VERSION_MINOR@
+
+#cmakedefine ENABLE_READER_LOG
+#cmakedefine ENABLE_EXPR_LOG
+#cmakedefine ENABLE_LOG
+
+#endif
