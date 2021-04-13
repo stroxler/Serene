@@ -38,7 +38,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   set(CMAKE_CXX_FLAGS_RELEASE
     "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 
-  set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+  set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/scripts/cmake")
   set(MemoryCheckCommand "valgrind")
 
   add_compile_options(-fno-rtti)
