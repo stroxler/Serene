@@ -27,4 +27,5 @@
 #include "./exprs/number_tests.cpp.inc"
 #include "./exprs/symbol_tests.cpp.inc"
 #include "./reader/reader_tests.cpp.inc"
+#include "./utils_tests.cpp.inc"
 #include "catch2/catch.hpp"

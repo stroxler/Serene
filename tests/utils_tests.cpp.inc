@@ -30,5 +30,10 @@ TEST_CASE("Result Type", "[utils]") {
 
   REQUIRE(r == true);
   CHECK(r.getValue() == 4);
+
+  auto r1 = Result<int, char>::Error('c');
+
+  REQUIRE_FALSE(r1);
+  CHECK(r1.getError() == 'c');
 };
 } // namespace serene

@@ -84,15 +84,9 @@ function tests() {
 
 
 case "$command" in
-    # We need to fix this to have some instructions about how to build the dependencies
-    "deps")
-        echo "You need the following dependencies"
-        echo "sudo apt update"
-        echo "sudo apt install -y llvm-10 llvm-10-tools clang-10 clang-format-10 clang-tidy-10 clang-tools-10 valgrind cmake ninja-build doxygen"
-        ;;
     "setup")
         pushd ./scripts
-        ./scripts/git-pre-commit-format install
+        ./git-pre-commit-format install
         popd
         ;;
     "build")
@@ -165,6 +159,7 @@ case "$command" in
         echo "build - Build Serene from scratch in DEBUG mode."
         echo "build-release - Build Serene from scratch in RELEASE mode."
         echo "compile - reCompiles the project using the already exist cmake configuration"
+        echo "compile-and-tests - reCompiles the project using the already exist cmake configuration and runs the tests"
         echo "run - Runs the serene executable"
         echo "scan-build - Compiles serene with static analyzer"
         echo "tests - Runs the test cases"
