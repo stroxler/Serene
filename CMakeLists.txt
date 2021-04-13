@@ -100,7 +100,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 
 
   # The compiled library code is here
-  add_subdirectory(src)
+  add_subdirectory(src/serene)
 
   # The executable code is here
   add_subdirectory(bin)
@@ -111,7 +111,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   # Emergency override SERENE_CMAKE_BUILD_TESTING provided as well
   if(BUILD_TESTING)
     message("Build the test binary")
-    add_subdirectory(tests)
+    add_subdirectory(src/tests)
   endif()
 
   if (CMAKE_BUILD_TYPE STREQUAL "Release")
