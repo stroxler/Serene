@@ -45,6 +45,11 @@ enum class ExprType {
   List,
   Number,
 };
+class Expression;
+
+using node = std::shared_ptr<Expression>;
+using maybe_node = Result<node>;
+using ast = llvm::SmallVector<node, 0>;
 
 /// The base class of the expressions which provides the common interface for
 /// the expressions to implement.
@@ -65,11 +70,8 @@ public:
   /// The AST representation of an expression
   virtual std::string toString() const = 0;
 
-  virtual Result<Expression *> analyze(reader::SemanticContext &) = 0;
+  virtual maybe_node analyze(reader::SemanticContext &) = 0;
 };
-
-using node = std::shared_ptr<Expression>;
-using ast = llvm::SmallVector<node, 0>;
 
 /// Create a new `node` of type `T` and forwards any given parameter
 /// to the constructor of type `T`. This is the **official way** to create

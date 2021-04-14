@@ -37,7 +37,7 @@ class Semantics {
 public:
   Semantics(){};
 
-  exprs::ast analyze(exprs::ast &);
+  exprs::maybe_node analyze(exprs::ast &);
 };
 }; // namespace serene::reader
 

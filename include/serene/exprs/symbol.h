@@ -51,7 +51,7 @@ public:
 
   static bool classof(const Expression *e);
 
-  Result<Expression *> analyze(reader::SemanticContext &);
+  maybe_node analyze(reader::SemanticContext &);
 
   ~Symbol() = default;
 };

@@ -36,8 +36,8 @@ std::string Number::toString() const {
                        this->location.end.toString(), value);
 }
 
-Result<Expression *> Number::analyze(reader::SemanticContext &ctx) {
-  return Result<Expression *>::Success(this);
+maybe_node Number::analyze(reader::SemanticContext &ctx) {
+  return Result<node>::Success(node(this));
 };
 
 bool Number::classof(const Expression *e) {
