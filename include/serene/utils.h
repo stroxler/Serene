@@ -80,7 +80,7 @@ public:
 
   /// Return the a boolean value indicating whether the value is succesful
   /// or errorful.
-  bool ok() const { return std::holds_alternative<1>(contents); };
+  bool ok() const { return std::holds_alternative<T>(contents); };
 
   operator bool() const { return ok(); }
 };

@@ -72,7 +72,7 @@ function memcheck() {
 }
 
 function run-tests() {
-    $BUILD_DIR/tests/tests
+    $BUILD_DIR/src/tests/tests
 }
 
 function tests() {
