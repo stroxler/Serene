@@ -55,7 +55,7 @@ mlir::LogicalResult Namespace::setTree(exprs::ast &t) {
   if (initialized) {
     return mlir::failure();
   }
-  this->tree = t;
+  this->tree = std::move(t);
   this->initialized = true;
   return mlir::success();
 }

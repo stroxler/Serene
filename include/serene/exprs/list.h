@@ -45,8 +45,8 @@ public:
   List(List &&e) noexcept = default; // Move ctor
 
   List(const reader::LocationRange &loc) : Expression(loc){};
-  List(const reader::LocationRange &loc, node e);
-  List(const reader::LocationRange &loc, llvm::ArrayRef<node> elems);
+  List(const reader::LocationRange &loc, node &e);
+  List(const reader::LocationRange &loc, llvm::MutableArrayRef<node> elems);
 
   ExprType getType() const;
   std::string toString() const;

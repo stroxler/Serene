@@ -73,7 +73,7 @@ public:
 
   void setInput(const llvm::StringRef string);
 
-  llvm::Expected<exprs::ast> read();
+  exprs::maybe_ast read();
 
   // Dumps the AST data to stdout
   void toString();
@@ -92,7 +92,7 @@ public:
   // Dumps the AST data to stdout
   void toString();
 
-  llvm::Expected<exprs::ast> read();
+  exprs::maybe_ast read();
 
   ~FileReader();
 };

@@ -23,10 +23,20 @@
  */
 
 #include "serene/exprs/expression.h"
+#include "llvm/Support/FormatVariadic.h"
 
 namespace serene {
 namespace exprs {
 
+void dump(ast &tree) {
+  std::string result = "";
+
+  // for (auto &node : tree) {
+  //   result = llvm::formatv("{0} {1}", result, node->toString());
+  // }
+
+  llvm::outs() << result << "#\n";
+};
 // template <typename T, typename... Args>
 // T* make(Args &&...args) {
 //   return new T(std::forward<Args>(args)...);

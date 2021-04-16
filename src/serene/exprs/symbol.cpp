@@ -37,7 +37,7 @@ std::string Symbol::toString() const {
 }
 
 maybe_node Symbol::analyze(reader::SemanticContext &ctx) {
-  return Result<node>::Success(node(this));
+  return Result<node>::Success(node(std::move(this)));
 };
 
 bool Symbol::classof(const Expression *e) {

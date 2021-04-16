@@ -166,7 +166,7 @@ exprs::node Reader::readSymbol() {
     // TODO: Replece this with a tranceback function or something to raise
     // synatx error.
     llvm::errs() << llvm::formatv(
-        "Invalid character at the start of a symbol: '{}'\n", c);
+        "Invalid character at the start of a symbol: '{0}'\n", c);
     exit(1);
   }
 
@@ -257,7 +257,7 @@ exprs::node Reader::readExpr() {
 /// Reads all the expressions in the reader's buffer as an AST.
 /// Each expression type (from the reader perspective) has a
 /// reader function.
-llvm::Expected<exprs::ast> Reader::read() {
+exprs::maybe_ast Reader::read() {
   char c = getChar(true);
 
   while (c != EOF) {
@@ -271,7 +271,7 @@ llvm::Expected<exprs::ast> Reader::read() {
     c = getChar(true);
   }
 
-  return this->ast;
+  return Result<exprs::ast>::Success(std::move(this->ast));
 };
 
 /// Reads the input into an AST and prints it out as string again.
@@ -280,10 +280,10 @@ void Reader::toString() {
   std::string result = "";
 
   if (!maybeAst) {
-    throw maybeAst.takeError();
+    throw std::move(maybeAst.getError());
   }
 
-  exprs::ast ast = *maybeAst;
+  exprs::ast ast = std::move(maybeAst.getValue());
 
   for (auto &node : ast) {
     result = llvm::formatv("{0} {1}", result, node->toString());
@@ -294,7 +294,7 @@ void Reader::toString() {
 // in the reader as an AST.
 /// Each expression type (from the reader perspective) has a
 /// reader function.
-llvm::Expected<exprs::ast> FileReader::read() {
+exprs::maybe_ast FileReader::read() {
 
   // TODO: Add support for relative path as well
   llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> fileOrErr =
@@ -304,7 +304,7 @@ llvm::Expected<exprs::ast> FileReader::read() {
     llvm::errs() << "Could not open input file: " << EC.message() << "\n";
     llvm::errs() << fmt::format("File: '{}'\n", file);
     llvm::errs() << "Use absolute path for now\n";
-    return llvm::make_error<MissingFileError>(file);
+    return Result<exprs::ast>::Error(llvm::make_error<MissingFileError>(file));
   }
 
   reader->setInput(fileOrErr.get()->getBuffer().str());
@@ -317,10 +317,10 @@ void FileReader::toString() {
   exprs::ast ast;
 
   if (!maybeAst) {
-    throw maybeAst.takeError();
+    throw std::move(maybeAst.getError());
   }
 
-  ast = *maybeAst;
+  ast = std::move(maybeAst.getValue());
 
   std::string result = "";
   for (auto &node : ast) {

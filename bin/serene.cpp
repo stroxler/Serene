@@ -24,6 +24,7 @@
 
 #include "serene/serene.h"
 #include "serene/reader/reader.h"
+#include "serene/reader/semantics.h"
 #include "serene/sir/sir.hpp"
 #include <iostream>
 #include <llvm/Support/CommandLine.h>
@@ -34,7 +35,7 @@ using namespace serene;
 namespace cl = llvm::cl;
 
 namespace {
-enum Action { None, DumpAST, DumpIR };
+enum Action { None, DumpAST, DumpIR, DumpSemantic };
 }
 
 static cl::opt<std::string> inputFile(cl::Positional,
@@ -42,10 +43,14 @@ static cl::opt<std::string> inputFile(cl::Positional,
                                       cl::init("-"),
                                       cl::value_desc("filename"));
 
-static cl::opt<enum Action>
-    emitAction("emit", cl::desc("Select what to dump."),
-               cl::values(clEnumValN(DumpIR, "sir", "Output the SLIR only")),
-               cl::values(clEnumValN(DumpAST, "ast", "Output the AST only")));
+static cl::opt<enum Action> emitAction(
+    "emit", cl::desc("Select what to dump."),
+    cl::values(clEnumValN(DumpSemantic, "ast1",
+                          "Output the AST after one level of analysis only")),
+    cl::values(clEnumValN(DumpIR, "sir", "Output the SLIR only")),
+    cl::values(clEnumValN(DumpAST, "ast", "Output the AST only"))
+
+);
 
 int main(int argc, char *argv[]) {
   cl::ParseCommandLineOptions(argc, argv, "Serene compiler \n");
@@ -56,16 +61,39 @@ int main(int argc, char *argv[]) {
     r->toString();
     delete r;
     return 0;
-  }
+  };
+
+  case Action::DumpSemantic: {
+    reader::FileReader *r = new reader::FileReader(inputFile);
+    reader::Semantics analyzer;
+    auto maybeAst = r->read();
+
+    if (!maybeAst) {
+      throw std::move(maybeAst.getError());
+    }
+    auto &ast = maybeAst.getValue();
+    auto afterAst = analyzer.analyze(ast);
+
+    if (afterAst) {
+      // dump(afterAst.getValue());
+      delete r;
+      return 0;
+    } else {
+      throw std::move(afterAst.getError());
+    }
+
+    delete r;
+    return 0;
+  };
   case Action::DumpIR: {
     reader::FileReader *r = new reader::FileReader(inputFile);
     auto ast = r->read();
 
     if (!ast) {
-      throw ast.takeError();
+      throw std::move(ast.getError());
     }
 
-    serene::sir::dumpSIR(*ast);
+    serene::sir::dumpSIR(ast.getValue());
     delete r;
     return 0;
   }

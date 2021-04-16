@@ -37,7 +37,7 @@ TEST_CASE("Read numbers", "[reader]") {
     FAIL();
   }
 
-  auto ast = maybeAst.get();
+  auto ast = std::move(maybeAst).getValue();
   REQUIRE_FALSE(ast.empty());
   CHECK(ast.front()->toString() == "<Number [loc: 0:1:1 | 0:1:1]: 3>");
 
@@ -48,7 +48,7 @@ TEST_CASE("Read numbers", "[reader]") {
     FAIL();
   }
 
-  ast = maybeAst.get();
+  ast = std::move(maybeAst.getValue());
   REQUIRE_FALSE(ast.empty());
   CHECK(ast.front()->toString() == "<Number [loc: 0:2:2 | 0:3:3]: -34>");
 
@@ -59,7 +59,7 @@ TEST_CASE("Read numbers", "[reader]") {
     FAIL();
   }
 
-  ast = maybeAst.get();
+  ast = std::move(maybeAst.getValue());
   REQUIRE_FALSE(ast.empty());
   CHECK(ast.front()->toString() == "<Number [loc: 0:2:2 | 0:7:7]: -3.5434>");
 
@@ -70,7 +70,7 @@ TEST_CASE("Read numbers", "[reader]") {
     FAIL();
   }
 
-  ast = maybeAst.get();
+  ast = std::move(maybeAst.getValue());
   REQUIRE(ast.size() == 3);
   CHECK(ast.front()->toString() == "<Number [loc: 0:1:1 | 0:6:6]: 444323>");
   CHECK(ast[1]->toString() == "<Number [loc: 0:8:8 | 0:11:11]: 2123>");
@@ -87,7 +87,7 @@ TEST_CASE("Read Lists and Symbols", "[reader]") {
     FAIL();
   }
 
-  auto ast = maybeAst.get();
+  auto ast = std::move(maybeAst.getValue());
   REQUIRE_FALSE(ast.empty());
   CHECK(ast.front()->toString() ==
         "<List [loc: 0:0:0 | 0:5:5]:  <Symbol [loc: 0:2:2 | 0:2:2]: x> <Number "
@@ -100,7 +100,7 @@ TEST_CASE("Read Lists and Symbols", "[reader]") {
     FAIL();
   }
 
-  ast = maybeAst.get();
+  ast = std::move(maybeAst.getValue());
   REQUIRE_FALSE(ast.empty());
   CHECK(ast.front()->toString() ==
         "<List [loc: 0:0:0 | 0:11:11]:  <Symbol [loc: 0:2:2 | 0:2:2]: x> <List "
@@ -114,7 +114,7 @@ TEST_CASE("Read Lists and Symbols", "[reader]") {
     FAIL();
   }
 
-  ast = maybeAst.get();
+  ast = std::move(maybeAst.getValue());
   REQUIRE_FALSE(ast.empty());
   CHECK(ast.front()->toString() ==
         "<List [loc: 0:0:0 | 1:3:7]:  <Symbol [loc: 0:2:2 | 0:2:2]: x> <Symbol "

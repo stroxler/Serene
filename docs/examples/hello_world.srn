@@ -1,3 +1,1 @@
 (def a true)
-;; (defn hello! (name)
-;;   (println "Hello %s" name))

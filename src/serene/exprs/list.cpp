@@ -24,17 +24,20 @@
 
 #include "serene/exprs/list.h"
 #include "llvm/Support/FormatVariadic.h"
+#include <iterator>
 
 namespace serene {
 namespace exprs {
 
 List::List(const List &l) : Expression(l.location){};
-List::List(const reader::LocationRange &loc, node e) : Expression(loc) {
+List::List(const reader::LocationRange &loc, node &e) : Expression(loc) {
   elements.push_back(std::move(e));
 };
 
-List::List(const reader::LocationRange &loc, llvm::ArrayRef<node> elems)
-    : Expression(loc), elements(elems.begin(), elems.end()){};
+List::List(const reader::LocationRange &loc, llvm::MutableArrayRef<node> elems)
+    : Expression(loc) {
+  std::move(elems.begin(), elems.end(), elements.begin());
+};
 
 ExprType List::getType() const { return ExprType::List; };
 std::string List::toString() const {
@@ -50,13 +53,13 @@ std::string List::toString() const {
 };
 
 maybe_node List::analyze(reader::SemanticContext &ctx) {
-  return Result<node>::Success(node(this));
+  return Result<node>::Success(node(std::move(this)));
 };
 
 bool List::classof(const Expression *e) {
   return e->getType() == ExprType::List;
 };
 
-void List::append(node n) { elements.push_back(n); }
+void List::append(node n) { elements.push_back(std::move(n)); }
 } // namespace exprs
 } // namespace serene

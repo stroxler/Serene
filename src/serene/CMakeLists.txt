@@ -11,6 +11,7 @@ set(HEADER_LIST
   "${INCLUDE_DIR}/serene/reader/reader.h"
   "${INCLUDE_DIR}/serene/reader/location.h"
   "${INCLUDE_DIR}/serene/reader/errors.h"
+  "${INCLUDE_DIR}/serene/reader/semantics.h"
 
   "${INCLUDE_DIR}/serene/errors.h"
   "${INCLUDE_DIR}/serene/errors/error.h"
@@ -52,6 +53,7 @@ add_library(serene
   reader/reader.cpp
   reader/location.cpp
   reader/errors.cpp
+  reader/semantics.cpp
 
   # IR
   sir/sir.cpp
