@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
     auto afterAst = analyzer.analyze(ast);
 
     if (afterAst) {
-      // dump(afterAst.getValue());
+      dump(afterAst.getValue());
       delete r;
       return 0;
     } else {

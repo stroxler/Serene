@@ -1,3 +1,4 @@
+
 /* -*- C++ -*-
  * Serene programming language.
  *
@@ -33,27 +34,37 @@ TEST_CASE("List Expression", "[expression]") {
   std::unique_ptr<reader::LocationRange> range(dummyLocation());
 
   auto sym = make<Symbol>(*range.get(), llvm::StringRef("example"));
+  auto sym1 = make<Symbol>(*range.get(), llvm::StringRef("example1"));
+
   auto list = make<List>(*range.get());
-  auto list2 = make<List>(*range.get(), list);
-  auto list3 = make<List>(*range.get(), llvm::ArrayRef<node>{list, list2, sym});
 
   REQUIRE(list->getType() == ExprType::List);
   CHECK(list->toString() == "<List [loc: 2:20:40 | 3:30:80]: ->");
 
+  auto list2 = make<List>(*range.get(), list);
   CHECK(list2->toString() ==
         "<List [loc: 2:20:40 | 3:30:80]:  <List [loc: 2:20:40 | 3:30:80]: ->>");
+
+  std::vector<node> elements;
+  elements.push_back(std::move(list));
+  elements.push_back(std::move(list2));
+  elements.push_back(std::move(sym));
+
+  auto list3 = make<List>(*range.get(), llvm::MutableArrayRef<node>(elements));
+
   CHECK(list3->toString() ==
         "<List [loc: 2:20:40 | 3:30:80]:  <List [loc: 2:20:40 | 3:30:80]: -> "
         "<List [loc: 2:20:40 | 3:30:80]:  <List [loc: 2:20:40 | 3:30:80]: "
         "->> <Symbol [loc: 2:20:40 | 3:30:80]: example>>");
 
-  auto l = llvm::dyn_cast<List>(list);
 
-  l.append(sym);
+  // auto l = llvm::dyn_cast<List>(list3.get());
 
-  REQUIRE(list->getType() == ExprType::List);
-  CHECK(list->toString() == "<List [loc: 2:20:40 | 3:30:80]:  <Symbol [loc: "
-                            "2:20:40 | 3:30:80]: example>>");
+  // l->append(std::move(sym1));
+
+  // REQUIRE(list3->getType() == ExprType::List);
+  // CHECK(list3->toString() == "<List [loc: 2:20:40 | 3:30:80]:  <Symbol [loc: "
+  //                           "2:20:40 | 3:30:80]: example1>>");
 };
 
 } // namespace exprs

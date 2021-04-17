@@ -26,6 +26,7 @@
 #define EXPRS_LIST_H
 
 #include "serene/exprs/expression.h"
+#include "llvm/ADT/Optional.h"
 #include "llvm/ADT/SmallVector.h"
 #include <string>
 
@@ -52,6 +53,19 @@ public:
   std::string toString() const;
 
   void append(node);
+
+  size_t count() const;
+
+  // llvm::ArrayRef<Expression> from(uint begin);
+  // llvm::MutableArrayRef<Expression> from(uint begin);
+
+  llvm::Optional<Expression *> at(uint index);
+
+  llvm::SmallVector<node>::const_iterator cbegin();
+  llvm::SmallVector<node>::const_iterator cend();
+  llvm::SmallVector<node>::iterator begin();
+  llvm::SmallVector<node>::iterator end();
+
   maybe_node analyze(reader::SemanticContext &);
 
   static bool classof(const Expression *e);

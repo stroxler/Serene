@@ -24,6 +24,7 @@
 
 #define CATCH_CONFIG_MAIN
 #include "./exprs/expression_tests.cpp.inc"
+#include "./exprs/list_tests.cpp.inc"
 #include "./exprs/number_tests.cpp.inc"
 #include "./exprs/symbol_tests.cpp.inc"
 #include "./reader/reader_tests.cpp.inc"

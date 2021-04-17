@@ -6,6 +6,7 @@ set(HEADER_LIST
   "${INCLUDE_DIR}/serene/exprs/symbol.h"
   "${INCLUDE_DIR}/serene/exprs/list.h"
   "${INCLUDE_DIR}/serene/exprs/number.h"
+  "${INCLUDE_DIR}/serene/exprs/def.h"
 
   # Reader
   "${INCLUDE_DIR}/serene/reader/reader.h"
@@ -35,11 +36,11 @@ set(HEADER_LIST
 
 # Make an automatic library - will be static or dynamic based on user setting
 add_library(serene
-  exprs/expression.cpp
   exprs/symbol.cpp
   exprs/list.cpp
   exprs/number.cpp
-
+  exprs/expression.cpp
+  exprs/def.cpp
 
   serene.cpp
   symbol.cpp

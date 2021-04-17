@@ -28,19 +28,16 @@
 namespace serene {
 namespace exprs {
 
+/// Dump the given AST tree to the standard out
 void dump(ast &tree) {
   std::string result = "";
 
-  // for (auto &node : tree) {
-  //   result = llvm::formatv("{0} {1}", result, node->toString());
-  // }
+  for (auto &node : tree) {
+    result = llvm::formatv("{0} {1}", result, node->toString());
+  }
 
-  llvm::outs() << result << "#\n";
+  llvm::outs() << result << "\n";
 };
-// template <typename T, typename... Args>
-// T* make(Args &&...args) {
-//   return new T(std::forward<Args>(args)...);
-// };
 
 } // namespace exprs
 } // namespace serene

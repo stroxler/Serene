@@ -1,4 +1,4 @@
-/*
+/* -*- C++ -*-
  * Serene programming language.
  *
  *  Copyright (c) 2019-2021 Sameer Rahmani <lxsameer@gnu.org>
@@ -22,27 +22,41 @@
  * SOFTWARE.
  */
 
-#include "serene/exprs/symbol.h"
-#include "llvm/Support/FormatVariadic.h"
+#ifndef EXPRS_DEF_H
+#define EXPRS_DEF_H
+
+#include "serene/exprs/expression.h"
+#include "llvm/ADT/StringRef.h"
+#include "llvm/Support/Error.h"
+#include <string>
 
 namespace serene {
+
 namespace exprs {
+class List;
 
-ExprType Symbol::getType() const { return ExprType::Symbol; };
+/// This data structure represent the Lisp symbol. Just a symbol
+/// in the context of the AST and nothing else.
+class Def : public Expression {
 
-std::string Symbol::toString() const {
-  return llvm::formatv("<Symbol [loc: {0} | {1}]: {2}>",
-                       this->location.start.toString(),
-                       this->location.end.toString(), this->name);
-}
+public:
+  std::string binding;
+  node value;
 
-maybe_node Symbol::analyze(reader::SemanticContext &ctx) {
-  return Result<node>::Success(nullptr);
-};
+  Def(reader::LocationRange &loc, llvm::StringRef binding, node &v)
+      : Expression(loc), binding(binding), value(std::move(v)){};
 
-bool Symbol::classof(const Expression *e) {
-  return e->getType() == ExprType::Symbol;
+  ExprType getType() const;
+  std::string toString() const;
+  maybe_node analyze(reader::SemanticContext &);
+
+  static bool classof(const Expression *e);
+  static llvm::Error isValid(const List *);
+
+  ~Def() = default;
 };
 
 } // namespace exprs
 } // namespace serene
+
+#endif

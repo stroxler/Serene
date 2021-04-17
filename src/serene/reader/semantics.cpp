@@ -30,23 +30,24 @@ exprs::maybe_ast Semantics::analyze(exprs::ast &inputAst) {
   // TODO: Fetch the current namespace from the JIT engine later and if it is
   // `nil` then the given `ast` has to start with a namespace definition.
 
-  exprs::node tmp;
   exprs::ast ast;
 
   for (auto &element : inputAst) {
     auto maybeNode = element->analyze(context);
 
-    if (!maybeNode) {
-      // TODO: Check the error type to see whether we can continue or not.
-      // If not, raise otherwise push it to the exception queue and move on.
-      return Result<exprs::ast>::Error(std::move(maybeNode.getError()));
-    }
-    tmp = std::move(maybeNode).getValue();
-    llvm::outs() << "HERE\n" << tmp->toString() << "  n\n";
-    ast.push_back(std::move(tmp));
-  }
+    if (maybeNode) {
+      auto &node = maybeNode.getValue();
 
+      if (node) {
+        llvm::outs() << "HERE\n" << node->toString() << "  n\n";
+        ast.push_back(std::move(node));
+      } else {
+        ast.push_back(std::move(element));
+      }
+    } else {
+      Result<exprs::ast>::Error(std::move(maybeNode.getError()));
+    }
+  }
   return Result<exprs::ast>::Success(std::move(ast));
 };
-
 }; // namespace serene::reader

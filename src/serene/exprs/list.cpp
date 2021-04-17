@@ -23,6 +23,9 @@
  */
 
 #include "serene/exprs/list.h"
+#include "serene/exprs/def.h"
+#include "serene/exprs/symbol.h"
+#include "llvm/Support/Casting.h"
 #include "llvm/Support/FormatVariadic.h"
 #include <iterator>
 
@@ -53,12 +56,59 @@ std::string List::toString() const {
 };
 
 maybe_node List::analyze(reader::SemanticContext &ctx) {
-  return Result<node>::Success(node(std::move(this)));
+  // if (!elements.empty()) {
+  //   auto *first = elements[0].get();
+
+  //   if (first->getType() == ExprType::Symbol) {
+  //     auto *sym = llvm::dyn_cast<Symbol>(first);
+
+  //     if (sym->name == "def") {
+  //       if (auto err = Def::isValid(this)) {
+  //         // Not a valid `def` form
+  //         return Result<node>::Error(std::move(err));
+  //       }
+
+  //       auto *binding = llvm::dyn_cast<Symbol>(elements[1].get());
+  //       auto def = make<Def>(binding->name, std::move(elements[2]));
+  //       return Result<node>::Success(std::move(def));
+  //     }
+  //   }
+  // }
+
+  return Result<node>::Success(nullptr);
 };
 
 bool List::classof(const Expression *e) {
   return e->getType() == ExprType::List;
 };
+
+/// Return an iterator to be used with the `for` loop. It's implicitly called by
+/// the for loop.
+llvm::SmallVector<node>::const_iterator List::cbegin() {
+  return elements.begin();
+}
+
+/// Return an iterator to be used with the `for` loop. It's implicitly called by
+/// the for loop.
+llvm::SmallVector<node>::const_iterator List::cend() { return elements.end(); }
+
+/// Return an iterator to be used with the `for` loop. It's implicitly called by
+/// the for loop.
+llvm::SmallVector<node>::iterator List::begin() { return elements.begin(); }
+
+/// Return an iterator to be used with the `for` loop. It's implicitly called by
+/// the for loop.
+llvm::SmallVector<node>::iterator List::end() { return elements.end(); }
+
+size_t List::count() const { return elements.size(); }
+
+llvm::Optional<Expression *> List::at(uint index) {
+  if (index >= elements.size()) {
+    return llvm::None;
+  }
+
+  return llvm::Optional<Expression *>(this->elements[index].get());
+}
 
 void List::append(node n) { elements.push_back(std::move(n)); }
 } // namespace exprs

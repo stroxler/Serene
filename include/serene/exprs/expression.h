@@ -44,7 +44,9 @@ enum class ExprType {
   Symbol,
   List,
   Number,
+  Def,
 };
+
 class Expression;
 
 using node = std::unique_ptr<Expression>;
@@ -84,7 +86,7 @@ public:
 ///
 /// \param[args] Any argument with any type passed to this function will be
 ///              passed to the constructor of type T.
-/// \return A shared pointer to an Expression
+/// \return A unique pointer to an Expression
 template <typename T, typename... Args> node make(Args &&...args) {
   return std::make_unique<T>(std::forward<Args>(args)...);
 };
@@ -93,12 +95,12 @@ template <typename T, typename... Args> node make(Args &&...args) {
 /// to the constructor of type `T`. This is the **official way** to create
 /// a new `Expression`. Here is an example:
 /// \code
-/// auto list = make<List>();
+/// auto list = makeAndCast<List>();
 /// \endcode
 ///
 /// \param[args] Any argument with any type passed to this function will be
 ///              passed to the constructor of type T.
-/// \return A shared pointer to a value of type T.
+/// \return A unique pointer to a value of type T.
 template <typename T, typename... Args>
 std::unique_ptr<T> makeAndCast(Args &&...args) {
   return std::make_unique<T>(std::forward<Args>(args)...);

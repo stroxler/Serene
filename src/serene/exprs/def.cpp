@@ -22,27 +22,29 @@
  * SOFTWARE.
  */
 
-#include "serene/exprs/symbol.h"
+#include "serene/exprs/def.h"
+#include "serene/exprs/list.h"
 #include "llvm/Support/FormatVariadic.h"
 
 namespace serene {
 namespace exprs {
 
-ExprType Symbol::getType() const { return ExprType::Symbol; };
+ExprType Def::getType() const { return ExprType::Def; };
 
-std::string Symbol::toString() const {
-  return llvm::formatv("<Symbol [loc: {0} | {1}]: {2}>",
-                       this->location.start.toString(),
-                       this->location.end.toString(), this->name);
+std::string Def::toString() const {
+  return llvm::formatv(
+      "<Def [loc: {0} | {1}]: {2} -> {3}>", this->location.start.toString(),
+      this->location.end.toString(), this->binding, this->value->toString());
 }
 
-maybe_node Symbol::analyze(reader::SemanticContext &ctx) {
+maybe_node Def::analyze(reader::SemanticContext &ctx) {
   return Result<node>::Success(nullptr);
 };
 
-bool Symbol::classof(const Expression *e) {
-  return e->getType() == ExprType::Symbol;
+bool Def::classof(const Expression *e) {
+  return e->getType() == ExprType::Def;
 };
 
+llvm::Error Def::isValid(const List *list) { return llvm::Error::success(); };
 } // namespace exprs
 } // namespace serene

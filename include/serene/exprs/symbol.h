@@ -1,4 +1,3 @@
-
 /* -*- C++ -*-
  * Serene programming language.
  *
