@@ -26,6 +26,7 @@
 #include "serene/exprs/def.h"
 #include "serene/exprs/symbol.h"
 #include "llvm/Support/Casting.h"
+#include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/FormatVariadic.h"
 #include <iterator>
 
@@ -36,10 +37,6 @@ List::List(const List &l) : Expression(l.location){};
 List::List(const reader::LocationRange &loc, node &e) : Expression(loc) {
   elements.push_back(e);
 };
-
-// List::List(const reader::LocationRange &loc, llvm::MutableArrayRef<node>
-// elems)
-//   : Expression(loc), elements(elems.begin(), elems.end()) {};
 
 List::List(const reader::LocationRange &loc, ast elems)
     : Expression(loc), elements(elems){};
@@ -58,24 +55,34 @@ std::string List::toString() const {
 };
 
 maybe_node List::analyze(reader::SemanticContext &ctx) {
-  // if (!elements.empty()) {
-  //   auto *first = elements[0].get();
+  if (!elements.empty()) {
+    auto *first = elements[0].get();
 
-  //   if (first->getType() == ExprType::Symbol) {
-  //     auto *sym = llvm::dyn_cast<Symbol>(first);
+    if (first->getType() == ExprType::Symbol) {
+      auto *sym = llvm::dyn_cast<Symbol>(first);
 
-  //     if (sym->name == "def") {
-  //       if (auto err = Def::isValid(this)) {
-  //         // Not a valid `def` form
-  //         return Result<node>::Error(std::move(err));
-  //       }
+      if (sym) {
+        if (sym->name == "def") {
+          if (auto err = Def::isValid(this)) {
+            // Not a valid `def` form
+            return Result<node>::Error(std::move(err));
+          }
 
-  //       auto *binding = llvm::dyn_cast<Symbol>(elements[1].get());
-  //       auto def = make<Def>(binding->name, std::move(elements[2]));
-  //       return Result<node>::Success(std::move(def));
-  //     }
-  //   }
-  // }
+          Symbol *binding = llvm::dyn_cast<Symbol>(elements[1].get());
+
+          if (!binding) {
+            llvm_unreachable("Def::isValid should of catch this.");
+          }
+
+          node def = make<Def>(location, binding->name, elements[2]);
+          return Result<node>::Success(def);
+        }
+      }
+
+      // TODO: Return an error saying the binding has to be
+      //       a symbol
+    }
+  }
 
   return Result<node>::Success(nullptr);
 };

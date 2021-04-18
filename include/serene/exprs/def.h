@@ -44,7 +44,7 @@ public:
   node value;
 
   Def(reader::LocationRange &loc, llvm::StringRef binding, node &v)
-      : Expression(loc), binding(binding), value(std::move(v)){};
+      : Expression(loc), binding(binding), value(v){};
 
   ExprType getType() const;
   std::string toString() const;

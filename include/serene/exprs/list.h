@@ -46,7 +46,6 @@ public:
 
   List(const reader::LocationRange &loc) : Expression(loc){};
   List(const reader::LocationRange &loc, node &e);
-  // List(const reader::LocationRange &loc, llvm::MutableArrayRef<node> elems);
   List(const reader::LocationRange &loc, ast elems);
 
   ExprType getType() const;

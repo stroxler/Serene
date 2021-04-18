@@ -39,10 +39,9 @@ exprs::maybe_ast Semantics::analyze(exprs::ast &inputAst) {
       auto &node = maybeNode.getValue();
 
       if (node) {
-        llvm::outs() << "HERE\n" << node->toString() << "  n\n";
-        ast.push_back(std::move(node));
+        ast.push_back(node);
       } else {
-        ast.push_back(std::move(element));
+        ast.push_back(element);
       }
     } else {
       Result<exprs::ast>::Error(std::move(maybeNode.getError()));
