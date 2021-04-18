@@ -34,13 +34,15 @@ namespace exprs {
 
 List::List(const List &l) : Expression(l.location){};
 List::List(const reader::LocationRange &loc, node &e) : Expression(loc) {
-  elements.push_back(std::move(e));
+  elements.push_back(e);
 };
 
-List::List(const reader::LocationRange &loc, llvm::MutableArrayRef<node> elems)
-    : Expression(loc) {
-  std::move(elems.begin(), elems.end(), elements.begin());
-};
+// List::List(const reader::LocationRange &loc, llvm::MutableArrayRef<node>
+// elems)
+//   : Expression(loc), elements(elems.begin(), elems.end()) {};
+
+List::List(const reader::LocationRange &loc, ast elems)
+    : Expression(loc), elements(elems){};
 
 ExprType List::getType() const { return ExprType::List; };
 std::string List::toString() const {
@@ -84,21 +86,19 @@ bool List::classof(const Expression *e) {
 
 /// Return an iterator to be used with the `for` loop. It's implicitly called by
 /// the for loop.
-llvm::SmallVector<node>::const_iterator List::cbegin() {
-  return elements.begin();
-}
+std::vector<node>::const_iterator List::cbegin() { return elements.begin(); }
 
 /// Return an iterator to be used with the `for` loop. It's implicitly called by
 /// the for loop.
-llvm::SmallVector<node>::const_iterator List::cend() { return elements.end(); }
+std::vector<node>::const_iterator List::cend() { return elements.end(); }
 
 /// Return an iterator to be used with the `for` loop. It's implicitly called by
 /// the for loop.
-llvm::SmallVector<node>::iterator List::begin() { return elements.begin(); }
+std::vector<node>::iterator List::begin() { return elements.begin(); }
 
 /// Return an iterator to be used with the `for` loop. It's implicitly called by
 /// the for loop.
-llvm::SmallVector<node>::iterator List::end() { return elements.end(); }
+std::vector<node>::iterator List::end() { return elements.end(); }
 
 size_t List::count() const { return elements.size(); }
 

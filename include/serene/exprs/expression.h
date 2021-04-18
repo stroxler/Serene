@@ -49,10 +49,10 @@ enum class ExprType {
 
 class Expression;
 
-using node = std::unique_ptr<Expression>;
+using node = std::shared_ptr<Expression>;
 using maybe_node = Result<node>;
 
-using ast = llvm::SmallVector<node, 0>;
+using ast = std::vector<node>;
 using maybe_ast = Result<ast>;
 
 /// The base class of the expressions which provides the common interface for
@@ -88,7 +88,7 @@ public:
 ///              passed to the constructor of type T.
 /// \return A unique pointer to an Expression
 template <typename T, typename... Args> node make(Args &&...args) {
-  return std::make_unique<T>(std::forward<Args>(args)...);
+  return std::make_shared<T>(std::forward<Args>(args)...);
 };
 
 /// Create a new `node` of type `T` and forwards any given parameter
@@ -102,8 +102,8 @@ template <typename T, typename... Args> node make(Args &&...args) {
 ///              passed to the constructor of type T.
 /// \return A unique pointer to a value of type T.
 template <typename T, typename... Args>
-std::unique_ptr<T> makeAndCast(Args &&...args) {
-  return std::make_unique<T>(std::forward<Args>(args)...);
+std::shared_ptr<T> makeAndCast(Args &&...args) {
+  return std::make_shared<T>(std::forward<Args>(args)...);
 };
 
 void dump(ast &);

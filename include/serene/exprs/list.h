@@ -27,7 +27,6 @@
 
 #include "serene/exprs/expression.h"
 #include "llvm/ADT/Optional.h"
-#include "llvm/ADT/SmallVector.h"
 #include <string>
 
 namespace serene {
@@ -47,7 +46,8 @@ public:
 
   List(const reader::LocationRange &loc) : Expression(loc){};
   List(const reader::LocationRange &loc, node &e);
-  List(const reader::LocationRange &loc, llvm::MutableArrayRef<node> elems);
+  // List(const reader::LocationRange &loc, llvm::MutableArrayRef<node> elems);
+  List(const reader::LocationRange &loc, ast elems);
 
   ExprType getType() const;
   std::string toString() const;
@@ -61,10 +61,10 @@ public:
 
   llvm::Optional<Expression *> at(uint index);
 
-  llvm::SmallVector<node>::const_iterator cbegin();
-  llvm::SmallVector<node>::const_iterator cend();
-  llvm::SmallVector<node>::iterator begin();
-  llvm::SmallVector<node>::iterator end();
+  std::vector<node>::const_iterator cbegin();
+  std::vector<node>::const_iterator cend();
+  std::vector<node>::iterator begin();
+  std::vector<node>::iterator end();
 
   maybe_node analyze(reader::SemanticContext &);
 

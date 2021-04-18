@@ -1,4 +1,3 @@
-
 /* -*- C++ -*-
  * Serene programming language.
  *
@@ -26,6 +25,7 @@
 #include "../test_helpers.cpp.inc"
 #include "serene/exprs/list.h"
 #include "serene/exprs/symbol.h"
+#include <catch2/catch.hpp>
 
 namespace serene {
 namespace exprs {
@@ -33,38 +33,51 @@ namespace exprs {
 TEST_CASE("List Expression", "[expression]") {
   std::unique_ptr<reader::LocationRange> range(dummyLocation());
 
-  auto sym = make<Symbol>(*range.get(), llvm::StringRef("example"));
-  auto sym1 = make<Symbol>(*range.get(), llvm::StringRef("example1"));
+  node sym = make<Symbol>(*range.get(), llvm::StringRef("example"));
+  node sym1 = make<Symbol>(*range.get(), llvm::StringRef("example1"));
 
-  auto list = make<List>(*range.get());
+  node list = make<List>(*range.get());
 
   REQUIRE(list->getType() == ExprType::List);
   CHECK(list->toString() == "<List [loc: 2:20:40 | 3:30:80]: ->");
 
-  auto list2 = make<List>(*range.get(), list);
+  node list2 = make<List>(*range.get(), list);
   CHECK(list2->toString() ==
         "<List [loc: 2:20:40 | 3:30:80]:  <List [loc: 2:20:40 | 3:30:80]: ->>");
 
-  std::vector<node> elements;
-  elements.push_back(std::move(list));
-  elements.push_back(std::move(list2));
-  elements.push_back(std::move(sym));
+  ast elements;
+  elements.push_back(list);
+  elements.push_back(list2);
+  elements.push_back(sym);
 
-  auto list3 = make<List>(*range.get(), llvm::MutableArrayRef<node>(elements));
+  auto list3 = make<List>(*range.get(), elements);
 
   CHECK(list3->toString() ==
         "<List [loc: 2:20:40 | 3:30:80]:  <List [loc: 2:20:40 | 3:30:80]: -> "
         "<List [loc: 2:20:40 | 3:30:80]:  <List [loc: 2:20:40 | 3:30:80]: "
         "->> <Symbol [loc: 2:20:40 | 3:30:80]: example>>");
 
+  auto l = llvm::dyn_cast<List>(list.get());
 
-  // auto l = llvm::dyn_cast<List>(list3.get());
+  l->append(sym1);
 
-  // l->append(std::move(sym1));
+  REQUIRE(list->getType() == ExprType::List);
+  CHECK(list->toString() == "<List [loc: 2:20:40 | 3:30:80]:  <Symbol [loc: "
+                            "2:20:40 | 3:30:80]: example1>>");
 
-  // REQUIRE(list3->getType() == ExprType::List);
-  // CHECK(list3->toString() == "<List [loc: 2:20:40 | 3:30:80]:  <Symbol [loc: "
-  //                           "2:20:40 | 3:30:80]: example1>>");
+  l->append(sym);
+  REQUIRE(l->count() == 2);
+
+  auto expr = l->at(1);
+  REQUIRE(expr.hasValue());
+  CHECK(expr.getValue()->toString() == "<Symbol [loc: 2:20:40 | 3:30:80]: example>");
+
+  expr = l->at(2);
+  REQUIRE_FALSE(expr.hasValue());
+
+  for(auto x : *l) {
+    CHECK(x->getType() == ExprType::Symbol);
+  }
 };
 
 } // namespace exprs
