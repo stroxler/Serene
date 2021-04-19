@@ -7,7 +7,6 @@ set(HEADER_LIST
   "${INCLUDE_DIR}/serene/exprs/list.h"
   "${INCLUDE_DIR}/serene/exprs/number.h"
   "${INCLUDE_DIR}/serene/exprs/def.h"
-  "${INCLUDE_DIR}/serene/exprs/error.h"
 
   # Reader
   "${INCLUDE_DIR}/serene/reader/reader.h"
@@ -18,6 +17,7 @@ set(HEADER_LIST
   "${INCLUDE_DIR}/serene/errors.h"
   "${INCLUDE_DIR}/serene/errors/error.h"
   "${INCLUDE_DIR}/serene/errors/errc.h"
+  "${INCLUDE_DIR}/serene/errors/constants.h"
 
 
   "${INCLUDE_DIR}/serene/expr.hpp"
@@ -42,14 +42,13 @@ add_library(serene
   exprs/number.cpp
   exprs/expression.cpp
   exprs/def.cpp
-  exprs/error.cpp
+
 
   serene.cpp
   symbol.cpp
   list.cpp
   namespace.cpp
   state.cpp
-  error.cpp
   number.cpp
 
   # Reader
@@ -57,6 +56,9 @@ add_library(serene
   reader/location.cpp
   reader/errors.cpp
   reader/semantics.cpp
+
+  # Errors
+  errors/error.cpp
 
   # IR
   sir/sir.cpp

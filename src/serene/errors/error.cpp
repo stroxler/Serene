@@ -1,4 +1,4 @@
-/* -*- C++ -*-
+/*
  * Serene programming language.
  *
  *  Copyright (c) 2019-2021 Sameer Rahmani <lxsameer@gnu.org>
@@ -22,28 +22,29 @@
  * SOFTWARE.
  */
 
-#include "../test_helpers.cpp.inc"
-#include "serene/exprs/symbol.h"
-#include "serene/exprs/error.h"
-#include "llvm/Support/Casting.h"
-#include <catch2/catch.hpp>
+#include "serene/errors/error.h"
+#include "llvm/Support/FormatVariadic.h"
 
 namespace serene {
-namespace exprs {
+namespace errors {
 
-TEST_CASE("Error Expression", "[expression]") {
-  std::unique_ptr<reader::LocationRange> range(dummyLocation());
-
-  node sym = make<Symbol>(*range.get(), llvm::StringRef("example"));
-  node err = make<Error>(ErrType::Semantic, sym, "Something Failed");
-
-  REQUIRE(err->getType() == ExprType::Error);
-  CHECK(err->toString() == "<Error [loc: 2:20:40 | 3:30:80]: Something Failed>");
-
-  auto error = llvm::dyn_cast<Error>(err.get());
-  CHECK(error->errorType == ErrType::Semantic);
-  CHECK(error->target == sym);
+serene::exprs::ExprType Error::getType() const {
+  return serene::exprs::ExprType::Error;
 };
 
-} // namespace exprs
+std::string Error::toString() const {
+  return llvm::formatv("<Error [loc: {0} | {1}]: {2}>",
+                       this->location.start.toString(),
+                       this->location.end.toString(), this->message);
+}
+
+serene::exprs::maybe_node Error::analyze(reader::SemanticContext &ctx) {
+  return Result<serene::exprs::node>::Success(nullptr);
+};
+
+bool Error::classof(const serene::exprs::Expression *e) {
+  return e->getType() == serene::exprs::ExprType::Error;
+};
+
+} // namespace errors
 } // namespace serene

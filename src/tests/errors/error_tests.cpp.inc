@@ -1,7 +1,7 @@
-/**
+/* -*- C++ -*-
  * Serene programming language.
  *
- *  Copyright (c) 2020 Sameer Rahmani <lxsameer@gnu.org>
+ *  Copyright (c) 2019-2021 Sameer Rahmani <lxsameer@gnu.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,25 +22,31 @@
  * SOFTWARE.
  */
 
-#include "serene/error.hpp"
-#include "serene/expr.hpp"
-#include "serene/llvm/IR/Value.h"
-#include "serene/namespace.h"
-#include "serene/state.hpp"
-#include <assert.h>
-#include <fmt/core.h>
-#include <llvm/IR/Constants.h>
-#include <llvm/IR/Type.h>
-#include <string>
+#include "../test_helpers.cpp.inc"
+#include "serene/exprs/symbol.h"
+#include "serene/errors.h"
+#include "llvm/Support/Casting.h"
+#include <catch2/catch.hpp>
 
-using namespace std;
-using namespace llvm;
+
 
 namespace serene {
+namespace errors {
 
-string Error::string_repr() const { return fmt::format("Error: {}", msg); }
 
-string Error::dumpAST() const { return fmt::format("<Error: {}>", this->msg); }
+TEST_CASE("Error Expression", "[expression]") {
+  std::unique_ptr<reader::LocationRange> range(dummyLocation());
 
-Error::~Error() { EXPR_LOG("Destroying Error"); }
+  exprs::node sym = exprs::make<exprs::Symbol>(*range.get(), llvm::StringRef("example"));
+  exprs::node err = exprs::make<Error>(ErrType::Semantic, sym, "Something Failed");
+
+  REQUIRE(err->getType() == exprs::ExprType::Error);
+  CHECK(err->toString() == "<Error [loc: 2:20:40 | 3:30:80]: Something Failed>");
+
+  auto error = llvm::dyn_cast<Error>(err.get());
+  CHECK(error->errorType == ErrType::Semantic);
+  CHECK(error->target == sym);
+};
+
+} // namespace exprs
 } // namespace serene

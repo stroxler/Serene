@@ -1,4 +1,4 @@
-/*
+/* -*- C++ -*-
  * Serene programming language.
  *
  *  Copyright (c) 2019-2021 Sameer Rahmani <lxsameer@gnu.org>
@@ -22,27 +22,23 @@
  * SOFTWARE.
  */
 
-#include "serene/exprs/error.h"
-#include "llvm/Support/FormatVariadic.h"
+#ifndef SERENE_ERRORS_CONSTANTS_H
+#define SERENE_ERRORS_CONSTANTS_H
+
+#include <map>
+#include <string>
 
 namespace serene {
-namespace exprs {
+namespace errors {
+enum ErrID {
+  E0000,
+  E0001,
 
-ExprType Error::getType() const { return ExprType::Error; };
-
-std::string Error::toString() const {
-  return llvm::formatv("<Error [loc: {0} | {1}]: {2}>",
-                       this->location.start.toString(),
-                       this->location.end.toString(), this->message);
-}
-
-maybe_node Error::analyze(reader::SemanticContext &ctx) {
-  return Result<node>::Success(nullptr);
 };
 
-bool Error::classof(const Expression *e) {
-  return e->getType() == ExprType::Error;
-};
+static std::map<ErrID, std::string> ErrDesc = {
+    {E0000, "Can't find any description for this error.\n"}, {E0001, ""}};
 
-} // namespace exprs
+} // namespace errors
 } // namespace serene
+#endif

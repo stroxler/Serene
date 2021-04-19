@@ -25,6 +25,48 @@
 #ifndef SERENE_ERRORS_ERROR_H
 #define SERENE_ERRORS_ERROR_H
 
+#include "serene/errors/constants.h"
+#include "serene/exprs/expression.h"
 #include "llvm/Support/Error.h"
+
+namespace serene::errors {
+
+/// This enum represent the expression type and **not** the value type.
+enum class ErrType {
+  Syntax,
+  Semantic,
+  Compile,
+};
+
+/// This data structure represent the Lisp error. This type of expression
+/// doesn't show up in the AST but the compiler might rewrite the AST
+/// to contains error expressions
+class Error : public ::serene::exprs::Expression {
+
+public:
+  ErrID id;
+  ErrType errorType;
+  serene::exprs::node target;
+  std::string message;
+
+  Error(ErrType err, serene::exprs::node &t, llvm::StringRef msg)
+      : serene::exprs::Expression(t->location), errorType(err), target(t),
+        message(msg){};
+
+  // Error(reader::LocationRange &loc, ErrType err, node &t, llvm::StringRef
+  // msg)
+  //   : Expression(loc), errorType(err), target(t),  message(msg) {};
+
+  serene::exprs::ExprType getType() const;
+  std::string toString() const;
+
+  static bool classof(const serene::exprs::Expression *e);
+
+  serene::exprs::maybe_node analyze(reader::SemanticContext &);
+
+  ~Error() = default;
+};
+
+}; // namespace serene::errors
 
 #endif

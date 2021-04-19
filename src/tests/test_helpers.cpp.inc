@@ -29,7 +29,7 @@
 #include "serene/reader/location.h"
 
 namespace serene {
-namespace exprs {
+
 
 reader::LocationRange *dummyLocation() {
   reader::Location start;
@@ -46,7 +46,6 @@ reader::LocationRange *dummyLocation() {
   return new reader::LocationRange(start, end);
 };
 
-} // namespace exprs
 } // namespace serene
 
 #endif
