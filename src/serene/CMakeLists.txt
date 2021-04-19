@@ -20,19 +20,9 @@ set(HEADER_LIST
   "${INCLUDE_DIR}/serene/errors/constants.h"
 
 
-  "${INCLUDE_DIR}/serene/expr.hpp"
-
-  "${INCLUDE_DIR}/serene/number.hpp"
-  "${INCLUDE_DIR}/serene/symbol.hpp"
-  "${INCLUDE_DIR}/serene/list.hpp"
-  "${INCLUDE_DIR}/serene/error.hpp"
-
-  "${INCLUDE_DIR}/serene/state.hpp"
-
-
-  "${INCLUDE_DIR}/serene/sir/sir.hpp"
-  "${INCLUDE_DIR}/serene/sir/dialect.hpp"
-  "${INCLUDE_DIR}/serene/sir/generator.hpp"
+  # "${INCLUDE_DIR}/serene/sir/sir.hpp"
+  # "${INCLUDE_DIR}/serene/sir/dialect.hpp"
+  # "${INCLUDE_DIR}/serene/sir/generator.hpp"
   "${INCLUDE_DIR}/serene/namespace.h")
 
 # Make an automatic library - will be static or dynamic based on user setting
@@ -45,11 +35,7 @@ add_library(serene
 
 
   serene.cpp
-  symbol.cpp
-  list.cpp
   namespace.cpp
-  state.cpp
-  number.cpp
 
   # Reader
   reader/reader.cpp
@@ -61,10 +47,10 @@ add_library(serene
   errors/error.cpp
 
   # IR
-  sir/sir.cpp
-  sir/dialect.cpp
-  sir/value_op.cpp
-  sir/generator.cpp
+  # sir/sir.cpp
+  # sir/dialect.cpp
+  # sir/value_op.cpp
+  # sir/generator.cpp
   ${HEADER_LIST})
 
 

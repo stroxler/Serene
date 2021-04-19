@@ -1,3 +1,4 @@
+
 /**
  * Serene programming language.
  *
@@ -25,7 +26,7 @@
 #include "serene/serene.h"
 #include "serene/reader/reader.h"
 #include "serene/reader/semantics.h"
-#include "serene/sir/sir.hpp"
+// #include "serene/sir/sir.hpp"
 #include <iostream>
 #include <llvm/Support/CommandLine.h>
 
@@ -86,15 +87,15 @@ int main(int argc, char *argv[]) {
     return 0;
   };
   case Action::DumpIR: {
-    reader::FileReader *r = new reader::FileReader(inputFile);
-    auto ast = r->read();
+    // reader::FileReader *r = new reader::FileReader(inputFile);
+    // auto ast = r->read();
 
-    if (!ast) {
-      throw std::move(ast.getError());
-    }
+    // if (!ast) {
+    //   throw std::move(ast.getError());
+    // }
 
-    serene::sir::dumpSIR(ast.getValue());
-    delete r;
+    // serene::sir::dumpSIR(ast.getValue());
+    // delete r;
     return 0;
   }
   default: {

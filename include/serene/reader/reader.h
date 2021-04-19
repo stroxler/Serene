@@ -36,7 +36,6 @@
 #include "serene/exprs/expression.h"
 #include "serene/exprs/list.h"
 #include "serene/exprs/symbol.h"
-#include "serene/logger.hpp"
 #include "serene/reader/errors.h"
 #include "serene/reader/location.h"
 #include "serene/serene.h"

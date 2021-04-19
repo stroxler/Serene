@@ -29,7 +29,6 @@
 #include "mlir/IR/Value.h"
 #include "serene/exprs/expression.h"
 #include "serene/llvm/IR/Value.h"
-#include "serene/logger.hpp"
 #include "llvm/ADT/DenseMap.h"
 #include <llvm/IR/Module.h>
 #include <string>

@@ -23,7 +23,6 @@
  */
 
 #include "serene/reader/reader.h"
-#include "serene/error.hpp"
 #include "serene/exprs/list.h"
 #include "serene/exprs/number.h"
 #include "serene/exprs/symbol.h"
@@ -302,7 +301,7 @@ exprs::maybe_ast FileReader::read() {
 
   if (std::error_code EC = fileOrErr.getError()) {
     llvm::errs() << "Could not open input file: " << EC.message() << "\n";
-    llvm::errs() << fmt::format("File: '{}'\n", file);
+    llvm::errs() << llvm::formatv("File: '{0}'\n", file);
     llvm::errs() << "Use absolute path for now\n";
     return Result<exprs::ast>::Error(llvm::make_error<MissingFileError>(file));
   }
