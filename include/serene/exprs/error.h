@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#ifndef EXPRS_SYMBOL_H
-#define EXPRS_SYMBOL_H
+#ifndef EXPRS_ERROR_H
+#define EXPRS_ERROR_H
 
 #include "serene/exprs/expression.h"
 #include "llvm/ADT/StringRef.h"
@@ -33,15 +33,29 @@ namespace serene {
 
 namespace exprs {
 
-/// This data structure represent the Lisp symbol. Just a symbol
-/// in the context of the AST and nothing else.
-class Symbol : public Expression {
+/// This enum represent the expression type and **not** the value type.
+enum class ErrType {
+  Syntax,
+  Semantic,
+  Compile,
+};
+
+/// This data structure represent the Lisp error. This type of expression
+/// doesn't show up in the AST but the compiler might rewrite the AST
+/// to contains error expressions
+class Error : public Expression {
 
 public:
-  std::string name;
+  ErrType errorType;
+  node target;
+  std::string message;
 
-  Symbol(reader::LocationRange &loc, llvm::StringRef name)
-      : Expression(loc), name(name){};
+  Error(ErrType err, node &t, llvm::StringRef msg)
+      : Expression(t->location), errorType(err), target(t), message(msg){};
+
+  // Error(reader::LocationRange &loc, ErrType err, node &t, llvm::StringRef
+  // msg)
+  //   : Expression(loc), errorType(err), target(t),  message(msg) {};
 
   ExprType getType() const;
   std::string toString() const;
@@ -50,7 +64,7 @@ public:
 
   maybe_node analyze(reader::SemanticContext &);
 
-  ~Symbol() = default;
+  ~Error() = default;
 };
 
 } // namespace exprs

@@ -45,6 +45,7 @@ enum class ExprType {
   List,
   Number,
   Def,
+  Error,
 };
 
 class Expression;

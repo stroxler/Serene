@@ -22,38 +22,28 @@
  * SOFTWARE.
  */
 
-#ifndef EXPRS_SYMBOL_H
-#define EXPRS_SYMBOL_H
-
-#include "serene/exprs/expression.h"
-#include "llvm/ADT/StringRef.h"
-#include <string>
+#include "../test_helpers.cpp.inc"
+#include "serene/exprs/symbol.h"
+#include "serene/exprs/error.h"
+#include "llvm/Support/Casting.h"
+#include <catch2/catch.hpp>
 
 namespace serene {
-
 namespace exprs {
 
-/// This data structure represent the Lisp symbol. Just a symbol
-/// in the context of the AST and nothing else.
-class Symbol : public Expression {
+TEST_CASE("Error Expression", "[expression]") {
+  std::unique_ptr<reader::LocationRange> range(dummyLocation());
 
-public:
-  std::string name;
+  node sym = make<Symbol>(*range.get(), llvm::StringRef("example"));
+  node err = make<Error>(ErrType::Semantic, sym, "Something Failed");
 
-  Symbol(reader::LocationRange &loc, llvm::StringRef name)
-      : Expression(loc), name(name){};
+  REQUIRE(err->getType() == ExprType::Error);
+  CHECK(err->toString() == "<Error [loc: 2:20:40 | 3:30:80]: Something Failed>");
 
-  ExprType getType() const;
-  std::string toString() const;
-
-  static bool classof(const Expression *e);
-
-  maybe_node analyze(reader::SemanticContext &);
-
-  ~Symbol() = default;
+  auto error = llvm::dyn_cast<Error>(err.get());
+  CHECK(error->errorType == ErrType::Semantic);
+  CHECK(error->target == sym);
 };
 
 } // namespace exprs
 } // namespace serene
-
-#endif

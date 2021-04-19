@@ -1,4 +1,4 @@
-/* -*- C++ -*-
+/*
  * Serene programming language.
  *
  *  Copyright (c) 2019-2021 Sameer Rahmani <lxsameer@gnu.org>
@@ -22,38 +22,27 @@
  * SOFTWARE.
  */
 
-#ifndef EXPRS_SYMBOL_H
-#define EXPRS_SYMBOL_H
-
-#include "serene/exprs/expression.h"
-#include "llvm/ADT/StringRef.h"
-#include <string>
+#include "serene/exprs/error.h"
+#include "llvm/Support/FormatVariadic.h"
 
 namespace serene {
-
 namespace exprs {
 
-/// This data structure represent the Lisp symbol. Just a symbol
-/// in the context of the AST and nothing else.
-class Symbol : public Expression {
+ExprType Error::getType() const { return ExprType::Error; };
 
-public:
-  std::string name;
+std::string Error::toString() const {
+  return llvm::formatv("<Error [loc: {0} | {1}]: {2}>",
+                       this->location.start.toString(),
+                       this->location.end.toString(), this->message);
+}
 
-  Symbol(reader::LocationRange &loc, llvm::StringRef name)
-      : Expression(loc), name(name){};
+maybe_node Error::analyze(reader::SemanticContext &ctx) {
+  return Result<node>::Success(nullptr);
+};
 
-  ExprType getType() const;
-  std::string toString() const;
-
-  static bool classof(const Expression *e);
-
-  maybe_node analyze(reader::SemanticContext &);
-
-  ~Symbol() = default;
+bool Error::classof(const Expression *e) {
+  return e->getType() == ExprType::Error;
 };
 
 } // namespace exprs
 } // namespace serene
-
-#endif
