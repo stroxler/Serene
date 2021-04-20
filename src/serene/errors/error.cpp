@@ -39,7 +39,7 @@ std::string Error::toString() const {
 }
 
 serene::exprs::maybe_node Error::analyze(reader::SemanticContext &ctx) {
-  return Result<serene::exprs::node>::Success(nullptr);
+  return Result<serene::exprs::node>::success(nullptr);
 };
 
 bool Error::classof(const serene::exprs::Expression *e) {

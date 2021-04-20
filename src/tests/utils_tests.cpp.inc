@@ -26,12 +26,12 @@
 
 namespace serene {
 TEST_CASE("Result Type", "[utils]") {
-  auto r = Result<int>::Success(4);
+  auto r = Result<int>::success(4);
 
   REQUIRE(r == true);
   CHECK(r.getValue() == 4);
 
-  auto r1 = Result<int, char>::Error('c');
+  auto r1 = Result<int, char>::error('c');
 
   REQUIRE_FALSE(r1);
   CHECK(r1.getError() == 'c');

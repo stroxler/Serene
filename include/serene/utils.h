@@ -39,8 +39,8 @@ namespace serene {
 /// factory functions `Success` and `Error`. For example:
 ///
 /// \code
-/// auto successfulResult = Result<int>::Success(3);
-/// auto notOkResult = Result<int>::Error(SomeLLVMError());
+/// auto successfulResult = Result<int>::success(3);
+/// auto notOkResult = Result<int>::error(SomeLLVMError());
 // \endcode
 ///
 /// In order check for a value being errorful or successful checkout the `ok`
@@ -57,13 +57,13 @@ template <typename T, typename E = llvm::Error> class Result {
 
 public:
   /// Create a succesfull result with the given value of type `T`.
-  static Result Success(T v) {
+  static Result success(T v) {
     return Result(std::in_place_index_t<0>(), std::move(v));
   }
 
   /// Create an errorful result with the given value of type `E` (default
   /// `llvm::Error`).
-  static Result Error(E e) {
+  static Result error(E e) {
     return Result(std::in_place_index_t<1>(), std::move(e));
   }
 
@@ -90,60 +90,6 @@ public:
 
   operator bool() const { return ok(); }
 };
-
-/// A similar type to Rust's Result data structure. It either holds a value of
-/// type `T` successfully or holds a value of type `E` errorfully. It is
-/// designed to be used in situations which the return value of a function might
-/// contains some errors. The official way to use this type is to use the
-/// factory functions `Success` and `Error`. For example:
-///
-/// \code
-/// auto successfulResult = Result<int>::Success(3);
-/// auto notOkResult = Result<int>::Error(SomeLLVMError());
-// \endcode
-///
-/// In order check for a value being errorful or successful checkout the `ok`
-/// method or simply use the value as a conditiona.
-// template <typename T, typename E = llvm::Error> class SharedResult {
-
-//   // The actual data container
-//   std::variant<std::shared_ptr<T>, E> contents;
-
-//   /// The main constructor which we made private to avoid ambiguousness in
-//   /// input type. `Success` and `Error` call this ctor.
-//   template <typename InPlace, typename Content>
-//   SharedResult(InPlace i, Content &&c) : contents(i,
-//   std::forward<Content>(c)){};
-
-// public:
-//   /// Create a succesfull result with the given value of type `T`.
-//   static SharedResult Success(std::shared_ptr<T> v) {
-//     return Result(std::in_place_index_t<0>(), v);
-//   }
-
-//   /// Create an errorful result with the given value of type `E` (default
-//   /// `llvm::Error`).
-//   static SharedResult Error(E e) {
-//     return Result(std::in_place_index_t<1>(), std::move(e));
-//   }
-
-//   // using std::get, it'll throw if contents doesn't contain what you ask for
-
-//   /// Return the value if it's successful otherwise throw an error
-//   T &getValue() { return std::get<0>(contents); };
-
-//   /// Return the error value if it's errorful otherwise throw an error
-//   E &getError() { return std::get<1>(contents); };
-
-//   const T &getValue() const { return std::get<0>(contents); }
-//   const E &getError() const { return std::get<1>(contents); }
-
-//   /// Return the a boolean value indicating whether the value is succesful
-//   /// or errorful.
-//   bool ok() const { return std::holds_alternative<T>(contents); };
-
-//   operator bool() const { return ok(); }
-// };
 
 } // namespace serene
 #endif

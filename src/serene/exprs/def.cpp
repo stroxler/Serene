@@ -38,7 +38,7 @@ std::string Def::toString() const {
 }
 
 maybe_node Def::analyze(reader::SemanticContext &ctx) {
-  return Result<node>::Success(nullptr);
+  return Result<node>::success(nullptr);
 };
 
 bool Def::classof(const Expression *e) {

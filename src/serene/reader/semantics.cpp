@@ -44,9 +44,9 @@ exprs::maybe_ast Semantics::analyze(exprs::ast &inputAst) {
         ast.push_back(element);
       }
     } else {
-      Result<exprs::ast>::Error(std::move(maybeNode.getError()));
+      Result<exprs::ast>::error(std::move(maybeNode.getError()));
     }
   }
-  return Result<exprs::ast>::Success(std::move(ast));
+  return Result<exprs::ast>::success(std::move(ast));
 };
 }; // namespace serene::reader

@@ -270,7 +270,7 @@ exprs::maybe_ast Reader::read() {
     c = getChar(true);
   }
 
-  return Result<exprs::ast>::Success(std::move(this->ast));
+  return Result<exprs::ast>::success(std::move(this->ast));
 };
 
 /// Reads the input into an AST and prints it out as string again.
@@ -303,7 +303,7 @@ exprs::maybe_ast FileReader::read() {
     llvm::errs() << "Could not open input file: " << EC.message() << "\n";
     llvm::errs() << llvm::formatv("File: '{0}'\n", file);
     llvm::errs() << "Use absolute path for now\n";
-    return Result<exprs::ast>::Error(llvm::make_error<MissingFileError>(file));
+    return Result<exprs::ast>::error(llvm::make_error<MissingFileError>(file));
   }
 
   reader->setInput(fileOrErr.get()->getBuffer().str());

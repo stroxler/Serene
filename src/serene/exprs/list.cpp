@@ -65,7 +65,7 @@ maybe_node List::analyze(reader::SemanticContext &ctx) {
         if (sym->name == "def") {
           if (auto err = Def::isValid(this)) {
             // Not a valid `def` form
-            return Result<node>::Error(std::move(err));
+            return Result<node>::error(std::move(err));
           }
 
           Symbol *binding = llvm::dyn_cast<Symbol>(elements[1].get());
@@ -75,7 +75,7 @@ maybe_node List::analyze(reader::SemanticContext &ctx) {
           }
 
           node def = make<Def>(location, binding->name, elements[2]);
-          return Result<node>::Success(def);
+          return Result<node>::success(def);
         }
       }
 
@@ -84,7 +84,7 @@ maybe_node List::analyze(reader::SemanticContext &ctx) {
     }
   }
 
-  return Result<node>::Success(nullptr);
+  return Result<node>::success(nullptr);
 };
 
 bool List::classof(const Expression *e) {
