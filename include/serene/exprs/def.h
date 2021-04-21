@@ -25,9 +25,11 @@
 #ifndef EXPRS_DEF_H
 #define EXPRS_DEF_H
 
+#include "serene/errors/error.h"
 #include "serene/exprs/expression.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/Error.h"
+#include <memory>
 #include <string>
 
 namespace serene {
@@ -51,7 +53,7 @@ public:
   maybe_node analyze(reader::SemanticContext &);
 
   static bool classof(const Expression *e);
-  static llvm::Error isValid(const List *);
+  static std::shared_ptr<errors::Error> isValid(const List *);
 
   ~Def() = default;
 };

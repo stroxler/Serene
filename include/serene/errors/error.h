@@ -44,18 +44,13 @@ enum class ErrType {
 class Error : public ::serene::exprs::Expression {
 
 public:
-  ErrID id;
-  ErrType errorType;
+  ErrorVariant *variant;
   serene::exprs::node target;
   std::string message;
 
-  Error(ErrType err, serene::exprs::node &t, llvm::StringRef msg)
-      : serene::exprs::Expression(t->location), errorType(err), target(t),
+  Error(ErrorVariant *err, serene::exprs::node &t, llvm::StringRef msg)
+      : serene::exprs::Expression(t->location), variant(err), target(t),
         message(msg){};
-
-  // Error(reader::LocationRange &loc, ErrType err, node &t, llvm::StringRef
-  // msg)
-  //   : Expression(loc), errorType(err), target(t),  message(msg) {};
 
   serene::exprs::ExprType getType() const;
   std::string toString() const;

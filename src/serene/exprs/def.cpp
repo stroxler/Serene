@@ -32,9 +32,8 @@ namespace exprs {
 ExprType Def::getType() const { return ExprType::Def; };
 
 std::string Def::toString() const {
-  return llvm::formatv(
-      "<Def [loc: {0} | {1}]: {2} -> {3}>", this->location.start.toString(),
-      this->location.end.toString(), this->binding, this->value->toString());
+  return llvm::formatv("<Def {0} -> {1}>", this->binding,
+                       this->value->toString());
 }
 
 maybe_node Def::analyze(reader::SemanticContext &ctx) {
@@ -45,6 +44,8 @@ bool Def::classof(const Expression *e) {
   return e->getType() == ExprType::Def;
 };
 
-llvm::Error Def::isValid(const List *list) { return llvm::Error::success(); };
+std::shared_ptr<errors::Error> Def::isValid(const List *list) {
+  return nullptr;
+};
 } // namespace exprs
 } // namespace serene

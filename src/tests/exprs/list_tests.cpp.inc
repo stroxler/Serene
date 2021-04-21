@@ -39,11 +39,10 @@ TEST_CASE("List Expression", "[expression]") {
   node list = make<List>(*range.get());
 
   REQUIRE(list->getType() == ExprType::List);
-  CHECK(list->toString() == "<List [loc: 2:20:40 | 3:30:80]: ->");
+  CHECK(list->toString() == "<List ->");
 
   node list2 = make<List>(*range.get(), list);
-  CHECK(list2->toString() ==
-        "<List [loc: 2:20:40 | 3:30:80]:  <List [loc: 2:20:40 | 3:30:80]: ->>");
+  CHECK(list2->toString() == "<List  <List ->>");
 
   ast elements;
   elements.push_back(list);
@@ -52,25 +51,21 @@ TEST_CASE("List Expression", "[expression]") {
 
   auto list3 = make<List>(*range.get(), elements);
 
-  CHECK(list3->toString() ==
-        "<List [loc: 2:20:40 | 3:30:80]:  <List [loc: 2:20:40 | 3:30:80]: -> "
-        "<List [loc: 2:20:40 | 3:30:80]:  <List [loc: 2:20:40 | 3:30:80]: "
-        "->> <Symbol [loc: 2:20:40 | 3:30:80]: example>>");
+  CHECK(list3->toString() == "<List  <List -> <List  <List ->> <Symbol example>>");
 
   auto l = llvm::dyn_cast<List>(list.get());
 
   l->append(sym1);
 
   REQUIRE(list->getType() == ExprType::List);
-  CHECK(list->toString() == "<List [loc: 2:20:40 | 3:30:80]:  <Symbol [loc: "
-                            "2:20:40 | 3:30:80]: example1>>");
+  CHECK(list->toString() == "<List  <Symbol example1>>");
 
   l->append(sym);
   REQUIRE(l->count() == 2);
 
   auto expr = l->at(1);
   REQUIRE(expr.hasValue());
-  CHECK(expr.getValue()->toString() == "<Symbol [loc: 2:20:40 | 3:30:80]: example>");
+  CHECK(expr.getValue()->toString() == "<Symbol example>");
 
   expr = l->at(2);
   REQUIRE_FALSE(expr.hasValue());

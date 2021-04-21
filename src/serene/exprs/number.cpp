@@ -31,9 +31,7 @@ namespace exprs {
 ExprType Number::getType() const { return ExprType::Number; };
 
 std::string Number::toString() const {
-  return llvm::formatv("<Number [loc: {0} | {1}]: {2}>",
-                       this->location.start.toString(),
-                       this->location.end.toString(), value);
+  return llvm::formatv("<Number {0}>", value);
 }
 
 maybe_node Number::analyze(reader::SemanticContext &ctx) {

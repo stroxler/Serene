@@ -36,12 +36,11 @@ TEST_CASE("Public Expression API", "[expression]") {
   auto sym = make<Symbol>(*range.get(), "example");
 
   REQUIRE(sym->getType() == ExprType::Symbol);
-  CHECK(sym->toString() == "<Symbol [loc: 2:20:40 | 3:30:80]: example>");
+  CHECK(sym->toString() ==  "<Symbol example>");
 
   auto list = makeAndCast<List>(*range.get(), sym);
 
-  CHECK(list->toString() == "<List [loc: 2:20:40 | 3:30:80]:  <Symbol [loc: "
-                            "2:20:40 | 3:30:80]: example>>");
+  CHECK(list->toString() == "<List  <Symbol example>>");
 };
 
 } // namespace exprs

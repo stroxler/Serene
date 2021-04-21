@@ -1,4 +1,5 @@
 add_executable(serenec serene.cpp)
+
 # Make sure to generate files related to the dialects first
 add_dependencies(serenec SereneDialectGen)
 
@@ -14,7 +15,6 @@ endif()
 target_link_libraries(serenec PRIVATE
   serene
   ${llvm_libs}
-  fmt::fmt
   MLIRAnalysis
   MLIRIR
   MLIRParser

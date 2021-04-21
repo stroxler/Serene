@@ -30,14 +30,30 @@
 
 namespace serene {
 namespace errors {
+
 enum ErrID {
   E0000,
   E0001,
 
 };
 
-static std::map<ErrID, std::string> ErrDesc = {
-    {E0000, "Can't find any description for this error.\n"}, {E0001, ""}};
+struct ErrorVariant {
+  ErrID id;
+  std::string description;
+  std::string longDescription;
+
+  ErrorVariant(ErrID id, std::string desc, std::string longDesc)
+      : id(id), description(desc), longDescription(longDesc){};
+};
+
+static ErrorVariant
+    UnknownError(E0000, "Can't find any description for this error.", "");
+static ErrorVariant
+    DefExpectSymbol(E0001, "The first argument to 'def' has to be a Symbol.",
+                    "");
+
+static std::map<ErrID, ErrorVariant *> ErrDesc = {{E0000, &UnknownError},
+                                                  {E0001, &DefExpectSymbol}};
 
 } // namespace errors
 } // namespace serene

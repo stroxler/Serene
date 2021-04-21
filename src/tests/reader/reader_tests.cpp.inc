@@ -39,7 +39,7 @@ TEST_CASE("Read numbers", "[reader]") {
 
   auto ast = std::move(maybeAst).getValue();
   REQUIRE_FALSE(ast.empty());
-  CHECK(ast.front()->toString() == "<Number [loc: 0:1:1 | 0:1:1]: 3>");
+  CHECK(ast.front()->toString() ==  "<Number 3>");
 
   r->setInput("-34");
   maybeAst = r->read();
@@ -50,7 +50,7 @@ TEST_CASE("Read numbers", "[reader]") {
 
   ast = std::move(maybeAst.getValue());
   REQUIRE_FALSE(ast.empty());
-  CHECK(ast.front()->toString() == "<Number [loc: 0:2:2 | 0:3:3]: -34>");
+  CHECK(ast.front()->toString() ==  "<Number -34>");
 
   r->setInput("-3.5434");
   maybeAst = r->read();
@@ -61,7 +61,7 @@ TEST_CASE("Read numbers", "[reader]") {
 
   ast = std::move(maybeAst.getValue());
   REQUIRE_FALSE(ast.empty());
-  CHECK(ast.front()->toString() == "<Number [loc: 0:2:2 | 0:7:7]: -3.5434>");
+  CHECK(ast.front()->toString() ==  "<Number -3.5434>");
 
   r->setInput("444323 2123 123123");
   maybeAst = r->read();
@@ -72,9 +72,9 @@ TEST_CASE("Read numbers", "[reader]") {
 
   ast = std::move(maybeAst.getValue());
   REQUIRE(ast.size() == 3);
-  CHECK(ast.front()->toString() == "<Number [loc: 0:1:1 | 0:6:6]: 444323>");
-  CHECK(ast[1]->toString() == "<Number [loc: 0:8:8 | 0:11:11]: 2123>");
-  CHECK(ast[2]->toString() == "<Number [loc: 0:13:13 | 0:18:18]: 123123>");
+  CHECK(ast.front()->toString() ==  "<Number 444323>");
+  CHECK(ast[1]->toString() == "<Number 2123>" );
+  CHECK(ast[2]->toString() == "<Number 123123>");
 
   delete r;
 };
@@ -89,9 +89,7 @@ TEST_CASE("Read Lists and Symbols", "[reader]") {
 
   auto ast = std::move(maybeAst.getValue());
   REQUIRE_FALSE(ast.empty());
-  CHECK(ast.front()->toString() ==
-        "<List [loc: 0:0:0 | 0:5:5]:  <Symbol [loc: 0:2:2 | 0:2:2]: x> <Number "
-        "[loc: 0:4:4 | 0:4:4]: 1>>");
+  CHECK(ast.front()->toString() ==  "<List  <Symbol x> <Number 1>>");
 
   r->setInput("(x (y (z)))");
   maybeAst = r->read();
@@ -102,10 +100,7 @@ TEST_CASE("Read Lists and Symbols", "[reader]") {
 
   ast = std::move(maybeAst.getValue());
   REQUIRE_FALSE(ast.empty());
-  CHECK(ast.front()->toString() ==
-        "<List [loc: 0:0:0 | 0:11:11]:  <Symbol [loc: 0:2:2 | 0:2:2]: x> <List "
-        "[loc: 0:3:3 | 0:10:10]:  <Symbol [loc: 0:5:5 | 0:5:5]: y> <List [loc: "
-        "0:6:6 | 0:9:9]:  <Symbol [loc: 0:8:8 | 0:8:8]: z>>>>");
+  CHECK(ast.front()->toString() == "<List  <Symbol x> <List  <Symbol y> <List  <Symbol z>>>>");
 
   r->setInput("(x \n y)");
   maybeAst = r->read();
@@ -116,9 +111,7 @@ TEST_CASE("Read Lists and Symbols", "[reader]") {
 
   ast = std::move(maybeAst.getValue());
   REQUIRE_FALSE(ast.empty());
-  CHECK(ast.front()->toString() ==
-        "<List [loc: 0:0:0 | 1:3:7]:  <Symbol [loc: 0:2:2 | 0:2:2]: x> <Symbol "
-        "[loc: 1:2:6 | 1:2:6]: y>>");
+  CHECK(ast.front()->toString() == "<List  <Symbol x> <Symbol y>>");
 
   delete r;
 };

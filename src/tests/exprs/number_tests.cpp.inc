@@ -38,10 +38,10 @@ TEST_CASE("Number Expression", "[expression]") {
   auto num3 = makeAndCast<Number>(*range.get(), "3", true, false);
   auto num4 = makeAndCast<Number>(*range.get(), "-3", true, false);
 
-  CHECK(num1->toString() == "<Number [loc: 2:20:40 | 3:30:80]: 3>");
-  CHECK(num2->toString() == "<Number [loc: 2:20:40 | 3:30:80]: 3.4>");
-  CHECK(num3->toString() == "<Number [loc: 2:20:40 | 3:30:80]: 3>");
-  CHECK(num4->toString() == "<Number [loc: 2:20:40 | 3:30:80]: -3>");
+  CHECK(num1->toString() == "<Number 3>");
+  CHECK(num2->toString() == "<Number 3.4>");
+  CHECK(num3->toString() ==  "<Number 3>");
+  CHECK(num4->toString() ==  "<Number -3>");
 };
 
 } // namespace exprs

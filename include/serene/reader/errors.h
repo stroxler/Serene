@@ -59,6 +59,7 @@ public:
     return make_error_code(errc::no_such_file_or_directory);
   }
 };
+
 } // namespace reader
 } // namespace serene
 #endif

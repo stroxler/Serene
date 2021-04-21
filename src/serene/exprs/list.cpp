@@ -23,6 +23,7 @@
  */
 
 #include "serene/exprs/list.h"
+#include "serene/errors/error.h"
 #include "serene/exprs/def.h"
 #include "serene/exprs/symbol.h"
 #include "llvm/Support/Casting.h"
@@ -49,9 +50,7 @@ std::string List::toString() const {
     s = llvm::formatv("{0} {1}", s, n->toString());
   }
 
-  return llvm::formatv("<List [loc: {0} | {1}]: {2}>",
-                       this->location.start.toString(),
-                       this->location.end.toString(), s);
+  return llvm::formatv("<List {0}>", s);
 };
 
 maybe_node List::analyze(reader::SemanticContext &ctx) {
@@ -63,9 +62,11 @@ maybe_node List::analyze(reader::SemanticContext &ctx) {
 
       if (sym) {
         if (sym->name == "def") {
-          if (auto err = Def::isValid(this)) {
+          auto maybeErr = Def::isValid(this);
+
+          if (maybeErr) {
             // Not a valid `def` form
-            return Result<node>::error(std::move(err));
+            return Result<node>::success(maybeErr);
           }
 
           Symbol *binding = llvm::dyn_cast<Symbol>(elements[1].get());
@@ -79,8 +80,6 @@ maybe_node List::analyze(reader::SemanticContext &ctx) {
         }
       }
 
-      // TODO: Return an error saying the binding has to be
-      //       a symbol
     }
   }
 

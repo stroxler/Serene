@@ -31,9 +31,7 @@ namespace exprs {
 ExprType Symbol::getType() const { return ExprType::Symbol; };
 
 std::string Symbol::toString() const {
-  return llvm::formatv("<Symbol [loc: {0} | {1}]: {2}>",
-                       this->location.start.toString(),
-                       this->location.end.toString(), this->name);
+  return llvm::formatv("<Symbol {0}>", this->name);
 }
 
 maybe_node Symbol::analyze(reader::SemanticContext &ctx) {

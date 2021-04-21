@@ -34,7 +34,7 @@ TEST_CASE("Public Symbol API", "[expression]") {
   auto sym = make<Symbol>(*range.get(), "example");
 
   REQUIRE(sym->getType() == ExprType::Symbol);
-  CHECK(sym->toString() == "<Symbol [loc: 2:20:40 | 3:30:80]: example>");
+  CHECK(sym->toString() ==  "<Symbol example>");
 };
 } // namespace exprs
 } // namespace serene

@@ -38,14 +38,14 @@ TEST_CASE("Error Expression", "[expression]") {
   std::unique_ptr<reader::LocationRange> range(dummyLocation());
 
   exprs::node sym = exprs::make<exprs::Symbol>(*range.get(), llvm::StringRef("example"));
-  exprs::node err = exprs::make<Error>(ErrType::Semantic, sym, "Something Failed");
+  exprs::node err = exprs::make<Error>(&DefExpectSymbol, sym, "Something Failed");
 
   REQUIRE(err->getType() == exprs::ExprType::Error);
-  CHECK(err->toString() == "<Error [loc: 2:20:40 | 3:30:80]: Something Failed>");
+  CHECK(err->toString() == "<Error [loc: 2:20:40 | 3:30:80]: E1: Something Failed>");
 
   auto error = llvm::dyn_cast<Error>(err.get());
-  CHECK(error->errorType == ErrType::Semantic);
   CHECK(error->target == sym);
+
 };
 
 } // namespace exprs
