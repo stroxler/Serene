@@ -107,6 +107,7 @@ std::shared_ptr<T> makeAndCast(Args &&...args) {
   return std::make_shared<T>(std::forward<Args>(args)...);
 };
 
+std::string toString(ast &);
 void dump(ast &);
 
 } // namespace exprs

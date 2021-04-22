@@ -23,7 +23,10 @@
  */
 
 #include "../test_helpers.cpp.inc"
+#include "serene/exprs/expression.h"
 #include "serene/exprs/list.h"
+#include "serene/reader/reader.h"
+#include "serene/reader/semantics.h"
 #include "serene/exprs/symbol.h"
 #include <catch2/catch.hpp>
 
@@ -75,5 +78,19 @@ TEST_CASE("List Expression", "[expression]") {
   }
 };
 
+
+  TEST_CASE("List semantic analysis", "[semantic]") {
+    reader::Semantics analyzer;
+    auto r = new reader::Reader("(def (a b) 4)");
+    auto ast = r->read().getValue();
+
+    //auto &ast = maybeAst.getValue();
+    auto afterAst = analyzer.analyze(ast);
+
+
+    REQUIRE(afterAst);
+    CHECK(toString(afterAst.getValue()) == "<Error E1: >");
+    delete r;
+  }
 } // namespace exprs
 } // namespace serene

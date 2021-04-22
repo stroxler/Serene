@@ -33,9 +33,7 @@ serene::exprs::ExprType Error::getType() const {
 };
 
 std::string Error::toString() const {
-  return llvm::formatv(
-      "<Error [loc: {0} | {1}]: E{2}: {3}>", this->location.start.toString(),
-      this->location.end.toString(), this->variant->id, this->message);
+  return llvm::formatv("<Error E{0}: {1}>", this->variant->id, this->message);
 }
 
 serene::exprs::maybe_node Error::analyze(reader::SemanticContext &ctx) {

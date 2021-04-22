@@ -23,7 +23,9 @@
  */
 
 #include "serene/exprs/def.h"
+#include "serene/errors/error.h"
 #include "serene/exprs/list.h"
+#include "serene/exprs/symbol.h"
 #include "llvm/Support/FormatVariadic.h"
 
 namespace serene {
@@ -44,7 +46,21 @@ bool Def::classof(const Expression *e) {
   return e->getType() == ExprType::Def;
 };
 
-std::shared_ptr<errors::Error> Def::isValid(const List *list) {
+std::shared_ptr<errors::Error> Def::isValid(List *list) {
+  // TODO: Add support for docstring as the 3rd argument (4th element)
+  if (list->count() != 3) {
+    std::string msg = llvm::formatv("Expected 3 got {}", list->count());
+    return makeAndCast<errors::Error>(&errors::DefWrongNumberOfArgs,
+                                      list->elements[0], msg);
+  }
+
+  Symbol *binding = llvm::dyn_cast<Symbol>(list->elements[1].get());
+
+  if (!binding) {
+    return makeAndCast<errors::Error>(&errors::DefExpectSymbol,
+                                      list->elements[1], "");
+  }
+
   return nullptr;
 };
 } // namespace exprs

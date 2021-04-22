@@ -34,7 +34,7 @@ namespace errors {
 enum ErrID {
   E0000,
   E0001,
-
+  E0002,
 };
 
 struct ErrorVariant {
@@ -52,8 +52,13 @@ static ErrorVariant
     DefExpectSymbol(E0001, "The first argument to 'def' has to be a Symbol.",
                     "");
 
-static std::map<ErrID, ErrorVariant *> ErrDesc = {{E0000, &UnknownError},
-                                                  {E0001, &DefExpectSymbol}};
+static ErrorVariant DefWrongNumberOfArgs(
+    E0002, "Wrong number of arguments is passed to the 'def' form.", "");
+
+static std::map<ErrID, ErrorVariant *> ErrDesc = {
+    {E0000, &UnknownError},
+    {E0001, &DefExpectSymbol},
+    {E0002, &DefWrongNumberOfArgs}};
 
 } // namespace errors
 } // namespace serene

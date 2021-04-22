@@ -28,16 +28,22 @@
 namespace serene {
 namespace exprs {
 
-/// Dump the given AST tree to the standard out
-void dump(ast &tree) {
-  std::string result = "";
-
-  for (auto &node : tree) {
-    result = llvm::formatv("{0} {1}", result, node->toString());
+std::string toString(ast &tree) {
+  if (tree.size() == 0) {
+    return "";
   }
 
-  llvm::outs() << result << "\n";
-};
+  std::string result = tree.at(0)->toString();
+
+  for (unsigned int i = 1; i < tree.size(); i++) {
+    result = llvm::formatv("{0} {1}", result, tree.at(i)->toString());
+  }
+
+  return result;
+}
+
+/// Dump the given AST tree to the standard out
+void dump(ast &tree) { llvm::outs() << toString(tree) << "\n"; };
 
 } // namespace exprs
 } // namespace serene
