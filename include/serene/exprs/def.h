@@ -53,8 +53,8 @@ public:
   maybe_node analyze(reader::SemanticContext &);
 
   static bool classof(const Expression *e);
-  static std::shared_ptr<errors::Error> isValid(List *);
-
+  // static std::shared_ptr<errors::Error> isValid(List *);
+  static maybe_node make(List *);
   ~Def() = default;
 };
 

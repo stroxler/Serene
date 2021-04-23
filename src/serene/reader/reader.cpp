@@ -332,5 +332,11 @@ FileReader::~FileReader() {
   delete this->reader;
   READER_LOG("Destroying the file reader");
 }
+
+exprs::maybe_ast read(llvm::StringRef input) {
+  reader::Reader r(input);
+  auto ast = r.read();
+  return ast;
+}
 } // namespace reader
 } // namespace serene

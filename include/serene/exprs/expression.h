@@ -75,7 +75,13 @@ public:
   /// The AST representation of an expression
   virtual std::string toString() const = 0;
 
-  virtual maybe_node analyze(reader::SemanticContext &) = 0;
+  /// Analyzes the semantics of current node and return a new node in case
+  /// that we need to semantically rewrite the current node and replace it with
+  /// another node. For example to change from a List containing `(def a b)`
+  /// to a `Def` node that represents defining a new binding.
+  ///
+  /// \param ctx is the context object of the semantic analyzer.
+  virtual maybe_node analyze(reader::SemanticContext &ctx) = 0;
 };
 
 /// Create a new `node` of type `T` and forwards any given parameter
@@ -107,7 +113,11 @@ std::shared_ptr<T> makeAndCast(Args &&...args) {
   return std::make_shared<T>(std::forward<Args>(args)...);
 };
 
+/// Convert the given AST to string by calling the `toString` method
+/// of each node.
 std::string toString(ast &);
+
+/// Converts the given AST to string and prints it out
 void dump(ast &);
 
 } // namespace exprs

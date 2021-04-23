@@ -26,6 +26,16 @@
 #include "serene/exprs/expression.h"
 
 namespace serene::reader {
+
+/// The entry point to the Semantic analysis phase. It calls the `analyze`
+/// method of each node in the given AST and creates a new AST that contains a
+/// more comprehensive set of nodes in a semantically correct AST. If the
+/// `analyze` method of a node return a `nullptr` value as the `success` result
+/// (Checkout the `Result` type in `utils.h`) then the original node will be
+/// used instead. Also please note that in **Serene** Semantic errors
+/// represented as AST nodes as well. So you should expect an `analyze` method
+/// of a node to return a `Result<node>::Success(Error...)` in case of a
+/// semantic error.
 exprs::maybe_ast Semantics::analyze(exprs::ast &inputAst) {
   // TODO: Fetch the current namespace from the JIT engine later and if it is
   // `nil` then the given `ast` has to start with a namespace definition.
@@ -35,18 +45,26 @@ exprs::maybe_ast Semantics::analyze(exprs::ast &inputAst) {
   for (auto &element : inputAst) {
     auto maybeNode = element->analyze(context);
 
+    // Is it a `success` result
     if (maybeNode) {
       auto &node = maybeNode.getValue();
 
       if (node) {
+        // is there a new node to replace the current node ?
         ast.push_back(node);
       } else {
+        // Analyze returned a `nullptr`. No rewrite is needed.
+        // Use the current element instead.
         ast.push_back(element);
       }
     } else {
+
+      // `analyze` returned an errorful result. This type of error
+      // is llvm related and has to be raised later
       Result<exprs::ast>::error(std::move(maybeNode.getError()));
     }
   }
+
   return Result<exprs::ast>::success(std::move(ast));
 };
 }; // namespace serene::reader

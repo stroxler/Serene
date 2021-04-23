@@ -95,6 +95,11 @@ public:
 
   ~FileReader();
 };
+
+/// Parses the given `input` string and returns a `Result<ast>`
+/// which may contains an AST or an `llvm::Error`
+exprs::maybe_ast read(llvm::StringRef input);
+
 } // namespace reader
 } // namespace serene
 #endif

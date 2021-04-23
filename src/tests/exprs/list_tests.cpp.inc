@@ -81,16 +81,26 @@ TEST_CASE("List Expression", "[expression]") {
 
   TEST_CASE("List semantic analysis", "[semantic]") {
     reader::Semantics analyzer;
-    auto r = new reader::Reader("(def (a b) 4)");
-    auto ast = r->read().getValue();
-
-    //auto &ast = maybeAst.getValue();
-    auto afterAst = analyzer.analyze(ast);
-
-
+    auto ast = reader::read("(def (a) b)");
+    auto afterAst = analyzer.analyze(ast.getValue());
     REQUIRE(afterAst);
     CHECK(toString(afterAst.getValue()) == "<Error E1: >");
-    delete r;
+
+    ast = reader::read("(def a)");
+    afterAst = analyzer.analyze(ast.getValue());
+    REQUIRE(afterAst);
+    CHECK(toString(afterAst.getValue()) == "<Error E2: Expected 3 got 2>");
+
+    ast = reader::read("(def a b c)");
+    afterAst = analyzer.analyze(ast.getValue());
+    REQUIRE(afterAst);
+    CHECK(toString(afterAst.getValue()) == "<Error E2: Expected 3 got 4>");
+
+    ast = reader::read("(def a b)");
+    afterAst = analyzer.analyze(ast.getValue());
+    REQUIRE(afterAst);
+    CHECK(toString(afterAst.getValue()) == "<Def a -> <Symbol b>>");
+
   }
 } // namespace exprs
 } // namespace serene

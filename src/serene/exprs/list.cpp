@@ -62,22 +62,27 @@ maybe_node List::analyze(reader::SemanticContext &ctx) {
 
       if (sym) {
         if (sym->name == "def") {
-          auto maybeErr = Def::isValid(this);
-
-          if (maybeErr) {
-            // Not a valid `def` form
-            return Result<node>::success(maybeErr);
-          }
-
-          Symbol *binding = llvm::dyn_cast<Symbol>(elements[1].get());
-
-          if (!binding) {
-            llvm_unreachable("Def::isValid should of catch this.");
-          }
-
-          node def = make<Def>(location, binding->name, elements[2]);
-          return Result<node>::success(def);
+          return Def::make(this);
         }
+
+        /* if (sym->name == "fn") { */
+        /*   auto maybeErr = Fn::isValid(this); */
+
+        /*   if (maybeErr) { */
+        /*     // Not a valid `def` form */
+        /*     return Result<node>::success(maybeErr); */
+        /*   } */
+
+        /*   Symbol *binding = llvm::dyn_cast<Symbol>(elements[1].get()); */
+
+        /*   if (!binding) { */
+        /*     llvm_unreachable("Def::isValid should of catch this."); */
+        /*   } */
+
+        /*   node def = make<Def>(location, binding->name, elements[2]); */
+        /*   return Result<node>::success(def); */
+
+        /* } */
       }
 
     }

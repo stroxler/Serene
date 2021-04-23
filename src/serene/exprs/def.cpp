@@ -46,22 +46,23 @@ bool Def::classof(const Expression *e) {
   return e->getType() == ExprType::Def;
 };
 
-std::shared_ptr<errors::Error> Def::isValid(List *list) {
+maybe_node Def::make(List *list) {
   // TODO: Add support for docstring as the 3rd argument (4th element)
   if (list->count() != 3) {
-    std::string msg = llvm::formatv("Expected 3 got {}", list->count());
-    return makeAndCast<errors::Error>(&errors::DefWrongNumberOfArgs,
-                                      list->elements[0], msg);
+    std::string msg = llvm::formatv("Expected 3 got {0}", list->count());
+    return Result<node>::success(makeAndCast<errors::Error>(
+        &errors::DefWrongNumberOfArgs, list->elements[0], msg));
   }
 
   Symbol *binding = llvm::dyn_cast<Symbol>(list->elements[1].get());
 
   if (!binding) {
-    return makeAndCast<errors::Error>(&errors::DefExpectSymbol,
-                                      list->elements[1], "");
+    return Result<node>::success(makeAndCast<errors::Error>(
+        &errors::DefExpectSymbol, list->elements[1], ""));
   }
 
-  return nullptr;
+  node def = exprs::make<Def>(list->location, binding->name, list->elements[2]);
+  return Result<node>::success(def);
 };
 } // namespace exprs
 } // namespace serene
