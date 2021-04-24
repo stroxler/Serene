@@ -25,9 +25,9 @@
 #include "../test_helpers.cpp.inc"
 #include "serene/exprs/expression.h"
 #include "serene/exprs/list.h"
+#include "serene/exprs/symbol.h"
 #include "serene/reader/reader.h"
 #include "serene/reader/semantics.h"
-#include "serene/exprs/symbol.h"
 #include <catch2/catch.hpp>
 
 namespace serene {
@@ -54,7 +54,8 @@ TEST_CASE("List Expression", "[expression]") {
 
   auto list3 = make<List>(*range.get(), elements);
 
-  CHECK(list3->toString() == "<List  <List -> <List  <List ->> <Symbol example>>");
+  CHECK(list3->toString() ==
+        "<List  <List -> <List  <List ->> <Symbol example>>");
 
   auto l = llvm::dyn_cast<List>(list.get());
 
@@ -73,34 +74,55 @@ TEST_CASE("List Expression", "[expression]") {
   expr = l->at(2);
   REQUIRE_FALSE(expr.hasValue());
 
-  for(auto x : *l) {
+  for (auto x : *l) {
     CHECK(x->getType() == ExprType::Symbol);
   }
 };
 
+TEST_CASE("List semantic analysis of 'def'", "[semantic]") {
+  reader::Semantics analyzer;
+  auto ast = reader::read("(def (a) b)");
+  auto afterAst = analyzer.analyze(ast.getValue());
+  REQUIRE(afterAst);
+  CHECK(astToString(&afterAst.getValue()) == "<Error E1: >");
 
-  TEST_CASE("List semantic analysis", "[semantic]") {
-    reader::Semantics analyzer;
-    auto ast = reader::read("(def (a) b)");
-    auto afterAst = analyzer.analyze(ast.getValue());
-    REQUIRE(afterAst);
-    CHECK(toString(afterAst.getValue()) == "<Error E1: >");
+  ast = reader::read("(def a)");
+  afterAst = analyzer.analyze(ast.getValue());
+  REQUIRE(afterAst);
+  CHECK(astToString(&afterAst.getValue()) == "<Error E2: Expected 3 got 2>");
 
-    ast = reader::read("(def a)");
-    afterAst = analyzer.analyze(ast.getValue());
-    REQUIRE(afterAst);
-    CHECK(toString(afterAst.getValue()) == "<Error E2: Expected 3 got 2>");
+  ast = reader::read("(def a b c)");
+  afterAst = analyzer.analyze(ast.getValue());
+  REQUIRE(afterAst);
+  CHECK(astToString(&afterAst.getValue()) == "<Error E2: Expected 3 got 4>");
 
-    ast = reader::read("(def a b c)");
-    afterAst = analyzer.analyze(ast.getValue());
-    REQUIRE(afterAst);
-    CHECK(toString(afterAst.getValue()) == "<Error E2: Expected 3 got 4>");
+  ast = reader::read("(def a b)");
+  afterAst = analyzer.analyze(ast.getValue());
+  REQUIRE(afterAst);
+  CHECK(astToString(&afterAst.getValue()) == "<Def a -> <Symbol b>>");
+}
 
-    ast = reader::read("(def a b)");
-    afterAst = analyzer.analyze(ast.getValue());
-    REQUIRE(afterAst);
-    CHECK(toString(afterAst.getValue()) == "<Def a -> <Symbol b>>");
+TEST_CASE("List semantic analysis for 'fn'", "[semantic]") {
+  reader::Semantics analyzer;
+  auto ast = reader::read("(fn)");
+  auto afterAst = analyzer.analyze(ast.getValue());
+  REQUIRE(afterAst);
+  CHECK(astToString(&afterAst.getValue()) == "<Error E3: The argument list is mandatory.>");
 
-  }
+  ast = reader::read("(fn ())");
+  afterAst = analyzer.analyze(ast.getValue());
+  REQUIRE(afterAst);
+  CHECK(astToString(&afterAst.getValue()) ==  "<Fn Anonymous <List -> to <>>");
+
+  ast = reader::read("(fn (a b c) a a a)");
+  afterAst = analyzer.analyze(ast.getValue());
+  REQUIRE(afterAst);
+  CHECK(astToString(&afterAst.getValue()) ==  "<Fn Anonymous <List -> to <Symbol a> <Symbol a> <Symbol a>>");
+
+  ast = reader::read("(fn () a b)");
+  afterAst = analyzer.analyze(ast.getValue());
+  REQUIRE(afterAst);
+  CHECK(astToString(&afterAst.getValue()) == "<Fn Anonymous <List -> to <Symbol a> <Symbol b>>");
+}
 } // namespace exprs
 } // namespace serene

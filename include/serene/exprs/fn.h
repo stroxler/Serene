@@ -22,30 +22,46 @@
  * SOFTWARE.
  */
 
+#ifndef EXPRS_FN_H
+#define EXPRS_FN_H
+
+#include "serene/errors/error.h"
 #include "serene/exprs/expression.h"
-#include "llvm/Support/FormatVariadic.h"
+#include "serene/exprs/list.h"
+#include "llvm/ADT/StringRef.h"
+#include "llvm/Support/Error.h"
+#include <memory>
+#include <string>
 
 namespace serene {
+
 namespace exprs {
+class List;
 
-std::string astToString(const ast *tree) {
-  if (tree->size() == 0) {
-    return "";
-  }
+/// This data structure represents a function. with a collection of
+/// arguments and the ast of a body
+class Fn : public Expression {
 
-  std::string result = tree->at(0)->toString();
+public:
+  std::string name;
 
-  for (unsigned int i = 1; i < tree->size(); i++) {
-    result = llvm::formatv("{0} {1}", result, tree->at(i)->toString());
-  }
+  // TODO: Use a coll type instead of a list here
+  List args;
+  ast body;
 
-  return result;
-}
+  Fn(reader::LocationRange &loc, List &args, ast body)
+      : Expression(loc), args(args), body(body){};
 
-std::string stringifyExprType(ExprType t) { return exprTypes[(int)t]; };
+  ExprType getType() const;
+  std::string toString() const;
+  maybe_node analyze(reader::SemanticContext &);
 
-/// Dump the given AST tree to the standard out
-void dump(ast &tree) { llvm::outs() << astToString(&tree) << "\n"; };
+  static bool classof(const Expression *e);
+  static maybe_node make(List *);
+  ~Fn() = default;
+};
 
 } // namespace exprs
 } // namespace serene
+
+#endif

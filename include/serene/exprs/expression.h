@@ -46,6 +46,12 @@ enum class ExprType {
   Number,
   Def,
   Error,
+  Fn,
+};
+
+/// The string represantion of built in expr types (NOT DATATYPES).
+static const char *exprTypes[] = {
+    "Symbol", "List", "Number", "Def", "Error", "Fn",
 };
 
 class Expression;
@@ -115,7 +121,9 @@ std::shared_ptr<T> makeAndCast(Args &&...args) {
 
 /// Convert the given AST to string by calling the `toString` method
 /// of each node.
-std::string toString(ast &);
+std::string astToString(const ast *);
+/// Converts the given ExprType to string.
+std::string stringifyExprType(ExprType);
 
 /// Converts the given AST to string and prints it out
 void dump(ast &);

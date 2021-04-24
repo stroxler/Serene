@@ -25,6 +25,7 @@
 #include "serene/exprs/list.h"
 #include "serene/errors/error.h"
 #include "serene/exprs/def.h"
+#include "serene/exprs/fn.h"
 #include "serene/exprs/symbol.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
@@ -43,6 +44,7 @@ List::List(const reader::LocationRange &loc, ast elems)
     : Expression(loc), elements(elems){};
 
 ExprType List::getType() const { return ExprType::List; };
+
 std::string List::toString() const {
   std::string s{this->elements.empty() ? "-" : ""};
 
@@ -65,24 +67,9 @@ maybe_node List::analyze(reader::SemanticContext &ctx) {
           return Def::make(this);
         }
 
-        /* if (sym->name == "fn") { */
-        /*   auto maybeErr = Fn::isValid(this); */
-
-        /*   if (maybeErr) { */
-        /*     // Not a valid `def` form */
-        /*     return Result<node>::success(maybeErr); */
-        /*   } */
-
-        /*   Symbol *binding = llvm::dyn_cast<Symbol>(elements[1].get()); */
-
-        /*   if (!binding) { */
-        /*     llvm_unreachable("Def::isValid should of catch this."); */
-        /*   } */
-
-        /*   node def = make<Def>(location, binding->name, elements[2]); */
-        /*   return Result<node>::success(def); */
-
-        /* } */
+        if (sym->name == "fn") {
+          return Fn::make(this);
+        }
       }
 
     }

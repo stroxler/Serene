@@ -35,6 +35,8 @@ enum ErrID {
   E0000,
   E0001,
   E0002,
+  E0003,
+  E0004,
 };
 
 struct ErrorVariant {
@@ -54,6 +56,12 @@ static ErrorVariant
 
 static ErrorVariant DefWrongNumberOfArgs(
     E0002, "Wrong number of arguments is passed to the 'def' form.", "");
+
+static ErrorVariant FnNoArgsList(E0003, "'fn' form requires an argument list.",
+                                 "");
+
+static ErrorVariant FnArgsMustBeList(E0004, "'fn' arguments should be a list.",
+                                     "");
 
 static std::map<ErrID, ErrorVariant *> ErrDesc = {
     {E0000, &UnknownError},
