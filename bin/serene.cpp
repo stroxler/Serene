@@ -66,14 +66,15 @@ int main(int argc, char *argv[]) {
 
   case Action::DumpSemantic: {
     reader::FileReader *r = new reader::FileReader(inputFile);
-    reader::Semantics analyzer;
+
     auto maybeAst = r->read();
 
     if (!maybeAst) {
       throw std::move(maybeAst.getError());
     }
     auto &ast = maybeAst.getValue();
-    auto afterAst = analyzer.analyze(ast);
+    auto ctx = reader::makeSemanticContext();
+    auto afterAst = reader::analyze(ctx, ast);
 
     if (afterAst) {
       dump(afterAst.getValue());

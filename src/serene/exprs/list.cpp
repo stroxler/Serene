@@ -71,7 +71,6 @@ maybe_node List::analyze(reader::SemanticContext &ctx) {
           return Fn::make(ctx, this);
         }
       }
-
     }
   }
 

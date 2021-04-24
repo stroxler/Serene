@@ -80,58 +80,73 @@ TEST_CASE("List Expression", "[expression]") {
 };
 
 TEST_CASE("List semantic analysis of 'def'", "[semantic]") {
-  reader::Semantics analyzer;
+  auto ctx = reader::makeSemanticContext();
   auto ast = reader::read("(def (a) b)");
-  auto afterAst = analyzer.analyze(ast.getValue());
+  auto afterAst = reader::analyze(ctx, ast.getValue());
   REQUIRE(afterAst);
   CHECK(astToString(&afterAst.getValue()) == "<Error E1: >");
 
   ast = reader::read("(def a)");
-  afterAst = analyzer.analyze(ast.getValue());
+  afterAst = reader::analyze(ctx, ast.getValue());
   REQUIRE(afterAst);
   CHECK(astToString(&afterAst.getValue()) == "<Error E2: Expected 3 got 2>");
 
   ast = reader::read("(def a b c)");
-  afterAst = analyzer.analyze(ast.getValue());
+  afterAst = reader::analyze(ctx, ast.getValue());
   REQUIRE(afterAst);
   CHECK(astToString(&afterAst.getValue()) == "<Error E2: Expected 3 got 4>");
 
   ast = reader::read("(def a b)");
-  afterAst = analyzer.analyze(ast.getValue());
+  afterAst = reader::analyze(ctx, ast.getValue());
   REQUIRE(afterAst);
   CHECK(astToString(&afterAst.getValue()) == "<Def a -> <Symbol b>>");
 
   ast = reader::read("(def a (fn () a))");
-  afterAst = analyzer.analyze(ast.getValue());
+  afterAst = reader::analyze(ctx, ast.getValue());
   REQUIRE(afterAst);
   CHECK(astToString(&afterAst.getValue()) ==
         "<Def a -> <Fn Anonymous <List -> to <Symbol a>>>");
 }
 
 TEST_CASE("List semantic analysis for 'fn'", "[semantic]") {
-  reader::Semantics analyzer;
+  auto ctx = reader::makeSemanticContext();
+
   auto ast = reader::read("(fn)");
-  auto afterAst = analyzer.analyze(ast.getValue());
+  auto afterAst = reader::analyze(ctx, ast.getValue());
   REQUIRE(afterAst);
   CHECK(astToString(&afterAst.getValue()) ==
         "<Error E3: The argument list is mandatory.>");
 
   ast = reader::read("(fn ())");
-  afterAst = analyzer.analyze(ast.getValue());
+  afterAst = reader::analyze(ctx, ast.getValue());
   REQUIRE(afterAst);
   CHECK(astToString(&afterAst.getValue()) == "<Fn Anonymous <List -> to <>>");
 
   ast = reader::read("(fn (a b c) a a a)");
-  afterAst = analyzer.analyze(ast.getValue());
+  afterAst = reader::analyze(ctx, ast.getValue());
   REQUIRE(afterAst);
   CHECK(astToString(&afterAst.getValue()) ==
         "<Fn Anonymous <List -> to <Symbol a> <Symbol a> <Symbol a>>");
 
   ast = reader::read("(fn () a b)");
-  afterAst = analyzer.analyze(ast.getValue());
+  afterAst = reader::analyze(ctx, ast.getValue());
   REQUIRE(afterAst);
   CHECK(astToString(&afterAst.getValue()) ==
         "<Fn Anonymous <List -> to <Symbol a> <Symbol b>>");
+
+  ast = reader::read("(fn (x) (fn (y) x) z)");
+  afterAst = reader::analyze(ctx, ast.getValue());
+  REQUIRE(afterAst);
+  CHECK(astToString(&afterAst.getValue()) ==
+        "<Fn Anonymous <List -> to <Fn Anonymous <List -> to <Symbol x>> "
+        "<Symbol z>>");
+
+  ast = reader::read("(fn (x) (def a b) (def b c))");
+  afterAst = reader::analyze(ctx, ast.getValue());
+  REQUIRE(afterAst);
+  CHECK(
+      astToString(&afterAst.getValue()) ==
+      "<Fn Anonymous <List -> to <Def a -> <Symbol b>> <Def b -> <Symbol c>>>");
 }
 } // namespace exprs
 } // namespace serene

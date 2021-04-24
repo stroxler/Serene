@@ -27,6 +27,7 @@
 #include "serene/exprs/expression.h"
 #include "serene/exprs/list.h"
 #include "serene/exprs/symbol.h"
+#include "serene/reader/semantics.h"
 #include "llvm/Support/FormatVariadic.h"
 
 namespace serene {
@@ -74,6 +75,13 @@ maybe_node Fn::make(reader::SemanticContext &ctx, List *list) {
 
   if (list->count() > 2) {
     body = std::vector<node>(list->begin() + 2, list->end());
+    auto maybeAst = reader::analyze(ctx, body);
+
+    if (!maybeAst) {
+      return Result<node>::error(std::move(maybeAst.getError()));
+    }
+
+    body = maybeAst.getValue();
   }
 
   node fn = exprs::make<Fn>(list->location, *args, body);

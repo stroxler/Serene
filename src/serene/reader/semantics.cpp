@@ -27,6 +27,7 @@
 
 namespace serene::reader {
 
+SemanticContext makeSemanticContext() { return SemanticContext(); }
 /// The entry point to the Semantic analysis phase. It calls the `analyze`
 /// method of each node in the given AST and creates a new AST that contains a
 /// more comprehensive set of nodes in a semantically correct AST. If the
@@ -36,14 +37,16 @@ namespace serene::reader {
 /// represented as AST nodes as well. So you should expect an `analyze` method
 /// of a node to return a `Result<node>::Success(Error...)` in case of a
 /// semantic error.
-exprs::maybe_ast Semantics::analyze(exprs::ast &inputAst) {
+/// \param ctx The semantic analysis context
+/// \param inputAst The raw AST to analyze and possibly rewrite.
+exprs::maybe_ast analyze(SemanticContext &ctx, exprs::ast &inputAst) {
   // TODO: Fetch the current namespace from the JIT engine later and if it is
   // `nil` then the given `ast` has to start with a namespace definition.
 
   exprs::ast ast;
 
   for (auto &element : inputAst) {
-    auto maybeNode = element->analyze(context);
+    auto maybeNode = element->analyze(ctx);
 
     // Is it a `success` result
     if (maybeNode) {
