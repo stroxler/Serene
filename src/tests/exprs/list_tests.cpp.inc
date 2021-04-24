@@ -148,5 +148,18 @@ TEST_CASE("List semantic analysis for 'fn'", "[semantic]") {
       astToString(&afterAst.getValue()) ==
       "<Fn Anonymous <List -> to <Def a -> <Symbol b>> <Def b -> <Symbol c>>>");
 }
+
+TEST_CASE("Complex semantic analysis", "[semantic]") {
+  auto ctx = reader::makeSemanticContext();
+
+  auto ast =
+      reader::read("(def a (fn (x) x))\n((def b (fn (x) (fn (y) y))))\n\n");
+  auto afterAst = reader::analyze(ctx, ast.getValue());
+  REQUIRE(afterAst);
+  CHECK(astToString(&afterAst.getValue()) ==
+        "<Def a -> <Fn Anonymous <List -> to <Symbol x>>> <List  <List  "
+        "<Symbol def> <Symbol b> <List  <Symbol fn> <List  <Symbol x>> <List  "
+        "<Symbol fn> <List  <Symbol y>> <Symbol y>>>>>");
+}
 } // namespace exprs
 } // namespace serene
