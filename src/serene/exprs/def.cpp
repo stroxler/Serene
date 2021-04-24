@@ -54,6 +54,10 @@ maybe_node Def::make(List *list) {
         &errors::DefWrongNumberOfArgs, list->elements[0], msg));
   }
 
+  Symbol *defSym = llvm::dyn_cast<Symbol>(list->elements[0].get());
+  assert((defSym && defSym->name == "def") &&
+         "The first element of the list should be a 'def'.");
+
   Symbol *binding = llvm::dyn_cast<Symbol>(list->elements[1].get());
 
   if (!binding) {

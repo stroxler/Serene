@@ -56,6 +56,10 @@ maybe_node Fn::make(List *list) {
         &errors::FnNoArgsList, list->elements[0], msg));
   }
 
+  Symbol *fnSym = llvm::dyn_cast<Symbol>(list->elements[0].get());
+  assert((fnSym && fnSym->name == "fn") &&
+         "The first element of the list should be a 'fn'.");
+
   List *args = llvm::dyn_cast<List>(list->elements[1].get());
 
   if (!args) {

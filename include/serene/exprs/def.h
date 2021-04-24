@@ -53,6 +53,9 @@ public:
   maybe_node analyze(reader::SemanticContext &);
 
   static bool classof(const Expression *e);
+
+  /// Create a Def node out a list. The list should contain the
+  /// correct `def` form like `(def blah value)`.
   static maybe_node make(List *);
   ~Def() = default;
 };

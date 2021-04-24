@@ -57,6 +57,10 @@ public:
   maybe_node analyze(reader::SemanticContext &);
 
   static bool classof(const Expression *e);
+
+  /// Creates a function node out of a function definition
+  /// in a list. the list has to contain the correct definition
+  /// of a function, for exmaple: `(fn (args1 arg2) body)`
   static maybe_node make(List *);
   ~Fn() = default;
 };
