@@ -60,8 +60,13 @@ public:
 
   /// Creates a function node out of a function definition
   /// in a list. the list has to contain the correct definition
-  /// of a function, for exmaple: `(fn (args1 arg2) body)`
-  static maybe_node make(List *);
+  /// of a function, for exmaple: `(fn (args1 arg2) body)`.This function
+  /// is supposed to be used in the semantic analysis phase.
+  ///
+  /// \param ctx The semantic analysis context object.
+  /// \param list the list containing the `fn` form
+  static maybe_node make(reader::SemanticContext &ctx, List *list);
+
   ~Fn() = default;
 };
 

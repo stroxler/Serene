@@ -47,7 +47,7 @@ maybe_node Fn::analyze(reader::SemanticContext &ctx) {
 
 bool Fn::classof(const Expression *e) { return e->getType() == ExprType::Fn; };
 
-maybe_node Fn::make(List *list) {
+maybe_node Fn::make(reader::SemanticContext &ctx, List *list) {
   // TODO: Add support for docstring as the 3rd argument (4th element)
   if (list->count() < 2) {
     std::string msg =

@@ -100,6 +100,12 @@ TEST_CASE("List semantic analysis of 'def'", "[semantic]") {
   afterAst = analyzer.analyze(ast.getValue());
   REQUIRE(afterAst);
   CHECK(astToString(&afterAst.getValue()) == "<Def a -> <Symbol b>>");
+
+  ast = reader::read("(def a (fn () a))");
+  afterAst = analyzer.analyze(ast.getValue());
+  REQUIRE(afterAst);
+  CHECK(astToString(&afterAst.getValue()) ==
+        "<Def a -> <Fn Anonymous <List -> to <Symbol a>>>");
 }
 
 TEST_CASE("List semantic analysis for 'fn'", "[semantic]") {
@@ -107,22 +113,25 @@ TEST_CASE("List semantic analysis for 'fn'", "[semantic]") {
   auto ast = reader::read("(fn)");
   auto afterAst = analyzer.analyze(ast.getValue());
   REQUIRE(afterAst);
-  CHECK(astToString(&afterAst.getValue()) == "<Error E3: The argument list is mandatory.>");
+  CHECK(astToString(&afterAst.getValue()) ==
+        "<Error E3: The argument list is mandatory.>");
 
   ast = reader::read("(fn ())");
   afterAst = analyzer.analyze(ast.getValue());
   REQUIRE(afterAst);
-  CHECK(astToString(&afterAst.getValue()) ==  "<Fn Anonymous <List -> to <>>");
+  CHECK(astToString(&afterAst.getValue()) == "<Fn Anonymous <List -> to <>>");
 
   ast = reader::read("(fn (a b c) a a a)");
   afterAst = analyzer.analyze(ast.getValue());
   REQUIRE(afterAst);
-  CHECK(astToString(&afterAst.getValue()) ==  "<Fn Anonymous <List -> to <Symbol a> <Symbol a> <Symbol a>>");
+  CHECK(astToString(&afterAst.getValue()) ==
+        "<Fn Anonymous <List -> to <Symbol a> <Symbol a> <Symbol a>>");
 
   ast = reader::read("(fn () a b)");
   afterAst = analyzer.analyze(ast.getValue());
   REQUIRE(afterAst);
-  CHECK(astToString(&afterAst.getValue()) == "<Fn Anonymous <List -> to <Symbol a> <Symbol b>>");
+  CHECK(astToString(&afterAst.getValue()) ==
+        "<Fn Anonymous <List -> to <Symbol a> <Symbol b>>");
 }
 } // namespace exprs
 } // namespace serene

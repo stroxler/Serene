@@ -64,11 +64,11 @@ maybe_node List::analyze(reader::SemanticContext &ctx) {
 
       if (sym) {
         if (sym->name == "def") {
-          return Def::make(this);
+          return Def::make(ctx, this);
         }
 
         if (sym->name == "fn") {
-          return Fn::make(this);
+          return Fn::make(ctx, this);
         }
       }
 

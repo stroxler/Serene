@@ -55,8 +55,12 @@ public:
   static bool classof(const Expression *e);
 
   /// Create a Def node out a list. The list should contain the
-  /// correct `def` form like `(def blah value)`.
-  static maybe_node make(List *);
+  /// correct `def` form like `(def blah value)`. This function
+  /// is supposed to be used in the semantic analysis phase.
+  ///
+  /// \param ctx The semantic analysis context object.
+  /// \param list the list containing the `def` form
+  static maybe_node make(reader::SemanticContext &ctx, List *list);
   ~Def() = default;
 };
 

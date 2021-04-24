@@ -46,26 +46,48 @@ bool Def::classof(const Expression *e) {
   return e->getType() == ExprType::Def;
 };
 
-maybe_node Def::make(List *list) {
+maybe_node Def::make(reader::SemanticContext &ctx, List *list) {
   // TODO: Add support for docstring as the 3rd argument (4th element)
+
   if (list->count() != 3) {
     std::string msg = llvm::formatv("Expected 3 got {0}", list->count());
     return Result<node>::success(makeAndCast<errors::Error>(
         &errors::DefWrongNumberOfArgs, list->elements[0], msg));
   }
 
+  // Make sure that the list starts with a `def`
   Symbol *defSym = llvm::dyn_cast<Symbol>(list->elements[0].get());
   assert((defSym && defSym->name == "def") &&
          "The first element of the list should be a 'def'.");
 
+  // Make sure that the first argument is a Symbol
   Symbol *binding = llvm::dyn_cast<Symbol>(list->elements[1].get());
-
   if (!binding) {
     return Result<node>::success(makeAndCast<errors::Error>(
         &errors::DefExpectSymbol, list->elements[1], ""));
   }
 
-  node def = exprs::make<Def>(list->location, binding->name, list->elements[2]);
+  // Analyze the value
+  maybe_node value = list->elements[2]->analyze(ctx);
+  node analyzedValue;
+
+  if (value) {
+    // Success value
+    auto &valueNode = value.getValue();
+
+    if (valueNode) {
+      // A rewrite is necessary
+      analyzedValue = valueNode;
+    } else {
+      // no rewrite
+      analyzedValue = list->elements[2];
+    }
+  } else {
+    // Error value
+    return value;
+  }
+
+  node def = exprs::make<Def>(list->location, binding->name, analyzedValue);
   return Result<node>::success(def);
 };
 } // namespace exprs
