@@ -43,6 +43,8 @@ Setup the githook and install dependencies using the following commands:
           -DCMAKE_CXX_COMPILER=clang++ \
           -DLLVM_ENABLE_LLD=ON
 
+    cmake --build .
+
     cmake --build . --target check-mlir
 
     cmake -DCMAKE_INSTALL_PREFIX=/your/target/location -P cmake_install.cmake
