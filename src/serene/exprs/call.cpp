@@ -1,4 +1,4 @@
-/* -*- C++ -*-
+/*
  * Serene programming language.
  *
  *  Copyright (c) 2019-2021 Sameer Rahmani <lxsameer@gnu.org>
@@ -22,31 +22,60 @@
  * SOFTWARE.
  */
 
-#ifndef SERENE_CONTEXT_H
-#define SERENE_CONTEXT_H
-
-#include "serene/environment.h"
-#include "llvm/ADT/StringRef.h"
+#include "serene/exprs/call.h"
+#include "serene/errors/error.h"
+#include "serene/exprs/expression.h"
+#include "serene/exprs/list.h"
+#include "serene/exprs/symbol.h"
+#include "serene/reader/semantics.h"
+#include "llvm/Support/FormatVariadic.h"
 
 namespace serene {
-
-class Namespace;
-
 namespace exprs {
-class Expression;
-using node = std::shared_ptr<Expression>;
-} // namespace exprs
 
-struct SereneContext {
-  // llvm::DenseMap<llvm::StringRef, Namespace> namespaces;
+ExprType Call::getType() const { return ExprType::Call; };
 
-  Environment<llvm::StringRef, exprs::node> semanticEnv;
-  SereneContext(){};
+std::string Call::toString() const {
+  return llvm::formatv("<Call {0} {1}>", this->target->toString(),
+                       astToString(&this->params));
+}
+
+maybe_node Call::analyze(SereneContext &ctx) {
+  return Result<node>::success(nullptr);
 };
 
-/// Creates a new context object. Contexts are used through out the compilation
-/// process to store the state
-SereneContext makeSereneContext();
-}; // namespace serene
+bool Call::classof(const Expression *e) {
+  return e->getType() == ExprType::Call;
+};
 
-#endif
+maybe_node Call::make(SereneContext &ctx, List *list) {
+  assert((list->count() == 0) && "Empty call? Seriously ?");
+
+  auto maybeFirst = list->elements[0]->analyze(ctx);
+  node first;
+
+  if (!maybeFirst) {
+    return Result<node>::error(std::move(maybeFirst.getError()));
+  }
+
+  switch (first->getType()) {
+  case ExprType::Symbol: {
+
+    break;
+  }
+
+  case ExprType::Fn: {
+    break;
+  }
+  case ExprType::List: {
+    break;
+  }
+  default: {
+    break;
+  }
+  };
+
+  return Result<node>::success(nullptr);
+};
+} // namespace exprs
+} // namespace serene

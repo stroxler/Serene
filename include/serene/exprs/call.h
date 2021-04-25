@@ -22,31 +22,53 @@
  * SOFTWARE.
  */
 
-#ifndef SERENE_CONTEXT_H
-#define SERENE_CONTEXT_H
+#ifndef EXPRS_CALL_H
+#define EXPRS_CALL_H
 
-#include "serene/environment.h"
+#include "serene/context.h"
+#include "serene/errors/error.h"
+#include "serene/exprs/expression.h"
+#include "serene/exprs/list.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/Support/Error.h"
+#include <memory>
+#include <string>
 
 namespace serene {
 
-class Namespace;
-
 namespace exprs {
-class Expression;
-using node = std::shared_ptr<Expression>;
-} // namespace exprs
+class List;
 
-struct SereneContext {
-  // llvm::DenseMap<llvm::StringRef, Namespace> namespaces;
+/// This data structure represents a function. with a collection of
+/// arguments and the ast of a body
+class Call : public Expression {
 
-  Environment<llvm::StringRef, exprs::node> semanticEnv;
-  SereneContext(){};
+public:
+  node target;
+  ast params;
+
+  Call(reader::LocationRange &loc, ast params)
+      : Expression(loc), params(params){};
+
+  ExprType getType() const;
+  std::string toString() const;
+  maybe_node analyze(SereneContext &);
+
+  static bool classof(const Expression *e);
+
+  /// Creates a call node out of a list.
+  /// For exmaple: `(somefn (param1 param2) param3)`. This function
+  /// is supposed to be used in the semantic analysis phase.
+  ///
+  /// \param ctx The semantic analysis context object.
+  /// \param list the list in question.
+
+  static maybe_node make(SereneContext &ctx, List *list);
+
+  ~Call() = default;
 };
 
-/// Creates a new context object. Contexts are used through out the compilation
-/// process to store the state
-SereneContext makeSereneContext();
-}; // namespace serene
+} // namespace exprs
+} // namespace serene
 
 #endif
