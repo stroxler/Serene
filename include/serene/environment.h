@@ -22,13 +22,40 @@
  * SOFTWARE.
  */
 
-#define CATCH_CONFIG_MAIN
-#include "./environment_tests.cpp.inc"
-#include "./errors/error_tests.cpp.inc"
-#include "./exprs/expression_tests.cpp.inc"
-#include "./exprs/list_tests.cpp.inc"
-#include "./exprs/number_tests.cpp.inc"
-#include "./exprs/symbol_tests.cpp.inc"
-#include "./reader/reader_tests.cpp.inc"
-#include "./utils_tests.cpp.inc"
-#include "catch2/catch.hpp"
+#ifndef SERENE_ENVIRONMENT_H
+#define SERENE_ENVIRONMENT_H
+
+#include "mlir/Support/LogicalResult.h"
+#include "llvm/ADT/DenseMap.h"
+
+namespace serene {
+
+template <typename K, typename V> class Environment {
+  Environment<K, V> *parent;
+  llvm::DenseMap<K, V> pairs;
+
+public:
+  Environment() : parent(nullptr) {}
+  Environment(Environment *parent) : parent(parent){};
+
+  llvm::Optional<V> lookup(K key) {
+    if (auto value = pairs.lookup(key)) {
+      return value;
+    }
+
+    if (parent) {
+      return parent->lookup(key);
+    }
+
+    return llvm::None;
+  };
+
+  mlir::LogicalResult insert_symbol(K key, V value) {
+    pairs.insert(std::pair<K, V>(key, value));
+    return mlir::success();
+  };
+};
+
+} // namespace serene
+
+#endif

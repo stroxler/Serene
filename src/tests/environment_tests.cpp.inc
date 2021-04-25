@@ -22,13 +22,44 @@
  * SOFTWARE.
  */
 
-#define CATCH_CONFIG_MAIN
-#include "./environment_tests.cpp.inc"
-#include "./errors/error_tests.cpp.inc"
-#include "./exprs/expression_tests.cpp.inc"
-#include "./exprs/list_tests.cpp.inc"
-#include "./exprs/number_tests.cpp.inc"
-#include "./exprs/symbol_tests.cpp.inc"
-#include "./reader/reader_tests.cpp.inc"
-#include "./utils_tests.cpp.inc"
-#include "catch2/catch.hpp"
+#include "./test_helpers.cpp.inc"
+#include "serene/environment.h"
+#include "serene/exprs/expression.h"
+#include "serene/exprs/symbol.h"
+#include "llvm/ADT/StringRef.h"
+#include <catch2/catch.hpp>
+
+namespace serene {
+
+
+TEST_CASE("Environment tests", "[environment]") {
+  std::unique_ptr<reader::LocationRange> range(dummyLocation());
+
+  exprs::node sym = exprs::make<exprs::Symbol>(*range.get(), llvm::StringRef("example"));
+
+  Environment<llvm::StringRef, exprs::node> e;
+  llvm::Optional<exprs::node> result = e.lookup("a");
+
+  REQUIRE_FALSE(result.hasValue());
+
+  auto status = e.insert_symbol("a", sym);
+
+  REQUIRE(status.succeeded());
+
+  result = e.lookup("a");
+
+  REQUIRE(result.hasValue());
+  CHECK(result.getValue() == sym);
+
+  Environment<llvm::StringRef, exprs::node> e1(&e);
+
+  result = e1.lookup("b");
+  REQUIRE_FALSE(result.hasValue());
+
+  // It should lookup the value in the parent environment
+  result = e1.lookup("a");
+  REQUIRE(result.hasValue());
+  CHECK(result.getValue() == sym);
+};
+
+} // namespace serene
