@@ -40,14 +40,14 @@ class List : public Expression {
 public:
   // Internal elements of the lest (small vector of shared pointers to
   // expressions)
-  ast elements;
+  Ast elements;
 
   List(const List &l);               // Copy ctor
   List(List &&e) noexcept = default; // Move ctor
 
   List(const reader::LocationRange &loc) : Expression(loc){};
   List(const reader::LocationRange &loc, Node &e);
-  List(const reader::LocationRange &loc, ast elems);
+  List(const reader::LocationRange &loc, Ast elems);
 
   ExprType getType() const;
   std::string toString() const;

@@ -60,7 +60,7 @@ private:
   bool isValidForIdentifier(char c);
 
   // The property to store the ast tree
-  exprs::ast ast;
+  exprs::Ast ast;
   exprs::Node readSymbol();
   exprs::Node readNumber(bool);
   exprs::Node readList();

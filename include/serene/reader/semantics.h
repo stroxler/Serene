@@ -36,7 +36,7 @@ namespace serene::reader {
 ///
 /// \param ctx The serene context
 /// \prama tree The raw AST to analyze
-exprs::maybe_ast analyze(serene::SereneContext &ctx, exprs::ast &tree);
+exprs::maybe_ast analyze(serene::SereneContext &ctx, exprs::Ast &tree);
 }; // namespace serene::reader
 
 #endif

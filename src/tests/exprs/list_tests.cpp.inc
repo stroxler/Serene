@@ -47,7 +47,7 @@ TEST_CASE("List Expression", "[expression]") {
   Node list2 = make<List>(*range.get(), list);
   CHECK(list2->toString() == "<List  <List ->>");
 
-  ast elements;
+  Ast elements;
   elements.push_back(list);
   elements.push_back(list2);
   elements.push_back(sym);

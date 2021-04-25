@@ -48,9 +48,9 @@ public:
 
   // TODO: Use a coll type instead of a list here
   List args;
-  ast body;
+  Ast body;
 
-  Fn(reader::LocationRange &loc, List &args, ast body)
+  Fn(reader::LocationRange &loc, List &args, Ast body)
       : Expression(loc), args(args), body(body){};
 
   ExprType getType() const;

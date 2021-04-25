@@ -28,7 +28,7 @@
 namespace serene {
 namespace exprs {
 
-std::string astToString(const ast *tree) {
+std::string astToString(const Ast *tree) {
   if (tree->size() == 0) {
     return "";
   }
@@ -45,7 +45,7 @@ std::string astToString(const ast *tree) {
 std::string stringifyExprType(ExprType t) { return exprTypes[(int)t]; };
 
 /// Dump the given AST tree to the standard out
-void dump(ast &tree) { llvm::outs() << astToString(&tree) << "\n"; };
+void dump(Ast &tree) { llvm::outs() << astToString(&tree) << "\n"; };
 
 } // namespace exprs
 } // namespace serene

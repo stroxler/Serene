@@ -44,7 +44,7 @@ class AExpr;
 
 class Namespace {
 private:
-  exprs::ast tree{};
+  exprs::Ast tree{};
   bool initialized = false;
 
   ScopeMap rootScope;
@@ -55,8 +55,8 @@ public:
 
   Namespace(llvm::StringRef ns_name, llvm::Optional<llvm::StringRef> filename);
 
-  exprs::ast &Tree();
-  mlir::LogicalResult setTree(exprs::ast &);
+  exprs::Ast &Tree();
+  mlir::LogicalResult setTree(exprs::Ast &);
   // TODO: Fix it to return llvm::Optional<mlir::Value> instead
   llvm::Optional<mlir::Value> lookup(llvm::StringRef name);
   mlir::LogicalResult insert_symbol(llvm::StringRef name, mlir::Value v);

@@ -40,7 +40,7 @@ List::List(const reader::LocationRange &loc, Node &e) : Expression(loc) {
   elements.push_back(e);
 };
 
-List::List(const reader::LocationRange &loc, ast elems)
+List::List(const reader::LocationRange &loc, Ast elems)
     : Expression(loc), elements(elems){};
 
 ExprType List::getType() const { return ExprType::List; };

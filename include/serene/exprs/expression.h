@@ -61,8 +61,8 @@ class Expression;
 using Node = std::shared_ptr<Expression>;
 using MaybeNode = Result<Node>;
 
-using ast = std::vector<Node>;
-using maybe_ast = Result<ast>;
+using Ast = std::vector<Node>;
+using maybe_ast = Result<Ast>;
 
 /// The base class of the expressions which provides the common interface for
 /// the expressions to implement.
@@ -123,12 +123,12 @@ std::shared_ptr<T> makeAndCast(Args &&...args) {
 
 /// Convert the given AST to string by calling the `toString` method
 /// of each node.
-std::string astToString(const ast *);
+std::string astToString(const Ast *);
 /// Converts the given ExprType to string.
 std::string stringifyExprType(ExprType);
 
 /// Converts the given AST to string and prints it out
-void dump(ast &);
+void dump(Ast &);
 
 } // namespace exprs
 } // namespace serene

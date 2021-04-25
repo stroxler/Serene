@@ -270,7 +270,7 @@ exprs::maybe_ast Reader::read() {
     c = getChar(true);
   }
 
-  return Result<exprs::ast>::success(std::move(this->ast));
+  return Result<exprs::Ast>::success(std::move(this->ast));
 };
 
 /// Reads the input into an AST and prints it out as string again.
@@ -282,7 +282,7 @@ void Reader::toString() {
     throw std::move(maybeAst.getError());
   }
 
-  exprs::ast ast = std::move(maybeAst.getValue());
+  exprs::Ast ast = std::move(maybeAst.getValue());
 
   for (auto &node : ast) {
     result = llvm::formatv("{0} {1}", result, node->toString());
@@ -303,7 +303,7 @@ exprs::maybe_ast FileReader::read() {
     llvm::errs() << "Could not open input file: " << EC.message() << "\n";
     llvm::errs() << llvm::formatv("File: '{0}'\n", file);
     llvm::errs() << "Use absolute path for now\n";
-    return Result<exprs::ast>::error(llvm::make_error<MissingFileError>(file));
+    return Result<exprs::Ast>::error(llvm::make_error<MissingFileError>(file));
   }
 
   reader->setInput(fileOrErr.get()->getBuffer().str());
@@ -313,7 +313,7 @@ exprs::maybe_ast FileReader::read() {
 /// Reads the input into an AST and prints it out as string again.
 void FileReader::toString() {
   auto maybeAst = this->read();
-  exprs::ast ast;
+  exprs::Ast ast;
 
   if (!maybeAst) {
     throw std::move(maybeAst.getError());

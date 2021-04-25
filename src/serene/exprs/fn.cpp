@@ -71,7 +71,7 @@ MaybeNode Fn::make(SereneContext &ctx, List *list) {
         &errors::FnArgsMustBeList, list->elements[1], msg));
   }
 
-  ast body;
+  Ast body;
 
   if (list->count() > 2) {
     body = std::vector<Node>(list->begin() + 2, list->end());
