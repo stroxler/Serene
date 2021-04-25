@@ -61,10 +61,10 @@ private:
 
   // The property to store the ast tree
   exprs::ast ast;
-  exprs::node readSymbol();
-  exprs::node readNumber(bool);
-  exprs::node readList();
-  exprs::node readExpr();
+  exprs::Node readSymbol();
+  exprs::Node readNumber(bool);
+  exprs::Node readList();
+  exprs::Node readExpr();
 
 public:
   Reader() : input_stream(""){};

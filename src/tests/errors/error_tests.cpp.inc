@@ -37,8 +37,8 @@ namespace errors {
 TEST_CASE("Error Expression", "[expression]") {
   std::unique_ptr<reader::LocationRange> range(dummyLocation());
 
-  exprs::node sym = exprs::make<exprs::Symbol>(*range.get(), llvm::StringRef("example"));
-  exprs::node err = exprs::make<Error>(&DefExpectSymbol, sym, "Something Failed");
+  exprs::Node sym = exprs::make<exprs::Symbol>(*range.get(), llvm::StringRef("example"));
+  exprs::Node err = exprs::make<Error>(&DefExpectSymbol, sym, "Something Failed");
 
   REQUIRE(err->getType() == exprs::ExprType::Error);
   CHECK(err->toString() == "<Error E1: Something Failed>");

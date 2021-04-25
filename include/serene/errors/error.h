@@ -46,10 +46,10 @@ class Error : public ::serene::exprs::Expression {
 
 public:
   ErrorVariant *variant;
-  serene::exprs::node target;
+  serene::exprs::Node target;
   std::string message;
 
-  Error(ErrorVariant *err, serene::exprs::node &t, llvm::StringRef msg)
+  Error(ErrorVariant *err, serene::exprs::Node &t, llvm::StringRef msg)
       : serene::exprs::Expression(t->location), variant(err), target(t),
         message(msg){};
 

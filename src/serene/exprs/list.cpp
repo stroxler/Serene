@@ -36,7 +36,7 @@ namespace serene {
 namespace exprs {
 
 List::List(const List &l) : Expression(l.location){};
-List::List(const reader::LocationRange &loc, node &e) : Expression(loc) {
+List::List(const reader::LocationRange &loc, Node &e) : Expression(loc) {
   elements.push_back(e);
 };
 
@@ -74,7 +74,7 @@ maybe_node List::analyze(SereneContext &ctx) {
     }
   }
 
-  return Result<node>::success(nullptr);
+  return Result<Node>::success(nullptr);
 };
 
 bool List::classof(const Expression *e) {
@@ -83,19 +83,19 @@ bool List::classof(const Expression *e) {
 
 /// Return an iterator to be used with the `for` loop. It's implicitly called by
 /// the for loop.
-std::vector<node>::const_iterator List::cbegin() { return elements.begin(); }
+std::vector<Node>::const_iterator List::cbegin() { return elements.begin(); }
 
 /// Return an iterator to be used with the `for` loop. It's implicitly called by
 /// the for loop.
-std::vector<node>::const_iterator List::cend() { return elements.end(); }
+std::vector<Node>::const_iterator List::cend() { return elements.end(); }
 
 /// Return an iterator to be used with the `for` loop. It's implicitly called by
 /// the for loop.
-std::vector<node>::iterator List::begin() { return elements.begin(); }
+std::vector<Node>::iterator List::begin() { return elements.begin(); }
 
 /// Return an iterator to be used with the `for` loop. It's implicitly called by
 /// the for loop.
-std::vector<node>::iterator List::end() { return elements.end(); }
+std::vector<Node>::iterator List::end() { return elements.end(); }
 
 size_t List::count() const { return elements.size(); }
 
@@ -107,6 +107,6 @@ llvm::Optional<Expression *> List::at(uint index) {
   return llvm::Optional<Expression *>(this->elements[index].get());
 }
 
-void List::append(node n) { elements.push_back(std::move(n)); }
+void List::append(Node n) { elements.push_back(std::move(n)); }
 } // namespace exprs
 } // namespace serene

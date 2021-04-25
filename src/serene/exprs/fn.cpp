@@ -43,7 +43,7 @@ std::string Fn::toString() const {
 }
 
 maybe_node Fn::analyze(SereneContext &ctx) {
-  return Result<node>::success(nullptr);
+  return Result<Node>::success(nullptr);
 };
 
 bool Fn::classof(const Expression *e) { return e->getType() == ExprType::Fn; };
@@ -53,7 +53,7 @@ maybe_node Fn::make(SereneContext &ctx, List *list) {
   if (list->count() < 2) {
     std::string msg =
         llvm::formatv("The argument list is mandatory.", list->count());
-    return Result<node>::success(makeAndCast<errors::Error>(
+    return Result<Node>::success(makeAndCast<errors::Error>(
         &errors::FnNoArgsList, list->elements[0], msg));
   }
 
@@ -67,25 +67,25 @@ maybe_node Fn::make(SereneContext &ctx, List *list) {
     std::string msg =
         llvm::formatv("Arguments of a function has to be a list, got '{0}'",
                       stringifyExprType(list->elements[1]->getType()));
-    return Result<node>::success(makeAndCast<errors::Error>(
+    return Result<Node>::success(makeAndCast<errors::Error>(
         &errors::FnArgsMustBeList, list->elements[1], msg));
   }
 
   ast body;
 
   if (list->count() > 2) {
-    body = std::vector<node>(list->begin() + 2, list->end());
+    body = std::vector<Node>(list->begin() + 2, list->end());
     auto maybeAst = reader::analyze(ctx, body);
 
     if (!maybeAst) {
-      return Result<node>::error(std::move(maybeAst.getError()));
+      return Result<Node>::error(std::move(maybeAst.getError()));
     }
 
     body = maybeAst.getValue();
   }
 
-  node fn = exprs::make<Fn>(list->location, *args, body);
-  return Result<node>::success(fn);
+  Node fn = exprs::make<Fn>(list->location, *args, body);
+  return Result<Node>::success(fn);
 };
 } // namespace exprs
 } // namespace serene

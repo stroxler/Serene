@@ -34,13 +34,13 @@ class Namespace;
 
 namespace exprs {
 class Expression;
-using node = std::shared_ptr<Expression>;
+using Node = std::shared_ptr<Expression>;
 } // namespace exprs
 
 struct SereneContext {
   // llvm::DenseMap<llvm::StringRef, Namespace> namespaces;
 
-  Environment<llvm::StringRef, exprs::node> semanticEnv;
+  Environment<llvm::StringRef, exprs::Node> semanticEnv;
   SereneContext(){};
 };
 

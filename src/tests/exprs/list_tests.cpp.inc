@@ -36,15 +36,15 @@ namespace exprs {
 TEST_CASE("List Expression", "[expression]") {
   std::unique_ptr<reader::LocationRange> range(dummyLocation());
 
-  node sym = make<Symbol>(*range.get(), llvm::StringRef("example"));
-  node sym1 = make<Symbol>(*range.get(), llvm::StringRef("example1"));
+  Node sym = make<Symbol>(*range.get(), llvm::StringRef("example"));
+  Node sym1 = make<Symbol>(*range.get(), llvm::StringRef("example1"));
 
-  node list = make<List>(*range.get());
+  Node list = make<List>(*range.get());
 
   REQUIRE(list->getType() == ExprType::List);
   CHECK(list->toString() == "<List ->");
 
-  node list2 = make<List>(*range.get(), list);
+  Node list2 = make<List>(*range.get(), list);
   CHECK(list2->toString() == "<List  <List ->>");
 
   ast elements;

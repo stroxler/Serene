@@ -35,7 +35,7 @@ std::string Number::toString() const {
 }
 
 maybe_node Number::analyze(SereneContext &ctx) {
-  return Result<node>::success(nullptr);
+  return Result<Node>::success(nullptr);
 };
 
 bool Number::classof(const Expression *e) {

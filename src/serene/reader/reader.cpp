@@ -116,7 +116,7 @@ bool Reader::isValidForIdentifier(char c) {
 
 /// Reads a number,
 /// \param neg whether to read a negative number or not.
-exprs::node Reader::readNumber(bool neg) {
+exprs::Node Reader::readNumber(bool neg) {
   std::string number(neg ? "-" : "");
   bool floatNum = false;
   bool empty = false;
@@ -155,7 +155,7 @@ exprs::node Reader::readNumber(bool neg) {
 
 /// Reads a symbol. If the symbol looks like a number
 /// If reads it as number
-exprs::node Reader::readSymbol() {
+exprs::Node Reader::readSymbol() {
   bool empty = true;
   char c = getChar(false);
 
@@ -203,7 +203,7 @@ exprs::node Reader::readSymbol() {
 };
 
 /// Reads a list recursively
-exprs::node Reader::readList() {
+exprs::Node Reader::readList() {
   auto list = exprs::makeAndCast<exprs::List>(current_location);
 
   char c = getChar(true);
@@ -234,7 +234,7 @@ exprs::node Reader::readList() {
 };
 
 /// Reads an expression by dispatching to the proper reader function.
-exprs::node Reader::readExpr() {
+exprs::Node Reader::readExpr() {
   char c = getChar(false);
   READER_LOG("CHAR: " << c);
 

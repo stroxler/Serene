@@ -58,10 +58,10 @@ static const char *exprTypes[] = {
 
 class Expression;
 
-using node = std::shared_ptr<Expression>;
-using maybe_node = Result<node>;
+using Node = std::shared_ptr<Expression>;
+using maybe_node = Result<Node>;
 
-using ast = std::vector<node>;
+using ast = std::vector<Node>;
 using maybe_ast = Result<ast>;
 
 /// The base class of the expressions which provides the common interface for
@@ -102,7 +102,7 @@ public:
 /// \param[args] Any argument with any type passed to this function will be
 ///              passed to the constructor of type T.
 /// \return A unique pointer to an Expression
-template <typename T, typename... Args> node make(Args &&...args) {
+template <typename T, typename... Args> Node make(Args &&...args) {
   return std::make_shared<T>(std::forward<Args>(args)...);
 };
 

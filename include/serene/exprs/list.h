@@ -46,13 +46,13 @@ public:
   List(List &&e) noexcept = default; // Move ctor
 
   List(const reader::LocationRange &loc) : Expression(loc){};
-  List(const reader::LocationRange &loc, node &e);
+  List(const reader::LocationRange &loc, Node &e);
   List(const reader::LocationRange &loc, ast elems);
 
   ExprType getType() const;
   std::string toString() const;
 
-  void append(node);
+  void append(Node);
 
   size_t count() const;
 
@@ -61,10 +61,10 @@ public:
 
   llvm::Optional<Expression *> at(uint index);
 
-  std::vector<node>::const_iterator cbegin();
-  std::vector<node>::const_iterator cend();
-  std::vector<node>::iterator begin();
-  std::vector<node>::iterator end();
+  std::vector<Node>::const_iterator cbegin();
+  std::vector<Node>::const_iterator cend();
+  std::vector<Node>::iterator begin();
+  std::vector<Node>::iterator end();
 
   maybe_node analyze(SereneContext &);
 

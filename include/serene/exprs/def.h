@@ -44,9 +44,9 @@ class Def : public Expression {
 
 public:
   std::string binding;
-  node value;
+  Node value;
 
-  Def(reader::LocationRange &loc, llvm::StringRef binding, node &v)
+  Def(reader::LocationRange &loc, llvm::StringRef binding, Node &v)
       : Expression(loc), binding(binding), value(v){};
 
   ExprType getType() const;

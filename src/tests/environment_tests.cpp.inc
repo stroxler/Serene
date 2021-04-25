@@ -35,10 +35,10 @@ namespace serene {
 TEST_CASE("Environment tests", "[environment]") {
   std::unique_ptr<reader::LocationRange> range(dummyLocation());
 
-  exprs::node sym = exprs::make<exprs::Symbol>(*range.get(), llvm::StringRef("example"));
+  exprs::Node sym = exprs::make<exprs::Symbol>(*range.get(), llvm::StringRef("example"));
 
-  Environment<llvm::StringRef, exprs::node> e;
-  llvm::Optional<exprs::node> result = e.lookup("a");
+  Environment<llvm::StringRef, exprs::Node> e;
+  llvm::Optional<exprs::Node> result = e.lookup("a");
 
   REQUIRE_FALSE(result.hasValue());
 
@@ -51,7 +51,7 @@ TEST_CASE("Environment tests", "[environment]") {
   REQUIRE(result.hasValue());
   CHECK(result.getValue() == sym);
 
-  Environment<llvm::StringRef, exprs::node> e1(&e);
+  Environment<llvm::StringRef, exprs::Node> e1(&e);
 
   result = e1.lookup("b");
   REQUIRE_FALSE(result.hasValue());
