@@ -25,6 +25,7 @@
 #ifndef EXPRS_NUMBER_H
 #define EXPRS_NUMBER_H
 
+#include "serene/context.h"
 #include "serene/exprs/expression.h"
 #include "llvm/Support/FormatVariadic.h"
 
@@ -48,7 +49,7 @@ struct Number : public Expression {
 
   ExprType getType() const;
   std::string toString() const;
-  maybe_node analyze(reader::SereneContext &ctx);
+  maybe_node analyze(SereneContext &ctx);
 
   static bool classof(const Expression *e);
 

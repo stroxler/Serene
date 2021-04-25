@@ -25,6 +25,7 @@
 #ifndef SERENE_ERRORS_ERROR_H
 #define SERENE_ERRORS_ERROR_H
 
+#include "serene/context.h"
 #include "serene/errors/constants.h"
 #include "serene/exprs/expression.h"
 #include "llvm/Support/Error.h"
@@ -57,7 +58,7 @@ public:
 
   static bool classof(const serene::exprs::Expression *e);
 
-  serene::exprs::maybe_node analyze(reader::SereneContext &);
+  serene::exprs::maybe_node analyze(SereneContext &);
 
   ~Error() = default;
 };

@@ -27,6 +27,7 @@
 #include "serene/reader/reader.h"
 #include "serene/reader/semantics.h"
 // #include "serene/sir/sir.hpp"
+#include "serene/context.h"
 #include <iostream>
 #include <llvm/Support/CommandLine.h>
 
@@ -73,7 +74,7 @@ int main(int argc, char *argv[]) {
       throw std::move(maybeAst.getError());
     }
     auto &ast = maybeAst.getValue();
-    auto ctx = reader::makeSereneContext();
+    auto ctx = makeSereneContext();
     auto afterAst = reader::analyze(ctx, ast);
 
     if (afterAst) {

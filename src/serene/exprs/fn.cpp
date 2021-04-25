@@ -42,13 +42,13 @@ std::string Fn::toString() const {
                        this->body.empty() ? "<>" : astToString(&this->body));
 }
 
-maybe_node Fn::analyze(reader::SereneContext &ctx) {
+maybe_node Fn::analyze(SereneContext &ctx) {
   return Result<node>::success(nullptr);
 };
 
 bool Fn::classof(const Expression *e) { return e->getType() == ExprType::Fn; };
 
-maybe_node Fn::make(reader::SereneContext &ctx, List *list) {
+maybe_node Fn::make(SereneContext &ctx, List *list) {
   // TODO: Add support for docstring as the 3rd argument (4th element)
   if (list->count() < 2) {
     std::string msg =

@@ -25,6 +25,7 @@
 #ifndef EXPRS_SYMBOL_H
 #define EXPRS_SYMBOL_H
 
+#include "serene/context.h"
 #include "serene/exprs/expression.h"
 #include "llvm/ADT/StringRef.h"
 #include <string>
@@ -48,7 +49,7 @@ public:
 
   static bool classof(const Expression *e);
 
-  maybe_node analyze(reader::SereneContext &);
+  maybe_node analyze(SereneContext &);
 
   ~Symbol() = default;
 };

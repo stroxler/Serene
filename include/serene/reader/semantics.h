@@ -25,24 +25,18 @@
 #ifndef READER_SEMANTICS_H
 #define READER_SEMANTICS_H
 
+#include "serene/context.h"
 #include "serene/exprs/expression.h"
 
 namespace serene::reader {
 
-class SereneContext {
-public:
-  SereneContext(){};
-};
-
-/// Creates a new semantic analysis context
-SereneContext makeSereneContext();
 /// This function is the entrypoint to the Semantic Analysis phase of **Serene**
 /// It will call the `analyze` method on every node in the given AST and
 /// returns a new AST as the result of the semantic analysis.
 ///
-/// \param ctx The analysis context
+/// \param ctx The serene context
 /// \prama tree The raw AST to analyze
-exprs::maybe_ast analyze(SereneContext &ctx, exprs::ast &tree);
+exprs::maybe_ast analyze(serene::SereneContext &ctx, exprs::ast &tree);
 }; // namespace serene::reader
 
 #endif

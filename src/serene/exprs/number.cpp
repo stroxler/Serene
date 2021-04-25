@@ -34,7 +34,7 @@ std::string Number::toString() const {
   return llvm::formatv("<Number {0}>", value);
 }
 
-maybe_node Number::analyze(reader::SereneContext &ctx) {
+maybe_node Number::analyze(SereneContext &ctx) {
   return Result<node>::success(nullptr);
 };
 

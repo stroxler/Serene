@@ -25,6 +25,7 @@
 #ifndef EXPRS_LIST_H
 #define EXPRS_LIST_H
 
+#include "serene/context.h"
 #include "serene/exprs/expression.h"
 #include "llvm/ADT/Optional.h"
 #include <string>
@@ -65,7 +66,7 @@ public:
   std::vector<node>::iterator begin();
   std::vector<node>::iterator end();
 
-  maybe_node analyze(reader::SereneContext &);
+  maybe_node analyze(SereneContext &);
 
   static bool classof(const Expression *e);
 
