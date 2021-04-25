@@ -54,7 +54,7 @@ public:
 
   ExprType getType() const;
   std::string toString() const;
-  maybe_node analyze(reader::SemanticContext &);
+  maybe_node analyze(reader::SereneContext &);
 
   static bool classof(const Expression *e);
 
@@ -65,7 +65,7 @@ public:
   ///
   /// \param ctx The semantic analysis context object.
   /// \param list the list containing the `fn` form
-  static maybe_node make(reader::SemanticContext &ctx, List *list);
+  static maybe_node make(reader::SereneContext &ctx, List *list);
 
   ~Fn() = default;
 };

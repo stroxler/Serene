@@ -27,7 +27,7 @@
 
 namespace serene::reader {
 
-SemanticContext makeSemanticContext() { return SemanticContext(); }
+SereneContext makeSereneContext() { return SereneContext(); }
 /// The entry point to the Semantic analysis phase. It calls the `analyze`
 /// method of each node in the given AST and creates a new AST that contains a
 /// more comprehensive set of nodes in a semantically correct AST. If the
@@ -39,7 +39,7 @@ SemanticContext makeSemanticContext() { return SemanticContext(); }
 /// semantic error.
 /// \param ctx The semantic analysis context
 /// \param inputAst The raw AST to analyze and possibly rewrite.
-exprs::maybe_ast analyze(SemanticContext &ctx, exprs::ast &inputAst) {
+exprs::maybe_ast analyze(SereneContext &ctx, exprs::ast &inputAst) {
   // TODO: Fetch the current namespace from the JIT engine later and if it is
   // `nil` then the given `ast` has to start with a namespace definition.
 

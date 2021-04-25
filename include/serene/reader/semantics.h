@@ -29,20 +29,20 @@
 
 namespace serene::reader {
 
-class SemanticContext {
+class SereneContext {
 public:
-  SemanticContext(){};
+  SereneContext(){};
 };
 
 /// Creates a new semantic analysis context
-SemanticContext makeSemanticContext();
+SereneContext makeSereneContext();
 /// This function is the entrypoint to the Semantic Analysis phase of **Serene**
 /// It will call the `analyze` method on every node in the given AST and
 /// returns a new AST as the result of the semantic analysis.
 ///
 /// \param ctx The analysis context
 /// \prama tree The raw AST to analyze
-exprs::maybe_ast analyze(SemanticContext &ctx, exprs::ast &tree);
+exprs::maybe_ast analyze(SereneContext &ctx, exprs::ast &tree);
 }; // namespace serene::reader
 
 #endif

@@ -32,7 +32,7 @@
 namespace serene {
 
 namespace reader {
-class SemanticContext;
+class SereneContext;
 }
 
 /// Contains all the builtin AST expressions including those which do not appear
@@ -88,7 +88,7 @@ public:
   /// to a `Def` node that represents defining a new binding.
   ///
   /// \param ctx is the context object of the semantic analyzer.
-  virtual maybe_node analyze(reader::SemanticContext &ctx) = 0;
+  virtual maybe_node analyze(reader::SereneContext &ctx) = 0;
 };
 
 /// Create a new `node` of type `T` and forwards any given parameter

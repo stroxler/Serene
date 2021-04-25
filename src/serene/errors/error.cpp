@@ -36,7 +36,7 @@ std::string Error::toString() const {
   return llvm::formatv("<Error E{0}: {1}>", this->variant->id, this->message);
 }
 
-serene::exprs::maybe_node Error::analyze(reader::SemanticContext &ctx) {
+serene::exprs::maybe_node Error::analyze(reader::SereneContext &ctx) {
   return Result<serene::exprs::node>::success(nullptr);
 };
 

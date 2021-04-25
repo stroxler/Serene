@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
       throw std::move(maybeAst.getError());
     }
     auto &ast = maybeAst.getValue();
-    auto ctx = reader::makeSemanticContext();
+    auto ctx = reader::makeSereneContext();
     auto afterAst = reader::analyze(ctx, ast);
 
     if (afterAst) {

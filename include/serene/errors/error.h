@@ -57,7 +57,7 @@ public:
 
   static bool classof(const serene::exprs::Expression *e);
 
-  serene::exprs::maybe_node analyze(reader::SemanticContext &);
+  serene::exprs::maybe_node analyze(reader::SereneContext &);
 
   ~Error() = default;
 };

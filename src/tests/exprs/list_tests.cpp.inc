@@ -80,7 +80,7 @@ TEST_CASE("List Expression", "[expression]") {
 };
 
 TEST_CASE("List semantic analysis of 'def'", "[semantic]") {
-  auto ctx = reader::makeSemanticContext();
+  auto ctx = reader::makeSereneContext();
   auto ast = reader::read("(def (a) b)");
   auto afterAst = reader::analyze(ctx, ast.getValue());
   REQUIRE(afterAst);
@@ -109,7 +109,7 @@ TEST_CASE("List semantic analysis of 'def'", "[semantic]") {
 }
 
 TEST_CASE("List semantic analysis for 'fn'", "[semantic]") {
-  auto ctx = reader::makeSemanticContext();
+  auto ctx = reader::makeSereneContext();
 
   auto ast = reader::read("(fn)");
   auto afterAst = reader::analyze(ctx, ast.getValue());
@@ -150,7 +150,7 @@ TEST_CASE("List semantic analysis for 'fn'", "[semantic]") {
 }
 
 TEST_CASE("Complex semantic analysis", "[semantic]") {
-  auto ctx = reader::makeSemanticContext();
+  auto ctx = reader::makeSereneContext();
 
   auto ast =
       reader::read("(def a (fn (x) x))\n((def b (fn (x) (fn (y) y))))\n\n");
