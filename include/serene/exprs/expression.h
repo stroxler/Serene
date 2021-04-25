@@ -47,11 +47,12 @@ enum class ExprType {
   Def,
   Error,
   Fn,
+  Call,
 };
 
 /// The string represantion of built in expr types (NOT DATATYPES).
 static const char *exprTypes[] = {
-    "Symbol", "List", "Number", "Def", "Error", "Fn",
+    "Symbol", "List", "Number", "Def", "Error", "Fn", "Call",
 };
 
 class Expression;
