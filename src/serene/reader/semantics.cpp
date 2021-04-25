@@ -39,7 +39,7 @@ namespace serene::reader {
 /// semantic error.
 /// \param ctx The semantic analysis context
 /// \param inputAst The raw AST to analyze and possibly rewrite.
-exprs::maybe_ast analyze(serene::SereneContext &ctx, exprs::Ast &inputAst) {
+exprs::MaybeAst analyze(serene::SereneContext &ctx, exprs::Ast &inputAst) {
   // TODO: Fetch the current namespace from the JIT engine later and if it is
   // `nil` then the given `ast` has to start with a namespace definition.
 

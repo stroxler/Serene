@@ -256,7 +256,7 @@ exprs::Node Reader::readExpr() {
 /// Reads all the expressions in the reader's buffer as an AST.
 /// Each expression type (from the reader perspective) has a
 /// reader function.
-exprs::maybe_ast Reader::read() {
+exprs::MaybeAst Reader::read() {
   char c = getChar(true);
 
   while (c != EOF) {
@@ -293,7 +293,7 @@ void Reader::toString() {
 // in the reader as an AST.
 /// Each expression type (from the reader perspective) has a
 /// reader function.
-exprs::maybe_ast FileReader::read() {
+exprs::MaybeAst FileReader::read() {
 
   // TODO: Add support for relative path as well
   llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> fileOrErr =
@@ -333,7 +333,7 @@ FileReader::~FileReader() {
   READER_LOG("Destroying the file reader");
 }
 
-exprs::maybe_ast read(llvm::StringRef input) {
+exprs::MaybeAst read(llvm::StringRef input) {
   reader::Reader r(input);
   auto ast = r.read();
   return ast;

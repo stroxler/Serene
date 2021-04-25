@@ -62,7 +62,7 @@ using Node = std::shared_ptr<Expression>;
 using MaybeNode = Result<Node>;
 
 using Ast = std::vector<Node>;
-using maybe_ast = Result<Ast>;
+using MaybeAst = Result<Ast>;
 
 /// The base class of the expressions which provides the common interface for
 /// the expressions to implement.

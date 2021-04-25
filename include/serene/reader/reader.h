@@ -72,7 +72,7 @@ public:
 
   void setInput(const llvm::StringRef string);
 
-  exprs::maybe_ast read();
+  exprs::MaybeAst read();
 
   // Dumps the AST data to stdout
   void toString();
@@ -91,14 +91,14 @@ public:
   // Dumps the AST data to stdout
   void toString();
 
-  exprs::maybe_ast read();
+  exprs::MaybeAst read();
 
   ~FileReader();
 };
 
 /// Parses the given `input` string and returns a `Result<ast>`
 /// which may contains an AST or an `llvm::Error`
-exprs::maybe_ast read(llvm::StringRef input);
+exprs::MaybeAst read(llvm::StringRef input);
 
 } // namespace reader
 } // namespace serene
