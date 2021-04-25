@@ -55,7 +55,7 @@ std::string List::toString() const {
   return llvm::formatv("<List {0}>", s);
 };
 
-maybe_node List::analyze(SereneContext &ctx) {
+MaybeNode List::analyze(SereneContext &ctx) {
   if (!elements.empty()) {
     auto *first = elements[0].get();
 

@@ -34,7 +34,7 @@ std::string Symbol::toString() const {
   return llvm::formatv("<Symbol {0}>", this->name);
 }
 
-maybe_node Symbol::analyze(SereneContext &ctx) {
+MaybeNode Symbol::analyze(SereneContext &ctx) {
   return Result<Node>::success(nullptr);
 };
 

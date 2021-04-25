@@ -38,7 +38,7 @@ std::string Def::toString() const {
                        this->value->toString());
 }
 
-maybe_node Def::analyze(SereneContext &ctx) {
+MaybeNode Def::analyze(SereneContext &ctx) {
   return Result<Node>::success(nullptr);
 };
 
@@ -46,7 +46,7 @@ bool Def::classof(const Expression *e) {
   return e->getType() == ExprType::Def;
 };
 
-maybe_node Def::make(SereneContext &ctx, List *list) {
+MaybeNode Def::make(SereneContext &ctx, List *list) {
   // TODO: Add support for docstring as the 3rd argument (4th element)
 
   if (list->count() != 3) {
@@ -68,7 +68,7 @@ maybe_node Def::make(SereneContext &ctx, List *list) {
   }
 
   // Analyze the value
-  maybe_node value = list->elements[2]->analyze(ctx);
+  MaybeNode value = list->elements[2]->analyze(ctx);
   Node analyzedValue;
 
   if (value) {

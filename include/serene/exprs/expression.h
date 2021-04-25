@@ -59,7 +59,7 @@ static const char *exprTypes[] = {
 class Expression;
 
 using Node = std::shared_ptr<Expression>;
-using maybe_node = Result<Node>;
+using MaybeNode = Result<Node>;
 
 using ast = std::vector<Node>;
 using maybe_ast = Result<ast>;
@@ -89,7 +89,7 @@ public:
   /// to a `Def` node that represents defining a new binding.
   ///
   /// \param ctx is the context object of the semantic analyzer.
-  virtual maybe_node analyze(SereneContext &ctx) = 0;
+  virtual MaybeNode analyze(SereneContext &ctx) = 0;
 };
 
 /// Create a new `node` of type `T` and forwards any given parameter

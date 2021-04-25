@@ -49,7 +49,7 @@ struct Number : public Expression {
 
   ExprType getType() const;
   std::string toString() const;
-  maybe_node analyze(SereneContext &ctx);
+  MaybeNode analyze(SereneContext &ctx);
 
   static bool classof(const Expression *e);
 

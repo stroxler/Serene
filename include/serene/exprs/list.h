@@ -66,7 +66,7 @@ public:
   std::vector<Node>::iterator begin();
   std::vector<Node>::iterator end();
 
-  maybe_node analyze(SereneContext &);
+  MaybeNode analyze(SereneContext &);
 
   static bool classof(const Expression *e);
 

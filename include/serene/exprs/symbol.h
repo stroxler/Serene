@@ -49,7 +49,7 @@ public:
 
   static bool classof(const Expression *e);
 
-  maybe_node analyze(SereneContext &);
+  MaybeNode analyze(SereneContext &);
 
   ~Symbol() = default;
 };

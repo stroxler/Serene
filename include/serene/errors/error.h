@@ -58,7 +58,7 @@ public:
 
   static bool classof(const serene::exprs::Expression *e);
 
-  serene::exprs::maybe_node analyze(SereneContext &);
+  serene::exprs::MaybeNode analyze(SereneContext &);
 
   ~Error() = default;
 };
