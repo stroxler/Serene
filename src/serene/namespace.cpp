@@ -43,14 +43,6 @@ Namespace::Namespace(llvm::StringRef ns_name,
 
 exprs::Ast &Namespace::Tree() { return this->tree; }
 
-llvm::Optional<mlir::Value> Namespace::lookup(llvm::StringRef name) {
-  if (auto value = rootScope.lookup(name)) {
-    return value;
-  }
-
-  return llvm::None;
-};
-
 mlir::LogicalResult Namespace::setTree(exprs::Ast &t) {
   if (initialized) {
     return mlir::failure();
@@ -59,15 +51,6 @@ mlir::LogicalResult Namespace::setTree(exprs::Ast &t) {
   this->initialized = true;
   return mlir::success();
 }
-
-mlir::LogicalResult Namespace::insert_symbol(mlir::StringRef name,
-                                             mlir::Value v) {
-
-  rootScope.insert(PairT(name, v));
-  return mlir::success();
-}
-
-void Namespace::print_scope(){};
 
 Namespace::~Namespace() {}
 

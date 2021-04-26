@@ -25,43 +25,40 @@
 #ifndef NAMESPACE_H
 #define NAMESPACE_H
 
-#include "mlir/IR/BuiltinOps.h"
-#include "mlir/IR/Value.h"
-#include "serene/exprs/expression.h"
-#include "serene/llvm/IR/Value.h"
-#include "llvm/ADT/DenseMap.h"
+#include "serene/environment.h"
+#include <llvm/ADT/StringRef.h>
 #include <llvm/IR/Module.h>
+#include <mlir/Support/LogicalResult.h>
 #include <string>
 
 #define NAMESPACE_LOG(...)                                                     \
   DEBUG_WITH_TYPE("NAMESPACE", llvm::dbgs() << __VA_ARGS__ << "\n");
 
-using ScopeMap = llvm::DenseMap<llvm::StringRef, mlir::Value>;
-using PairT = std::pair<llvm::StringRef, mlir::Value>;
-
 namespace serene {
-class AExpr;
+namespace exprs {
+class Expression;
+using Node = std::shared_ptr<Expression>;
+using Ast = std::vector<Node>;
+} // namespace exprs
 
 class Namespace {
 private:
-  exprs::Ast tree{};
   bool initialized = false;
-
-  ScopeMap rootScope;
+  exprs::Ast tree;
 
 public:
-  llvm::Optional<llvm::StringRef> filename;
   mlir::StringRef name;
+  llvm::Optional<llvm::StringRef> filename;
+
+  /// The root environment of the namespace on the semantic analysis phase.
+  /// Which is a mapping from names to AST nodes ( no evaluation ).
+  Environment<llvm::StringRef, exprs::Node> semanticEnv;
 
   Namespace(llvm::StringRef ns_name, llvm::Optional<llvm::StringRef> filename);
 
   exprs::Ast &Tree();
   mlir::LogicalResult setTree(exprs::Ast &);
-  // TODO: Fix it to return llvm::Optional<mlir::Value> instead
-  llvm::Optional<mlir::Value> lookup(llvm::StringRef name);
-  mlir::LogicalResult insert_symbol(llvm::StringRef name, mlir::Value v);
 
-  void print_scope();
   ~Namespace();
 };
 

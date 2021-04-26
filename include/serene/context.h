@@ -26,11 +26,10 @@
 #define SERENE_CONTEXT_H
 
 #include "serene/environment.h"
+#include "serene/namespace.h"
 #include "llvm/ADT/StringRef.h"
 
 namespace serene {
-
-class Namespace;
 
 namespace exprs {
 class Expression;
@@ -38,7 +37,7 @@ using Node = std::shared_ptr<Expression>;
 } // namespace exprs
 
 struct SereneContext {
-  // llvm::DenseMap<llvm::StringRef, Namespace> namespaces;
+  llvm::DenseMap<llvm::StringRef, std::unique_ptr<Namespace>> namespaces;
 
   Environment<llvm::StringRef, exprs::Node> semanticEnv;
   SereneContext(){};
