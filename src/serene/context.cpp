@@ -23,7 +23,21 @@
  */
 
 #include "serene/context.h"
+#include "serene/namespace.h"
 
 namespace serene {
-SereneContext makeSereneContext() { return SereneContext(); }
+
+void SereneContext::insertNS(std::shared_ptr<Namespace> ns) {
+  namespaces[ns->name.str()] = ns;
+};
+
+std::shared_ptr<Namespace> SereneContext::getNS(llvm::StringRef ns_name) {
+  if (namespaces.count(ns_name.str())) {
+    return namespaces[ns_name.str()];
+  }
+
+  return nullptr;
+};
+
+SereneContext makeSereneContext() { return SereneContext(); };
 }; // namespace serene

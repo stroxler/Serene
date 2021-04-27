@@ -23,6 +23,7 @@
  */
 
 #define CATCH_CONFIG_MAIN
+#include "./context_tests.cpp.inc"
 #include "./environment_tests.cpp.inc"
 #include "./errors/error_tests.cpp.inc"
 #include "./exprs/expression_tests.cpp.inc"

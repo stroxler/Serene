@@ -22,37 +22,42 @@
  * SOFTWARE.
  */
 
-#ifndef SERENE_CONTEXT_H
-#define SERENE_CONTEXT_H
-
-#include "serene/environment.h"
+#include "./test_helpers.cpp.inc"
+#include "serene/context.h"
 #include "serene/namespace.h"
-#include "llvm/ADT/StringRef.h"
+#include <catch2/catch.hpp>
 
 namespace serene {
 
-namespace exprs {
-class Expression;
-using Node = std::shared_ptr<Expression>;
-} // namespace exprs
+TEST_CASE("Context tests", "[context]") {
+  auto ctx = makeSereneContext();
+  auto ns = ctx.getNS("blah");
 
-class SereneContext {
-  std::map<std::string, std::shared_ptr<Namespace>> namespaces;
+  REQUIRE_FALSE(ns);
 
-public:
-  /// Insert the given `ns` into the context. The Context object is
-  /// the owner of all the namespaces. The `ns` will overwrite any
-  /// namespace with the same name.
-  void insertNS(std::shared_ptr<Namespace> ns);
+  auto userNs = makeNamespace(ctx, "user", llvm::Optional<llvm::StringRef>("/some/file"));
 
-  std::shared_ptr<Namespace> getNS(llvm::StringRef ns_name);
-  SereneContext(){};
+  CHECK(userNs->name == "user");
+  REQUIRE(userNs->filename);
+  CHECK(userNs->filename.getValue() == "/some/file");
+
+  ns = ctx.getNS("user");
+
+  REQUIRE(ns);
+  CHECK(ns->name == userNs->name);
+
+
+  /// Creating new ns with the same name overrides the old one
+  auto userNs1 = makeNamespace(ctx, "user", llvm::Optional<llvm::StringRef>("/some/other/file"));
+
+  ns = ctx.getNS("user");
+
+  REQUIRE(ns);
+  CHECK(ns->name == userNs1->name);
+  REQUIRE(ns->filename);
+  CHECK(ns->filename.getValue() == "/some/other/file");
+
 };
 
-/// Creates a new context object. Contexts are used through out the compilation
-/// process to store the state
-SereneContext makeSereneContext();
 
-}; // namespace serene
-
-#endif
+} // namespace serene

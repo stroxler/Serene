@@ -35,11 +35,8 @@ using namespace llvm;
 namespace serene {
 
 Namespace::Namespace(llvm::StringRef ns_name,
-                     llvm::Optional<llvm::StringRef> filename) {
-
-  this->filename = filename;
-  this->name = ns_name;
-};
+                     llvm::Optional<llvm::StringRef> filename)
+    : name(ns_name), filename(filename->str()){};
 
 exprs::Ast &Namespace::Tree() { return this->tree; }
 
@@ -51,6 +48,14 @@ mlir::LogicalResult Namespace::setTree(exprs::Ast &t) {
   this->initialized = true;
   return mlir::success();
 }
+
+std::shared_ptr<Namespace>
+makeNamespace(SereneContext &ctx, llvm::StringRef name,
+              llvm::Optional<llvm::StringRef> filename) {
+  auto nsPtr = std::make_shared<Namespace>(name, filename);
+  ctx.insertNS(nsPtr);
+  return nsPtr;
+};
 
 Namespace::~Namespace() {}
 

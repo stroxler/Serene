@@ -26,8 +26,10 @@
 #define NAMESPACE_H
 
 #include "serene/environment.h"
+#include "serene/utils.h"
 #include <llvm/ADT/StringRef.h>
 #include <llvm/IR/Module.h>
+#include <memory>
 #include <mlir/Support/LogicalResult.h>
 #include <string>
 
@@ -35,12 +37,17 @@
   DEBUG_WITH_TYPE("NAMESPACE", llvm::dbgs() << __VA_ARGS__ << "\n");
 
 namespace serene {
+class SereneContext;
+
 namespace exprs {
 class Expression;
 using Node = std::shared_ptr<Expression>;
 using Ast = std::vector<Node>;
 } // namespace exprs
 
+/// Serene's namespaces are the unit of compilation. Any code that needs to be
+/// compiled has to be in a namespace. The official way to create a new
+/// namespace is to use the `makeNamespace` function.
 class Namespace {
 private:
   bool initialized = false;
@@ -48,7 +55,7 @@ private:
 
 public:
   mlir::StringRef name;
-  llvm::Optional<llvm::StringRef> filename;
+  llvm::Optional<std::string> filename;
 
   /// The root environment of the namespace on the semantic analysis phase.
   /// Which is a mapping from names to AST nodes ( no evaluation ).
@@ -62,6 +69,9 @@ public:
   ~Namespace();
 };
 
+std::shared_ptr<Namespace>
+makeNamespace(SereneContext &ctx, llvm::StringRef name,
+              llvm::Optional<llvm::StringRef> filename);
 } // namespace serene
 
 #endif
