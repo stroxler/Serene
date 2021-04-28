@@ -38,7 +38,7 @@ Namespace::Namespace(llvm::StringRef ns_name,
                      llvm::Optional<llvm::StringRef> filename)
     : name(ns_name), filename(filename->str()){};
 
-exprs::Ast &Namespace::Tree() { return this->tree; }
+exprs::Ast &Namespace::getTree() { return this->tree; }
 
 mlir::LogicalResult Namespace::setTree(exprs::Ast &t) {
   if (initialized) {

@@ -63,7 +63,7 @@ public:
 
   Namespace(llvm::StringRef ns_name, llvm::Optional<llvm::StringRef> filename);
 
-  exprs::Ast &Tree();
+  exprs::Ast &getTree();
   mlir::LogicalResult setTree(exprs::Ast &);
 
   ~Namespace();

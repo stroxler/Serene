@@ -22,15 +22,37 @@
  * SOFTWARE.
  */
 
-#define CATCH_CONFIG_MAIN
-#include "./context_tests.cpp.inc"
-#include "./environment_tests.cpp.inc"
-#include "./errors/error_tests.cpp.inc"
-#include "./exprs/expression_tests.cpp.inc"
-#include "./exprs/list_tests.cpp.inc"
-#include "./exprs/number_tests.cpp.inc"
-#include "./exprs/symbol_tests.cpp.inc"
-#include "./namespace_tests.cpp.inc"
-#include "./reader/reader_tests.cpp.inc"
-#include "./utils_tests.cpp.inc"
-#include "catch2/catch.hpp"
+#include "./test_helpers.cpp.inc"
+#include "serene/context.h"
+#include "serene/exprs/expression.h"
+#include "serene/namespace.h"
+#include "serene/reader/reader.h"
+#include <catch2/catch.hpp>
+
+namespace serene {
+
+TEST_CASE("Namespace tests", "[namespace]") {
+  auto ctx = makeSereneContext();
+  auto userNs =
+      makeNamespace(ctx, "user", llvm::Optional<llvm::StringRef>("/some/file"));
+
+  auto r = new reader::Reader("(x 1) (def b a)");
+
+  auto maybeAst = r->read();
+
+  if (!maybeAst) {
+    FAIL();
+  }
+
+  auto result = userNs->setTree(maybeAst.getValue());
+
+  REQUIRE(result.succeeded());
+
+  REQUIRE_FALSE(userNs->getTree().empty());
+  CHECK(exprs::astToString(&userNs->getTree()) ==
+        "<List  <Symbol x> <Number 1>> <List  <Symbol def> <Symbol b> <Symbol "
+        "a>>");
+  delete r;
+};
+
+} // namespace serene
