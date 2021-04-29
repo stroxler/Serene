@@ -87,8 +87,15 @@ MaybeNode Def::make(SereneContext &ctx, List *list) {
     return value;
   }
 
+  // auto result = ctx.getCurrentNS()->semanticEnv.insert_symbol(binding->name,
+  // analyzedValue);
+
+  // if (result.succeeded()) {
   Node def = exprs::make<Def>(list->location, binding->name, analyzedValue);
   return Result<Node>::success(def);
+  // } else {
+  //   return Result<Node>::error()
+  // }
 };
 } // namespace exprs
 } // namespace serene

@@ -39,5 +39,24 @@ std::shared_ptr<Namespace> SereneContext::getNS(llvm::StringRef ns_name) {
   return nullptr;
 };
 
+bool SereneContext::setCurrentNS(llvm::StringRef ns_name) {
+  if (namespaces.count(ns_name.str())) {
+    this->current_ns = ns_name;
+    return true;
+  }
+
+  return false;
+};
+
+std::shared_ptr<Namespace> SereneContext::getCurrentNS() {
+  assert(!this->current_ns.empty() && "Current namespace is not set");
+
+  if (namespaces.count(this->current_ns)) {
+    return namespaces[this->current_ns];
+  }
+
+  return nullptr;
+};
+
 SereneContext makeSereneContext() { return SereneContext(); };
 }; // namespace serene

@@ -39,11 +39,22 @@ using Node = std::shared_ptr<Expression>;
 class SereneContext {
   std::map<std::string, std::shared_ptr<Namespace>> namespaces;
 
+  // Why string vs pointer? We might rewrite the namespace and
+  // holding a pointer means that it might point to the old version
+  std::string current_ns;
+
 public:
   /// Insert the given `ns` into the context. The Context object is
   /// the owner of all the namespaces. The `ns` will overwrite any
   /// namespace with the same name.
   void insertNS(std::shared_ptr<Namespace> ns);
+
+  /// Sets the name of the current namespace in the context and return
+  /// a boolean indicating the status of this operation. The operation
+  /// will fail if the namespace does not exist in the namespace table.
+  bool setCurrentNS(llvm::StringRef ns_name);
+
+  std::shared_ptr<Namespace> getCurrentNS();
 
   std::shared_ptr<Namespace> getNS(llvm::StringRef ns_name);
   SereneContext(){};

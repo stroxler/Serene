@@ -59,5 +59,17 @@ TEST_CASE("Context tests", "[context]") {
 
 };
 
+TEST_CASE("Get and Set current namespace", "[context]") {
+  auto ctx = makeSereneContext();
+  auto userNs = makeNamespace(ctx, "user", llvm::Optional<llvm::StringRef>("/some/file"));
 
+  auto isSet = ctx.setCurrentNS("user");
+
+  REQUIRE(isSet);
+  CHECK(ctx.getCurrentNS() == userNs);
+
+  isSet = ctx.setCurrentNS("user1");
+  REQUIRE_FALSE(isSet);
+  CHECK(ctx.getCurrentNS() == userNs);
+};
 } // namespace serene
