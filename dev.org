@@ -65,7 +65,7 @@ Then here is the list or parsers that we have considered
 ** Garbage collection
 - [[https://v8.dev/blog/high-performance-cpp-gc][GC on V8]]
 - [[https://www.microsoft.com/en-us/research/uploads/prod/2020/11/perceus-tr-v1.pdf][Perceus: Garbage Free Reference Counting with Reuse]]
-
+- [[https://www.hboehm.info/gc/][Boehm GC]]
 ** JIT
 - [[https://asmjit.com/][Machine code generator for C++]]
 ** Compiler
@@ -103,54 +103,34 @@ on ADF
 * TODOs
 ** Bootstrap
 *** TODO Language Spec                                               :DOCS:
-*** TODO A proper List implementation                           :BOOTSTRAP:
-It should be a proper linked list
-*** TODO Vector implementation                                  :BOOTSTRAP:
-*** TODO Hashmap implementation                                 :BOOTSTRAP:
-*** TODO Call stack                                             :BOOTSTRAP:
-- [ ] Thread local call stack
-- [X] Handle TCO in the call stack
-- [X] Integration with the Error handling
-*** TODO Meta data support                                      :BOOTSTRAP:
-- [ ] Attachable meta data to any expression
-- [ ] Spec for special meta data that mean something to the interpreter. E.g: docstrings
-- [ ] Meta data API
-*** TODO Docstring support                                 :DOCS:BOOTSTRAP:
+*** TODO A proper List implementation
+*** TODO Vector implementation
+*** TODO Hashmap implementation
+*** TODO Meta data support
+*** TODO Docstring support                                           :DOCS:
 - [ ] For functions and macros
 - [ ] For namespaces and projects
 - [ ] API to interact with docstrings and helps
-*** TODO FFI interface                                          :BOOTSTRAP:
-- [ ] Convertion of Serene types to C types
-- [ ] Shared libraries dynamic loading
-- [ ] Integration with namespaces and requirement set
-- [ ] Necessary API and checks for library and ABI Availability
-*** TODO Load path and namespace loading                        :BOOTSTRAP:
-*** TODO nREPL                                                  :BOOTSTRAP:
+*** TODO FFI interface
+*** TODO Load path and namespace loading
+*** TODO nREPL
 *** TODO Emacs mode                                                  :Misc:
-*** TODO Number implementation                                  :BOOTSTRAP:
-- [ ] Basic operations
-- [ ] Standard functions in Serene itself
-- [ ] Type infer and conversion
-*** TODO String implementation                                  :BOOTSTRAP:
-- [X] Basic implementation
-- [ ] Basic operations
-- [ ] Numer <-> String
-- [ ] Interpolation
-*** TODO Enum implementation                                    :BOOTSTRAP:
-- [ ] Embedded data in a variant
-- [ ] Generate functions based on variants
-*** TODO Protocol                                               :BOOTSTRAP:
-- [ ] Polymorphic functions
-*** TODO Struct implementation                                  :BOOTSTRAP:
-*** TODO Error handling                                         :BOOTSTRAP:
-- [X] Integration with callstacks
-- [ ] Stackable errors
-*** TODO Multi arity functions                                  :BOOTSTRAP:
-*** TODO QuasiQuotation                                         :BOOTSTRAP:
+*** TODO Number implementation
+*** TODO String implementation
+*** TODO Enum implementation
+*** TODO Protocol
+*** TODO Struct implementation
+*** TODO Error handling
+*** TODO Multi arity functions
+*** TODO QuasiQuotation
 *** TODO Linter                                                      :Misc:
 *** TODO Document generator                                     :DOCS:Misc:
-*** TODO Spec like functionality                                :BOOTSTRAP:
-*** TODO Laziness implementation                                :BOOTSTRAP:
+*** TODO Spec like functionality
+*** TODO Laziness implementation
+*** TODO Investigate the Semantic Error tree and tracking
+Basically we should be able to create an error tree on semantic analysis
+time and trace semantic errors on different layers and intensively.
+Is it a good idea ?
 *** Standard libraries
-**** TODO IO library                                           :BOOTSTRAP:
-**** TODO Test library                                         :BOOTSTRAP:
+**** TODO IO library
+**** TODO Test library

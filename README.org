@@ -64,6 +64,8 @@ the project once and then you can just use =./builder compile= to build the chan
 
 Check out the =builder= script for more subcommands and details.
 
+* Cheatsheets
+  - [[https://github.com/muqsitnawaz/modern-cpp-cheatsheet][Modern C++ Cheatsheet]]
 * Get Help
   If you need help or you just want to hangout, you can find us at:
 
