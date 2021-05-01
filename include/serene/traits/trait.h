@@ -22,16 +22,49 @@
  * SOFTWARE.
  */
 
-#define CATCH_CONFIG_MAIN
-#include "./context_tests.cpp.inc"
-#include "./environment_tests.cpp.inc"
-#include "./errors/error_tests.cpp.inc"
-#include "./exprs/expression_tests.cpp.inc"
-#include "./exprs/list_tests.cpp.inc"
-#include "./exprs/number_tests.cpp.inc"
-#include "./exprs/symbol_tests.cpp.inc"
-#include "./namespace_tests.cpp.inc"
-#include "./reader/reader_tests.cpp.inc"
-#include "./traits/trait_tests.cpp.inc"
-#include "./utils_tests.cpp.inc"
-#include "catch2/catch.hpp"
+#ifndef TRAITS_TRAIT_H
+#define TRAITS_TRAIT_H
+
+#include <string>
+#include <type_traits>
+
+struct FinalImpl;
+
+template <typename ConcreteType, template <typename T> class... Traits>
+class WithTrait : public Traits<ConcreteType>... {
+protected:
+  WithTrait(){};
+  friend ConcreteType;
+};
+
+template <typename ConcreteType, template <typename> class TraitType>
+class TraitBase {
+protected:
+  const ConcreteType &Object() const {
+    return static_cast<const ConcreteType &>(*this);
+  };
+};
+
+template <typename ConcreteType>
+class Printable : public TraitBase<ConcreteType, Printable> {
+public:
+  Printable(){};
+  Printable(const Printable &) = delete;
+  std::string Print() const { return this->Object().Print(); }
+};
+
+template <typename ConcreteType>
+class Analyzable : public TraitBase<ConcreteType, Analyzable> {
+public:
+  Analyzable(){};
+  Analyzable(const Analyzable &) = delete;
+  std::string Analyze() const { return this->Object().Analyze(); }
+};
+
+template <typename T> std::string Print(Printable<T> &t) { return t.Print(); }
+
+template <typename T> std::string Analyze(Analyzable<T> &t) {
+  return t.Analyze();
+}
+
+#endif

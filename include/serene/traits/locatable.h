@@ -22,16 +22,7 @@
  * SOFTWARE.
  */
 
-#define CATCH_CONFIG_MAIN
-#include "./context_tests.cpp.inc"
-#include "./environment_tests.cpp.inc"
-#include "./errors/error_tests.cpp.inc"
-#include "./exprs/expression_tests.cpp.inc"
-#include "./exprs/list_tests.cpp.inc"
-#include "./exprs/number_tests.cpp.inc"
-#include "./exprs/symbol_tests.cpp.inc"
-#include "./namespace_tests.cpp.inc"
-#include "./reader/reader_tests.cpp.inc"
-#include "./traits/trait_tests.cpp.inc"
-#include "./utils_tests.cpp.inc"
-#include "catch2/catch.hpp"
+#ifndef TRAITS_LOCATABLE_H
+#define TRAITS_LOCATABLE_H
+
+#endif
