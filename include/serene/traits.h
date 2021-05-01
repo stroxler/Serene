@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#ifndef TRAITS_TRAIT_H
-#define TRAITS_TRAIT_H
+#ifndef SERENE_TRAITS_H
+#define SERENE_TRAITS_H
 
 #include <string>
 #include <type_traits>

@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#include "../test_helpers.cpp.inc"
-#include "serene/traits/trait.h"
+#include "./test_helpers.cpp.inc"
+#include "serene/traits.h"
 #include <catch2/catch.hpp>
 
 namespace serene {

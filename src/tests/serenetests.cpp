@@ -32,6 +32,6 @@
 #include "./exprs/symbol_tests.cpp.inc"
 #include "./namespace_tests.cpp.inc"
 #include "./reader/reader_tests.cpp.inc"
-#include "./traits/trait_tests.cpp.inc"
+#include "./traits_tests.cpp.inc"
 #include "./utils_tests.cpp.inc"
 #include "catch2/catch.hpp"
