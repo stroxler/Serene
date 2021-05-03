@@ -109,26 +109,6 @@ protected:
   };
 };
 
-template <typename ConcreteType>
-class Printable : public TraitBase<ConcreteType, Printable> {
-public:
-  Printable(){};
-  Printable(const Printable &) = delete;
-  std::string Print() const { return this->Object().Print(); }
-};
 
-template <typename ConcreteType>
-class Analyzable : public TraitBase<ConcreteType, Analyzable> {
-public:
-  Analyzable(){};
-  Analyzable(const Analyzable &) = delete;
-  std::string Analyze() const { return this->Object().Analyze(); }
-};
-
-template <typename T> std::string Print(Printable<T> &t) { return t.Print(); }
-
-template <typename T> std::string Analyze(Analyzable<T> &t) {
-  return t.Analyze();
-};
 }; // namespace serene
 #endif

@@ -28,6 +28,28 @@
 
 namespace serene {
 
+template <typename ConcreteType>
+class Printable : public TraitBase<ConcreteType, Printable> {
+public:
+  Printable(){};
+  Printable(const Printable &) = delete;
+  std::string Print() const { return this->Object().Print(); }
+};
+
+template <typename ConcreteType>
+class Analyzable : public TraitBase<ConcreteType, Analyzable> {
+public:
+  Analyzable(){};
+  Analyzable(const Analyzable &) = delete;
+  std::string Analyze() const { return this->Object().Analyze(); }
+};
+
+template <typename T> std::string Print(Printable<T> &t) { return t.Print(); }
+
+template <typename T> std::string Analyze(Analyzable<T> &t) {
+  return t.Analyze();
+};
+
 class A : public WithTrait<A, Printable, Analyzable> {
 
   std::string x;
@@ -40,7 +62,9 @@ public:
 };
 
 template <typename T = FinalImpl>
-class B : public std::conditional<std::is_same_v<T, FinalImpl>, WithTrait<B<>, Printable, Analyzable>, WithTrait<T, Printable, Analyzable>>::type {
+class B : public std::conditional<std::is_same_v<T, FinalImpl>,
+                                  WithTrait<B<>, Printable, Analyzable>,
+                                  WithTrait<T, Printable, Analyzable>>::type {
 
   std::string y;
 
@@ -63,7 +87,6 @@ public:
   std::string Analyze() const { return w; }
 };
 
-
 class D : public WithTrait<D, Printable> {
 public:
   std::string Print() const { return "D: print"; }
@@ -71,26 +94,37 @@ public:
   std::string Analyze() const { return "D: analyze with no trait"; }
 };
 
+template <typename T>
+class MetaTrait : public WithTrait<T, Printable, Analyzable> {};
 
+class E : public MetaTrait<E> {
+public:
+  std::string Print() const { return "E: print"; };
+
+  std::string Analyze() const { return "E: in E"; };
+};
 
 TEST_CASE("Trait functionality tests", "[Traits]") {
   auto a = A("in A");
   auto b = B("in B");
   auto c = C("gray", "white", "black");
   auto d = D();
+  auto e = E();
+
   CHECK(Print(a) == "A: print");
   CHECK(Print(b) == "B: print");
   CHECK(Print(c) == "white");
   CHECK(Print(d) == "D: print");
+  CHECK(Print(e) == "E: print");
 
   CHECK(Analyze(a) == "A: in A");
   CHECK(Analyze(b) == "B: in B");
   CHECK(Analyze(c) == "black");
+  CHECK(Analyze(e) == "E: in E");
 
   // Even though D has a Analyze method, It's not Analyzable to the
   // Analyze function signature won't match
   CHECK(d.Analyze() == "D: analyze with no trait");
-
 };
 
 } // namespace serene
