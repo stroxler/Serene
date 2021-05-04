@@ -26,6 +26,7 @@
 #define EXPRS_EXPRESSION_H
 
 #include "serene/context.h"
+#include "serene/exprs/traits.h"
 #include "serene/reader/location.h"
 #include "serene/utils.h"
 #include <memory>
@@ -40,21 +41,6 @@ class SereneContext;
 /// in the syntax directly. Like function definitions.
 namespace exprs {
 
-/// This enum represent the expression type and **not** the value type.
-enum class ExprType {
-  Symbol,
-  List,
-  Number,
-  Def,
-  Error,
-  Fn,
-  Call,
-};
-
-/// The string represantion of built in expr types (NOT DATATYPES).
-static const char *exprTypes[] = {
-    "Symbol", "List", "Number", "Def", "Error", "Fn", "Call",
-};
 
 class Expression;
 

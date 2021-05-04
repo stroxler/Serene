@@ -109,6 +109,17 @@ protected:
   };
 };
 
+template <typename ConcreteType>
+class IDebuggable : public TraitBase<ConcreteType, IDebuggable> {
+public:
+  IDebuggable(){};
+  IDebuggable(const IDebuggable &) = delete;
+  std::string toString() const { return this->Object().toString(); }
+};
+
+template <typename T> std::string toString(IDebuggable<T> &t) {
+  return t.toString();
+}
 
 }; // namespace serene
 #endif

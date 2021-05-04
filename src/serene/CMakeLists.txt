@@ -3,6 +3,7 @@ set(HEADER_LIST
   "${INCLUDE_DIR}/serene/utils.h"
   "${INCLUDE_DIR}/serene/context.h"
   "${INCLUDE_DIR}/serene/environment.h"
+  "${INCLUDE_DIR}/serene/traits.h"
 
   "${INCLUDE_DIR}/serene/exprs/expression.h"
   "${INCLUDE_DIR}/serene/exprs/symbol.h"
@@ -10,17 +11,20 @@ set(HEADER_LIST
   "${INCLUDE_DIR}/serene/exprs/number.h"
   "${INCLUDE_DIR}/serene/exprs/def.h"
   "${INCLUDE_DIR}/serene/exprs/fn.h"
+  "${INCLUDE_DIR}/serene/exprs/traits.h"
 
   # Reader
   "${INCLUDE_DIR}/serene/reader/reader.h"
   "${INCLUDE_DIR}/serene/reader/location.h"
   "${INCLUDE_DIR}/serene/reader/errors.h"
   "${INCLUDE_DIR}/serene/reader/semantics.h"
+  "${INCLUDE_DIR}/serene/reader/traits.h"
 
   "${INCLUDE_DIR}/serene/errors.h"
   "${INCLUDE_DIR}/serene/errors/error.h"
   "${INCLUDE_DIR}/serene/errors/errc.h"
   "${INCLUDE_DIR}/serene/errors/constants.h"
+  "${INCLUDE_DIR}/serene/errors/traits.h"
 
 
   # "${INCLUDE_DIR}/serene/sir/sir.hpp"
