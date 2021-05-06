@@ -43,7 +43,7 @@ std::string Fn::toString() const {
 }
 
 MaybeNode Fn::analyze(SereneContext &ctx) {
-  return Result<Node>::success(nullptr);
+  return MaybeNode::success(nullptr);
 };
 
 bool Fn::classof(const Expression *e) { return e->getType() == ExprType::Fn; };
@@ -51,10 +51,12 @@ bool Fn::classof(const Expression *e) { return e->getType() == ExprType::Fn; };
 MaybeNode Fn::make(SereneContext &ctx, List *list) {
   // TODO: Add support for docstring as the 3rd argument (4th element)
   if (list->count() < 2) {
-    std::string msg =
-        llvm::formatv("The argument list is mandatory.", list->count());
-    return Result<Node>::success(makeAndCast<errors::Error>(
-        &errors::FnNoArgsList, list->elements[0], msg));
+    // return MaybeNode::error(makeAndCast<errors::Error>(
+    // list->elements[0]->location, &errors::FnNoArgsList,
+    // "The argument list is mandatory."));
+    return makeErrorful<Node>(list->elements[0]->location,
+                              &errors::FnNoArgsList,
+                              "The argument list is mandatory.");
   }
 
   Symbol *fnSym = llvm::dyn_cast<Symbol>(list->elements[0].get());
@@ -67,8 +69,11 @@ MaybeNode Fn::make(SereneContext &ctx, List *list) {
     std::string msg =
         llvm::formatv("Arguments of a function has to be a list, got '{0}'",
                       stringifyExprType(list->elements[1]->getType()));
-    return Result<Node>::success(makeAndCast<errors::Error>(
-        &errors::FnArgsMustBeList, list->elements[1], msg));
+    // return MaybeNode::error(makeAndCast<errors::Error>(
+    //     list->elements[1]->location, &errors::FnArgsMustBeList, msg));
+
+    return makeErrorful<Node>(list->elements[1]->location,
+                              &errors::FnArgsMustBeList, msg);
   }
 
   Ast body;
@@ -78,14 +83,13 @@ MaybeNode Fn::make(SereneContext &ctx, List *list) {
     auto maybeAst = reader::analyze(ctx, body);
 
     if (!maybeAst) {
-      return Result<Node>::error(std::move(maybeAst.getError()));
+      return MaybeNode::error(std::move(maybeAst.getError()));
     }
 
     body = maybeAst.getValue();
   }
 
-  Node fn = exprs::make<Fn>(list->location, *args, body);
-  return Result<Node>::success(fn);
+  return makeSuccessfulNode<Fn>(list->location, *args, body);
 };
 } // namespace exprs
 } // namespace serene

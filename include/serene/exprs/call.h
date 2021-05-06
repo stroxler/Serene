@@ -44,15 +44,15 @@ class List;
 class Call : public Expression {
 
 public:
-  node target;
-  ast params;
+  Node target;
+  Ast params;
 
-  Call(reader::LocationRange &loc, ast params)
+  Call(reader::LocationRange &loc, Ast params)
       : Expression(loc), params(params){};
 
   ExprType getType() const;
   std::string toString() const;
-  maybe_node analyze(SereneContext &);
+  MaybeNode analyze(SereneContext &);
 
   static bool classof(const Expression *e);
 
@@ -63,7 +63,7 @@ public:
   /// \param ctx The semantic analysis context object.
   /// \param list the list in question.
 
-  static maybe_node make(SereneContext &ctx, List *list);
+  static MaybeNode make(SereneContext &ctx, List *list);
 
   ~Call() = default;
 };

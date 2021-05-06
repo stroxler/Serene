@@ -40,22 +40,22 @@ std::string Call::toString() const {
                        astToString(&this->params));
 }
 
-maybe_node Call::analyze(SereneContext &ctx) {
-  return Result<node>::success(nullptr);
+MaybeNode Call::analyze(SereneContext &ctx) {
+  return MaybeNode::success(nullptr);
 };
 
 bool Call::classof(const Expression *e) {
   return e->getType() == ExprType::Call;
 };
 
-maybe_node Call::make(SereneContext &ctx, List *list) {
+MaybeNode Call::make(SereneContext &ctx, List *list) {
   assert((list->count() == 0) && "Empty call? Seriously ?");
 
   auto maybeFirst = list->elements[0]->analyze(ctx);
-  node first;
+  Node first;
 
   if (!maybeFirst) {
-    return Result<node>::error(std::move(maybeFirst.getError()));
+    return MaybeNode::error(std::move(maybeFirst.getError()));
   }
 
   switch (first->getType()) {
@@ -75,7 +75,7 @@ maybe_node Call::make(SereneContext &ctx, List *list) {
   }
   };
 
-  return Result<node>::success(nullptr);
+  return MaybeNode::success(nullptr);
 };
 } // namespace exprs
 } // namespace serene

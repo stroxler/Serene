@@ -39,7 +39,7 @@ std::string Def::toString() const {
 }
 
 MaybeNode Def::analyze(SereneContext &ctx) {
-  return Result<Node>::success(nullptr);
+  return MaybeNode::success(nullptr);
 };
 
 bool Def::classof(const Expression *e) {
@@ -51,8 +51,8 @@ MaybeNode Def::make(SereneContext &ctx, List *list) {
 
   if (list->count() != 3) {
     std::string msg = llvm::formatv("Expected 3 got {0}", list->count());
-    return Result<Node>::success(makeAndCast<errors::Error>(
-        &errors::DefWrongNumberOfArgs, list->elements[0], msg));
+    return makeErrorful<Node>(list->elements[0]->location,
+                              &errors::DefWrongNumberOfArgs, msg);
   }
 
   // Make sure that the list starts with a `def`
@@ -63,8 +63,8 @@ MaybeNode Def::make(SereneContext &ctx, List *list) {
   // Make sure that the first argument is a Symbol
   Symbol *binding = llvm::dyn_cast<Symbol>(list->elements[1].get());
   if (!binding) {
-    return Result<Node>::success(makeAndCast<errors::Error>(
-        &errors::DefExpectSymbol, list->elements[1], ""));
+    return makeErrorful<Node>(list->elements[1]->location,
+                              &errors::DefExpectSymbol, "");
   }
 
   // Analyze the value
@@ -91,10 +91,9 @@ MaybeNode Def::make(SereneContext &ctx, List *list) {
   // analyzedValue);
 
   // if (result.succeeded()) {
-  Node def = exprs::make<Def>(list->location, binding->name, analyzedValue);
-  return Result<Node>::success(def);
+  return makeSuccessfulNode<Def>(list->location, binding->name, analyzedValue);
   // } else {
-  //   return Result<Node>::error()
+  //   return MaybeNode::error()
   // }
 };
 } // namespace exprs

@@ -39,10 +39,11 @@ namespace serene::reader {
 /// semantic error.
 /// \param ctx The semantic analysis context
 /// \param inputAst The raw AST to analyze and possibly rewrite.
-exprs::MaybeAst analyze(serene::SereneContext &ctx, exprs::Ast &inputAst) {
+AnalyzeResult analyze(serene::SereneContext &ctx, exprs::Ast &inputAst) {
   // TODO: Fetch the current namespace from the JIT engine later and if it is
   // `nil` then the given `ast` has to start with a namespace definition.
 
+  std::vector<exprs::ErrorPtr> errors;
   exprs::Ast ast;
 
   for (auto &element : inputAst) {
@@ -64,10 +65,16 @@ exprs::MaybeAst analyze(serene::SereneContext &ctx, exprs::Ast &inputAst) {
 
       // `analyze` returned an errorful result. This type of error
       // is llvm related and has to be raised later
-      Result<exprs::Ast>::error(std::move(maybeNode.getError()));
+      // (std::move());
+      auto errVector = maybeNode.getError();
+      errors.insert(errors.end(), errVector.begin(), errVector.end());
     }
   }
 
-  return Result<exprs::Ast>::success(std::move(ast));
+  if (errors.empty()) {
+    return AnalyzeResult::success(std::move(ast));
+  }
+
+  return AnalyzeResult::error(std::move(errors));
 };
 }; // namespace serene::reader

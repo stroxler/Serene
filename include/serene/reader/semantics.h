@@ -26,17 +26,18 @@
 #define READER_SEMANTICS_H
 
 #include "serene/context.h"
+#include "serene/errors/error.h"
 #include "serene/exprs/expression.h"
 
 namespace serene::reader {
-
+using AnalyzeResult = Result<exprs::Ast, std::vector<exprs::ErrorPtr>>;
 /// This function is the entrypoint to the Semantic Analysis phase of **Serene**
 /// It will call the `analyze` method on every node in the given AST and
 /// returns a new AST as the result of the semantic analysis.
 ///
 /// \param ctx The serene context
 /// \prama tree The raw AST to analyze
-exprs::MaybeAst analyze(serene::SereneContext &ctx, exprs::Ast &tree);
+AnalyzeResult analyze(serene::SereneContext &ctx, exprs::Ast &tree);
 }; // namespace serene::reader
 
 #endif

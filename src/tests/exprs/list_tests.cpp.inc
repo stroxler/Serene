@@ -83,18 +83,19 @@ TEST_CASE("List semantic analysis of 'def'", "[semantic]") {
   auto ctx = makeSereneContext();
   auto ast = reader::read("(def (a) b)");
   auto afterAst = reader::analyze(ctx, ast.getValue());
-  REQUIRE(afterAst);
-  CHECK(astToString(&afterAst.getValue()) == "<Error E1: >");
+  REQUIRE_FALSE(afterAst);
+  // Fetch the first error
+  CHECK(afterAst.getError()[0]->toString() == "<Error E1: >");
 
   ast = reader::read("(def a)");
   afterAst = reader::analyze(ctx, ast.getValue());
-  REQUIRE(afterAst);
-  CHECK(astToString(&afterAst.getValue()) == "<Error E2: Expected 3 got 2>");
+  REQUIRE_FALSE(afterAst);
+  CHECK(afterAst.getError()[0]->toString() == "<Error E2: Expected 3 got 2>");
 
   ast = reader::read("(def a b c)");
   afterAst = reader::analyze(ctx, ast.getValue());
-  REQUIRE(afterAst);
-  CHECK(astToString(&afterAst.getValue()) == "<Error E2: Expected 3 got 4>");
+  REQUIRE_FALSE(afterAst);
+  CHECK(afterAst.getError()[0]->toString() == "<Error E2: Expected 3 got 4>");
 
   ast = reader::read("(def a b)");
   afterAst = reader::analyze(ctx, ast.getValue());
@@ -113,8 +114,9 @@ TEST_CASE("List semantic analysis for 'fn'", "[semantic]") {
 
   auto ast = reader::read("(fn)");
   auto afterAst = reader::analyze(ctx, ast.getValue());
-  REQUIRE(afterAst);
-  CHECK(astToString(&afterAst.getValue()) ==
+  REQUIRE_FALSE(afterAst);
+  REQUIRE(afterAst.getError().size() == 1);
+  CHECK(afterAst.getError()[0]->toString() ==
         "<Error E3: The argument list is mandatory.>");
 
   ast = reader::read("(fn ())");

@@ -70,7 +70,7 @@ class SExp : public WithTrait<ConcreteType, ITypeable,
 
 protected:
   serene::reader::LocationRange location;
-  SExp(serene::reader::LocationRange &loc) : location(loc){};
+  SExp(const serene::reader::LocationRange &loc) : location(loc){};
 
 public:
   serene::reader::LocationRange where() const { return this->location; }

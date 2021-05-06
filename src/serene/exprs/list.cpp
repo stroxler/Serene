@@ -74,7 +74,7 @@ MaybeNode List::analyze(SereneContext &ctx) {
     }
   }
 
-  return Result<Node>::success(nullptr);
+  return MaybeNode::success(nullptr);
 };
 
 bool List::classof(const Expression *e) {

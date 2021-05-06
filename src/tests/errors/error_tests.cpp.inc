@@ -36,16 +36,10 @@ namespace errors {
 
 TEST_CASE("Error Expression", "[expression]") {
   std::unique_ptr<reader::LocationRange> range(dummyLocation());
+  auto err = exprs::makeAndCast<Error>(*range.get(), &DefExpectSymbol, "Something Failed");
 
-  exprs::Node sym = exprs::make<exprs::Symbol>(*range.get(), llvm::StringRef("example"));
-  exprs::Node err = exprs::make<Error>(&DefExpectSymbol, sym, "Something Failed");
-
-  REQUIRE(err->getType() == exprs::ExprType::Error);
+  CHECK(err->getVariant()->id == E0001);
   CHECK(err->toString() == "<Error E1: Something Failed>");
-
-  auto error = llvm::dyn_cast<Error>(err.get());
-  CHECK(error->target == sym);
-
 };
 
 } // namespace exprs

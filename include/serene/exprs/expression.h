@@ -26,6 +26,7 @@
 #define EXPRS_EXPRESSION_H
 
 #include "serene/context.h"
+#include "serene/errors/error.h"
 #include "serene/exprs/traits.h"
 #include "serene/reader/location.h"
 #include "serene/utils.h"
@@ -41,14 +42,18 @@ class SereneContext;
 /// in the syntax directly. Like function definitions.
 namespace exprs {
 
-
 class Expression;
 
 using Node = std::shared_ptr<Expression>;
-using MaybeNode = Result<Node>;
+using ErrorPtr = std::shared_ptr<errors::Error>;
+
+// tree? Yupe, Errors can be stackable which makes
+using ErrorTree = std::vector<ErrorPtr>;
+
+using MaybeNode = Result<Node, ErrorTree>;
 
 using Ast = std::vector<Node>;
-using MaybeAst = Result<Ast>;
+using MaybeAst = Result<Ast, ErrorTree>;
 
 /// The base class of the expressions which provides the common interface for
 /// the expressions to implement.
@@ -105,6 +110,18 @@ template <typename T, typename... Args> Node make(Args &&...args) {
 template <typename T, typename... Args>
 std::shared_ptr<T> makeAndCast(Args &&...args) {
   return std::make_shared<T>(std::forward<Args>(args)...);
+};
+
+template <typename T, typename... Args>
+Result<Node, ErrorTree> makeSuccessfulNode(Args &&...args) {
+  return Result<Node, ErrorTree>::success(make<T>(std::forward<Args>(args)...));
+};
+
+template <typename T, typename... Args>
+Result<T, ErrorTree> makeErrorful(Args &&...args) {
+  std::vector<ErrorPtr> v{
+      std::move(makeAndCast<errors::Error>(std::forward<Args>(args)...))};
+  return Result<T, ErrorTree>::error(v);
 };
 
 /// Convert the given AST to string by calling the `toString` method

@@ -35,7 +35,7 @@ std::string Symbol::toString() const {
 }
 
 MaybeNode Symbol::analyze(SereneContext &ctx) {
-  return Result<Node>::success(nullptr);
+  return MaybeNode::success(nullptr);
 };
 
 bool Symbol::classof(const Expression *e) {

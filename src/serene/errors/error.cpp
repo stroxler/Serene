@@ -28,21 +28,15 @@
 namespace serene {
 namespace errors {
 
-serene::exprs::ExprType Error::getType() const {
-  return serene::exprs::ExprType::Error;
-};
-
 std::string Error::toString() const {
   return llvm::formatv("<Error E{0}: {1}>", this->variant->id, this->message);
 }
 
-serene::exprs::MaybeNode Error::analyze(SereneContext &ctx) {
-  return Result<serene::exprs::Node>::success(nullptr);
-};
+reader::LocationRange &Error::where() { return this->location; };
 
-bool Error::classof(const serene::exprs::Expression *e) {
-  return e->getType() == serene::exprs::ExprType::Error;
-};
+ErrorVariant *Error::getVariant() { return this->variant; }
+
+std::string Error::getMessage() { return this->message; }
 
 } // namespace errors
 } // namespace serene

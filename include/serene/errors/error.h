@@ -27,7 +27,11 @@
 
 #include "serene/context.h"
 #include "serene/errors/constants.h"
-#include "serene/exprs/expression.h"
+#include "serene/errors/traits.h"
+#include "serene/reader/location.h"
+#include "serene/reader/traits.h"
+#include "serene/traits.h"
+//#include "serene/exprs/expression.h"
 #include "llvm/Support/Error.h"
 
 namespace serene::errors {
@@ -42,27 +46,27 @@ enum class ErrType {
 /// This data structure represent the Lisp error. This type of expression
 /// doesn't show up in the AST but the compiler might rewrite the AST
 /// to contains error expressions
-class Error : public ::serene::exprs::Expression {
-
-public:
+class Error
+    : public WithTrait<Error, IError, reader::ILocatable, serene::IDebuggable> {
+  reader::LocationRange location;
   ErrorVariant *variant;
-  serene::exprs::Node target;
   std::string message;
 
-  Error(ErrorVariant *err, serene::exprs::Node &t, llvm::StringRef msg)
-      : serene::exprs::Expression(t->location), variant(err), target(t),
-        message(msg){};
+public:
+  Error(reader::LocationRange &loc, ErrorVariant *err, llvm::StringRef msg)
+      : location(loc), variant(err), message(msg){};
 
-  serene::exprs::ExprType getType() const;
   std::string toString() const;
-
-  static bool classof(const serene::exprs::Expression *e);
-
-  serene::exprs::MaybeNode analyze(SereneContext &);
-
+  reader::LocationRange &where();
+  ErrorVariant *getVariant();
+  std::string getMessage();
   ~Error() = default;
 };
 
+// std::shared_ptr<Error> makeError(reader::LocationRange &loc, ErrorVariant
+// *err,
+//                                  serene::exprs::Node &t, llvm::StringRef
+//                                  msg);
 }; // namespace serene::errors
 
 #endif

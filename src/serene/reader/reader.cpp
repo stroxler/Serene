@@ -26,6 +26,7 @@
 #include "serene/exprs/list.h"
 #include "serene/exprs/number.h"
 #include "serene/exprs/symbol.h"
+#include "serene/namespace.h"
 #include "llvm/Support/Error.h"
 #include "llvm/Support/ErrorOr.h"
 #include "llvm/Support/FormatVariadic.h"
@@ -256,7 +257,7 @@ exprs::Node Reader::readExpr() {
 /// Reads all the expressions in the reader's buffer as an AST.
 /// Each expression type (from the reader perspective) has a
 /// reader function.
-exprs::MaybeAst Reader::read() {
+Result<exprs::Ast> Reader::read() {
   char c = getChar(true);
 
   while (c != EOF) {
@@ -293,7 +294,7 @@ void Reader::toString() {
 // in the reader as an AST.
 /// Each expression type (from the reader perspective) has a
 /// reader function.
-exprs::MaybeAst FileReader::read() {
+Result<exprs::Ast> FileReader::read() {
 
   // TODO: Add support for relative path as well
   llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> fileOrErr =
@@ -333,7 +334,7 @@ FileReader::~FileReader() {
   READER_LOG("Destroying the file reader");
 }
 
-exprs::MaybeAst read(llvm::StringRef input) {
+Result<exprs::Ast> read(llvm::StringRef input) {
   reader::Reader r(input);
   auto ast = r.read();
   return ast;
