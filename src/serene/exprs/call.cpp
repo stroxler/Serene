@@ -40,9 +40,7 @@ std::string Call::toString() const {
                        astToString(&this->params));
 }
 
-MaybeNode Call::analyze(SereneContext &ctx) {
-  return MaybeNode::success(nullptr);
-};
+MaybeNode Call::analyze(SereneContext &ctx) { return EmptyNode; };
 
 bool Call::classof(const Expression *e) {
   return e->getType() == ExprType::Call;
@@ -75,7 +73,7 @@ MaybeNode Call::make(SereneContext &ctx, List *list) {
   }
   };
 
-  return MaybeNode::success(nullptr);
+  return EmptyNode;
 };
 } // namespace exprs
 } // namespace serene

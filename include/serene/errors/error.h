@@ -63,10 +63,6 @@ public:
   ~Error() = default;
 };
 
-// std::shared_ptr<Error> makeError(reader::LocationRange &loc, ErrorVariant
-// *err,
-//                                  serene::exprs::Node &t, llvm::StringRef
-//                                  msg);
 }; // namespace serene::errors
 
 #endif

@@ -48,34 +48,6 @@ static const char *exprTypes[] = {
     "Symbol", "List", "Number", "Def", "Error", "Fn", "Call",
 };
 
-template <typename ConcreteType>
-class ITypeable : public TraitBase<ConcreteType, ITypeable> {
-public:
-  ITypeable(){};
-  ITypeable(const ITypeable &) = delete;
-  ExprType getType() const { return this->Object().getType(); }
-};
-
-template <typename ConcreteType>
-class IAnalyzable : public TraitBase<ConcreteType, IAnalyzable> {
-public:
-  IAnalyzable(){};
-  IAnalyzable(const IAnalyzable &) = delete;
-  auto analyze(SereneContext &ctx);
-};
-
-template <typename ConcreteType>
-class SExp : public WithTrait<ConcreteType, ITypeable,
-                              serene::reader::ILocatable, serene::IDebuggable> {
-
-protected:
-  serene::reader::LocationRange location;
-  SExp(const serene::reader::LocationRange &loc) : location(loc){};
-
-public:
-  serene::reader::LocationRange where() const { return this->location; }
-};
-
 }; // namespace serene::exprs
 
 #endif

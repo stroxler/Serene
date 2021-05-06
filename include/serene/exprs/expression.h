@@ -55,6 +55,7 @@ using MaybeNode = Result<Node, ErrorTree>;
 using Ast = std::vector<Node>;
 using MaybeAst = Result<Ast, ErrorTree>;
 
+static auto EmptyNode = MaybeNode::success(nullptr);
 /// The base class of the expressions which provides the common interface for
 /// the expressions to implement.
 class Expression {
@@ -112,11 +113,18 @@ std::shared_ptr<T> makeAndCast(Args &&...args) {
   return std::make_shared<T>(std::forward<Args>(args)...);
 };
 
+/// The helper function to create a new `Node` and use that as the success case
+// of a `Result`. It should be useds where every we want to return a `MaybeNode`
+/// successfully
 template <typename T, typename... Args>
 Result<Node, ErrorTree> makeSuccessfulNode(Args &&...args) {
   return Result<Node, ErrorTree>::success(make<T>(std::forward<Args>(args)...));
 };
 
+/// The hlper function to create an Errorful `Result<T,...>` (`T` would be
+/// either
+///  `Node` or `Ast` most of the time) with just one error creating from passing
+///  any argument to this function to the `serene::errors::Error` constructor.
 template <typename T, typename... Args>
 Result<T, ErrorTree> makeErrorful(Args &&...args) {
   std::vector<ErrorPtr> v{
