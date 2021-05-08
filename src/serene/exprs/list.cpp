@@ -107,6 +107,14 @@ llvm::Optional<Expression *> List::at(uint index) {
   return llvm::Optional<Expression *>(this->elements[index].get());
 }
 
+Ast List::from(uint index) {
+  if (index < elements.size()) {
+    return Ast(elements.begin() + index, elements.end());
+  }
+
+  return Ast();
+}
+
 void List::append(Node n) { elements.push_back(std::move(n)); }
 } // namespace exprs
 } // namespace serene

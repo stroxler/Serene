@@ -26,6 +26,7 @@
 #include "serene/errors/error.h"
 #include "serene/exprs/list.h"
 #include "serene/exprs/symbol.h"
+#include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/FormatVariadic.h"
 
 namespace serene {
@@ -87,14 +88,16 @@ MaybeNode Def::make(SereneContext &ctx, List *list) {
     return value;
   }
 
-  // auto result = ctx.getCurrentNS()->semanticEnv.insert_symbol(binding->name,
-  // analyzedValue);
+  // auto analayzedValuePtr = analyzedValue;
+  auto result = ctx.getCurrentNS()->semanticEnv.insert_symbol(binding->name,
+                                                              analyzedValue);
 
-  // if (result.succeeded()) {
-  return makeSuccessfulNode<Def>(list->location, binding->name, analyzedValue);
-  // } else {
-  //   return MaybeNode::error()
-  // }
+  if (result.succeeded()) {
+    return makeSuccessfulNode<Def>(list->location, binding->name,
+                                   analyzedValue);
+  } else {
+    llvm_unreachable("Inserting a value in the semantic env failed!");
+  }
 };
 } // namespace exprs
 } // namespace serene

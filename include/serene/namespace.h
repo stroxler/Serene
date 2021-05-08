@@ -27,6 +27,7 @@
 
 #include "serene/environment.h"
 #include "serene/utils.h"
+#include "llvm/ADT/SmallString.h"
 #include <llvm/ADT/StringRef.h>
 #include <llvm/IR/Module.h>
 #include <memory>
@@ -59,7 +60,7 @@ public:
 
   /// The root environment of the namespace on the semantic analysis phase.
   /// Which is a mapping from names to AST nodes ( no evaluation ).
-  Environment<llvm::StringRef, exprs::Node> semanticEnv;
+  Environment<std::string, exprs::Node> semanticEnv;
 
   Namespace(llvm::StringRef ns_name, llvm::Optional<llvm::StringRef> filename);
 
@@ -71,7 +72,7 @@ public:
 
 std::shared_ptr<Namespace>
 makeNamespace(SereneContext &ctx, llvm::StringRef name,
-              llvm::Optional<llvm::StringRef> filename);
+              llvm::Optional<llvm::StringRef> filename, bool setCurrent = true);
 } // namespace serene
 
 #endif

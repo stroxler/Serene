@@ -24,6 +24,7 @@
  */
 
 #include "serene/serene.h"
+#include "serene/namespace.h"
 #include "serene/reader/reader.h"
 #include "serene/reader/semantics.h"
 // #include "serene/sir/sir.hpp"
@@ -74,7 +75,9 @@ int main(int argc, char *argv[]) {
       throw std::move(maybeAst.getError());
     }
     auto &ast = maybeAst.getValue();
+
     auto ctx = makeSereneContext();
+    auto ns = makeNamespace(ctx, "user", llvm::None);
     auto afterAst = reader::analyze(ctx, ast);
 
     if (afterAst) {

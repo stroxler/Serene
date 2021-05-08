@@ -22,53 +22,38 @@
  * SOFTWARE.
  */
 
-#ifndef EXPRS_CALL_H
-#define EXPRS_CALL_H
+#ifndef SERENE_LLVM_PATCHES_H
+#define SERENE_LLVM_PATCHES_H
 
-#include "serene/context.h"
-#include "serene/errors/error.h"
-#include "serene/exprs/expression.h"
-#include "serene/exprs/list.h"
-#include "llvm/ADT/StringRef.h"
-#include "llvm/Support/Error.h"
-#include <memory>
-#include <string>
+#include "llvm/ADT/DenseMap.h"
 
-namespace serene {
+namespace llvm {
 
-namespace exprs {
-class List;
+// Our specialization of DensMapInfo for string type. This will allow use to use
+// string
+template <> struct DenseMapInfo<std::string> {
+  static inline std::string getEmptyKey() { return ""; }
 
-/// This data structure represents a function. with a collection of
-/// arguments and the ast of a body
-class Call : public Expression {
+  static inline std::string getTombstoneKey() {
+    // Maybe we need to use something else beside strings ????
+    return "0TOMBED";
+  }
 
-public:
-  Node target;
-  Ast params;
+  static unsigned getHashValue(std::string Val) {
+    assert(Val != getEmptyKey() && "Cannot hash the empty key!");
+    assert(Val != getTombstoneKey() && "Cannot hash the tombstone key!");
+    return (unsigned)(llvm::hash_value(Val));
+  }
 
-  Call(reader::LocationRange &loc, Node &target, Ast &params)
-      : Expression(loc), target(target), params(params){};
-
-  ExprType getType() const;
-  std::string toString() const;
-  MaybeNode analyze(SereneContext &);
-
-  static bool classof(const Expression *e);
-
-  /// Creates a call node out of a list.
-  /// For exmaple: `(somefn (param1 param2) param3)`. This function
-  /// is supposed to be used in the semantic analysis phase.
-  ///
-  /// \param ctx The semantic analysis context object.
-  /// \param list the list in question.
-
-  static MaybeNode make(SereneContext &ctx, List *list);
-
-  ~Call() = default;
+  static bool isEqual(std::string LHS, std::string RHS) {
+    if (RHS == getEmptyKey())
+      return LHS == getEmptyKey();
+    if (RHS == getTombstoneKey())
+      return LHS == getTombstoneKey();
+    return LHS == RHS;
+  }
 };
 
-} // namespace exprs
-} // namespace serene
+} // namespace llvm
 
 #endif

@@ -28,6 +28,7 @@
 #include "serene/exprs/list.h"
 #include "serene/exprs/symbol.h"
 #include "serene/reader/semantics.h"
+#include "llvm/Support/Casting.h"
 #include "llvm/Support/FormatVariadic.h"
 
 namespace serene {
@@ -49,31 +50,71 @@ bool Call::classof(const Expression *e) {
 MaybeNode Call::make(SereneContext &ctx, List *list) {
   assert((list->count() == 0) && "Empty call? Seriously ?");
 
+  // Let's find out what is the first element of the list
   auto maybeFirst = list->elements[0]->analyze(ctx);
-  Node first;
 
   if (!maybeFirst) {
-    return MaybeNode::error(std::move(maybeFirst.getError()));
+    // There's something wrong with the first element. Return the error
+    return maybeFirst;
   }
 
+  Node first = maybeFirst.getValue();
+  Node targetNode;
+  Ast rawParams = list->from(1);
+
+  // We need to create the Call node based on the type of the first
+  // element after it being analyzed.
   switch (first->getType()) {
+
+    // In case of a Symbol, We should look it up in the current scope and
+    // if it resolves to a value. Then we have to make sure that the
+    // return value is callable.
   case ExprType::Symbol: {
 
+    auto *sym = llvm::dyn_cast<Symbol>(first.get());
+    // TODO: Lookup the symbol in the namespace via a method that looks
+    //       into the current environment.
+    auto maybeResult = ctx.getCurrentNS()->semanticEnv.lookup(sym->name);
+
+    if (!maybeResult) {
+      return makeErrorful<Node>(
+          sym->location, &errors::CantResolveSymbol,
+          llvm::formatv("Can't resolve the symbol '{0}'!", sym->name));
+    }
+
+    targetNode = maybeResult.getValue();
     break;
   }
 
+    // If the first element was a Call itself we need to just chain it
+    // with a new call. It would be something like `((blah 1) 4)`. `blah`
+    // should return a callable expression itself, which we need to let
+    // the typechecker to check
+  case ExprType::Call:
+    // If the first element was a function, then just use it as the target
+    // of the call. It would be like `((fn (x) x) 4)`
   case ExprType::Fn: {
+    targetNode = first;
     break;
   }
-  case ExprType::List: {
-    break;
-  }
+
+    // Otherwise we don't know how to call the first element.
   default: {
-    break;
+    return makeErrorful<Node>(
+        first, &errors::DontKnowHowToCallNode,
+        llvm::formatv("Don't know how to call a '{0}'",
+                      stringifyExprType(first->getType())));
   }
   };
 
-  return EmptyNode;
+  auto analyzedParams = reader::analyze(ctx, rawParams);
+
+  if (!analyzedParams) {
+    return MaybeNode::error(analyzedParams.getError());
+  }
+
+  return makeSuccessfulNode<Call>(list->location, targetNode,
+                                  analyzedParams.getValue());
 };
 } // namespace exprs
 } // namespace serene

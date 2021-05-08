@@ -26,6 +26,7 @@
 #include "serene/exprs/expression.h"
 #include "serene/exprs/list.h"
 #include "serene/exprs/symbol.h"
+#include "serene/namespace.h"
 #include "serene/reader/reader.h"
 #include "serene/reader/semantics.h"
 #include <catch2/catch.hpp>
@@ -81,6 +82,7 @@ TEST_CASE("List Expression", "[expression]") {
 
 TEST_CASE("List semantic analysis of 'def'", "[semantic]") {
   auto ctx = makeSereneContext();
+  auto ns = makeNamespace(ctx, "user", llvm::None);
   auto ast = reader::read("(def (a) b)");
   auto afterAst = reader::analyze(ctx, ast.getValue());
   REQUIRE_FALSE(afterAst);
@@ -111,7 +113,7 @@ TEST_CASE("List semantic analysis of 'def'", "[semantic]") {
 
 TEST_CASE("List semantic analysis for 'fn'", "[semantic]") {
   auto ctx = makeSereneContext();
-
+  auto ns = makeNamespace(ctx, "user", llvm::None);
   auto ast = reader::read("(fn)");
   auto afterAst = reader::analyze(ctx, ast.getValue());
   REQUIRE_FALSE(afterAst);
@@ -153,7 +155,7 @@ TEST_CASE("List semantic analysis for 'fn'", "[semantic]") {
 
 TEST_CASE("Complex semantic analysis", "[semantic]") {
   auto ctx = makeSereneContext();
-
+  auto ns = makeNamespace(ctx, "user", llvm::None);
   auto ast =
       reader::read("(def a (fn (x) x))\n((def b (fn (x) (fn (y) y))))\n\n");
   auto afterAst = reader::analyze(ctx, ast.getValue());

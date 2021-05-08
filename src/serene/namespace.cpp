@@ -26,6 +26,7 @@
 #include "serene/exprs/expression.h"
 #include "serene/llvm/IR/Value.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/Support/FormatVariadic.h"
 #include <fmt/core.h>
 #include <string>
 
@@ -36,7 +37,11 @@ namespace serene {
 
 Namespace::Namespace(llvm::StringRef ns_name,
                      llvm::Optional<llvm::StringRef> filename)
-    : name(ns_name), filename(filename->str()){};
+    : name(ns_name) {
+  if (filename.hasValue()) {
+    this->filename.emplace(filename.getValue().str());
+  }
+};
 
 exprs::Ast &Namespace::getTree() { return this->tree; }
 
@@ -51,9 +56,12 @@ mlir::LogicalResult Namespace::setTree(exprs::Ast &t) {
 
 std::shared_ptr<Namespace>
 makeNamespace(SereneContext &ctx, llvm::StringRef name,
-              llvm::Optional<llvm::StringRef> filename) {
+              llvm::Optional<llvm::StringRef> filename, bool setCurrent) {
   auto nsPtr = std::make_shared<Namespace>(name, filename);
   ctx.insertNS(nsPtr);
+  if (setCurrent) {
+    assert(ctx.setCurrentNS(nsPtr->name) && "Couldn't set the current NS");
+  }
   return nsPtr;
 };
 

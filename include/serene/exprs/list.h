@@ -56,7 +56,7 @@ public:
 
   size_t count() const;
 
-  // llvm::ArrayRef<Expression> from(uint begin);
+  Ast from(uint begin);
   // llvm::MutableArrayRef<Expression> from(uint begin);
 
   llvm::Optional<Expression *> at(uint index);
