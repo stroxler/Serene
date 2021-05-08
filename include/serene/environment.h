@@ -26,6 +26,7 @@
 #define SERENE_ENVIRONMENT_H
 
 #include "mlir/Support/LogicalResult.h"
+#include "serene/llvm/patches.h"
 #include "llvm/ADT/DenseMap.h"
 
 namespace serene {
