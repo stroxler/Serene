@@ -61,8 +61,18 @@ MaybeNode Call::make(SereneContext &ctx, List *list) {
   }
 
   Node first = maybeFirst.getValue();
+
+  // No rewrite is needed for the first element
+  if (!first) {
+    first = list->elements[0];
+  }
+
   Node targetNode;
-  Ast rawParams = list->from(1);
+  Ast rawParams;
+
+  if (list->count() > 1) {
+    rawParams = list->from(1);
+  }
 
   // We need to create the Call node based on the type of the first
   // element after it being analyzed.

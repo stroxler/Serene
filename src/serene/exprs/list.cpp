@@ -115,6 +115,7 @@ llvm::Optional<Expression *> List::at(uint index) {
 }
 
 Ast List::from(uint index) {
+
   if (index < elements.size()) {
     return Ast(elements.begin() + index, elements.end());
   }
