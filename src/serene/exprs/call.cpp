@@ -24,11 +24,13 @@
 
 #include "serene/exprs/call.h"
 #include "serene/errors/error.h"
+#include "serene/exprs/def.h"
 #include "serene/exprs/expression.h"
 #include "serene/exprs/list.h"
 #include "serene/exprs/symbol.h"
 #include "serene/reader/semantics.h"
 #include "llvm/Support/Casting.h"
+#include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/FormatVariadic.h"
 
 namespace serene {
@@ -48,7 +50,7 @@ bool Call::classof(const Expression *e) {
 };
 
 MaybeNode Call::make(SereneContext &ctx, List *list) {
-  assert((list->count() == 0) && "Empty call? Seriously ?");
+  assert((list->count() != 0) && "Empty call? Seriously ?");
 
   // Let's find out what is the first element of the list
   auto maybeFirst = list->elements[0]->analyze(ctx);
@@ -72,19 +74,25 @@ MaybeNode Call::make(SereneContext &ctx, List *list) {
   case ExprType::Symbol: {
 
     auto *sym = llvm::dyn_cast<Symbol>(first.get());
+
+    if (!sym) {
+      llvm_unreachable("Couldn't case to Symbol while the type is symbol!");
+    }
     // TODO: Lookup the symbol in the namespace via a method that looks
     //       into the current environment.
     auto maybeResult = ctx.getCurrentNS()->semanticEnv.lookup(sym->name);
 
     if (!maybeResult) {
-      return makeErrorful<Node>(
-          sym->location, &errors::CantResolveSymbol,
-          llvm::formatv("Can't resolve the symbol '{0}'!", sym->name));
+      std::string msg =
+          llvm::formatv("Can't resolve the symbol '{0}'!", sym->name);
+      return makeErrorful<Node>(sym->location, &errors::CantResolveSymbol, msg);
     }
 
     targetNode = maybeResult.getValue();
     break;
   }
+
+  case ExprType::Def:
 
     // If the first element was a Call itself we need to just chain it
     // with a new call. It would be something like `((blah 1) 4)`. `blah`
@@ -100,10 +108,10 @@ MaybeNode Call::make(SereneContext &ctx, List *list) {
 
     // Otherwise we don't know how to call the first element.
   default: {
-    return makeErrorful<Node>(
-        first, &errors::DontKnowHowToCallNode,
-        llvm::formatv("Don't know how to call a '{0}'",
-                      stringifyExprType(first->getType())));
+    std::string msg = llvm::formatv("Don't know how to call a '{0}'",
+                                    stringifyExprType(first->getType()));
+    return makeErrorful<Node>(first->location, &errors::DontKnowHowToCallNode,
+                              msg);
   }
   };
 

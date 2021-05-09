@@ -44,6 +44,8 @@ public:
   Symbol(reader::LocationRange &loc, llvm::StringRef name)
       : Expression(loc), name(name){};
 
+  Symbol(Symbol &s) : Expression(s.location) { this->name = s.name; }
+
   ExprType getType() const;
   std::string toString() const;
 

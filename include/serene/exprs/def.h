@@ -49,6 +49,8 @@ public:
   Def(reader::LocationRange &loc, llvm::StringRef binding, Node &v)
       : Expression(loc), binding(binding), value(v){};
 
+  Def(Def &d) = delete;
+
   ExprType getType() const;
   std::string toString() const;
   MaybeNode analyze(SereneContext &);

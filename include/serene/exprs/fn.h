@@ -53,6 +53,8 @@ public:
   Fn(reader::LocationRange &loc, List &args, Ast body)
       : Expression(loc), args(args), body(body){};
 
+  Fn(Fn &f) = delete;
+
   ExprType getType() const;
   std::string toString() const;
   MaybeNode analyze(SereneContext &);

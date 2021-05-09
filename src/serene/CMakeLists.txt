@@ -12,6 +12,7 @@ set(HEADER_LIST
   "${INCLUDE_DIR}/serene/exprs/def.h"
   "${INCLUDE_DIR}/serene/exprs/fn.h"
   "${INCLUDE_DIR}/serene/exprs/traits.h"
+  "${INCLUDE_DIR}/serene/exprs/call.h"
 
   # Reader
   "${INCLUDE_DIR}/serene/reader/reader.h"
@@ -40,8 +41,10 @@ add_library(serene
   exprs/expression.cpp
   exprs/def.cpp
   exprs/fn.cpp
-  context.cpp
+  exprs/call.cpp
 
+
+  context.cpp
   serene.cpp
   namespace.cpp
 

@@ -24,7 +24,9 @@
 
 #include "serene/exprs/list.h"
 #include "serene/errors/error.h"
+#include "serene/exprs/call.h"
 #include "serene/exprs/def.h"
+#include "serene/exprs/expression.h"
 #include "serene/exprs/fn.h"
 #include "serene/exprs/symbol.h"
 #include "llvm/Support/Casting.h"
@@ -35,7 +37,10 @@
 namespace serene {
 namespace exprs {
 
-List::List(const List &l) : Expression(l.location){};
+List::List(const List &l) : Expression(l.location) {
+  this->elements = l.elements;
+};
+
 List::List(const reader::LocationRange &loc, Node &e) : Expression(loc) {
   elements.push_back(e);
 };
@@ -72,9 +77,11 @@ MaybeNode List::analyze(SereneContext &ctx) {
         }
       }
     }
+
+    return Call::make(ctx, this);
   }
 
-  return MaybeNode::success(nullptr);
+  return EmptyNode;
 };
 
 bool List::classof(const Expression *e) {

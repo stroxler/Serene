@@ -28,6 +28,7 @@
 #include "serene/exprs/list.h"
 #include "serene/exprs/symbol.h"
 #include "serene/reader/semantics.h"
+#include "llvm/Support/Casting.h"
 #include "llvm/Support/FormatVariadic.h"
 
 namespace serene {
@@ -42,18 +43,13 @@ std::string Fn::toString() const {
                        this->body.empty() ? "<>" : astToString(&this->body));
 }
 
-MaybeNode Fn::analyze(SereneContext &ctx) {
-  return MaybeNode::success(nullptr);
-};
+MaybeNode Fn::analyze(SereneContext &ctx) { return EmptyNode; };
 
 bool Fn::classof(const Expression *e) { return e->getType() == ExprType::Fn; };
 
 MaybeNode Fn::make(SereneContext &ctx, List *list) {
   // TODO: Add support for docstring as the 3rd argument (4th element)
   if (list->count() < 2) {
-    // return MaybeNode::error(makeAndCast<errors::Error>(
-    // list->elements[0]->location, &errors::FnNoArgsList,
-    // "The argument list is mandatory."));
     return makeErrorful<Node>(list->elements[0]->location,
                               &errors::FnNoArgsList,
                               "The argument list is mandatory.");
@@ -69,9 +65,6 @@ MaybeNode Fn::make(SereneContext &ctx, List *list) {
     std::string msg =
         llvm::formatv("Arguments of a function has to be a list, got '{0}'",
                       stringifyExprType(list->elements[1]->getType()));
-    // return MaybeNode::error(makeAndCast<errors::Error>(
-    //     list->elements[1]->location, &errors::FnArgsMustBeList, msg));
-
     return makeErrorful<Node>(list->elements[1]->location,
                               &errors::FnArgsMustBeList, msg);
   }

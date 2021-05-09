@@ -130,7 +130,8 @@ TEST_CASE("List semantic analysis for 'fn'", "[semantic]") {
   afterAst = reader::analyze(ctx, ast.getValue());
   REQUIRE(afterAst);
   CHECK(astToString(&afterAst.getValue()) ==
-        "<Fn Anonymous <List -> to <Symbol a> <Symbol a> <Symbol a>>");
+        "<Fn Anonymous <List  <Symbol a> <Symbol b> <Symbol c>> to <Symbol a> "
+        "<Symbol a> <Symbol a>>");
 
   ast = reader::read("(fn () a b)");
   afterAst = reader::analyze(ctx, ast.getValue());
@@ -142,15 +143,17 @@ TEST_CASE("List semantic analysis for 'fn'", "[semantic]") {
   afterAst = reader::analyze(ctx, ast.getValue());
   REQUIRE(afterAst);
   CHECK(astToString(&afterAst.getValue()) ==
-        "<Fn Anonymous <List -> to <Fn Anonymous <List -> to <Symbol x>> "
-        "<Symbol z>>");
+        "<Fn Anonymous <List  <Symbol x>> to <Fn Anonymous <List  <Symbol y>> "
+        "to <Symbol x>> <Symbol z>>"
+
+  );
 
   ast = reader::read("(fn (x) (def a b) (def b c))");
   afterAst = reader::analyze(ctx, ast.getValue());
   REQUIRE(afterAst);
-  CHECK(
-      astToString(&afterAst.getValue()) ==
-      "<Fn Anonymous <List -> to <Def a -> <Symbol b>> <Def b -> <Symbol c>>>");
+  CHECK(astToString(&afterAst.getValue()) ==
+        "<Fn Anonymous <List  <Symbol x>> to <Def a -> <Symbol b>> <Def b -> "
+        "<Symbol c>>>");
 }
 
 TEST_CASE("Complex semantic analysis", "[semantic]") {
@@ -159,11 +162,12 @@ TEST_CASE("Complex semantic analysis", "[semantic]") {
   auto ast =
       reader::read("(def a (fn (x) x))\n((def b (fn (x) (fn (y) y))))\n\n");
   auto afterAst = reader::analyze(ctx, ast.getValue());
+
   REQUIRE(afterAst);
   CHECK(astToString(&afterAst.getValue()) ==
-        "<Def a -> <Fn Anonymous <List -> to <Symbol x>>> <List  <List  "
-        "<Symbol def> <Symbol b> <List  <Symbol fn> <List  <Symbol x>> <List  "
-        "<Symbol fn> <List  <Symbol y>> <Symbol y>>>>>");
+        "<Def a -> <Fn Anonymous <List  <Symbol x>> to <Symbol x>>> <Call <Def "
+        "b -> <Fn Anonymous <List  <Symbol x>> to <Fn Anonymous <List  <Symbol "
+        "y>> to <Symbol y>>>> >");
 }
 } // namespace exprs
 } // namespace serene

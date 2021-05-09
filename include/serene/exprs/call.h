@@ -50,6 +50,8 @@ public:
   Call(reader::LocationRange &loc, Node &target, Ast &params)
       : Expression(loc), target(target), params(params){};
 
+  Call(Call &) = delete;
+
   ExprType getType() const;
   std::string toString() const;
   MaybeNode analyze(SereneContext &);
