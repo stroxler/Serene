@@ -162,21 +162,29 @@ TEST_CASE("Complex semantic analysis", "[semantic]") {
   auto ast =
       reader::read("(def a (fn (x) x))\n((def b (fn (x) (fn (y) y))))\n\n");
   auto afterAst = reader::analyze(ctx, ast.getValue());
-
   REQUIRE(afterAst);
   CHECK(astToString(&afterAst.getValue()) ==
         "<Def a -> <Fn Anonymous <List  <Symbol x>> to <Symbol x>>> <Call <Def "
         "b -> <Fn Anonymous <List  <Symbol x>> to <Fn Anonymous <List  <Symbol "
         "y>> to <Symbol y>>>> >");
 
-  ast = reader::read("((fn (x) (def x b) x) (fn (x) x) (a b))");
+  ctx = makeSereneContext();
+  ns = makeNamespace(ctx, "user", llvm::None);
+  ast = reader::read("((a b))");
   afterAst = reader::analyze(ctx, ast.getValue());
+  REQUIRE_FALSE(afterAst);
+  auto errs = afterAst.getError();
+  CHECK(errs[0]->toString() == "<Error E5: Can't resolve the symbol 'a'>");
 
+  ctx = makeSereneContext();
+  ns = makeNamespace(ctx, "user", llvm::None);
+  ast = reader::read("(def a (fn (x) x)) (a b)");
+  afterAst = reader::analyze(ctx, ast.getValue());
   REQUIRE(afterAst);
+
   CHECK(astToString(&afterAst.getValue()) ==
-        "<Call <Fn Anonymous <List  <Symbol x>> to <Def x -> <Symbol b>> "
-        "<Symbol x>> <Fn Anonymous <List  <Symbol x>> to <Symbol x>> <Call <Fn "
-        "Anonymous <List  <Symbol x>> to <Symbol x>> <Symbol b>>>");
+        "<Def a -> <Fn Anonymous <List  <Symbol x>> to <Symbol x>>> <Call <Fn "
+        "Anonymous <List  <Symbol x>> to <Symbol x>> <Symbol b>>");
 }
 } // namespace exprs
 } // namespace serene

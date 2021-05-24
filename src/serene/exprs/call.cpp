@@ -92,9 +92,9 @@ MaybeNode Call::make(SereneContext &ctx, List *list) {
     //       into the current environment.
     auto maybeResult = ctx.getCurrentNS()->semanticEnv.lookup(sym->name);
 
-    if (!maybeResult) {
+    if (!maybeResult.hasValue()) {
       std::string msg =
-          llvm::formatv("Can't resolve the symbol '{0}'!", sym->name);
+          llvm::formatv("Can't resolve the symbol '{0}'", sym->name);
       return makeErrorful<Node>(sym->location, &errors::CantResolveSymbol, msg);
     }
 
