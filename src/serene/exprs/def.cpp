@@ -24,8 +24,11 @@
 
 #include "serene/exprs/def.h"
 #include "serene/errors/error.h"
+#include "serene/exprs/fn.h"
 #include "serene/exprs/list.h"
 #include "serene/exprs/symbol.h"
+#include "serene/exprs/traits.h"
+#include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/FormatVariadic.h"
 
@@ -88,6 +91,13 @@ MaybeNode Def::make(SereneContext &ctx, List *list) {
     return value;
   }
 
+  if (analyzedValue->getType() == ExprType::Fn) {
+    Fn *tmp = llvm::dyn_cast<Fn>(analyzedValue.get());
+    if (!tmp) {
+      llvm_unreachable("inconsistent getType for function");
+    }
+    tmp->setName(binding->name);
+  }
   // auto analayzedValuePtr = analyzedValue;
   auto result = ctx.getCurrentNS()->semanticEnv.insert_symbol(binding->name,
                                                               analyzedValue);

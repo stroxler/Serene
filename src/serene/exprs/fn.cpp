@@ -34,6 +34,12 @@
 namespace serene {
 namespace exprs {
 
+Fn::Fn(SereneContext &ctx, reader::LocationRange &loc, List &args, Ast body)
+    : Expression(loc), args(args), body(body) {
+  this->setName(
+      llvm::formatv("___fn___{0}", ctx.getCurrentNS()->nextFnCounter()));
+};
+
 ExprType Fn::getType() const { return ExprType::Fn; };
 
 std::string Fn::toString() const {
@@ -46,6 +52,8 @@ std::string Fn::toString() const {
 MaybeNode Fn::analyze(SereneContext &ctx) { return EmptyNode; };
 
 bool Fn::classof(const Expression *e) { return e->getType() == ExprType::Fn; };
+
+void Fn::setName(std::string n) { this->name = n; };
 
 MaybeNode Fn::make(SereneContext &ctx, List *list) {
   // TODO: Add support for docstring as the 3rd argument (4th element)
@@ -82,7 +90,7 @@ MaybeNode Fn::make(SereneContext &ctx, List *list) {
     body = maybeAst.getValue();
   }
 
-  return makeSuccessfulNode<Fn>(list->location, *args, body);
+  return makeSuccessfulNode<Fn>(ctx, list->location, *args, body);
 };
 } // namespace exprs
 } // namespace serene

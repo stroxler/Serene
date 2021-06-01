@@ -28,6 +28,7 @@
 #include "serene/environment.h"
 #include "serene/utils.h"
 #include "llvm/ADT/SmallString.h"
+#include <atomic>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/IR/Module.h>
 #include <memory>
@@ -52,6 +53,7 @@ using Ast = std::vector<Node>;
 class Namespace {
 private:
   bool initialized = false;
+  std::atomic<uint> fn_counter = 0;
   exprs::Ast tree;
 
 public:
@@ -66,7 +68,7 @@ public:
 
   exprs::Ast &getTree();
   mlir::LogicalResult setTree(exprs::Ast &);
-
+  uint nextFnCounter();
   ~Namespace();
 };
 

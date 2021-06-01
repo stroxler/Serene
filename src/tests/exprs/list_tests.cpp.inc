@@ -108,7 +108,7 @@ TEST_CASE("List semantic analysis of 'def'", "[semantic]") {
   afterAst = reader::analyze(ctx, ast.getValue());
   REQUIRE(afterAst);
   CHECK(astToString(&afterAst.getValue()) ==
-        "<Def a -> <Fn Anonymous <List -> to <Symbol a>>>");
+        "<Def a -> <Fn a <List -> to <Symbol a>>>");
 }
 
 TEST_CASE("List semantic analysis for 'fn'", "[semantic]") {
@@ -124,36 +124,33 @@ TEST_CASE("List semantic analysis for 'fn'", "[semantic]") {
   ast = reader::read("(fn ())");
   afterAst = reader::analyze(ctx, ast.getValue());
   REQUIRE(afterAst);
-  CHECK(astToString(&afterAst.getValue()) == "<Fn Anonymous <List -> to <>>");
+  CHECK(astToString(&afterAst.getValue()) == "<Fn ___fn___0 <List -> to <>>");
 
   ast = reader::read("(fn (a b c) a a a)");
   afterAst = reader::analyze(ctx, ast.getValue());
   REQUIRE(afterAst);
   CHECK(astToString(&afterAst.getValue()) ==
-        "<Fn Anonymous <List  <Symbol a> <Symbol b> <Symbol c>> to <Symbol a> "
-        "<Symbol a> <Symbol a>>");
+        "<Fn ___fn___1 <List  <Symbol a> <Symbol b> <Symbol c>> to <Symbol a> <Symbol a> <Symbol a>>"
+        );
 
   ast = reader::read("(fn () a b)");
   afterAst = reader::analyze(ctx, ast.getValue());
   REQUIRE(afterAst);
   CHECK(astToString(&afterAst.getValue()) ==
-        "<Fn Anonymous <List -> to <Symbol a> <Symbol b>>");
+        "<Fn ___fn___2 <List -> to <Symbol a> <Symbol b>>");
 
   ast = reader::read("(fn (x) (fn (y) x) z)");
   afterAst = reader::analyze(ctx, ast.getValue());
   REQUIRE(afterAst);
   CHECK(astToString(&afterAst.getValue()) ==
-        "<Fn Anonymous <List  <Symbol x>> to <Fn Anonymous <List  <Symbol y>> "
-        "to <Symbol x>> <Symbol z>>"
-
+        "<Fn ___fn___4 <List  <Symbol x>> to <Fn ___fn___3 <List  <Symbol y>> to <Symbol x>> <Symbol z>>"
   );
 
   ast = reader::read("(fn (x) (def a b) (def b c))");
   afterAst = reader::analyze(ctx, ast.getValue());
   REQUIRE(afterAst);
   CHECK(astToString(&afterAst.getValue()) ==
-        "<Fn Anonymous <List  <Symbol x>> to <Def a -> <Symbol b>> <Def b -> "
-        "<Symbol c>>>");
+        "<Fn ___fn___5 <List  <Symbol x>> to <Def a -> <Symbol b>> <Def b -> <Symbol c>>>");
 }
 
 TEST_CASE("Complex semantic analysis", "[semantic]") {
@@ -164,9 +161,7 @@ TEST_CASE("Complex semantic analysis", "[semantic]") {
   auto afterAst = reader::analyze(ctx, ast.getValue());
   REQUIRE(afterAst);
   CHECK(astToString(&afterAst.getValue()) ==
-        "<Def a -> <Fn Anonymous <List  <Symbol x>> to <Symbol x>>> <Call <Def "
-        "b -> <Fn Anonymous <List  <Symbol x>> to <Fn Anonymous <List  <Symbol "
-        "y>> to <Symbol y>>>> >");
+        "<Def a -> <Fn a <List  <Symbol x>> to <Symbol x>>> <Call <Def b -> <Fn b <List  <Symbol x>> to <Fn ___fn___1 <List  <Symbol y>> to <Symbol y>>>> >");
 
   ctx = makeSereneContext();
   ns = makeNamespace(ctx, "user", llvm::None);
@@ -183,8 +178,7 @@ TEST_CASE("Complex semantic analysis", "[semantic]") {
   REQUIRE(afterAst);
 
   CHECK(astToString(&afterAst.getValue()) ==
-        "<Def a -> <Fn Anonymous <List  <Symbol x>> to <Symbol x>>> <Call <Fn "
-        "Anonymous <List  <Symbol x>> to <Symbol x>> <Symbol b>>");
+        "<Def a -> <Fn a <List  <Symbol x>> to <Symbol x>>> <Call <Fn a <List  <Symbol x>> to <Symbol x>> <Symbol b>>");
 }
 } // namespace exprs
 } // namespace serene

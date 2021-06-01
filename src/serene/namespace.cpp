@@ -65,6 +65,7 @@ makeNamespace(SereneContext &ctx, llvm::StringRef name,
   return nsPtr;
 };
 
+uint Namespace::nextFnCounter() { return fn_counter++; };
 Namespace::~Namespace() {}
 
 } // namespace serene

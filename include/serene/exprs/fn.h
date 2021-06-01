@@ -29,6 +29,7 @@
 #include "serene/errors/error.h"
 #include "serene/exprs/expression.h"
 #include "serene/exprs/list.h"
+#include "serene/namespace.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/Error.h"
 #include <memory>
@@ -50,8 +51,7 @@ public:
   List args;
   Ast body;
 
-  Fn(reader::LocationRange &loc, List &args, Ast body)
-      : Expression(loc), args(args), body(body){};
+  Fn(SereneContext &ctx, reader::LocationRange &loc, List &args, Ast body);
 
   Fn(Fn &f) = delete;
 
@@ -70,6 +70,7 @@ public:
   /// \param list the list containing the `fn` form
   static MaybeNode make(SereneContext &ctx, List *list);
 
+  void setName(std::string);
   ~Fn() = default;
 };
 
