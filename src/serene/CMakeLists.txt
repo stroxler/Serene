@@ -28,9 +28,9 @@ set(HEADER_LIST
   "${INCLUDE_DIR}/serene/errors/traits.h"
 
 
-  # "${INCLUDE_DIR}/serene/sir/sir.hpp"
-  # "${INCLUDE_DIR}/serene/sir/dialect.hpp"
-  # "${INCLUDE_DIR}/serene/sir/generator.hpp"
+  "${INCLUDE_DIR}/serene/slir/slir.h"
+  "${INCLUDE_DIR}/serene/slir/dialect.h"
+  "${INCLUDE_DIR}/serene/slir/generator.h"
   "${INCLUDE_DIR}/serene/namespace.h")
 
 # Make an automatic library - will be static or dynamic based on user setting
@@ -58,10 +58,10 @@ add_library(serene
   errors/error.cpp
 
   # IR
-  # sir/sir.cpp
-  # sir/dialect.cpp
-  # sir/value_op.cpp
-  # sir/generator.cpp
+  slir/slir.cpp
+  slir/dialect.cpp
+  slir/value_op.cpp
+  slir/generator.cpp
   ${HEADER_LIST})
 
 
@@ -81,6 +81,6 @@ target_include_directories(serene PRIVATE ${INCLUDE_DIR})
 target_include_directories(serene PUBLIC ${PROJECT_BINARY_DIR})
 
 # This depends on (header only) boost
-target_link_libraries(serene ${llvm_libs} fmt::fmt)
+target_link_libraries(serene ${llvm_libs})
 source_group(TREE "${INCLUDE_DIR}" PREFIX "Header Files" FILES ${HEADER_LIST})
 #target_precompile_headers(serene PRIVATE ${HEADER_LIST})

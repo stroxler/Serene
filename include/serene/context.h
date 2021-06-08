@@ -25,9 +25,12 @@
 #ifndef SERENE_CONTEXT_H
 #define SERENE_CONTEXT_H
 
+#include "mlir/IR/MLIRContext.h"
 #include "serene/environment.h"
 #include "serene/namespace.h"
+#include "serene/slir/dialect.h"
 #include "llvm/ADT/StringRef.h"
+#include <memory>
 
 namespace serene {
 
@@ -44,12 +47,14 @@ class SereneContext {
   std::string current_ns;
 
 public:
+  mlir::MLIRContext mlirContext;
+
   /// Insert the given `ns` into the context. The Context object is
   /// the owner of all the namespaces. The `ns` will overwrite any
   /// namespace with the same name.
   void insertNS(std::shared_ptr<Namespace> ns);
 
-  /// Sets the name of the current namespace in the context and return
+  /// Sets the n ame of the current namespace in the context and return
   /// a boolean indicating the status of this operation. The operation
   /// will fail if the namespace does not exist in the namespace table.
   bool setCurrentNS(llvm::StringRef ns_name);
@@ -57,12 +62,15 @@ public:
   std::shared_ptr<Namespace> getCurrentNS();
 
   std::shared_ptr<Namespace> getNS(llvm::StringRef ns_name);
-  SereneContext(){};
+
+  SereneContext() {
+    mlirContext.getOrLoadDialect<serene::slir::SereneDialect>();
+  };
 };
 
 /// Creates a new context object. Contexts are used through out the compilation
 /// process to store the state
-SereneContext makeSereneContext();
+std::unique_ptr<SereneContext> makeSereneContext();
 
 }; // namespace serene
 

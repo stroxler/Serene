@@ -42,5 +42,7 @@ bool Number::classof(const Expression *e) {
   return e->getType() == ExprType::Number;
 };
 
+int Number::toI64() { return std::stoi(this->value); };
+
 } // namespace exprs
 } // namespace serene

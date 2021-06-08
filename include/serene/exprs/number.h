@@ -38,6 +38,7 @@ namespace exprs {
 /// So it won't cast to actual numeric types and it has a string container
 /// to hold the parsed value.
 struct Number : public Expression {
+  // TODO: Use a variant here instead
   std::string value;
 
   bool isNeg;
@@ -52,6 +53,9 @@ struct Number : public Expression {
   MaybeNode analyze(SereneContext &ctx);
 
   static bool classof(const Expression *e);
+
+  // TODO: This is horrible, we need to fix it after the mvp
+  int toI64();
 
   ~Number() = default;
 };

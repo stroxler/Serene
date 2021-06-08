@@ -3,11 +3,9 @@
 command=$1
 
 
-export CCC_CC=clang
-export CCC_CXX=clang++
-export CC=clang
-export CXX=clang++
-
+export CC=$(which clang)
+export CXX=$(which clang++)
+export LDFLAGS="-fuse-ld=lld"
 ROOT_DIR=`pwd`
 BUILD_DIR=$ROOT_DIR/build
 

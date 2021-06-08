@@ -32,6 +32,7 @@
 #include <llvm/ADT/StringRef.h>
 #include <llvm/IR/Module.h>
 #include <memory>
+#include <mlir/IR/Value.h>
 #include <mlir/Support/LogicalResult.h>
 #include <string>
 
@@ -64,6 +65,7 @@ public:
   /// Which is a mapping from names to AST nodes ( no evaluation ).
   Environment<std::string, exprs::Node> semanticEnv;
 
+  Environment<llvm::StringRef, mlir::Value> symbolTable;
   Namespace(llvm::StringRef ns_name, llvm::Optional<llvm::StringRef> filename);
 
   exprs::Ast &getTree();

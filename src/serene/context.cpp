@@ -58,5 +58,7 @@ std::shared_ptr<Namespace> SereneContext::getCurrentNS() {
   return nullptr;
 };
 
-SereneContext makeSereneContext() { return SereneContext(); };
+std::unique_ptr<SereneContext> makeSereneContext() {
+  return std::make_unique<SereneContext>();
+};
 }; // namespace serene

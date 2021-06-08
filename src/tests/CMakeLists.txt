@@ -5,6 +5,15 @@ find_package(Catch2 REQUIRED)
 add_executable(tests serenetests.cpp)
 add_dependencies(tests SereneDialectGen)
 add_dependencies(tests serene)
+target_link_libraries(tests PRIVATE
+  serene
+  ${llvm_libs}
+  MLIRAnalysis
+  MLIRIR
+  MLIRParser
+  MLIRSideEffectInterfaces
+  MLIRTransforms
+  )
 
 target_compile_features(tests PRIVATE cxx_std_17)
 

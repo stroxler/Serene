@@ -27,7 +27,6 @@
 #include "serene/llvm/IR/Value.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/FormatVariadic.h"
-#include <fmt/core.h>
 #include <string>
 
 using namespace std;

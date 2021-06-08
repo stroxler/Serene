@@ -1,4 +1,3 @@
-
 /**
  * Serene programming language.
  *
@@ -77,8 +76,8 @@ int main(int argc, char *argv[]) {
     auto &ast = maybeAst.getValue();
 
     auto ctx = makeSereneContext();
-    auto ns = makeNamespace(ctx, "user", llvm::None);
-    auto afterAst = reader::analyze(ctx, ast);
+    auto ns = makeNamespace(*ctx, "user", llvm::None);
+    auto afterAst = reader::analyze(*ctx, ast);
 
     if (afterAst) {
       dump(afterAst.getValue());

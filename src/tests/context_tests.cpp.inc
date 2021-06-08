@@ -31,26 +31,26 @@ namespace serene {
 
 TEST_CASE("Context tests", "[context]") {
   auto ctx = makeSereneContext();
-  auto ns = ctx.getNS("blah");
+  auto ns = ctx->getNS("blah");
 
   REQUIRE_FALSE(ns);
 
-  auto userNs = makeNamespace(ctx, "user", llvm::Optional<llvm::StringRef>("/some/file"));
+  auto userNs = makeNamespace(*ctx, "user", llvm::Optional<llvm::StringRef>("/some/file"));
 
   CHECK(userNs->name == "user");
   REQUIRE(userNs->filename);
   CHECK(userNs->filename.getValue() == "/some/file");
 
-  ns = ctx.getNS("user");
+  ns = ctx->getNS("user");
 
   REQUIRE(ns);
   CHECK(ns->name == userNs->name);
 
 
   /// Creating new ns with the same name overrides the old one
-  auto userNs1 = makeNamespace(ctx, "user", llvm::Optional<llvm::StringRef>("/some/other/file"));
+  auto userNs1 = makeNamespace(*ctx, "user", llvm::Optional<llvm::StringRef>("/some/other/file"));
 
-  ns = ctx.getNS("user");
+  ns = ctx->getNS("user");
 
   REQUIRE(ns);
   CHECK(ns->name == userNs1->name);
@@ -61,15 +61,15 @@ TEST_CASE("Context tests", "[context]") {
 
 TEST_CASE("Get and Set current namespace", "[context]") {
   auto ctx = makeSereneContext();
-  auto userNs = makeNamespace(ctx, "user", llvm::Optional<llvm::StringRef>("/some/file"));
+  auto userNs = makeNamespace(*ctx, "user", llvm::Optional<llvm::StringRef>("/some/file"));
 
-  auto isSet = ctx.setCurrentNS("user");
+  auto isSet = ctx->setCurrentNS("user");
 
   REQUIRE(isSet);
-  CHECK(ctx.getCurrentNS() == userNs);
+  CHECK(ctx->getCurrentNS() == userNs);
 
-  isSet = ctx.setCurrentNS("user1");
+  isSet = ctx->setCurrentNS("user1");
   REQUIRE_FALSE(isSet);
-  CHECK(ctx.getCurrentNS() == userNs);
+  CHECK(ctx->getCurrentNS() == userNs);
 };
 } // namespace serene

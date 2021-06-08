@@ -27,6 +27,10 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   set(BIN_DIR ${CMAKE_SOURCE_DIR}/bin)
 
   set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
+  #set(CMAKE_CXX_LINK_EXECUTABLE "ld.lld")
+  #set(CMAKE_C_LINK_EXECUTABLE "ld.lld")
+  #set(LLVM_USE_LINKER "ld.lld")
+  #set(LLVM_ENABLE_LLD ON)
   set(CMAKE_CXX_CLANG_TIDY clang-tidy)
   # Let's ensure -std=c++xx instead of -std=g++xx
   set(CMAKE_CXX_EXTENSIONS OFF)
@@ -61,7 +65,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   find_package(LLVM REQUIRED CONFIG)
   find_package(MLIR REQUIRED CONFIG)
 
-  message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+  message(STATUS "Found LLVM ${LLVM_PAsCKAGE_VERSION}")
   message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
   message(STATUS "Using MLIRConfig.cmake in: ${MLIR_DIR}")
 
@@ -88,16 +92,6 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   add_definitions(${LLVM_DEFINITIONS})
 
   llvm_map_components_to_libnames(llvm_libs support core irreader)
-
-
-  # Formatting library
-  FetchContent_Declare(
-    fmtlib
-    GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-    GIT_TAG        7.0.1
-    )
-  FetchContent_MakeAvailable(fmtlib)
-
 
   # The compiled library code is here
   add_subdirectory(src/serene)

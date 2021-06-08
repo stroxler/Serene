@@ -34,7 +34,7 @@ namespace serene {
 TEST_CASE("Namespace tests", "[namespace]") {
   auto ctx = makeSereneContext();
   auto userNs =
-      makeNamespace(ctx, "user", llvm::Optional<llvm::StringRef>("/some/file"));
+      makeNamespace(*ctx, "user", llvm::Optional<llvm::StringRef>("/some/file"));
 
   auto r = new reader::Reader("(x 1) (def b a)");
 
