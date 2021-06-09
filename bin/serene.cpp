@@ -23,11 +23,11 @@
  */
 
 #include "serene/serene.h"
+#include "serene/context.h"
 #include "serene/namespace.h"
 #include "serene/reader/reader.h"
 #include "serene/reader/semantics.h"
-// #include "serene/sir/sir.hpp"
-#include "serene/context.h"
+#include "serene/slir/slir.h"
 #include <iostream>
 #include <llvm/Support/CommandLine.h>
 
@@ -49,7 +49,7 @@ static cl::opt<enum Action> emitAction(
     "emit", cl::desc("Select what to dump."),
     cl::values(clEnumValN(DumpSemantic, "ast1",
                           "Output the AST after one level of analysis only")),
-    cl::values(clEnumValN(DumpIR, "sir", "Output the SLIR only")),
+    cl::values(clEnumValN(DumpIR, "slir", "Output the SLIR only")),
     cl::values(clEnumValN(DumpAST, "ast", "Output the AST only"))
 
 );
@@ -91,15 +91,38 @@ int main(int argc, char *argv[]) {
     return 0;
   };
   case Action::DumpIR: {
-    // reader::FileReader *r = new reader::FileReader(inputFile);
-    // auto ast = r->read();
+    reader::FileReader *r = new reader::FileReader(inputFile);
 
-    // if (!ast) {
-    //   throw std::move(ast.getError());
-    // }
+    auto maybeAst = r->read();
 
-    // serene::sir::dumpSIR(ast.getValue());
-    // delete r;
+    if (!maybeAst) {
+      throw std::move(maybeAst.getError());
+    }
+
+    // TODO: Move all this to a compile fn
+    auto &ast = maybeAst.getValue();
+
+    auto ctx = makeSereneContext();
+    auto ns = makeNamespace(*ctx, "user", llvm::None);
+    auto afterAst = reader::analyze(*ctx, ast);
+
+    if (afterAst) {
+      auto isSet = ns->setTree(afterAst.getValue());
+
+      if (isSet.succeeded()) {
+        ctx->insertNS(ns);
+        serene::slir::dumpSLIR(*ctx, ns->name);
+      } else {
+        llvm::outs() << "Can't set the tree of the namespace!\n";
+      }
+
+      delete r;
+      return 0;
+    } else {
+      throw std::move(afterAst.getError());
+    }
+
+    delete r;
     return 0;
   }
   default: {

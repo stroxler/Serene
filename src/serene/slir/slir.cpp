@@ -49,7 +49,7 @@ void dumpSLIR(serene::SereneContext &ctx, llvm::StringRef ns_name) {
   SLIR s(ctx);
   auto ns = ctx.getNS(ns_name);
 
-  assert(!ns && "No such a namespace to dump!");
+  assert(ns && "No such a namespace to dump!");
 
   auto module = s.generate(ns_name);
   module->dump();

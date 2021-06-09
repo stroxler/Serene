@@ -48,7 +48,7 @@ private:
   std::shared_ptr<serene::Namespace> ns;
 
   // TODO: Should we use builder here? maybe there is a better option
-  mlir::Location toMLIRLocation(serene::reader::Location *);
+  mlir::Location toMLIRLocation(serene::reader::Location &);
 
 public:
   Generator(serene::SereneContext &ctx, llvm::StringRef ns_name)
@@ -57,7 +57,7 @@ public:
     this->ns = ctx.getNS(ns_name);
   };
 
-  mlir::Operation *generate(exprs::Number *);
+  mlir::Operation *generate(exprs::Number &);
   mlir::Operation *generate(exprs::Expression *);
   mlir::Value generate(exprs::List *);
   mlir::ModuleOp generate();

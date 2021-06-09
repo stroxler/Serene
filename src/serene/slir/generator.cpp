@@ -179,19 +179,19 @@ mlir::Value Generator::generate(exprs::List *l) {
 //   return fn;
 // }
 
-mlir::Operation *Generator::generate(exprs::Number *x) {
-  return builder.create<ValueOp>(builder.getUnknownLoc(), x->toI64());
+mlir::Operation *Generator::generate(exprs::Number &x) {
+  return builder.create<ValueOp>(toMLIRLocation(x.location.start), x.toI64());
 };
 
 /**
  * Convert a Serene location to MLIR FileLineLoc Location
  */
-::mlir::Location Generator::toMLIRLocation(serene::reader::Location *loc) {
+::mlir::Location Generator::toMLIRLocation(serene::reader::Location &loc) {
   auto file = this->ns->filename;
   std::string filename{file.getValueOr("REPL")};
 
-  return mlir::FileLineColLoc::get(builder.getIdentifier(filename), loc->line,
-                                   loc->col);
+  return mlir::FileLineColLoc::get(builder.getIdentifier(filename), loc.line,
+                                   loc.col);
 }
 
 Generator::~Generator(){};
