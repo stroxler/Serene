@@ -1,7 +1,7 @@
-/**
+/* -*- C++ -*-
  * Serene programming language.
  *
- *  Copyright (c) 2020 Sameer Rahmani <lxsameer@gnu.org>
+ *  Copyright (c) 2019-2021 Sameer Rahmani <lxsameer@gnu.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -103,6 +103,7 @@ int main(int argc, char *argv[]) {
     auto &ast = maybeAst.getValue();
 
     auto ctx = makeSereneContext();
+    applyPassManagerCLOptions(ctx->pm);
     auto ns = makeNamespace(*ctx, "user", llvm::None);
     auto afterAst = reader::analyze(*ctx, ast);
 

@@ -57,7 +57,7 @@ public:
     this->ns = ctx.getNS(ns_name);
   };
 
-  mlir::Operation *generate(exprs::Number &);
+  void generate(exprs::Number &);
   mlir::Operation *generate(exprs::Expression *);
   mlir::Value generate(exprs::List *);
   mlir::ModuleOp generate();

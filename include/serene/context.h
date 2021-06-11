@@ -25,12 +25,14 @@
 #ifndef SERENE_CONTEXT_H
 #define SERENE_CONTEXT_H
 
-#include "mlir/IR/MLIRContext.h"
 #include "serene/environment.h"
 #include "serene/namespace.h"
+#include "serene/passes/slir_lowering.h"
 #include "serene/slir/dialect.h"
-#include "llvm/ADT/StringRef.h"
+#include <llvm/ADT/StringRef.h>
 #include <memory>
+#include <mlir/IR/MLIRContext.h>
+#include <mlir/Pass/PassManager.h>
 
 namespace serene {
 
@@ -48,7 +50,7 @@ class SereneContext {
 
 public:
   mlir::MLIRContext mlirContext;
-
+  mlir::PassManager pm;
   /// Insert the given `ns` into the context. The Context object is
   /// the owner of all the namespaces. The `ns` will overwrite any
   /// namespace with the same name.
@@ -63,8 +65,9 @@ public:
 
   std::shared_ptr<Namespace> getNS(llvm::StringRef ns_name);
 
-  SereneContext() {
+  SereneContext() : pm(&mlirContext) {
     mlirContext.getOrLoadDialect<serene::slir::SereneDialect>();
+    pm.addPass(serene::passes::createSLIRLowerToAffinePass());
   };
 };
 

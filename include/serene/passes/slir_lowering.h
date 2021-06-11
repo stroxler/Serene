@@ -21,46 +21,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
-#include "serene/slir/slir.h"
-#include "mlir/IR/MLIRContext.h"
-#include "serene/exprs/expression.h"
-#include "serene/namespace.h"
+#include "mlir/Dialect/StandardOps/IR/Ops.h"
 #include "serene/slir/dialect.h"
-#include "serene/slir/generator.h"
-#include "llvm/Support/raw_ostream.h"
-#include <memory>
+#include <mlir/Dialect/Affine/IR/AffineOps.h>
+#include <mlir/Dialect/LLVMIR/LLVMDialect.h>
+#include <mlir/Dialect/MemRef/IR/MemRef.h>
+#include <mlir/IR/BuiltinOps.h>
+#include <mlir/Pass/Pass.h>
+#include <mlir/Transforms/DialectConversion.h>
 
-namespace serene {
-namespace slir {
+namespace serene::passes {
+struct ValueOpLowering : public mlir::OpRewritePattern<serene::slir::ValueOp> {
+  using OpRewritePattern<serene::slir::ValueOp>::OpRewritePattern;
 
-SLIR::SLIR(serene::SereneContext &ctx) : context(ctx) {
-  context.mlirContext.getOrLoadDialect<serene::slir::SereneDialect>();
-}
-
-mlir::OwningModuleRef SLIR::generate(llvm::StringRef ns_name) {
-  auto g = std::make_unique<Generator>(context, ns_name);
-
-  return g->generate();
+  mlir::LogicalResult
+  matchAndRewrite(serene::slir::ValueOp op,
+                  mlir::PatternRewriter &rewriter) const final;
 };
 
-SLIR::~SLIR() {}
-
-void dumpSLIR(serene::SereneContext &ctx, llvm::StringRef ns_name) {
-  SLIR s(ctx);
-  auto ns = ctx.getNS(ns_name);
-
-  assert(ns && "No such a namespace to dump!");
-
-  auto module = s.generate(ns_name);
-
-  if (mlir::failed(ctx.pm.run(*module))) {
-    // TODO: throw a proper errer
-    llvm::outs() << "Pass manager has faild!\n";
-  }
-
-  module->dump();
+struct SLIRToAffinePass
+    : public mlir::PassWrapper<SLIRToAffinePass,
+                               mlir::OperationPass<mlir::ModuleOp>> {
+  void getDependentDialects(mlir::DialectRegistry &registry) const override;
+  void runOnOperation() final;
+  void runOnModule();
+  mlir::ModuleOp getModule();
 };
 
-} // namespace slir
-} // namespace serene
+std::unique_ptr<mlir::Pass> createSLIRLowerToAffinePass();
+
+} // namespace serene::passes

@@ -31,7 +31,9 @@ set(HEADER_LIST
   "${INCLUDE_DIR}/serene/slir/slir.h"
   "${INCLUDE_DIR}/serene/slir/dialect.h"
   "${INCLUDE_DIR}/serene/slir/generator.h"
-  "${INCLUDE_DIR}/serene/namespace.h")
+  "${INCLUDE_DIR}/serene/namespace.h"
+
+  "${INCLUDE_DIR}/serene/passes/slir_lowering.h")
 
 # Make an automatic library - will be static or dynamic based on user setting
 add_library(serene
@@ -62,6 +64,7 @@ add_library(serene
   slir/dialect.cpp
   slir/value_op.cpp
   slir/generator.cpp
+  passes/slir_lowering.cpp
   ${HEADER_LIST})
 
 

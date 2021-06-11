@@ -29,6 +29,7 @@
 #include "mlir/IR/MLIRContext.h"
 #include "mlir/IR/Value.h"
 #include "serene/exprs/expression.h"
+#include "serene/exprs/traits.h"
 #include "serene/slir/dialect.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/ScopedHashTable.h"
@@ -40,9 +41,14 @@ namespace serene {
 namespace slir {
 
 mlir::ModuleOp Generator::generate() {
-  // for (auto x : ns->Tree()) {
-  //   generate(x.get());
-  // }
+  for (auto &x : ns->getTree()) {
+    auto *num = llvm::dyn_cast<exprs::Number>(x.get());
+    if (num) {
+      generate(*num);
+    } else {
+      llvm::outs() << "else\n";
+    }
+  }
 
   return module;
 };
@@ -108,7 +114,6 @@ mlir::Value Generator::generate(exprs::List *l) {
   // // for (auto x : *rest) {
   // //   generate(x.get());
   // // }
-
   return builder.create<ValueOp>(builder.getUnknownLoc(), (uint64_t)100);
 };
 
@@ -179,8 +184,13 @@ mlir::Value Generator::generate(exprs::List *l) {
 //   return fn;
 // }
 
-mlir::Operation *Generator::generate(exprs::Number &x) {
-  return builder.create<ValueOp>(toMLIRLocation(x.location.start), x.toI64());
+void Generator::generate(exprs::Number &x) {
+  auto op =
+      builder.create<ValueOp>(toMLIRLocation(x.location.start), x.toI64());
+
+  if (op) {
+    module.push_back(op);
+  }
 };
 
 /**
