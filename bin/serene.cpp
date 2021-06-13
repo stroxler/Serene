@@ -27,6 +27,7 @@
 #include "serene/namespace.h"
 #include "serene/reader/reader.h"
 #include "serene/reader/semantics.h"
+#include "serene/slir/generatable.h"
 #include "serene/slir/slir.h"
 #include <iostream>
 #include <llvm/Support/CommandLine.h>
@@ -37,7 +38,7 @@ using namespace serene;
 namespace cl = llvm::cl;
 
 namespace {
-enum Action { None, DumpAST, DumpIR, DumpSemantic };
+enum Action { None, DumpAST, DumpIR, DumpSLIR, DumpSemantic };
 }
 
 static cl::opt<std::string> inputFile(cl::Positional,
@@ -49,7 +50,8 @@ static cl::opt<enum Action> emitAction(
     "emit", cl::desc("Select what to dump."),
     cl::values(clEnumValN(DumpSemantic, "ast1",
                           "Output the AST after one level of analysis only")),
-    cl::values(clEnumValN(DumpIR, "slir", "Output the SLIR only")),
+    cl::values(clEnumValN(DumpIR, "ir", "Output the lowered IR only")),
+    cl::values(clEnumValN(DumpSLIR, "slir", "Output the SLIR only")),
     cl::values(clEnumValN(DumpAST, "ast", "Output the AST only"))
 
 );
@@ -112,7 +114,12 @@ int main(int argc, char *argv[]) {
 
       if (isSet.succeeded()) {
         ctx->insertNS(ns);
-        serene::slir::dumpSLIR(*ctx, ns->name);
+        serene::slir::dumpIR<Namespace>(*ns);
+        // if (mlir::failed(ns->generateIR(*ctx))) {
+        //   // TODO: Replace with an actual error
+        //   llvm::outs() << "Can't generate IR for namespace\n";
+        // }
+        // serene::slir::dumpSLIR(*ctx, ns->name);
       } else {
         llvm::outs() << "Can't set the tree of the namespace!\n";
       }

@@ -27,6 +27,7 @@
 
 #include "serene/context.h"
 #include "serene/exprs/expression.h"
+#include "serene/namespace.h"
 #include "llvm/Support/FormatVariadic.h"
 
 namespace serene {
@@ -57,6 +58,7 @@ struct Number : public Expression {
   // TODO: This is horrible, we need to fix it after the mvp
   int toI64();
 
+  void generateIR(serene::Namespace &);
   ~Number() = default;
 };
 

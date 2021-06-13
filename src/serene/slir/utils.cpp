@@ -22,45 +22,19 @@
  * SOFTWARE.
  */
 
-#include "serene/slir/slir.h"
-#include "mlir/IR/MLIRContext.h"
-#include "serene/exprs/expression.h"
+#include "mlir/IR/BuiltinOps.h"
 #include "serene/namespace.h"
-#include "serene/slir/dialect.h"
-#include "serene/slir/generator.h"
-#include "llvm/Support/raw_ostream.h"
-#include <memory>
+#include "serene/reader/location.h"
 
-namespace serene {
-namespace slir {
+namespace serene::slir {
+::mlir::Location toMLIRLocation(serene::Namespace &ns,
+                                serene::reader::Location &loc) {
+  mlir::OpBuilder &builder = ns.getBuilder();
+  auto file = ns.filename;
+  std::string filename{file.getValueOr("REPL")};
 
-SLIR::SLIR(serene::SereneContext &ctx) : context(ctx) {
-  context.mlirContext.getOrLoadDialect<serene::slir::SereneDialect>();
+  return mlir::FileLineColLoc::get(builder.getIdentifier(filename), loc.line,
+                                   loc.col);
 }
 
-mlir::OwningModuleRef SLIR::generate(llvm::StringRef ns_name) {
-  auto g = std::make_unique<Generator>(context, ns_name);
-
-  return g->generate();
-};
-
-SLIR::~SLIR() {}
-
-void dumpSLIR(serene::SereneContext &ctx, llvm::StringRef ns_name) {
-  SLIR s(ctx);
-  auto ns = ctx.getNS(ns_name);
-
-  assert(ns && "No such a namespace to dump!");
-
-  auto module = s.generate(ns_name);
-
-  if (mlir::failed(ctx.pm.run(*module))) {
-    // TODO: throw a proper errer
-    llvm::outs() << "Pass manager has faild!\n";
-  }
-
-  module->dump();
-};
-
-} // namespace slir
-} // namespace serene
+} // namespace serene::slir

@@ -22,16 +22,20 @@
  * SOFTWARE.
  */
 
-#ifndef NAMESPACE_H
-#define NAMESPACE_H
+#ifndef SERENE_NAMESPACE_H
+#define SERENE_NAMESPACE_H
 
 #include "serene/environment.h"
+#include "serene/slir/generatable.h"
+#include "serene/traits.h"
 #include "serene/utils.h"
-#include "llvm/ADT/SmallString.h"
 #include <atomic>
+#include <llvm/ADT/SmallString.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/IR/Module.h>
 #include <memory>
+#include <mlir/IR/Builders.h>
+#include <mlir/IR/BuiltinOps.h>
 #include <mlir/IR/Value.h>
 #include <mlir/Support/LogicalResult.h>
 #include <string>
@@ -51,26 +55,41 @@ using Ast = std::vector<Node>;
 /// Serene's namespaces are the unit of compilation. Any code that needs to be
 /// compiled has to be in a namespace. The official way to create a new
 /// namespace is to use the `makeNamespace` function.
-class Namespace {
+class Namespace : public WithTrait<Namespace, slir::Generatable> {
 private:
+  SereneContext &ctx;
   bool initialized = false;
   std::atomic<uint> fn_counter = 0;
   exprs::Ast tree;
+  mlir::OpBuilder builder;
 
 public:
   mlir::StringRef name;
   llvm::Optional<std::string> filename;
+  mlir::ModuleOp module;
 
   /// The root environment of the namespace on the semantic analysis phase.
   /// Which is a mapping from names to AST nodes ( no evaluation ).
   Environment<std::string, exprs::Node> semanticEnv;
 
   Environment<llvm::StringRef, mlir::Value> symbolTable;
-  Namespace(llvm::StringRef ns_name, llvm::Optional<llvm::StringRef> filename);
+  Namespace(SereneContext &ctx, llvm::StringRef ns_name,
+            llvm::Optional<llvm::StringRef> filename);
 
   exprs::Ast &getTree();
   mlir::LogicalResult setTree(exprs::Ast &);
   uint nextFnCounter();
+
+  mlir::OpBuilder &getBuilder();
+  mlir::ModuleOp &getModule();
+  SereneContext &getContext();
+
+  // Generatable Trait
+  mlir::ModuleOp &generate();
+  mlir::LogicalResult runPasses();
+  void dumpSLIR();
+  void dumpToIR();
+
   ~Namespace();
 };
 

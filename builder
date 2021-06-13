@@ -6,6 +6,9 @@ command=$1
 export CC=$(which clang)
 export CXX=$(which clang++)
 export LDFLAGS="-fuse-ld=lld"
+
+export ASAN_OPTIONS=check_initialization_order=1
+export LSAN_OPTIONS=suppressions=`pwd`/.ignore_sanitize
 ROOT_DIR=`pwd`
 BUILD_DIR=$ROOT_DIR/build
 
@@ -21,7 +24,7 @@ function popd_build() {
 
 function compile() {
     pushed_build
-    ninja
+    ninja -j `nproc`
     popd_build
 }
 

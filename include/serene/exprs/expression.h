@@ -34,10 +34,6 @@
 
 namespace serene {
 
-namespace reader {
-class SereneContext;
-}
-
 /// Contains all the builtin AST expressions including those which do not appear
 /// in the syntax directly. Like function definitions.
 namespace exprs {
@@ -82,6 +78,8 @@ public:
   ///
   /// \param ctx is the context object of the semantic analyzer.
   virtual MaybeNode analyze(SereneContext &ctx) = 0;
+
+  virtual void generateIR(serene::Namespace &ns) = 0;
 };
 
 /// Create a new `node` of type `T` and forwards any given parameter

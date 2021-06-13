@@ -27,28 +27,11 @@
 #include "mlir/IR/BuiltinOps.h"
 #include "mlir/IR/MLIRContext.h"
 #include "serene/exprs/expression.h"
-#include "serene/namespace.h"
-#include "serene/slir/generator.h"
+#include "serene/slir/generatable.h"
 #include <memory>
 
 namespace serene {
-namespace slir {
-
-class SLIR {
-
-private:
-  serene::SereneContext &context;
-
-public:
-  SLIR(serene::SereneContext &ctx);
-
-  mlir::OwningModuleRef generate(llvm::StringRef ns_name);
-
-  ~SLIR();
-};
-
-void dumpSLIR(serene::SereneContext &ctx, llvm::StringRef ns_name);
-} // namespace slir
+namespace slir {} // namespace slir
 
 } // namespace serene
 

@@ -104,9 +104,11 @@ class TraitBase {
 protected:
   /// Statically casts the object to the concrete type object to be
   /// used in the Trait Types.
-  const ConcreteType &Object() const {
-    return static_cast<const ConcreteType &>(*this);
-  };
+  // const ConcreteType &Object() const {
+  //   return static_cast<const ConcreteType &>(*this);
+  // };
+
+  ConcreteType &Object() { return static_cast<ConcreteType &>(*this); };
 };
 
 template <typename ConcreteType>

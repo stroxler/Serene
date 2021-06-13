@@ -23,10 +23,14 @@
  */
 
 #include "serene/namespace.h"
+#include "mlir/IR/BuiltinOps.h"
+#include "serene/context.h"
 #include "serene/exprs/expression.h"
 #include "serene/llvm/IR/Value.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/FormatVariadic.h"
+#include "llvm/Support/raw_ostream.h"
+#include <stdexcept>
 #include <string>
 
 using namespace std;
@@ -34,9 +38,11 @@ using namespace llvm;
 
 namespace serene {
 
-Namespace::Namespace(llvm::StringRef ns_name,
+Namespace::Namespace(SereneContext &ctx, llvm::StringRef ns_name,
                      llvm::Optional<llvm::StringRef> filename)
-    : name(ns_name) {
+    : ctx(ctx), builder(&ctx.mlirContext), name(ns_name),
+      // TODO: Fix the unknown location by pointing to the `ns` form
+      module(mlir::ModuleOp::create(builder.getUnknownLoc(), ns_name)) {
   if (filename.hasValue()) {
     this->filename.emplace(filename.getValue().str());
   }
@@ -56,15 +62,49 @@ mlir::LogicalResult Namespace::setTree(exprs::Ast &t) {
 std::shared_ptr<Namespace>
 makeNamespace(SereneContext &ctx, llvm::StringRef name,
               llvm::Optional<llvm::StringRef> filename, bool setCurrent) {
-  auto nsPtr = std::make_shared<Namespace>(name, filename);
+  auto nsPtr = std::make_shared<Namespace>(ctx, name, filename);
   ctx.insertNS(nsPtr);
   if (setCurrent) {
-    assert(ctx.setCurrentNS(nsPtr->name) && "Couldn't set the current NS");
+    if (!ctx.setCurrentNS(nsPtr->name)) {
+      throw std::runtime_error("Couldn't set the current NS");
+    }
   }
   return nsPtr;
 };
 
 uint Namespace::nextFnCounter() { return fn_counter++; };
+
+mlir::OpBuilder &Namespace::getBuilder() { return this->builder; };
+mlir::ModuleOp &Namespace::getModule() { return this->module; };
+SereneContext &Namespace::getContext() { return this->ctx; };
+
+mlir::ModuleOp &Namespace::generate() {
+  for (auto &x : getTree()) {
+    x->generateIR(*this);
+  }
+
+  return module;
+}
+
+mlir::LogicalResult Namespace::runPasses() { return ctx.pm.run(module); };
+
+void Namespace::dumpSLIR() {
+  mlir::ModuleOp &m = generate();
+  m->dump();
+};
+
+void Namespace::dumpToIR() {
+  // We don't want this module just yet
+
+  mlir::ModuleOp &m = generate();
+  if (mlir::failed(runPasses())) {
+    // TODO: throw a proper errer
+    return;
+  }
+
+  m->dump();
+};
+
 Namespace::~Namespace() {}
 
 } // namespace serene

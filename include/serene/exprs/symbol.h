@@ -52,6 +52,7 @@ public:
   static bool classof(const Expression *e);
 
   MaybeNode analyze(SereneContext &);
+  void generateIR(serene::Namespace &){};
 
   ~Symbol() = default;
 };

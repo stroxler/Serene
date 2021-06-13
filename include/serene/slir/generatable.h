@@ -1,7 +1,7 @@
-/**
+/* -*- C++ -*-
  * Serene programming language.
  *
- *  Copyright (c) 2020 Sameer Rahmani <lxsameer@gnu.org>
+ *  Copyright (c) 2019-2021 Sameer Rahmani <lxsameer@gnu.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,34 +21,51 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef SIR_H
-#define SIR_H
 
+#ifndef SERENE_SLIR_GENERATABLE_H
+#define SERENE_SLIR_GENERATABLE_H
+
+#include "mlir/IR/Builders.h"
 #include "mlir/IR/BuiltinOps.h"
-#include "mlir/IR/MLIRContext.h"
-#include "serene/exprs/expression.h"
-#include "serene/sir/generator.hpp"
-#include <memory>
+#include "mlir/IR/Identifier.h"
+#include "serene/reader/location.h"
+#include "serene/traits.h"
+#include <utility>
 
 namespace serene {
-namespace sir {
+class Namespace;
+}
 
-class SIR {
+namespace serene::slir {
 
-private:
-  mlir::MLIRContext context;
-
+template <typename T>
+class GeneratableUnit : public TraitBase<T, GeneratableUnit> {
 public:
-  SIR();
+  GeneratableUnit(){};
+  GeneratableUnit(const GeneratableUnit &) = delete;
 
-  mlir::OwningModuleRef generate(serene::Namespace *ns);
-
-  ~SIR();
+  void generate(serene::Namespace &ns) {
+    // TODO: should we return any status or possible error here or
+    //       should we just populate them in a ns wide state?
+    this->Object().generateIR(ns);
+  };
 };
 
-void dumpSIR(exprs::ast &t);
-} // namespace sir
+template <typename T> class Generatable : public TraitBase<T, Generatable> {
+public:
+  Generatable(){};
+  Generatable(const Generatable &) = delete;
 
-} // namespace serene
+  mlir::ModuleOp &generate();
+  mlir::LogicalResult runPasses();
+  void dumpSLIR();
+  void dumpIR() { this->Object().dumpToIR(); };
+};
+
+template <typename T> void dumpIR(Generatable<T> &t) { t.dumpIR(); };
+
+template <typename T> void dumpSLIR(Generatable<T> &t) { t.dumpSLIR(); };
+
+} // namespace serene::slir
 
 #endif

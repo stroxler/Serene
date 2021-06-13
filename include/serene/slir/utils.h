@@ -1,7 +1,7 @@
-/**
+/* -*- C++ -*-
  * Serene programming language.
  *
- *  Copyright (c) 2020 Sameer Rahmani <lxsameer@gnu.org>
+ *  Copyright (c) 2019-2021 Sameer Rahmani <lxsameer@gnu.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,22 +22,24 @@
  * SOFTWARE.
  */
 
-#ifndef DIALECT_H_
-#define DIALECT_H_
+#ifndef SERENE_SLIR_UTILS_H
+#define SERENE_SLIR_UTILS_H
 
 #include "mlir/IR/BuiltinOps.h"
-#include "mlir/IR/Dialect.h"
-#include "mlir/Interfaces/SideEffectInterfaces.h"
+#include "serene/reader/location.h"
 
-// Include the auto-generated header file containing the declaration of the
-// serene's dialect.
-#include "serene/sir/dialect.hpp.inc"
+namespace serene {
+class Namespace;
+}
 
-// Include the auto-generated header file containing the declarations of the
-// serene's operations.
-// for more on GET_OP_CLASSES: https://mlir.llvm.org/docs/OpDefinitions/
-#define GET_OP_CLASSES
+namespace serene::slir {
 
-#include "serene/sir/ops.hpp.inc"
+/**
+ * Convert a Serene location to MLIR FileLineLoc Location
+ */
+::mlir::Location toMLIRLocation(serene::Namespace &,
+                                serene::reader::Location &);
 
-#endif // DIALECT_H_
+} // namespace serene::slir
+
+#endif

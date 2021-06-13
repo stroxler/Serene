@@ -30,7 +30,8 @@ set(HEADER_LIST
 
   "${INCLUDE_DIR}/serene/slir/slir.h"
   "${INCLUDE_DIR}/serene/slir/dialect.h"
-  "${INCLUDE_DIR}/serene/slir/generator.h"
+  "${INCLUDE_DIR}/serene/slir/generatable.h"
+  "${INCLUDE_DIR}/serene/slir/utils.h"
   "${INCLUDE_DIR}/serene/namespace.h"
 
   "${INCLUDE_DIR}/serene/passes/slir_lowering.h")
@@ -60,10 +61,11 @@ add_library(serene
   errors/error.cpp
 
   # IR
-  slir/slir.cpp
   slir/dialect.cpp
   slir/value_op.cpp
-  slir/generator.cpp
+  slir/generatable.cpp
+  slir/utils.cpp
+
   passes/slir_lowering.cpp
   ${HEADER_LIST})
 

@@ -1,7 +1,7 @@
-/**
+/* -*- C++ -*-
  * Serene programming language.
  *
- *  Copyright (c) 2020 Sameer Rahmani <lxsameer@gnu.org>
+ *  Copyright (c) 2019-2021 Sameer Rahmani <lxsameer@gnu.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,14 +22,17 @@
  * SOFTWARE.
  */
 
-#include "serene/sir/generator.hpp"
+#include "serene/slir/generatable.h"
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/BuiltinOps.h"
 #include "mlir/IR/Identifier.h"
 #include "mlir/IR/MLIRContext.h"
 #include "mlir/IR/Value.h"
-#include "serene/expr.hpp"
-#include "serene/sir/dialect.hpp"
+#include "mlir/Support/LogicalResult.h"
+//#include "serene/exprs/expression.h"
+#include "serene/exprs/traits.h"
+#include "serene/namespace.h"
+#include "serene/slir/dialect.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/ScopedHashTable.h"
 #include "llvm/Support/Casting.h"
@@ -37,80 +40,83 @@
 #include "llvm/Support/raw_ostream.h"
 
 namespace serene {
-namespace sir {
+namespace slir {
 
-mlir::ModuleOp Generator::generate() {
-  // for (auto x : ns->Tree()) {
-  //   generate(x.get());
-  // }
-
-  return module;
+template <typename T> mlir::ModuleOp &Generatable<T>::generate() {
+  return this->Object().generate();
 };
 
-mlir::Operation *Generator::generate(AExpr *x) {
-  // switch (x->getType()) {
-  // case SereneType::Number: {
-  //   return generate(llvm::cast<Number>(x));
-  // }
-
-  // case SereneType::List: {
-  //   generate(llvm::cast<List>(x));
-  //   return nullptr;
-  // }
-
-  // default: {
-  return builder.create<ValueOp>(builder.getUnknownLoc(), (uint64_t)3);
-  // }
-  // }
+template <typename T> mlir::LogicalResult Generatable<T>::runPasses() {
+  return this->Object().runPasses();
 };
 
-mlir::Value Generator::generate(List *l) {
-  // auto first = l->at(0);
-
-  // if (!first) {
-  //   // Empty list.
-  //   // TODO: Return Nil or empty list.
-
-  //   // Just for now.
-  //   return builder.create<ValueOp>(builder.getUnknownLoc(), (uint64_t)0);
-  // }
-
-  // if (first->get()->getType() == SereneType::Symbol) {
-  //   auto fnNameSymbol = llvm::dyn_cast<Symbol>(first->get());
-
-  //   if (fnNameSymbol->getName() == "fn") {
-  //     if (l->count() <= 3) {
-  //       module.emitError("'fn' form needs exactly 2 arguments.");
-  //     }
-
-  //     auto args = llvm::dyn_cast<List>(l->at(1).getValue().get());
-  //     auto body = llvm::dyn_cast<List>(l->from(2).get());
-
-  //     if (!args) {
-  //       module.emitError("The first element of 'def' has to be a symbol.");
-  //     }
-
-  //     // Create a new anonymous function and push it to the anonymous
-  //     functions
-  //     // map, later on we
-  //     auto loc(fnNameSymbol->location->start);
-  //     auto anonymousName = fmt::format("__fn_{}__", anonymousFnCounter);
-  //     anonymousFnCounter++;
-
-  //     auto fn = generateFn(loc, anonymousName, args, body);
-  //     mlir::Identifier fnid = builder.getIdentifier(anonymousName);
-  //     anonymousFunctions.insert({fnid, fn});
-  //     return builder.create<FnIdOp>(builder.getUnknownLoc(), fnid.str());
-  //   }
-  // }
-  // // auto rest = l->from(1);
-  // // auto loc = toMLIRLocation(&first->get()->location->start);
-  // // for (auto x : *rest) {
-  // //   generate(x.get());
-  // // }
-
-  return builder.create<ValueOp>(builder.getUnknownLoc(), (uint64_t)100);
+template <typename T> void Generatable<T>::dumpSLIR() {
+  this->Object().dumpSLIR();
 };
+
+// mlir::Operation *Generatable::generate(exprs::Expression *x) {
+//  switch (x->getType()) {
+//  case SereneType::Number: {
+//    return generate(llvm::cast<Number>(x));
+//  }
+
+// case SereneType::List: {
+//   generate(llvm::cast<List>(x));
+//   return nullptr;
+// }
+
+// default: {
+// return builder.create<ValueOp>(builder.getUnknownLoc(), (uint64_t)3);
+// }
+// }
+//};
+
+// mlir::Value Generator::generate(exprs::List *l) {
+//  auto first = l->at(0);
+
+// if (!first) {
+//   // Empty list.
+//   // TODO: Return Nil or empty list.
+
+//   // Just for now.
+//   return builder.create<ValueOp>(builder.getUnknownLoc(), (uint64_t)0);
+// }
+
+// if (first->get()->getType() == SereneType::Symbol) {
+//   auto fnNameSymbol = llvm::dyn_cast<Symbol>(first->get());
+
+//   if (fnNameSymbol->getName() == "fn") {
+//     if (l->count() <= 3) {
+//       module.emitError("'fn' form needs exactly 2 arguments.");
+//     }
+
+//     auto args = llvm::dyn_cast<List>(l->at(1).getValue().get());
+//     auto body = llvm::dyn_cast<List>(l->from(2).get());
+
+//     if (!args) {
+//       module.emitError("The first element of 'def' has to be a symbol.");
+//     }
+
+//     // Create a new anonymous function and push it to the anonymous
+//     functions
+//     // map, later on we
+//     auto loc(fnNameSymbol->location->start);
+//     auto anonymousName = fmt::format("__fn_{}__", anonymousFnCounter);
+//     anonymousFnCounter++;
+
+//     auto fn = generateFn(loc, anonymousName, args, body);
+//     mlir::Identifier fnid = builder.getIdentifier(anonymousName);
+//     anonymousFunctions.insert({fnid, fn});
+//     return builder.create<FnIdOp>(builder.getUnknownLoc(), fnid.str());
+//   }
+// }
+// // auto rest = l->from(1);
+// // auto loc = toMLIRLocation(&first->get()->location->start);
+// // for (auto x : *rest) {
+// //   generate(x.get());
+// // }
+//  return builder.create<ValueOp>(builder.getUnknownLoc(), (uint64_t)100);
+//};
 
 // mlir::FuncOp Generator::generateFn(serene::reader::Location loc,
 //                                    std::string name, List *args, List *body)
@@ -178,23 +184,6 @@ mlir::Value Generator::generate(List *l) {
 
 //   return fn;
 // }
-
-mlir::Operation *Generator::generate(Number *x) {
-  return builder.create<ValueOp>(builder.getUnknownLoc(), x->toI64());
-};
-
-/**
- * Convert a Serene location to MLIR FileLineLoc Location
- */
-::mlir::Location Generator::toMLIRLocation(serene::reader::Location *loc) {
-  auto file = ns->filename;
-  std::string filename{file.getValueOr("REPL")};
-
-  return mlir::FileLineColLoc::get(builder.getIdentifier(filename), loc->line,
-                                   loc->col);
-}
-
-Generator::~Generator(){};
-} // namespace sir
+} // namespace slir
 
 } // namespace serene
