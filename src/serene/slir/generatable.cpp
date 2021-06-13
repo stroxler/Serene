@@ -23,6 +23,7 @@
  */
 
 #include "serene/slir/generatable.h"
+
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/BuiltinOps.h"
 #include "mlir/IR/Identifier.h"
@@ -33,6 +34,7 @@
 #include "serene/exprs/traits.h"
 #include "serene/namespace.h"
 #include "serene/slir/dialect.h"
+
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/ScopedHashTable.h"
 #include "llvm/Support/Casting.h"
@@ -42,15 +44,18 @@
 namespace serene {
 namespace slir {
 
-template <typename T> mlir::ModuleOp &Generatable<T>::generate() {
+template <typename T>
+mlir::ModuleOp &Generatable<T>::generate() {
   return this->Object().generate();
 };
 
-template <typename T> mlir::LogicalResult Generatable<T>::runPasses() {
+template <typename T>
+mlir::LogicalResult Generatable<T>::runPasses() {
   return this->Object().runPasses();
 };
 
-template <typename T> void Generatable<T>::dumpSLIR() {
+template <typename T>
+void Generatable<T>::dumpSLIR() {
   this->Object().dumpSLIR();
 };
 

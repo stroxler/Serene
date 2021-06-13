@@ -29,6 +29,7 @@
 #include "serene/slir/generatable.h"
 #include "serene/traits.h"
 #include "serene/utils.h"
+
 #include <atomic>
 #include <llvm/ADT/SmallString.h>
 #include <llvm/ADT/StringRef.h>
@@ -40,7 +41,7 @@
 #include <mlir/Support/LogicalResult.h>
 #include <string>
 
-#define NAMESPACE_LOG(...)                                                     \
+#define NAMESPACE_LOG(...) \
   DEBUG_WITH_TYPE("NAMESPACE", llvm::dbgs() << __VA_ARGS__ << "\n");
 
 namespace serene {
@@ -49,7 +50,7 @@ class SereneContext;
 namespace exprs {
 class Expression;
 using Node = std::shared_ptr<Expression>;
-using Ast = std::vector<Node>;
+using Ast  = std::vector<Node>;
 } // namespace exprs
 
 /// Serene's namespaces are the unit of compilation. Any code that needs to be
@@ -58,7 +59,7 @@ using Ast = std::vector<Node>;
 class Namespace : public WithTrait<Namespace, slir::Generatable> {
 private:
   SereneContext &ctx;
-  bool initialized = false;
+  bool initialized             = false;
   std::atomic<uint> fn_counter = 0;
   exprs::Ast tree;
   mlir::OpBuilder builder;

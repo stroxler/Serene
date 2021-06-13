@@ -23,12 +23,14 @@
  */
 
 #include "serene/exprs/call.h"
+
 #include "serene/errors/error.h"
 #include "serene/exprs/def.h"
 #include "serene/exprs/expression.h"
 #include "serene/exprs/list.h"
 #include "serene/exprs/symbol.h"
 #include "serene/reader/semantics.h"
+
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/FormatVariadic.h"

@@ -23,11 +23,13 @@
  */
 
 #include "serene/exprs/fn.h"
+
 #include "serene/errors/error.h"
 #include "serene/exprs/expression.h"
 #include "serene/exprs/list.h"
 #include "serene/exprs/symbol.h"
 #include "serene/reader/semantics.h"
+
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/FormatVariadic.h"
 
@@ -80,7 +82,7 @@ MaybeNode Fn::make(SereneContext &ctx, List *list) {
   Ast body;
 
   if (list->count() > 2) {
-    body = std::vector<Node>(list->begin() + 2, list->end());
+    body          = std::vector<Node>(list->begin() + 2, list->end());
     auto maybeAst = reader::analyze(ctx, body);
 
     if (!maybeAst) {

@@ -27,7 +27,9 @@
 
 #include "serene/context.h"
 #include "serene/exprs/expression.h"
+
 #include "llvm/ADT/Optional.h"
+
 #include <string>
 
 namespace serene {

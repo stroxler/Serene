@@ -31,7 +31,8 @@ namespace llvm {
 
 // Our specialization of DensMapInfo for string type. This will allow use to use
 // string
-template <> struct DenseMapInfo<std::string> {
+template <>
+struct DenseMapInfo<std::string> {
   static inline std::string getEmptyKey() { return ""; }
 
   static inline std::string getTombstoneKey() {

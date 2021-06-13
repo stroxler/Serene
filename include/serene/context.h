@@ -29,6 +29,7 @@
 #include "serene/namespace.h"
 #include "serene/passes/slir_lowering.h"
 #include "serene/slir/dialect.h"
+
 #include <llvm/ADT/StringRef.h>
 #include <memory>
 #include <mlir/IR/MLIRContext.h>

@@ -23,6 +23,7 @@
  */
 
 #include "serene/reader/semantics.h"
+
 #include "serene/context.h"
 #include "serene/exprs/expression.h"
 

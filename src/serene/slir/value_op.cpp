@@ -26,6 +26,7 @@
 #include "mlir/IR/Value.h"
 #include "serene/slir/dialect.h"
 #include "serene/slir/slir.h"
+
 #include "llvm/Support/Casting.h"
 
 namespace serene {

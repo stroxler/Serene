@@ -30,6 +30,7 @@
 #include "mlir/IR/Identifier.h"
 #include "serene/reader/location.h"
 #include "serene/traits.h"
+
 #include <utility>
 
 namespace serene {
@@ -51,7 +52,8 @@ public:
   };
 };
 
-template <typename T> class Generatable : public TraitBase<T, Generatable> {
+template <typename T>
+class Generatable : public TraitBase<T, Generatable> {
 public:
   Generatable(){};
   Generatable(const Generatable &) = delete;
@@ -62,9 +64,15 @@ public:
   void dumpIR() { this->Object().dumpToIR(); };
 };
 
-template <typename T> void dumpIR(Generatable<T> &t) { t.dumpIR(); };
+template <typename T>
+void dumpIR(Generatable<T> &t) {
+  t.dumpIR();
+};
 
-template <typename T> void dumpSLIR(Generatable<T> &t) { t.dumpSLIR(); };
+template <typename T>
+void dumpSLIR(Generatable<T> &t) {
+  t.dumpSLIR();
+};
 
 } // namespace serene::slir
 

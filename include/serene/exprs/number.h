@@ -28,6 +28,7 @@
 #include "serene/context.h"
 #include "serene/exprs/expression.h"
 #include "serene/namespace.h"
+
 #include "llvm/Support/FormatVariadic.h"
 
 namespace serene {

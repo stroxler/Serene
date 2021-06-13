@@ -23,10 +23,12 @@
  */
 
 #include "serene/reader/reader.h"
+
 #include "serene/exprs/list.h"
 #include "serene/exprs/number.h"
 #include "serene/exprs/symbol.h"
 #include "serene/namespace.h"
+
 #include "llvm/Support/Error.h"
 #include "llvm/Support/ErrorOr.h"
 #include "llvm/Support/FormatVariadic.h"
@@ -120,7 +122,7 @@ bool Reader::isValidForIdentifier(char c) {
 exprs::Node Reader::readNumber(bool neg) {
   std::string number(neg ? "-" : "");
   bool floatNum = false;
-  bool empty = false;
+  bool empty    = false;
 
   LocationRange loc;
   char c = getChar(false);
@@ -141,7 +143,7 @@ exprs::Node Reader::readNumber(bool neg) {
       floatNum = true;
     }
     number += c;
-    c = getChar(false);
+    c     = getChar(false);
     empty = false;
   }
 
@@ -158,7 +160,7 @@ exprs::Node Reader::readNumber(bool neg) {
 /// If reads it as number
 exprs::Node Reader::readSymbol() {
   bool empty = true;
-  char c = getChar(false);
+  char c     = getChar(false);
 
   READER_LOG("Reading symbol");
   if (!this->isValidForIdentifier(c)) {
@@ -189,7 +191,7 @@ exprs::Node Reader::readSymbol() {
 
   while (c != EOF && ((!(isspace(c)) && this->isValidForIdentifier(c)))) {
     sym += c;
-    c = getChar(false);
+    c     = getChar(false);
     empty = false;
   }
 
@@ -219,7 +221,7 @@ exprs::Node Reader::readList() {
     case EOF:
       throw ReadError(const_cast<char *>("EOF reached before closing of list"));
     case ')':
-      list_terminated = true;
+      list_terminated    = true;
       list->location.end = current_location;
 
       break;
@@ -276,7 +278,7 @@ Result<exprs::Ast> Reader::read() {
 
 /// Reads the input into an AST and prints it out as string again.
 void Reader::toString() {
-  auto maybeAst = read();
+  auto maybeAst      = read();
   std::string result = "";
 
   if (!maybeAst) {

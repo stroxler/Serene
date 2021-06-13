@@ -27,11 +27,13 @@
 
 #include "mlir/Support/LogicalResult.h"
 #include "serene/llvm/patches.h"
+
 #include "llvm/ADT/DenseMap.h"
 
 namespace serene {
 
-template <typename K, typename V> class Environment {
+template <typename K, typename V>
+class Environment {
   Environment<K, V> *parent;
   llvm::DenseMap<K, V> pairs;
 

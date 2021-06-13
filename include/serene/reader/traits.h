@@ -40,6 +40,7 @@ public:
   }
 };
 
-template <typename T> serene::reader::LocationRange &where(ILocatable<T> &);
+template <typename T>
+serene::reader::LocationRange &where(ILocatable<T> &);
 } // namespace serene::reader
 #endif

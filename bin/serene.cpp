@@ -23,12 +23,14 @@
  */
 
 #include "serene/serene.h"
+
 #include "serene/context.h"
 #include "serene/namespace.h"
 #include "serene/reader/reader.h"
 #include "serene/reader/semantics.h"
 #include "serene/slir/generatable.h"
 #include "serene/slir/slir.h"
+
 #include <iostream>
 #include <llvm/Support/CommandLine.h>
 
@@ -77,8 +79,8 @@ int main(int argc, char *argv[]) {
     }
     auto &ast = maybeAst.getValue();
 
-    auto ctx = makeSereneContext();
-    auto ns = makeNamespace(*ctx, "user", llvm::None);
+    auto ctx      = makeSereneContext();
+    auto ns       = makeNamespace(*ctx, "user", llvm::None);
     auto afterAst = reader::analyze(*ctx, ast);
 
     if (afterAst) {
@@ -106,7 +108,7 @@ int main(int argc, char *argv[]) {
 
     auto ctx = makeSereneContext();
     applyPassManagerCLOptions(ctx->pm);
-    auto ns = makeNamespace(*ctx, "user", llvm::None);
+    auto ns       = makeNamespace(*ctx, "user", llvm::None);
     auto afterAst = reader::analyze(*ctx, ast);
 
     if (afterAst) {

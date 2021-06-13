@@ -119,7 +119,8 @@ public:
   std::string toString() const { return this->Object().toString(); }
 };
 
-template <typename T> std::string toString(IDebuggable<T> &t) {
+template <typename T>
+std::string toString(IDebuggable<T> &t) {
   return t.toString();
 }
 

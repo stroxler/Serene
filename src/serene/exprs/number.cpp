@@ -24,6 +24,7 @@
  */
 
 #include "serene/exprs/number.h"
+
 #include "serene/slir/dialect.h"
 #include "serene/slir/utils.h"
 
@@ -48,7 +49,7 @@ int Number::toI64() { return std::stoi(this->value); };
 
 void Number::generateIR(serene::Namespace &ns) {
   mlir::OpBuilder &builder = ns.getBuilder();
-  mlir::ModuleOp &module = ns.getModule();
+  mlir::ModuleOp &module   = ns.getModule();
 
   auto op = builder.create<serene::slir::ValueOp>(
       serene::slir::toMLIRLocation(ns, location.start), toI64());

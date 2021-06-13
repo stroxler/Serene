@@ -26,6 +26,7 @@
 #define SERENE_UTILS_H
 
 #include "llvm/Support/Error.h"
+
 #include <variant>
 
 // C++17 required. We can't go back to 14 any more :))
@@ -45,7 +46,8 @@ namespace serene {
 ///
 /// In order check for a value being errorful or successful checkout the `ok`
 /// method or simply use the value as a conditiona.
-template <typename T, typename E = llvm::Error> class Result {
+template <typename T, typename E = llvm::Error>
+class Result {
 
   // The actual data container
   std::variant<T, E> contents;

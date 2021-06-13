@@ -23,13 +23,16 @@
  */
 
 #include "serene/namespace.h"
+
 #include "mlir/IR/BuiltinOps.h"
 #include "serene/context.h"
 #include "serene/exprs/expression.h"
 #include "serene/llvm/IR/Value.h"
+
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/FormatVariadic.h"
 #include "llvm/Support/raw_ostream.h"
+
 #include <stdexcept>
 #include <string>
 
@@ -54,7 +57,7 @@ mlir::LogicalResult Namespace::setTree(exprs::Ast &t) {
   if (initialized) {
     return mlir::failure();
   }
-  this->tree = std::move(t);
+  this->tree        = std::move(t);
   this->initialized = true;
   return mlir::success();
 }

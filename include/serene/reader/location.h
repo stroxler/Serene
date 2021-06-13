@@ -28,6 +28,7 @@
 #include "mlir/IR/Location.h"
 #include "mlir/IR/MLIRContext.h"
 #include "mlir/IR/OpDefinition.h"
+
 #include <string>
 
 namespace serene {

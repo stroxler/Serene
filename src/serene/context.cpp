@@ -23,6 +23,7 @@
  */
 
 #include "serene/context.h"
+
 #include "serene/namespace.h"
 
 namespace serene {

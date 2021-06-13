@@ -23,7 +23,9 @@
  */
 
 #include "serene/reader/location.h"
+
 #include "mlir/IR/Identifier.h"
+
 #include "llvm/Support/FormatVariadic.h"
 
 namespace serene {
@@ -31,7 +33,7 @@ namespace reader {
 
 LocationRange::LocationRange(const LocationRange &loc) {
   start = loc.start;
-  end = loc.end;
+  end   = loc.end;
 }
 
 /// Return the string represenation of the location.

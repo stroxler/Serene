@@ -25,13 +25,6 @@
 #ifndef READER_H
 #define READER_H
 
-#include <memory>
-#include <sstream>
-#include <stdexcept>
-#include <string>
-#include <system_error>
-#include <vector>
-
 #include "serene/errors.h"
 #include "serene/exprs/expression.h"
 #include "serene/exprs/list.h"
@@ -39,10 +32,18 @@
 #include "serene/reader/errors.h"
 #include "serene/reader/location.h"
 #include "serene/serene.h"
+
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
 
-#define READER_LOG(...)                                                        \
+#include <memory>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <system_error>
+#include <vector>
+
+#define READER_LOG(...) \
   DEBUG_WITH_TYPE("READER", llvm::dbgs() << __VA_ARGS__ << "\n");
 
 namespace serene {

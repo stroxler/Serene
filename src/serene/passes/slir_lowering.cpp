@@ -23,6 +23,7 @@
  */
 
 #include "serene/passes/slir_lowering.h"
+
 #include <mlir/IR/BuiltinOps.h>
 
 namespace serene::passes {
@@ -30,7 +31,7 @@ namespace serene::passes {
 mlir::LogicalResult
 ValueOpLowering::matchAndRewrite(serene::slir::ValueOp op,
                                  mlir::PatternRewriter &rewriter) const {
-  auto value = op.value();
+  auto value         = op.value();
   mlir::Location loc = op.getLoc();
 
   // auto std_const =

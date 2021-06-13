@@ -28,6 +28,7 @@
 #include "mlir/IR/MLIRContext.h"
 #include "serene/exprs/expression.h"
 #include "serene/slir/generatable.h"
+
 #include <memory>
 
 namespace serene {

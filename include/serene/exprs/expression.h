@@ -30,6 +30,7 @@
 #include "serene/exprs/traits.h"
 #include "serene/reader/location.h"
 #include "serene/utils.h"
+
 #include <memory>
 
 namespace serene {
@@ -40,7 +41,7 @@ namespace exprs {
 
 class Expression;
 
-using Node = std::shared_ptr<Expression>;
+using Node     = std::shared_ptr<Expression>;
 using ErrorPtr = std::shared_ptr<errors::Error>;
 
 // tree? Yupe, Errors can be stackable which makes
@@ -48,7 +49,7 @@ using ErrorTree = std::vector<ErrorPtr>;
 
 using MaybeNode = Result<Node, ErrorTree>;
 
-using Ast = std::vector<Node>;
+using Ast      = std::vector<Node>;
 using MaybeAst = Result<Ast, ErrorTree>;
 
 static auto EmptyNode = MaybeNode::success(nullptr);
@@ -92,7 +93,8 @@ public:
 /// \param[args] Any argument with any type passed to this function will be
 ///              passed to the constructor of type T.
 /// \return A unique pointer to an Expression
-template <typename T, typename... Args> Node make(Args &&...args) {
+template <typename T, typename... Args>
+Node make(Args &&...args) {
   return std::make_shared<T>(std::forward<Args>(args)...);
 };
 

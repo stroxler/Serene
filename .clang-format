@@ -10,4 +10,9 @@ AllowShortLoopsOnASingleLine: false
 AlignConsecutiveMacros: true
 ForEachMacros: []
 IndentWidth: 2
+AlignConsecutiveAssignments: Consecutive
+AlignConsecutiveBitFields: Consecutive
+AlignEscapedNewlines: Left
+AlwaysBreakTemplateDeclarations: Yes
+IncludeBlocks: Regroup
 ...

@@ -23,15 +23,18 @@
  */
 
 #include "serene/exprs/list.h"
+
 #include "serene/errors/error.h"
 #include "serene/exprs/call.h"
 #include "serene/exprs/def.h"
 #include "serene/exprs/expression.h"
 #include "serene/exprs/fn.h"
 #include "serene/exprs/symbol.h"
+
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/FormatVariadic.h"
+
 #include <iterator>
 
 namespace serene {

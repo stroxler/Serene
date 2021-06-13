@@ -23,6 +23,7 @@
  */
 
 #include "serene/exprs/expression.h"
+
 #include "llvm/Support/FormatVariadic.h"
 
 namespace serene {
