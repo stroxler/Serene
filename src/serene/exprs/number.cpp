@@ -48,8 +48,8 @@ bool Number::classof(const Expression *e) {
 int Number::toI64() { return std::stoi(this->value); };
 
 void Number::generateIR(serene::Namespace &ns) {
-  mlir::OpBuilder &builder = ns.getBuilder();
-  mlir::ModuleOp &module   = ns.getModule();
+  mlir::OpBuilder builder(&ns.getContext().mlirContext);
+  mlir::ModuleOp &module = ns.getModule();
 
   auto op = builder.create<serene::slir::ValueOp>(
       serene::slir::toMLIRLocation(ns, location.start), toI64());

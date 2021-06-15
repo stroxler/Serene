@@ -62,7 +62,6 @@ private:
   bool initialized             = false;
   std::atomic<uint> fn_counter = 0;
   exprs::Ast tree;
-  mlir::OpBuilder builder;
 
 public:
   mlir::StringRef name;
@@ -81,7 +80,6 @@ public:
   mlir::LogicalResult setTree(exprs::Ast &);
   uint nextFnCounter();
 
-  mlir::OpBuilder &getBuilder();
   mlir::ModuleOp &getModule();
   SereneContext &getContext();
 

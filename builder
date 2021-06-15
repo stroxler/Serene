@@ -6,7 +6,7 @@ command=$1
 export CC=$(which clang)
 export CXX=$(which clang++)
 export LDFLAGS="-fuse-ld=lld"
-
+export ASAN_FLAG="-fsanitize=address"
 export ASAN_OPTIONS=check_initialization_order=1
 export LSAN_OPTIONS=suppressions=`pwd`/.ignore_sanitize
 ROOT_DIR=`pwd`
@@ -67,8 +67,10 @@ function run() {
 }
 
 function memcheck() {
+    export ASAN_FLAG=""
+    build
     pushed_build
-    ctest -T memcheck
+    valgrind --tool=memcheck --leak-check=yes --trace-children=yes $BUILD_DIR/bin/serenec "$@"
     popd_build
 }
 
@@ -135,7 +137,7 @@ case "$command" in
         popd_build
         ;;
     "memcheck")
-        memcheck
+        memcheck "${@:2}"
         ;;
     "tests")
         clean

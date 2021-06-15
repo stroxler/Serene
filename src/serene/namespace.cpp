@@ -24,6 +24,7 @@
 
 #include "serene/namespace.h"
 
+#include "mlir/IR/Builders.h"
 #include "mlir/IR/BuiltinOps.h"
 #include "serene/context.h"
 #include "serene/exprs/expression.h"
@@ -43,9 +44,12 @@ namespace serene {
 
 Namespace::Namespace(SereneContext &ctx, llvm::StringRef ns_name,
                      llvm::Optional<llvm::StringRef> filename)
-    : ctx(ctx), builder(&ctx.mlirContext), name(ns_name),
-      // TODO: Fix the unknown location by pointing to the `ns` form
-      module(mlir::ModuleOp::create(builder.getUnknownLoc(), ns_name)) {
+    : ctx(ctx), name(ns_name)
+
+{
+  mlir::OpBuilder builder(&ctx.mlirContext);
+  // TODO: Fix the unknown location by pointing to the `ns` form
+  module = mlir::ModuleOp::create(builder.getUnknownLoc(), ns_name);
   if (filename.hasValue()) {
     this->filename.emplace(filename.getValue().str());
   }
@@ -77,7 +81,6 @@ makeNamespace(SereneContext &ctx, llvm::StringRef name,
 
 uint Namespace::nextFnCounter() { return fn_counter++; };
 
-mlir::OpBuilder &Namespace::getBuilder() { return this->builder; };
 mlir::ModuleOp &Namespace::getModule() { return this->module; };
 SereneContext &Namespace::getContext() { return this->ctx; };
 
@@ -108,6 +111,6 @@ void Namespace::dumpToIR() {
   m->dump();
 };
 
-Namespace::~Namespace() {}
+Namespace::~Namespace() { this->module.erase(); }
 
 } // namespace serene

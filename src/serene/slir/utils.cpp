@@ -23,13 +23,14 @@
  */
 
 #include "mlir/IR/BuiltinOps.h"
+#include "serene/context.h"
 #include "serene/namespace.h"
 #include "serene/reader/location.h"
 
 namespace serene::slir {
 ::mlir::Location toMLIRLocation(serene::Namespace &ns,
                                 serene::reader::Location &loc) {
-  mlir::OpBuilder &builder = ns.getBuilder();
+  mlir::OpBuilder builder(&ns.getContext().mlirContext);
   auto file                = ns.filename;
   std::string filename{file.getValueOr("REPL")};
 
