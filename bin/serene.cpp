@@ -33,6 +33,7 @@
 
 #include <iostream>
 #include <llvm/Support/CommandLine.h>
+#include <memory>
 
 using namespace std;
 using namespace serene;
@@ -40,7 +41,7 @@ using namespace serene;
 namespace cl = llvm::cl;
 
 namespace {
-enum Action { None, DumpAST, DumpIR, DumpSLIR, DumpSemantic };
+enum Action { None, DumpAST, DumpIR, DumpSLIR, DumpMLIR, DumpSemantic };
 }
 
 static cl::opt<std::string> inputFile(cl::Positional,
@@ -50,95 +51,87 @@ static cl::opt<std::string> inputFile(cl::Positional,
 
 static cl::opt<enum Action> emitAction(
     "emit", cl::desc("Select what to dump."),
-    cl::values(clEnumValN(DumpSemantic, "ast1",
+    cl::values(clEnumValN(DumpSemantic, "semantic",
                           "Output the AST after one level of analysis only")),
     cl::values(clEnumValN(DumpIR, "ir", "Output the lowered IR only")),
     cl::values(clEnumValN(DumpSLIR, "slir", "Output the SLIR only")),
+    cl::values(clEnumValN(DumpMLIR, "mlir",
+                          "Output the MLIR only (Lowered SLIR)")),
     cl::values(clEnumValN(DumpAST, "ast", "Output the AST only"))
 
 );
 
-int main(int argc, char *argv[]) {
-  cl::ParseCommandLineOptions(argc, argv, "Serene compiler \n");
+exprs::Ast readInputFile() {
+  auto r        = make_unique<reader::FileReader>(inputFile);
+  auto maybeAst = r->read();
 
+  if (!maybeAst) {
+    throw std::move(maybeAst.getError());
+  }
+  return maybeAst.getValue();
+};
+
+exprs::Ast readAndAnalyze(SereneContext &ctx) {
+  auto ast      = readInputFile();
+  auto afterAst = reader::analyze(ctx, ast);
+
+  if (!afterAst) {
+    throw std::move(afterAst.getError());
+  }
+
+  return afterAst.getValue();
+};
+
+int main(int argc, char *argv[]) {
+  // mlir::registerAsmPrinterCLOptions();
+  mlir::registerMLIRContextCLOptions();
+  mlir::registerPassManagerCLOptions();
+
+  cl::ParseCommandLineOptions(argc, argv, "Serene compiler \n");
+  auto ctx = makeSereneContext();
+  auto ns  = makeNamespace(*ctx, "user", llvm::None);
+  // TODO: We might want to find a better place for this
+  applyPassManagerCLOptions(ctx->pm);
   switch (emitAction) {
+
+    // Just print out the raw AST
   case Action::DumpAST: {
-    reader::FileReader *r = new reader::FileReader(inputFile);
-    r->toString();
-    delete r;
+    auto ast = readInputFile();
+    llvm::outs() << exprs::astToString(&ast) << "\n";
     return 0;
   };
 
   case Action::DumpSemantic: {
-    reader::FileReader *r = new reader::FileReader(inputFile);
-
-    auto maybeAst = r->read();
-
-    if (!maybeAst) {
-      throw std::move(maybeAst.getError());
-    }
-    auto &ast = maybeAst.getValue();
-
-    auto ctx      = makeSereneContext();
-    auto ns       = makeNamespace(*ctx, "user", llvm::None);
-    auto afterAst = reader::analyze(*ctx, ast);
-
-    if (afterAst) {
-      dump(afterAst.getValue());
-      delete r;
-      return 0;
-    } else {
-      throw std::move(afterAst.getError());
-    }
-
-    delete r;
+    auto ast = readAndAnalyze(*ctx);
+    llvm::outs() << exprs::astToString(&ast) << "\n";
     return 0;
   };
-  case Action::DumpIR: {
-    reader::FileReader *r = new reader::FileReader(inputFile);
 
-    auto maybeAst = r->read();
-
-    if (!maybeAst) {
-      throw std::move(maybeAst.getError());
-    }
-
-    // TODO: Move all this to a compile fn
-    auto &ast = maybeAst.getValue();
-
-    auto ctx = makeSereneContext();
-    applyPassManagerCLOptions(ctx->pm);
-    auto ns       = makeNamespace(*ctx, "user", llvm::None);
-    auto afterAst = reader::analyze(*ctx, ast);
-
-    if (afterAst) {
-      auto isSet = ns->setTree(afterAst.getValue());
-
-      if (isSet.succeeded()) {
-        ctx->insertNS(ns);
-        serene::slir::dumpIR<Namespace>(*ns);
-        // if (mlir::failed(ns->generateIR(*ctx))) {
-        //   // TODO: Replace with an actual error
-        //   llvm::outs() << "Can't generate IR for namespace\n";
-        // }
-        // serene::slir::dumpSLIR(*ctx, ns->name);
-      } else {
-        llvm::outs() << "Can't set the tree of the namespace!\n";
-      }
-
-      delete r;
-      return 0;
-    } else {
-      throw std::move(afterAst.getError());
-    }
-
-    delete r;
-    return 0;
+  case Action::DumpSLIR: {
+    ctx->setOperationPhase(CompilationPhase::SLIR);
+    break;
   }
+
+  case Action::DumpMLIR: {
+    ctx->setOperationPhase(CompilationPhase::MLIR);
+    break;
+  }
+
   default: {
-    llvm::errs() << "No action specified. TODO: Print out help here";
+    llvm::errs() << "No action specified. TODO: Print out help here\n";
+    return 1;
   }
   }
 
-  return 1;
+  auto afterAst = readAndAnalyze(*ctx);
+  auto isSet    = ns->setTree(afterAst);
+
+  if (isSet.succeeded()) {
+    ctx->insertNS(ns);
+    serene::slir::dump<Namespace>(*ns);
+  } else {
+    llvm::outs() << "Can't set the tree of the namespace!\n";
+  }
+
+  return 0;
 }

@@ -42,6 +42,8 @@ class Expression;
 using Node = std::shared_ptr<Expression>;
 } // namespace exprs
 
+enum class CompilationPhase { SLIR, MLIR, IR, O1 };
+
 class SereneContext {
   std::map<std::string, std::shared_ptr<Namespace>> namespaces;
 
@@ -68,8 +70,9 @@ public:
 
   SereneContext() : pm(&mlirContext) {
     mlirContext.getOrLoadDialect<serene::slir::SereneDialect>();
-    pm.addPass(serene::passes::createSLIRLowerToAffinePass());
   };
+
+  void setOperationPhase(CompilationPhase phase);
 };
 
 /// Creates a new context object. Contexts are used through out the compilation

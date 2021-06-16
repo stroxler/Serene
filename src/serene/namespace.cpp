@@ -89,25 +89,19 @@ mlir::ModuleOp &Namespace::generate() {
     x->generateIR(*this);
   }
 
+  if (mlir::failed(runPasses())) {
+    // TODO: throw a proper errer
+    module.emitError("Failure in passes!");
+  }
+
   return module;
 }
 
 mlir::LogicalResult Namespace::runPasses() { return ctx.pm.run(module); };
 
-void Namespace::dumpSLIR() {
-  mlir::ModuleOp &m = generate();
-  m->dump();
-};
-
-void Namespace::dumpToIR() {
+void Namespace::dump() {
   // We don't want this module just yet
-
   mlir::ModuleOp &m = generate();
-  if (mlir::failed(runPasses())) {
-    // TODO: throw a proper errer
-    return;
-  }
-
   m->dump();
 };
 

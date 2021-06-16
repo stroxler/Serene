@@ -30,7 +30,6 @@
 #include "mlir/IR/MLIRContext.h"
 #include "mlir/IR/Value.h"
 #include "mlir/Support/LogicalResult.h"
-//#include "serene/exprs/expression.h"
 #include "serene/exprs/traits.h"
 #include "serene/namespace.h"
 #include "serene/slir/dialect.h"
@@ -52,11 +51,6 @@ mlir::ModuleOp &Generatable<T>::generate() {
 template <typename T>
 mlir::LogicalResult Generatable<T>::runPasses() {
   return this->Object().runPasses();
-};
-
-template <typename T>
-void Generatable<T>::dumpSLIR() {
-  this->Object().dumpSLIR();
 };
 
 // mlir::Operation *Generatable::generate(exprs::Expression *x) {

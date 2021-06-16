@@ -60,18 +60,13 @@ public:
 
   mlir::ModuleOp &generate();
   mlir::LogicalResult runPasses();
-  void dumpSLIR();
-  void dumpIR() { this->Object().dumpToIR(); };
+
+  void dump() { this->Object().dump(); };
 };
 
 template <typename T>
-void dumpIR(Generatable<T> &t) {
-  t.dumpIR();
-};
-
-template <typename T>
-void dumpSLIR(Generatable<T> &t) {
-  t.dumpSLIR();
+void dump(Generatable<T> &t) {
+  t.dump();
 };
 
 } // namespace serene::slir

@@ -84,10 +84,13 @@ public:
   SereneContext &getContext();
 
   // Generatable Trait
+
+  /// Generate the IR of the namespace with respect to the compilation phase
   mlir::ModuleOp &generate();
   mlir::LogicalResult runPasses();
-  void dumpSLIR();
-  void dumpToIR();
+
+  /// Dumps the namespace with respect to the compilation phase
+  void dump();
 
   ~Namespace();
 };

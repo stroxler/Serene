@@ -59,6 +59,16 @@ std::shared_ptr<Namespace> SereneContext::getCurrentNS() {
   return nullptr;
 };
 
+void SereneContext::setOperationPhase(CompilationPhase phase) {
+  if (phase == CompilationPhase::SLIR) {
+    return;
+  }
+
+  if (phase == CompilationPhase::MLIR) {
+    pm.addPass(serene::passes::createSLIRLowerToAffinePass());
+  }
+};
+
 std::unique_ptr<SereneContext> makeSereneContext() {
   return std::make_unique<SereneContext>();
 };
