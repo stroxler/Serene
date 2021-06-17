@@ -41,7 +41,15 @@ using namespace serene;
 namespace cl = llvm::cl;
 
 namespace {
-enum Action { None, DumpAST, DumpIR, DumpSLIR, DumpMLIR, DumpSemantic };
+enum Action {
+  None,
+  DumpAST,
+  DumpIR,
+  DumpSLIR,
+  DumpMLIR,
+  DumpSemantic,
+  DumpLIR
+};
 }
 
 static cl::opt<std::string> inputFile(cl::Positional,
@@ -57,6 +65,8 @@ static cl::opt<enum Action> emitAction(
     cl::values(clEnumValN(DumpSLIR, "slir", "Output the SLIR only")),
     cl::values(clEnumValN(DumpMLIR, "mlir",
                           "Output the MLIR only (Lowered SLIR)")),
+    cl::values(clEnumValN(DumpLIR, "lir",
+                          "Output the LIR only (Lowerd to LLVM dialect)")),
     cl::values(clEnumValN(DumpAST, "ast", "Output the AST only"))
 
 );
@@ -114,6 +124,11 @@ int main(int argc, char *argv[]) {
 
   case Action::DumpMLIR: {
     ctx->setOperationPhase(CompilationPhase::MLIR);
+    break;
+  }
+
+  case Action::DumpLIR: {
+    ctx->setOperationPhase(CompilationPhase::LIR);
     break;
   }
 

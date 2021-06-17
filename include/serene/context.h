@@ -27,7 +27,7 @@
 
 #include "serene/environment.h"
 #include "serene/namespace.h"
-#include "serene/passes/slir_lowering.h"
+#include "serene/passes.h"
 #include "serene/slir/dialect.h"
 
 #include <llvm/ADT/StringRef.h>
@@ -42,7 +42,13 @@ class Expression;
 using Node = std::shared_ptr<Expression>;
 } // namespace exprs
 
-enum class CompilationPhase { SLIR, MLIR, IR, O1 };
+enum class CompilationPhase {
+  SLIR,
+  MLIR, // Lowered slir to other dialects
+  LIR,  // Lowered to the llvm ir dialect
+  IR,   // Lowered to the LLVMIR itself
+  O1
+};
 
 class SereneContext {
   std::map<std::string, std::shared_ptr<Namespace>> namespaces;

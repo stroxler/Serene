@@ -34,7 +34,7 @@ set(HEADER_LIST
   "${INCLUDE_DIR}/serene/slir/utils.h"
   "${INCLUDE_DIR}/serene/namespace.h"
 
-  "${INCLUDE_DIR}/serene/passes/slir_lowering.h")
+  "${INCLUDE_DIR}/serene/passes.h")
 
 # Make an automatic library - will be static or dynamic based on user setting
 add_library(serene
@@ -67,6 +67,7 @@ add_library(serene
   slir/utils.cpp
 
   passes/slir_lowering.cpp
+  passes/to_llvm_dialect.cpp
   ${HEADER_LIST})
 
 
@@ -85,7 +86,26 @@ endif()
 target_include_directories(serene PRIVATE ${INCLUDE_DIR})
 target_include_directories(serene PUBLIC ${PROJECT_BINARY_DIR})
 
-# This depends on (header only) boost
-target_link_libraries(serene ${llvm_libs})
+
 source_group(TREE "${INCLUDE_DIR}" PREFIX "Header Files" FILES ${HEADER_LIST})
 #target_precompile_headers(serene PRIVATE ${HEADER_LIST})
+get_property(dialect_libs GLOBAL PROPERTY MLIR_DIALECT_LIBS)
+get_property(conversion_libs GLOBAL PROPERTY MLIR_CONVERSION_LIBS)
+# This depends on (header only) boost
+target_link_libraries(serene
+  PRIVATE
+    ${dialect_libs}
+    ${conversion_libs}
+    MLIRAnalysis
+    MLIRCallInterfaces
+    MLIRCastInterfaces
+    MLIRExecutionEngine
+    MLIRIR
+    MLIRLLVMToLLVMIRTranslation
+    MLIRParser
+    MLIRPass
+    MLIRSideEffectInterfaces
+    MLIRTargetLLVMIRExport
+    MLIRTransforms
+    ${llvm_libs}
+    )

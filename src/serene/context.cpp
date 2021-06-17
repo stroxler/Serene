@@ -25,6 +25,7 @@
 #include "serene/context.h"
 
 #include "serene/namespace.h"
+#include "serene/passes.h"
 
 namespace serene {
 
@@ -64,8 +65,12 @@ void SereneContext::setOperationPhase(CompilationPhase phase) {
     return;
   }
 
-  if (phase == CompilationPhase::MLIR) {
+  if (phase >= CompilationPhase::MLIR) {
     pm.addPass(serene::passes::createSLIRLowerToAffinePass());
+  }
+
+  if (phase >= CompilationPhase::LIR) {
+    pm.addPass(serene::passes::createSLIRLowerToLLVMDialectPass());
   }
 };
 

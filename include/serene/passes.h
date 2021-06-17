@@ -21,34 +21,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include "mlir/Dialect/StandardOps/IR/Ops.h"
-#include "serene/slir/dialect.h"
 
-#include <mlir/Dialect/Affine/IR/AffineOps.h>
-#include <mlir/Dialect/LLVMIR/LLVMDialect.h>
-#include <mlir/Dialect/MemRef/IR/MemRef.h>
-#include <mlir/IR/BuiltinOps.h>
+#ifndef SERENE_PASSES_H
+#define SERENE_PASSES_H
+
 #include <mlir/Pass/Pass.h>
-#include <mlir/Transforms/DialectConversion.h>
 
 namespace serene::passes {
-struct ValueOpLowering : public mlir::OpRewritePattern<serene::slir::ValueOp> {
-  using OpRewritePattern<serene::slir::ValueOp>::OpRewritePattern;
-
-  mlir::LogicalResult
-  matchAndRewrite(serene::slir::ValueOp op,
-                  mlir::PatternRewriter &rewriter) const final;
-};
-
-struct SLIRToAffinePass
-    : public mlir::PassWrapper<SLIRToAffinePass,
-                               mlir::OperationPass<mlir::ModuleOp>> {
-  void getDependentDialects(mlir::DialectRegistry &registry) const override;
-  void runOnOperation() final;
-  void runOnModule();
-  mlir::ModuleOp getModule();
-};
 
 std::unique_ptr<mlir::Pass> createSLIRLowerToAffinePass();
+std::unique_ptr<mlir::Pass> createSLIRLowerToLLVMDialectPass();
 
 } // namespace serene::passes
+
+#endif
