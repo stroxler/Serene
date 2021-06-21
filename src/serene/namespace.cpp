@@ -83,8 +83,16 @@ uint Namespace::nextFnCounter() { return fn_counter++; };
 
 mlir::ModuleOp &Namespace::getModule() { return this->module; };
 SereneContext &Namespace::getContext() { return this->ctx; };
+void Namespace::setLLVMModule(std::unique_ptr<llvm::Module> m) {
+  this->llvmModule = std::move(m);
+};
 
-mlir::ModuleOp &Namespace::generate() {
+llvm::Module &Namespace::getLLVMModule() {
+  // TODO: check the llvm module to make sure it is initialized
+  return *llvmModule;
+};
+
+mlir::LogicalResult Namespace::generate() {
   for (auto &x : getTree()) {
     x->generateIR(*this);
   }
@@ -92,19 +100,30 @@ mlir::ModuleOp &Namespace::generate() {
   if (mlir::failed(runPasses())) {
     // TODO: throw a proper errer
     module.emitError("Failure in passes!");
+    return mlir::failure();
   }
 
-  return module;
+  if (ctx.getTargetPhase() >= CompilationPhase::IR) {
+    auto llvmTmpModule = slir::toLLVMIR<Namespace>(*this);
+    this->llvmModule   = std::move(llvmTmpModule);
+  }
+
+  return mlir::success();
 }
 
 mlir::LogicalResult Namespace::runPasses() { return ctx.pm.run(module); };
 
 void Namespace::dump() {
-  // We don't want this module just yet
-  mlir::ModuleOp &m = generate();
-  m->dump();
+  llvm::outs() << "\nMLIR: \n";
+  module->dump();
+  if (llvmModule) {
+    llvm::outs() << "\nLLVM IR: \n";
+    llvmModule->dump();
+  }
 };
 
 Namespace::~Namespace() { this->module.erase(); }
-
+namespace slir {
+template class Generatable<Namespace>;
+}
 } // namespace serene

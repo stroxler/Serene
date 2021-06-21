@@ -25,17 +25,27 @@
 #ifndef SERENE_SLIR_GENERATABLE_H
 #define SERENE_SLIR_GENERATABLE_H
 
-#include "mlir/IR/Builders.h"
-#include "mlir/IR/BuiltinOps.h"
-#include "mlir/IR/Identifier.h"
-#include "serene/reader/location.h"
+#include "serene/slir/dialect.h"
 #include "serene/traits.h"
 
+#include <llvm/ADT/STLExtras.h>
+#include <llvm/IR/Module.h>
+#include <llvm/Support/Casting.h>
+#include <llvm/Support/TargetSelect.h>
+#include <mlir/ExecutionEngine/ExecutionEngine.h>
+#include <mlir/ExecutionEngine/OptUtils.h>
+#include <mlir/IR/BuiltinOps.h>
+#include <mlir/IR/MLIRContext.h>
+#include <mlir/Support/LogicalResult.h>
+#include <mlir/Target/LLVMIR/Dialect/LLVMIR/LLVMToLLVMIRTranslation.h>
+#include <mlir/Target/LLVMIR/ModuleTranslation.h>
+#include <stdexcept>
 #include <utility>
 
 namespace serene {
 class Namespace;
-}
+class SereneContext;
+} // namespace serene
 
 namespace serene::slir {
 
@@ -58,10 +68,50 @@ public:
   Generatable(){};
   Generatable(const Generatable &) = delete;
 
-  mlir::ModuleOp &generate();
-  mlir::LogicalResult runPasses();
+  mlir::LogicalResult generate() { return this->Object().generate(); };
+  mlir::LogicalResult runPasses() { return this->Object().runPasses(); };
+
+  mlir::ModuleOp &getModule() { return this->Object().getModule(); };
+  serene::SereneContext &getContext() { return this->Object().getContext(); };
 
   void dump() { this->Object().dump(); };
+};
+
+template <typename T>
+mlir::LogicalResult generate(Generatable<T> &t) {
+  return t.generate();
+};
+
+template <typename T>
+std::unique_ptr<llvm::Module> toLLVMIR(Generatable<T> &t) {
+  auto &module = t.getModule();
+  auto &ctx    = t.getContext();
+  // Register the translation to LLVM IR with the MLIR context.
+  mlir::registerLLVMDialectTranslation(ctx.mlirContext);
+
+  // Convert the module to LLVM IR in a new LLVM IR context.
+  auto llvmModule = mlir::translateModuleToLLVMIR(module, ctx.llvmContext);
+  if (!llvmModule) {
+    // TODO: Return a Result type instead
+    llvm::errs() << "Failed to emit LLVM IR\n";
+    throw std::runtime_error("Failed to emit LLVM IR\n");
+  }
+
+  // Initialize LLVM targets.
+  llvm::InitializeNativeTarget();
+  llvm::InitializeNativeTargetAsmPrinter();
+  mlir::ExecutionEngine::setupTargetTriple(llvmModule.get());
+
+  /// Optionally run an optimization pipeline over the llvm module.
+  auto optPipeline = mlir::makeOptimizingTransformer(
+      /*optLevel=*/ctx.getOptimizatioLevel(), /*sizeLevel=*/0,
+      /*targetMachine=*/nullptr);
+  if (auto err = optPipeline(llvmModule.get())) {
+    llvm::errs() << "Failed to optimize LLVM IR " << err << "\n";
+    throw std::runtime_error("Failed to optimize LLVM IR");
+  }
+
+  return std::move(llvmModule);
 };
 
 template <typename T>

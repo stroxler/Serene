@@ -26,6 +26,8 @@
 #include "serene/passes.h"
 #include "serene/slir/dialect.h"
 
+#include "llvm/Support/Casting.h"
+
 #include <mlir/Dialect/Affine/IR/AffineOps.h>
 #include <mlir/Dialect/LLVMIR/LLVMDialect.h>
 #include <mlir/Dialect/MemRef/IR/MemRef.h>
@@ -49,12 +51,29 @@ ValueOpLowering::matchAndRewrite(serene::slir::ValueOp op,
   auto value         = op.value();
   mlir::Location loc = op.getLoc();
 
-  // auto std_const =
-  rewriter.create<mlir::ConstantIntOp>(loc, (int64_t)value,
-                                       rewriter.getI64Type());
-  // rewriter.replaceOpWithNewOp<typename OpTy>(Operation *op, Args &&args...)
-  //  Replace this operation with the generated alloc.
-  //  rewriter.replaceOp(op, alloc);
+  llvm::SmallVector<mlir::Type, 4> arg_types(0);
+  auto func_type = rewriter.getFunctionType(arg_types, rewriter.getI64Type());
+  auto fn        = rewriter.create<mlir::FuncOp>(loc, "randomname", func_type);
+  if (!fn) {
+    llvm::outs() << "Value Rewrite fn is null\n";
+    return mlir::failure();
+  }
+
+  auto &entryBlock = *fn.addEntryBlock();
+  rewriter.setInsertionPointToStart(&entryBlock);
+  auto retVal = rewriter
+                    .create<mlir::ConstantIntOp>(loc, (int64_t)value,
+                                                 rewriter.getI64Type())
+                    .getResult();
+
+  mlir::ReturnOp returnOp = rewriter.create<mlir::ReturnOp>(loc, retVal);
+
+  if (!returnOp) {
+    llvm::outs() << "Value Rewrite returnOp is null\n";
+    return mlir::failure();
+  }
+
+  fn.setPrivate();
   rewriter.eraseOp(op);
   return mlir::success();
 }
@@ -99,6 +118,7 @@ void SLIRToAffinePass::runOnModule() {
   // to lower, `toy.print`, as `legal`.
   target.addIllegalDialect<serene::slir::SereneDialect>();
   // target.addLegalOp<serene::slir::PrintOp>();
+  target.addLegalOp<mlir::FuncOp>();
 
   // Now that the conversion target has been defined, we just need to provide
   // the set of patterns that will lower the Toy operations.

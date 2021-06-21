@@ -102,6 +102,9 @@ on ADF
 
 * TODOs
 ** Bootstrap
+*** TODO Replace =llvm::outs()= with debug statements
+*** TODO Error handling
+Create proper error handling for the internal infra
 *** TODO Language Spec                                               :DOCS:
 *** TODO A proper List implementation
 *** TODO Vector implementation
@@ -120,7 +123,6 @@ on ADF
 *** TODO Enum implementation
 *** TODO Protocol
 *** TODO Struct implementation
-*** TODO Error handling
 *** TODO Multi arity functions
 *** TODO QuasiQuotation
 *** TODO Linter                                                      :Misc:

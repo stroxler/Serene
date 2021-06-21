@@ -132,6 +132,11 @@ int main(int argc, char *argv[]) {
     break;
   }
 
+  case Action::DumpIR: {
+    ctx->setOperationPhase(CompilationPhase::IR);
+    break;
+  }
+
   default: {
     llvm::errs() << "No action specified. TODO: Print out help here\n";
     return 1;
@@ -143,6 +148,10 @@ int main(int argc, char *argv[]) {
 
   if (isSet.succeeded()) {
     ctx->insertNS(ns);
+    if (mlir::failed(serene::slir::generate<Namespace>(*ns))) {
+      llvm::errs() << "IR generation faild\n";
+      return 1;
+    }
     serene::slir::dump<Namespace>(*ns);
   } else {
     llvm::outs() << "Can't set the tree of the namespace!\n";

@@ -24,34 +24,23 @@
 
 #include "serene/slir/generatable.h"
 
-#include "mlir/IR/Builders.h"
-#include "mlir/IR/BuiltinOps.h"
-#include "mlir/IR/Identifier.h"
-#include "mlir/IR/MLIRContext.h"
-#include "mlir/IR/Value.h"
-#include "mlir/Support/LogicalResult.h"
-#include "serene/exprs/traits.h"
-#include "serene/namespace.h"
 #include "serene/slir/dialect.h"
 
-#include "llvm/ADT/STLExtras.h"
-#include "llvm/ADT/ScopedHashTable.h"
-#include "llvm/Support/Casting.h"
-#include "llvm/Support/ErrorHandling.h"
-#include "llvm/Support/raw_ostream.h"
+#include <llvm/ADT/STLExtras.h>
+#include <llvm/IR/Module.h>
+#include <llvm/Support/Casting.h>
+#include <llvm/Support/TargetSelect.h>
+#include <mlir/ExecutionEngine/ExecutionEngine.h>
+#include <mlir/ExecutionEngine/OptUtils.h>
+#include <mlir/IR/BuiltinOps.h>
+#include <mlir/Support/LogicalResult.h>
+#include <mlir/Target/LLVMIR/Dialect/LLVMIR/LLVMToLLVMIRTranslation.h>
+#include <mlir/Target/LLVMIR/ModuleTranslation.h>
+#include <stdexcept>
+#include <utility>
 
 namespace serene {
 namespace slir {
-
-template <typename T>
-mlir::ModuleOp &Generatable<T>::generate() {
-  return this->Object().generate();
-};
-
-template <typename T>
-mlir::LogicalResult Generatable<T>::runPasses() {
-  return this->Object().runPasses();
-};
 
 // mlir::Operation *Generatable::generate(exprs::Expression *x) {
 //  switch (x->getType()) {

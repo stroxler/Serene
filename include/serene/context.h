@@ -47,19 +47,24 @@ enum class CompilationPhase {
   MLIR, // Lowered slir to other dialects
   LIR,  // Lowered to the llvm ir dialect
   IR,   // Lowered to the LLVMIR itself
-  O1
+  NoOptimization,
+  O1,
+  O2,
+  O3,
 };
 
 class SereneContext {
-  std::map<std::string, std::shared_ptr<Namespace>> namespaces;
-
-  // Why string vs pointer? We might rewrite the namespace and
-  // holding a pointer means that it might point to the old version
-  std::string current_ns;
-
 public:
+  // --------------------------------------------------------------------------
+  // IMPORTANT:
+  // These two contextes have to be the very first members of the class in
+  // order to destroy last. DO NOT change the order or add anything before
+  // them
+  // --------------------------------------------------------------------------
+  llvm::LLVMContext llvmContext;
   mlir::MLIRContext mlirContext;
   mlir::PassManager pm;
+
   /// Insert the given `ns` into the context. The Context object is
   /// the owner of all the namespaces. The `ns` will overwrite any
   /// namespace with the same name.
@@ -74,11 +79,23 @@ public:
 
   std::shared_ptr<Namespace> getNS(llvm::StringRef ns_name);
 
-  SereneContext() : pm(&mlirContext) {
+  SereneContext()
+      : pm(&mlirContext), targetPhase(CompilationPhase::NoOptimization) {
     mlirContext.getOrLoadDialect<serene::slir::SereneDialect>();
+    pm.enableCrashReproducerGeneration("/home/lxsameer/mlir.mlir");
   };
 
   void setOperationPhase(CompilationPhase phase);
+  CompilationPhase getTargetPhase() { return targetPhase; };
+  int getOptimizatioLevel();
+
+private:
+  CompilationPhase targetPhase;
+  std::map<std::string, std::shared_ptr<Namespace>> namespaces;
+
+  // Why string vs pointer? We might rewrite the namespace and
+  // holding a pointer means that it might point to the old version
+  std::string current_ns;
 };
 
 /// Creates a new context object. Contexts are used through out the compilation

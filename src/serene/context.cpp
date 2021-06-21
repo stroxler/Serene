@@ -26,6 +26,7 @@
 
 #include "serene/namespace.h"
 #include "serene/passes.h"
+#include "serene/slir/generatable.h"
 
 namespace serene {
 
@@ -61,6 +62,8 @@ std::shared_ptr<Namespace> SereneContext::getCurrentNS() {
 };
 
 void SereneContext::setOperationPhase(CompilationPhase phase) {
+  this->targetPhase = phase;
+
   if (phase == CompilationPhase::SLIR) {
     return;
   }
@@ -73,6 +76,20 @@ void SereneContext::setOperationPhase(CompilationPhase phase) {
     pm.addPass(serene::passes::createSLIRLowerToLLVMDialectPass());
   }
 };
+
+int SereneContext::getOptimizatioLevel() {
+  if (targetPhase <= CompilationPhase::NoOptimization) {
+    return 0;
+  }
+
+  if (targetPhase == CompilationPhase::O1) {
+    return 1;
+  }
+  if (targetPhase == CompilationPhase::O2) {
+    return 2;
+  }
+  return 3;
+}
 
 std::unique_ptr<SereneContext> makeSereneContext() {
   return std::make_unique<SereneContext>();

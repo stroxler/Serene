@@ -30,6 +30,7 @@
 #include "serene/traits.h"
 #include "serene/utils.h"
 
+#include <algorithm>
 #include <atomic>
 #include <llvm/ADT/SmallString.h>
 #include <llvm/ADT/StringRef.h>
@@ -62,11 +63,12 @@ private:
   bool initialized             = false;
   std::atomic<uint> fn_counter = 0;
   exprs::Ast tree;
+  std::unique_ptr<llvm::Module> llvmModule;
+  mlir::ModuleOp module;
 
 public:
   mlir::StringRef name;
   llvm::Optional<std::string> filename;
-  mlir::ModuleOp module;
 
   /// The root environment of the namespace on the semantic analysis phase.
   /// Which is a mapping from names to AST nodes ( no evaluation ).
@@ -82,11 +84,13 @@ public:
 
   mlir::ModuleOp &getModule();
   SereneContext &getContext();
+  void setLLVMModule(std::unique_ptr<llvm::Module>);
+  llvm::Module &getLLVMModule();
 
   // Generatable Trait
 
   /// Generate the IR of the namespace with respect to the compilation phase
-  mlir::ModuleOp &generate();
+  mlir::LogicalResult generate();
   mlir::LogicalResult runPasses();
 
   /// Dumps the namespace with respect to the compilation phase
