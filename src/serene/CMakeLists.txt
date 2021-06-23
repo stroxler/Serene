@@ -65,7 +65,7 @@ add_library(serene
   slir/value_op.cpp
   slir/generatable.cpp
   slir/utils.cpp
-
+  slir/ops.cpp
   passes/slir_lowering.cpp
   passes/to_llvm_dialect.cpp
   ${HEADER_LIST})

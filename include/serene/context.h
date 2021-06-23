@@ -32,6 +32,7 @@
 
 #include <llvm/ADT/StringRef.h>
 #include <memory>
+#include <mlir/Dialect/StandardOps/IR/Ops.h>
 #include <mlir/IR/MLIRContext.h>
 #include <mlir/Pass/PassManager.h>
 
@@ -82,6 +83,7 @@ public:
   SereneContext()
       : pm(&mlirContext), targetPhase(CompilationPhase::NoOptimization) {
     mlirContext.getOrLoadDialect<serene::slir::SereneDialect>();
+    mlirContext.getOrLoadDialect<mlir::StandardOpsDialect>();
     pm.enableCrashReproducerGeneration("/home/lxsameer/mlir.mlir");
   };
 

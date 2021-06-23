@@ -30,9 +30,9 @@
 #include "serene/exprs/symbol.h"
 #include "serene/exprs/traits.h"
 
-#include "llvm/Support/Casting.h"
-#include "llvm/Support/ErrorHandling.h"
-#include "llvm/Support/FormatVariadic.h"
+#include <llvm/Support/Casting.h>
+#include <llvm/Support/ErrorHandling.h>
+#include <llvm/Support/FormatVariadic.h>
 
 namespace serene {
 namespace exprs {
@@ -110,6 +110,15 @@ MaybeNode Def::make(SereneContext &ctx, List *list) {
   } else {
     llvm_unreachable("Inserting a value in the semantic env failed!");
   }
+};
+void Def::generateIR(serene::Namespace &ns) {
+  auto &module = ns.getModule();
+
+  if (value->getType() == ExprType::Fn) {
+    value->generateIR(ns);
+    return;
+  }
+  module.emitError("Def: not implemented!");
 };
 } // namespace exprs
 } // namespace serene

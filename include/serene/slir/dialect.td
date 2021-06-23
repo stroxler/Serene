@@ -3,6 +3,9 @@
 
 include "mlir/IR/OpBase.td"
 include "mlir/Interfaces/SideEffectInterfaces.td"
+include "mlir/Interfaces/CallInterfaces.td"
+include "mlir/Interfaces/CastInterfaces.td"
+include "mlir/Interfaces/DataLayoutInterfaces.td"
 
 
 // Dialect definition. It will directly generate the SereneDialect class
@@ -82,23 +85,40 @@ def ValueOp: Serene_Op<"value"> {
     ];
 }
 
-def FnIdOp: Serene_Op<"fn_id"> {
+def FnOp: Serene_Op<"fn", [
+  AffineScope, AutomaticAllocationScope,
+  IsolatedFromAbove
+]> {
 
-    let summary = "This operation is just a place holder for an anonymouse function";
+    let summary = "This operation is just a place holder for a function";
     let description = [{
-s        A place holder for an anonymous function. For example consider an expression
+        A place holder for an anonymous function. For example consider an expression
         like `(def a (fn (x) x))`, in this case we don't immediately create an anonymous
         function since we need to set the name and create the function later.
     }];
 
-    let arguments = (ins StrAttr:$name);
+    let arguments = (ins StrAttr:$name,
+                         TypeAttr:$type,
+                         OptionalAttr<StrAttr>:$sym_visibility);
+
+    let regions = (region AnyRegion:$body);
     let results = (outs NoneType);
 
-    let builders = [
-        OpBuilder<(ins "std::string":$name), [{
-        // Build from fix 64 bit int
-        build(odsBuilder, odsState, odsBuilder.getNoneType(), odsBuilder.getStringAttr(name));
-        }]>,
-    ];
+  let builders = [
+      OpBuilder<(ins
+        "llvm::StringRef":$name, "mlir::FunctionType":$type,
+        CArg<"llvm::ArrayRef<mlir::NamedAttribute>", "{}">:$attrs,
+        CArg<"llvm::ArrayRef<mlir::DictionaryAttr>", "{}">:$argAttrs)
+  >];
+
+  // let extraClassDeclaration = [{
+  //   static FnOp create(mlir::Location location, llvm::StringRef name, mlir::FunctionType type,
+  //                      llvm::ArrayRef<mlir::NamedAttribute> attrs = {});
+    // static FnOp create(mlir::Location location, llvm::StringRef name, mlir::FunctionType type,
+    //                    mlir::Operation::dialect_attr_range attrs);
+    // static FnOp create(mlir::Location location, llvm::StringRef name, mlir::FunctionType type,
+    //                    llvm::ArrayRef<mlir::NamedAttribute> attrs,
+    //                    llvm::ArrayRef<mlir::DictionaryAttr> argAttrs);
+    // }];
 }
 #endif // SERENE_DIALECT

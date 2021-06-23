@@ -22,7 +22,6 @@
  * SOFTWARE.
  */
 
-#include "mlir/Dialect/StandardOps/IR/Ops.h"
 #include "serene/passes.h"
 #include "serene/slir/dialect.h"
 
@@ -31,6 +30,7 @@
 #include <mlir/Dialect/Affine/IR/AffineOps.h>
 #include <mlir/Dialect/LLVMIR/LLVMDialect.h>
 #include <mlir/Dialect/MemRef/IR/MemRef.h>
+#include <mlir/Dialect/StandardOps/IR/Ops.h>
 #include <mlir/IR/BuiltinOps.h>
 #include <mlir/Pass/Pass.h>
 #include <mlir/Transforms/DialectConversion.h>
