@@ -22,6 +22,8 @@
  * SOFTWARE.
  */
 
+#include "mlir/IR/Attributes.h"
+#include "mlir/IR/BuiltinAttributes.h"
 #include "serene/passes.h"
 #include "serene/slir/dialect.h"
 
@@ -91,11 +93,24 @@ mlir::LogicalResult
 FnOpLowering::matchAndRewrite(serene::slir::FnOp op,
                               mlir::PatternRewriter &rewriter) const {
   auto args          = op.args();
+  auto name          = op.name();
+  auto isPublic      = op.sym_visibility().getValueOr("public") == "public";
   mlir::Location loc = op.getLoc();
 
-  llvm::SmallVector<mlir::Type, 4> arg_types(0);
+  llvm::SmallVector<mlir::Type, 4> arg_types;
+
+  for (auto &arg : args) {
+    auto attr = std::get<1>(arg).dyn_cast<mlir::TypeAttr>();
+
+    if (!attr) {
+      llvm::outs() << "It's not a type attr\n";
+      return mlir::failure();
+    }
+    arg_types.push_back(attr.getValue());
+  }
+
   auto func_type = rewriter.getFunctionType(arg_types, rewriter.getI64Type());
-  auto fn        = rewriter.create<mlir::FuncOp>(loc, "randomname", func_type);
+  auto fn        = rewriter.create<mlir::FuncOp>(loc, name, func_type);
   if (!fn) {
     llvm::outs() << "Value Rewrite fn is null\n";
     return mlir::failure();
@@ -103,10 +118,10 @@ FnOpLowering::matchAndRewrite(serene::slir::FnOp op,
 
   auto &entryBlock = *fn.addEntryBlock();
   rewriter.setInsertionPointToStart(&entryBlock);
-  auto retVal = rewriter
-                    .create<mlir::ConstantIntOp>(loc, (int64_t)value,
-                                                 rewriter.getI64Type())
-                    .getResult();
+  auto retVal =
+      rewriter
+          .create<mlir::ConstantIntOp>(loc, (int64_t)3, rewriter.getI64Type())
+          .getResult();
 
   mlir::ReturnOp returnOp = rewriter.create<mlir::ReturnOp>(loc, retVal);
 
@@ -115,7 +130,10 @@ FnOpLowering::matchAndRewrite(serene::slir::FnOp op,
     return mlir::failure();
   }
 
-  fn.setPrivate();
+  if (!isPublic) {
+    fn.setPrivate();
+  }
+
   rewriter.eraseOp(op);
   return mlir::success();
 }
@@ -166,7 +184,7 @@ void SLIRToAffinePass::runOnModule() {
   // Now that the conversion target has been defined, we just need to provide
   // the set of patterns that will lower the Toy operations.
   mlir::RewritePatternSet patterns(&getContext());
-  patterns.add<ValueOpLowering>(&getContext());
+  patterns.add<ValueOpLowering, FnOpLowering>(&getContext());
 
   // With the target and rewrite patterns defined, we can now attempt the
   // conversion. The conversion will signal failure if any of our `illegal`

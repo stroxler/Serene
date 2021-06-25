@@ -102,7 +102,6 @@ MaybeNode Fn::make(SereneContext &ctx, List *list) {
 
 void Fn::generateIR(serene::Namespace &ns) {
   auto loc     = slir::toMLIRLocation(ns, location.start);
-  llvm::outs() << location.start.line << "\n";
   auto &ctx    = ns.getContext();
   auto &module = ns.getModule();
   mlir::OpBuilder builder(&ctx.mlirContext);
