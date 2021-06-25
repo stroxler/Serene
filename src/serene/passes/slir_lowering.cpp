@@ -78,6 +78,49 @@ ValueOpLowering::matchAndRewrite(serene::slir::ValueOp op,
   return mlir::success();
 }
 
+// Fn lowering pattern
+struct FnOpLowering : public mlir::OpRewritePattern<serene::slir::FnOp> {
+  using OpRewritePattern<serene::slir::FnOp>::OpRewritePattern;
+
+  mlir::LogicalResult
+  matchAndRewrite(serene::slir::FnOp op,
+                  mlir::PatternRewriter &rewriter) const final;
+};
+
+mlir::LogicalResult
+FnOpLowering::matchAndRewrite(serene::slir::FnOp op,
+                              mlir::PatternRewriter &rewriter) const {
+  auto args          = op.args();
+  mlir::Location loc = op.getLoc();
+
+  llvm::SmallVector<mlir::Type, 4> arg_types(0);
+  auto func_type = rewriter.getFunctionType(arg_types, rewriter.getI64Type());
+  auto fn        = rewriter.create<mlir::FuncOp>(loc, "randomname", func_type);
+  if (!fn) {
+    llvm::outs() << "Value Rewrite fn is null\n";
+    return mlir::failure();
+  }
+
+  auto &entryBlock = *fn.addEntryBlock();
+  rewriter.setInsertionPointToStart(&entryBlock);
+  auto retVal = rewriter
+                    .create<mlir::ConstantIntOp>(loc, (int64_t)value,
+                                                 rewriter.getI64Type())
+                    .getResult();
+
+  mlir::ReturnOp returnOp = rewriter.create<mlir::ReturnOp>(loc, retVal);
+
+  if (!returnOp) {
+    llvm::outs() << "Value Rewrite returnOp is null\n";
+    return mlir::failure();
+  }
+
+  fn.setPrivate();
+  rewriter.eraseOp(op);
+  return mlir::success();
+}
+
+// SLIR lowering pass
 struct SLIRToAffinePass
     : public mlir::PassWrapper<SLIRToAffinePass,
                                mlir::OperationPass<mlir::ModuleOp>> {

@@ -98,18 +98,18 @@ def FnOp: Serene_Op<"fn", [
     }];
 
     let arguments = (ins StrAttr:$name,
-                         TypeAttr:$type,
+                         DictionaryAttr:$args,
                          OptionalAttr<StrAttr>:$sym_visibility);
 
     let regions = (region AnyRegion:$body);
     let results = (outs NoneType);
 
-  let builders = [
-      OpBuilder<(ins
-        "llvm::StringRef":$name, "mlir::FunctionType":$type,
-        CArg<"llvm::ArrayRef<mlir::NamedAttribute>", "{}">:$attrs,
-        CArg<"llvm::ArrayRef<mlir::DictionaryAttr>", "{}">:$argAttrs)
-  >];
+  // let builders = [
+  //     OpBuilder<(ins
+  //       "llvm::StringRef":$name, "mlir::FunctionType":$type,
+  //       CArg<"llvm::ArrayRef<mlir::NamedAttribute>", "{}">:$attrs,
+  //       CArg<"llvm::ArrayRef<mlir::DictionaryAttr>", "{}">:$argAttrs)
+  // >];
 
   // let extraClassDeclaration = [{
   //   static FnOp create(mlir::Location location, llvm::StringRef name, mlir::FunctionType type,

@@ -24,6 +24,7 @@
 
 #include "serene/exprs/fn.h"
 
+#include "mlir/IR/BuiltinAttributes.h"
 #include "serene/errors/error.h"
 #include "serene/exprs/expression.h"
 #include "serene/exprs/list.h"
@@ -101,19 +102,32 @@ MaybeNode Fn::make(SereneContext &ctx, List *list) {
 
 void Fn::generateIR(serene::Namespace &ns) {
   auto loc     = slir::toMLIRLocation(ns, location.start);
+  llvm::outs() << location.start.line << "\n";
   auto &ctx    = ns.getContext();
   auto &module = ns.getModule();
   mlir::OpBuilder builder(&ctx.mlirContext);
 
-  llvm::SmallVector<mlir::Type, 4> arg_types;
-
+  // llvm::SmallVector<mlir::Type, 4> arg_types;
+  llvm::SmallVector<mlir::NamedAttribute, 4> arguments;
   // at the moment we only support integers
-  for (size_t i = 0; i < args.count(); i++) {
-    arg_types.push_back(builder.getI64Type());
+  for (auto &arg : args) {
+    auto *argSym = llvm::dyn_cast<Symbol>(arg.get());
+
+    if (!argSym) {
+      module->emitError(llvm::formatv(
+          "Arguments of a function have to be symbols. Fn: '{0}'", name));
+      return;
+    }
+
+    arguments.push_back(builder.getNamedAttr(
+        argSym->name, mlir::TypeAttr::get(builder.getI64Type())));
   }
 
-  auto funcType = builder.getFunctionType(arg_types, builder.getI64Type());
-  auto fn       = builder.create<slir::FnOp>(loc, name, funcType);
+  // auto funcType = builder.getFunctionType(arg_types, builder.getI64Type());
+  auto fn = builder.create<slir::FnOp>(
+      loc, builder.getI64Type(), name,
+      mlir::DictionaryAttr::get(builder.getContext(), arguments),
+      builder.getStringAttr("public"));
 
   if (!fn) {
     module.emitError(llvm::formatv("Can't create the function '{0}'", name));
