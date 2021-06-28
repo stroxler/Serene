@@ -93,6 +93,9 @@ on ADF
 *** Emacs mode
 - [[https://www.wilfred.me.uk/blog/2015/03/19/adding-a-new-language-to-emacs/][Adding A New Language to Emacs]]
 - [[https://www.wilfred.me.uk/blog/2014/09/27/the-definitive-guide-to-syntax-highlighting/][The Definitive Guide To Syntax Highlighting]]
+** Linker
+- [[https://lwn.net/Articles/276782/][20 part linker essay]]
+
 
 * Considerations
 ** Hashmaps
