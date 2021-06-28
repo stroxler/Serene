@@ -20,6 +20,7 @@ target_link_libraries(serenec PRIVATE
   MLIRParser
   MLIRSideEffectInterfaces
   MLIRTransforms
+  LLVMX86AsmParser
   )
 
 

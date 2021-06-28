@@ -24,6 +24,7 @@
 
 #include "serene/serene.h"
 
+#include "mlir/ExecutionEngine/ExecutionEngine.h"
 #include "serene/context.h"
 #include "serene/namespace.h"
 #include "serene/reader/reader.h"
@@ -31,8 +32,15 @@
 #include "serene/slir/generatable.h"
 #include "serene/slir/slir.h"
 
-#include <iostream>
+#include <llvm/IR/LegacyPassManager.h>
 #include <llvm/Support/CommandLine.h>
+#include <llvm/Support/FileSystem.h>
+#include <llvm/Support/Host.h>
+#include <llvm/Support/TargetRegistry.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/Support/raw_ostream.h>
+#include <llvm/Target/TargetMachine.h>
+#include <llvm/Target/TargetOptions.h>
 #include <memory>
 
 using namespace std;
@@ -44,11 +52,12 @@ namespace {
 enum Action {
   None,
   DumpAST,
-  DumpIR,
   DumpSLIR,
   DumpMLIR,
   DumpSemantic,
-  DumpLIR
+  DumpLIR,
+  DumpIR,
+  CompileToObject
 };
 }
 
@@ -57,8 +66,13 @@ static cl::opt<std::string> inputFile(cl::Positional,
                                       cl::init("-"),
                                       cl::value_desc("filename"));
 
+static cl::opt<std::string> outputFile("o",
+                                       cl::desc("The path to the output file"),
+                                       cl::init("-"),
+                                       cl::value_desc("filename"));
+
 static cl::opt<enum Action> emitAction(
-    "emit", cl::desc("Select what to dump."),
+    "emit", cl::desc("Select what to dump."), cl::init(CompileToObject),
     cl::values(clEnumValN(DumpSemantic, "semantic",
                           "Output the AST after one level of analysis only")),
     cl::values(clEnumValN(DumpIR, "ir", "Output the lowered IR only")),
@@ -67,7 +81,9 @@ static cl::opt<enum Action> emitAction(
                           "Output the MLIR only (Lowered SLIR)")),
     cl::values(clEnumValN(DumpLIR, "lir",
                           "Output the LIR only (Lowerd to LLVM dialect)")),
-    cl::values(clEnumValN(DumpAST, "ast", "Output the AST only"))
+    cl::values(clEnumValN(DumpAST, "ast", "Output the AST only")),
+    cl::values(clEnumValN(CompileToObject, "object",
+                          "Compile to object file. (Default)"))
 
 );
 
@@ -92,10 +108,71 @@ exprs::Ast readAndAnalyze(SereneContext &ctx) {
   return afterAst.getValue();
 };
 
+int dumpAsObject(Namespace &ns) {
+
+  auto &module      = ns.getLLVMModule();
+  auto targetTriple = llvm::sys::getDefaultTargetTriple();
+  module.setTargetTriple(targetTriple);
+
+  std::string Error;
+  auto target = llvm::TargetRegistry::lookupTarget(targetTriple, Error);
+
+  // Print an error and exit if we couldn't find the requested target.
+  // This generally occurs if we've forgotten to initialise the
+  // TargetRegistry or we have a bogus target triple.
+  if (!target) {
+    llvm::errs() << Error;
+    return 1;
+  }
+
+  auto cpu      = "generic";
+  auto features = "";
+
+  llvm::TargetOptions opt;
+  auto rm = llvm::Optional<llvm::Reloc::Model>();
+  auto targetMachinePtr =
+      target->createTargetMachine(targetTriple, cpu, features, opt, rm);
+  auto targetMachine = std::unique_ptr<llvm::TargetMachine>(targetMachinePtr);
+
+  module.setDataLayout(targetMachine->createDataLayout());
+
+  auto filename =
+      strcmp(outputFile.c_str(), "-") == 0 ? "output.o" : outputFile.c_str();
+
+  std::error_code ec;
+  llvm::raw_fd_ostream dest(filename, ec, llvm::sys::fs::OF_None);
+
+  if (ec) {
+    llvm::errs() << "Could not open file: " << ec.message();
+    return 1;
+  }
+
+  llvm::legacy::PassManager pass;
+  auto fileType = llvm::CGFT_ObjectFile;
+
+  if (targetMachine->addPassesToEmitFile(pass, dest, nullptr, fileType)) {
+    llvm::errs() << "TheTargetMachine can't emit a file of this type";
+    return 1;
+  }
+
+  pass.run(module);
+  dest.flush();
+
+  llvm::outs() << "Wrote " << filename << "\n";
+
+  return 0;
+};
+
 int main(int argc, char *argv[]) {
   // mlir::registerAsmPrinterCLOptions();
   mlir::registerMLIRContextCLOptions();
   mlir::registerPassManagerCLOptions();
+
+  llvm::InitializeAllTargetInfos();
+  llvm::InitializeAllTargets();
+  llvm::InitializeAllTargetMCs();
+  llvm::InitializeAllAsmParsers();
+  llvm::InitializeAllAsmPrinters();
 
   cl::ParseCommandLineOptions(argc, argv, "Serene compiler \n");
   auto ctx = makeSereneContext();
@@ -137,6 +214,11 @@ int main(int argc, char *argv[]) {
     break;
   }
 
+  case Action::CompileToObject: {
+    ctx->setOperationPhase(CompilationPhase::NoOptimization);
+    break;
+  }
+
   default: {
     llvm::errs() << "No action specified. TODO: Print out help here\n";
     return 1;
@@ -152,7 +234,11 @@ int main(int argc, char *argv[]) {
       llvm::errs() << "IR generation faild\n";
       return 1;
     }
-    serene::slir::dump<Namespace>(*ns);
+    if (emitAction < CompileToObject) {
+      serene::slir::dump<Namespace>(*ns);
+    } else {
+      return dumpAsObject(*ns);
+    }
   } else {
     llvm::outs() << "Can't set the tree of the namespace!\n";
   }
