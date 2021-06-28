@@ -3,66 +3,69 @@
 command=$1
 
 
-export CC=$(which clang)
-export CXX=$(which clang++)
+CC=$(which clang)
+CXX=$(which clang++)
+export CC
+export CXX
 export LDFLAGS="-fuse-ld=lld"
 export ASAN_FLAG="-fsanitize=address"
 export ASAN_OPTIONS=check_initialization_order=1
-export LSAN_OPTIONS=suppressions=`pwd`/.ignore_sanitize
-ROOT_DIR=`pwd`
+LSAN_OPTIONS=suppressions=$(pwd)/.ignore_sanitize
+export LSAN_OPTIONS
+ROOT_DIR=$(pwd)
 BUILD_DIR=$ROOT_DIR/build
 
 scanbuild=scan-build-11
 
 function pushed_build() {
-    pushd $BUILD_DIR > /dev/null
+    pushd "$BUILD_DIR" > /dev/null || return
 }
 
 function popd_build() {
-    popd > /dev/null
+    popd > /dev/null || return
 }
 
 function compile() {
     pushed_build
-    ninja -j `nproc`
+    ninja -j "$(nproc)"
     popd_build
 }
 
 function build() {
     pushed_build
-    cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug "$@" $ROOT_DIR
-    ninja -j `nproc`
+    cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug "$@" "$ROOT_DIR"
+    ninja -j "$(nproc)"
     popd_build
 }
 
 function build-20() {
     pushed_build
-    cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCPP_20_SUPPORT=ON "$@" $ROOT_DIR
-    ninja -j `nproc`
+    cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCPP_20_SUPPORT=ON "$@" "$ROOT_DIR"
+    ninja -j "$(nproc)"
     popd_build
 }
 
 function build-release() {
     pushed_build
-    cmake -G Ninja -DCMAKE_BUILD_TYPE=Release $ROOT_DIR
-    ninja -j `nproc`
+    cmake -G Ninja -DCMAKE_BUILD_TYPE=Release "$ROOT_DIR"
+    ninja -j "$(nproc)"
     popd_build
 }
 
 function build-docs() {
     pushed_build
-    cmake -G Ninja -DCMAKE_BUILD_TYPE=Docs $ROOT_DIR
-    ninja -j `nproc`
+    cmake -G Ninja -DCMAKE_BUILD_TYPE=Docs "$ROOT_DIR"
+    ninja -j "$(nproc)"
     popd_build
 }
 
 function clean() {
-    rm -rf $BUILD_DIR
+    rm -rf "$BUILD_DIR"
 }
 
 function run() {
     pushed_build
-    $BUILD_DIR/bin/serenec "$@"
+    "$BUILD_DIR"/bin/serenec "$@"
     popd_build
 }
 
@@ -70,48 +73,48 @@ function memcheck() {
     export ASAN_FLAG=""
     build
     pushed_build
-    valgrind --tool=memcheck --leak-check=yes --trace-children=yes $BUILD_DIR/bin/serenec "$@"
+    valgrind --tool=memcheck --leak-check=yes --trace-children=yes "$BUILD_DIR"/bin/serenec "$@"
     popd_build
 }
 
 function run-tests() {
-    $BUILD_DIR/src/tests/tests
+    "$BUILD_DIR"/src/tests/tests
 }
 
 function tests() {
     pushed_build
-    cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON $ROOT_DIR
-    ninja -j `nproc`
+    cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON "$ROOT_DIR"
+    ninja -j "$(nproc)"
     popd_build
 }
 
 
 case "$command" in
     "setup")
-        pushd ./scripts
+        pushd ./scripts || return
         ./git-pre-commit-format install
-        popd
+        popd || return
         ;;
     "build")
         clean
-        mkdir -p $BUILD_DIR
+        mkdir -p "$BUILD_DIR"
         build "${@:2}"
         ;;
     "build-20")
         clean
-        mkdir -p $BUILD_DIR
+        mkdir -p "$BUILD_DIR"
         build-20 "${@:2}"
         ;;
 
     "build-docs")
         clean
-        mkdir -p $BUILD_DIR
+        mkdir -p "$BUILD_DIR"
         build-docs "${@:2}"
         ;;
 
     "build-release")
         clean
-        mkdir -p $BUILD_DIR
+        mkdir -p "$BUILD_DIR"
         build-release "${@:2}"
         ;;
     "compile")
@@ -130,9 +133,9 @@ case "$command" in
 
     "scan-build")
         clean
-        mkdir -p $BUILD_DIR
+        mkdir -p "$BUILD_DIR"
         pushed_build
-        exec $scanbuild cmake $ROOT_DIR
+        exec $scanbuild cmake "$ROOT_DIR"
         exec $scanbuild scan-build make -j 4
         popd_build
         ;;
@@ -141,16 +144,16 @@ case "$command" in
         ;;
     "tests")
         clean
-        mkdir -p $BUILD_DIR
+        mkdir -p "$BUILD_DIR"
         tests
         run-tests
         ;;
     "clean")
-        rm -rf $BUILD_DIR
+        rm -rf "$BUILD_DIR"
         ;;
     "full-build")
         clean
-        mkdir -p $BUILD_DIR
+        mkdir -p "$BUILD_DIR"
         build
         tests
         run-tests
