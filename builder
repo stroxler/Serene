@@ -100,6 +100,9 @@ case "$command" in
         pushd ./scripts || return
         ./git-pre-commit-format install
         popd || return
+	echo "=== Manual action required ==="
+	echo "Set this environment variable. (clang-format-diff.py is located inside llvm's source directory)."
+	echo 'export CLANG_FORMAT_DIFF="python3 /path/to/llvm/saurce/llvm-project/clang/tools/clang-format/clang-format-diff.py"'
         ;;
     "build")
         clean
