@@ -2,9 +2,15 @@
 
 command=$1
 
+if type "ccache" > /dev/null
+then
+    CC="$(which ccache) $(which clang)"
+    CXX="$(which ccache) $(which clang++)"
+else
+    CC=$(which clang)
+    CXX=$(which clang++)
+fi
 
-CC=$(which clang)
-CXX=$(which clang++)
 export CC
 export CXX
 export LDFLAGS="-fuse-ld=lld"
