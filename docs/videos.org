@@ -1,0 +1,22 @@
+#+TITLE: How to build a compiler with LLVM and MLIR
+#+SEQ_TODO: TODO(t/!) NEXT(n/!) BLOCKED(b@/!) | DONE(d%) CANCELLED(c@/!) FAILED(f@/!)
+#+TAGS: READER(r) MISC(m)
+#+STARTUP: logdrawer logdone logreschedule indent content align constSI entitiespretty
+
+* Episode 1 - Introduction
+** What is it all about?
+  - Create a programming lang
+  - Guide for contributors
+  - A LLVM/MLIR guide
+** The Plan
+  - Git branches
+  - No live coding
+  - Feel free to contribute
+** Serene and a bit of history
+  - Other Implementations
+  - Requirements
+    - C++ 14
+    - CMake
+  - Repository: https://devheroes.codes/Serene
+  - Website: lxsameer.com
+    Email: lxsameer@gnu.org
