@@ -2,6 +2,7 @@
 
 command=$1
 
+# Utilize `ccache` if available
 if type "ccache" > /dev/null
 then
     CC="$(which ccache) $(which clang)"
@@ -13,15 +14,20 @@ fi
 
 export CC
 export CXX
+
+# Meke sure to use `lld` linker it faster and has a better UX
 export LDFLAGS="-fuse-ld=lld"
 export ASAN_FLAG="-fsanitize=address"
 export ASAN_OPTIONS=check_initialization_order=1
 LSAN_OPTIONS=suppressions=$(pwd)/.ignore_sanitize
 export LSAN_OPTIONS
+
+# The `builder` script is supposed to be run from the
+# root of the source tree
 ROOT_DIR=$(pwd)
 BUILD_DIR=$ROOT_DIR/build
 
-scanbuild=scan-build-11
+scanbuild=scan-build
 
 function pushed_build() {
     pushd "$BUILD_DIR" > /dev/null || return
@@ -170,6 +176,7 @@ case "$command" in
         ;;
     *)
         echo "Commands: "
+        echo "setup - Setup the githooks for devs"
         echo "full-build - Build and test Serene."
         echo "build - Build Serene from scratch in DEBUG mode."
         echo "build-release - Build Serene from scratch in RELEASE mode."
@@ -178,7 +185,7 @@ case "$command" in
         echo "run - Runs the serene executable"
         echo "scan-build - Compiles serene with static analyzer"
         echo "tests - Runs the test cases"
-        echo "memcheck - Runs the memcheck tool."
+        echo "memcheck - Runs the memcheck(valgrind) tool."
         echo "clean - :D"
         ;;
 esac

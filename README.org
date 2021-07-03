@@ -10,7 +10,7 @@ Setup the githook and install dependencies using the following commands:
 *** Dependencies
     You would need the following dependencies to start get started with *Serene* development
 
-    - LLVM ( LLVM Instructions coming up.)
+    - LLVM (LLVM Instructions coming up.)
     - cmake
     - ninja
     - doxygen (If you want to build the docs as well)
@@ -33,14 +33,14 @@ Setup the githook and install dependencies using the following commands:
           -DLLVM_PARALLEL_COMPILE_JOBS=7 \
           -DLLVM_PARALLEL_LINK_JOBS=1 \
           -DLLVM_BUILD_EXAMPLES=ON \
-          -DLLVM_TARGETS_TO_BUILD="X86;NVPTX;AMDGPU" \
+          -DLLVM_TARGETS_TO_BUILD="X86" \
           -DCMAKE_BUILD_TYPE=Release \
           -DLLVM_ENABLE_ASSERTIONS=ON \
           -DLLVM_CCACHE_BUILD=ON \
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
           -DLLVM_ENABLE_PROJECTS='clang;lldb;lld;mlir;clang-tools-extra;compiler-rt' \
-          -DCMAKE_C_COMPILER=clang \
-          -DCMAKE_CXX_COMPILER=clang++ \
+          -DCMAKE_C_COMPILER=clang \       # If you have clang installed already
+          -DCMAKE_CXX_COMPILER=clang++ \   # If you have clang installed already
           -DLLVM_ENABLE_LLD=ON
 
     cmake --build .
@@ -55,7 +55,6 @@ Setup the githook and install dependencies using the following commands:
 
 *** Emacs
     If you're using Emacs as your development environment just install =clangd= and =lsp=.
-
 
 
 * How to build

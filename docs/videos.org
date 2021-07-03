@@ -3,7 +3,7 @@
 #+TAGS: READER(r) MISC(m)
 #+STARTUP: logdrawer logdone logreschedule indent content align constSI entitiespretty
 
-* Episode 1 - Introduction
+* DONE Episode 1 - Introduction
 ** What is it all about?
   - Create a programming lang
   - Guide for contributors
@@ -20,3 +20,12 @@
   - Repository: https://devheroes.codes/Serene
   - Website: lxsameer.com
     Email: lxsameer@gnu.org
+* Episode 2 - Basic Setup
+** Installing Requirements
+*** LLVM and Clang
+- mlir-tblgen
+*** ccache (optional)
+** Building Serene and the =builder=
+- git hooks
+** Source tree structure
+** =dev.org= resources and TODOs
