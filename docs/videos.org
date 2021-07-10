@@ -20,7 +20,8 @@
   - Repository: https://devheroes.codes/Serene
   - Website: lxsameer.com
     Email: lxsameer@gnu.org
-* Episode 2 - Basic Setup
+* DONE Episode 2 - Basic Setup
+CLOSED: [2021-07-10 Sat 09:04]
 ** Installing Requirements
 *** LLVM and Clang
 - mlir-tblgen
@@ -29,3 +30,37 @@
 - git hooks
 ** Source tree structure
 ** =dev.org= resources and TODOs
+* Episode 3 - Overview
+** Generic Compiler
+- [[https://www.cs.princeton.edu/~appel/modern/ml/whichver.html][Modern Compiler Implementation in ML: Basic Techniques]]
+- [[https://suif.stanford.edu/dragonbook/][Compilers: Principles, Techniques, and Tools (The Dragon Book)]]
+*** Common Steps
+- Lexical analyzer
+- Syntax analyzer
+- Semantic analyzer
+- Intermediate code generation
+- Code optimizer
+- Target code generation
+
+** LLVM
+[[llvm.org]]
+*** Watch [[https://www.youtube.com/watch?v=J5xExRGaIIY][Introdution to LLVM]]
+*** Quick overview
+Deducted from https://www.aosabook.org/en/llvm.html
+[[./imgs/llvm_dia.svg]]
+** MLIR
+[[mlir.llvm.org]]
+[[./imgs/mlir_dia.svg]]
+** Serene
+*** A Compiler frontend
+*** Steps
+- =serenec= in parses the command lines args
+- =reader= reads the input file and generates an =AST=
+- =semantic analyzer= walks the =AST= aned generates a new =AST= and rewrites
+  the necessary nodes.
+- =slir= generator generates =slir= dialect code from =AST=.
+- We lower =slir= to other dialects of the *MLIR* which we call the result =mlir=.
+- Then, We lower everything to the =LLVMIR dialect= and call it =lir= (lowered IR).
+- Finally we fully lower =lir= to =LLVM IR= and pass it to the object generator
+  to generate object files.
+- Call the default =c compiler= to link the object files and generate the machine code.

@@ -30,10 +30,9 @@
 #include "serene/exprs/expression.h"
 #include "serene/llvm/IR/Value.h"
 
-#include "llvm/ADT/StringRef.h"
-#include "llvm/Support/FormatVariadic.h"
-#include "llvm/Support/raw_ostream.h"
-
+#include <llvm/ADT/StringRef.h>
+#include <llvm/Support/FormatVariadic.h>
+#include <llvm/Support/raw_ostream.h>
 #include <stdexcept>
 #include <string>
 

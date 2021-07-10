@@ -32,9 +32,14 @@
 #include "serene/slir/generatable.h"
 #include "serene/slir/slir.h"
 
+#include <clang/Driver/Compilation.h>
+#include <clang/Driver/Driver.h>
+#include <clang/Frontend/TextDiagnosticPrinter.h>
+#include <clang/Tooling/Tooling.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/Support/CommandLine.h>
 #include <llvm/Support/FileSystem.h>
+#include <llvm/Support/FormatVariadic.h>
 #include <llvm/Support/Host.h>
 #include <llvm/Support/TargetRegistry.h>
 #include <llvm/Support/TargetSelect.h>
@@ -137,10 +142,11 @@ int dumpAsObject(Namespace &ns) {
   module.setDataLayout(targetMachine->createDataLayout());
 
   auto filename =
-      strcmp(outputFile.c_str(), "-") == 0 ? "output.o" : outputFile.c_str();
+      strcmp(outputFile.c_str(), "-") == 0 ? "output" : outputFile.c_str();
 
   std::error_code ec;
-  llvm::raw_fd_ostream dest(filename, ec, llvm::sys::fs::OF_None);
+  llvm::raw_fd_ostream dest(llvm::formatv("{0}.o", filename).str(), ec,
+                            llvm::sys::fs::OF_None);
 
   if (ec) {
     llvm::errs() << "Could not open file: " << ec.message();
@@ -160,6 +166,48 @@ int dumpAsObject(Namespace &ns) {
 
   llvm::outs() << "Wrote " << filename << "\n";
 
+  clang::IntrusiveRefCntPtr<clang::DiagnosticIDs> diagID(
+      new clang::DiagnosticIDs());
+  clang::IntrusiveRefCntPtr<clang::DiagnosticOptions> diagOpts =
+      new clang::DiagnosticOptions();
+  clang::TextDiagnosticPrinter diagPrinter(llvm::errs(), &*diagOpts);
+  clang::DiagnosticsEngine diags(diagID, &*diagOpts, &diagPrinter);
+  clang::driver::Driver d("clang", targetTriple, diags, "Serene compiler");
+  std::vector<const char *> args;
+
+  args.push_back(filename);
+  args.push_back("-o");
+  args.push_back(
+      llvm::formatv("/home/lxsameer/src/serene/serene/build/{0}.o", filename)
+          .str()
+          .c_str());
+
+  d.setCheckInputsExist(false);
+  const std::unique_ptr<clang::driver::Compilation> compilation(
+      d.BuildCompilation(args));
+
+  if (!compilation) {
+    return 1;
+  }
+
+  llvm::SmallVector<std::pair<int, const clang::driver::Command *>> failCommand;
+  // compilation->ExecuteJobs(compilation->getJobs(), failCommand);
+
+  d.ExecuteCompilation(*compilation, failCommand);
+  if (failCommand.empty()) {
+    llvm::outs() << "Done!\n";
+  } else {
+    llvm::errs() << "Linking failed!\n";
+  }
+  // const llvm::opt::ArgStringList *const cc1Args = n
+  //     getCC1Arguments(&diags, compilation.get());
+  // if (!cc1Args)
+  //   return 2;
+  // std::unique_ptr<clang::CompilerInvocation> Invocation(
+  //     clang::tooling::newInvocation(&diags, *cc1Args, "hnt"));
+  // return clang::tooling::runInvocation("hnt", compilation.get(),
+  //                                      std::move(Invocation),
+  //                                      std::move(PCHContainerOps));
   return 0;
 };
 

@@ -21,6 +21,14 @@ target_link_libraries(serenec PRIVATE
   MLIRSideEffectInterfaces
   MLIRTransforms
   LLVMX86AsmParser
+  LLVMOption
+  #clangTooling
+  clangDriver
+  clangBasic
+  clangdSupport
+  clangFrontend
+  clangEdit
+  clangLex
   )
 
 

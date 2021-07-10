@@ -14,7 +14,7 @@ fi
 
 export CC
 export CXX
-
+export CCACHE_SLOPPINESS="pch_defines,time_macros"
 # Meke sure to use `lld` linker it faster and has a better UX
 export LDFLAGS="-fuse-ld=lld"
 export ASAN_FLAG="-fsanitize=address"
