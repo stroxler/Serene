@@ -35,28 +35,47 @@ CLOSED: [2021-07-10 Sat 09:04]
 - [[https://www.cs.princeton.edu/~appel/modern/ml/whichver.html][Modern Compiler Implementation in ML: Basic Techniques]]
 - [[https://suif.stanford.edu/dragonbook/][Compilers: Principles, Techniques, and Tools (The Dragon Book)]]
 *** Common Steps
-- Lexical analyzer
-- Syntax analyzer
-- Semantic analyzer
-- Intermediate code generation
-- Code optimizer
-- Target code generation
-
+- Frontend
+  - Lexical analyzer (Lexer)
+  - Syntax analyzer (Parser)
+  - Semantic analyzer
+- Middeend
+  - Intermediate code generation
+  - Code optimizer
+- Backend
+  - Target code generation
 ** LLVM
 [[llvm.org]]
 *** Watch [[https://www.youtube.com/watch?v=J5xExRGaIIY][Introdution to LLVM]]
 *** Quick overview
 Deducted from https://www.aosabook.org/en/llvm.html
 [[./imgs/llvm_dia.svg]]
+- It's a set of libraries to create a compiler.
+- Well engineered.
+- we can focus only on the fronted of the compiler and what is
+  actually important to us and leave the tricky stuff to LLVM.
+- LLVM IR enables us to use multiple languages together.
+- It supports many targets.
+- We can benefit from already made IR level optimizers.
+- ....
+
 ** MLIR
 [[mlir.llvm.org]]
 [[./imgs/mlir_dia.svg]]
+
+- With MLIR dialects provide higher level semantics than LLVM IR.
+- It's easier to reason about higher level IR that is modeled after
+  the AST rather than a low level IR.
+- We can use the pass infrastructure to efficiently process and transform the IR.
+- With many ready to use dialects we can really focus on our language and us the other
+  dialect when ever necessary.
+- ...
 ** Serene
 *** A Compiler frontend
-*** Steps
+*** Flow
 - =serenec= in parses the command lines args
 - =reader= reads the input file and generates an =AST=
-- =semantic analyzer= walks the =AST= aned generates a new =AST= and rewrites
+- =semantic analyzer= walks the =AST= and generates a new =AST= and rewrites
   the necessary nodes.
 - =slir= generator generates =slir= dialect code from =AST=.
 - We lower =slir= to other dialects of the *MLIR* which we call the result =mlir=.
@@ -64,3 +83,6 @@ Deducted from https://www.aosabook.org/en/llvm.html
 - Finally we fully lower =lir= to =LLVM IR= and pass it to the object generator
   to generate object files.
 - Call the default =c compiler= to link the object files and generate the machine code.
+* Episode 4 - The reader
+- We have a hand written parser/lexer since lisp already has a structure.
+- O(n)
