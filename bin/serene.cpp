@@ -166,25 +166,25 @@ int dumpAsObject(Namespace &ns) {
 
   llvm::outs() << "Wrote " << filename << "\n";
 
-  clang::IntrusiveRefCntPtr<clang::DiagnosticIDs> diagID(
-      new clang::DiagnosticIDs());
-  clang::IntrusiveRefCntPtr<clang::DiagnosticOptions> diagOpts =
-      new clang::DiagnosticOptions();
-  clang::TextDiagnosticPrinter diagPrinter(llvm::errs(), &*diagOpts);
-  clang::DiagnosticsEngine diags(diagID, &*diagOpts, &diagPrinter);
-  clang::driver::Driver d("clang", targetTriple, diags, "Serene compiler");
-  std::vector<const char *> args;
+  llvm::IntrusiveRefCntPtr<clang::DiagnosticOptions> opts =
+      new clang::DiagnosticOptions;
+  clang::DiagnosticsEngine diags(
+      new clang::DiagnosticIDs, opts,
+      new clang::TextDiagnosticPrinter(llvm::errs(), opts.get()));
 
-  args.push_back(filename);
-  args.push_back("-o");
-  args.push_back(
+  clang::driver::Driver d("clang", targetTriple, diags, "Serene compiler");
+  std::vector<const char *> args = {"hnt"};
+  auto objf =
       llvm::formatv("/home/lxsameer/src/serene/serene/build/{0}.o", filename)
-          .str()
-          .c_str());
+          .str();
+  args.push_back(objf.c_str());
+  args.push_back("-o");
+  args.push_back(filename);
 
   d.setCheckInputsExist(false);
-  const std::unique_ptr<clang::driver::Compilation> compilation(
-      d.BuildCompilation(args));
+
+  std::unique_ptr<clang::driver::Compilation> compilation;
+  compilation.reset(d.BuildCompilation(args));
 
   if (!compilation) {
     return 1;

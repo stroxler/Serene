@@ -39,7 +39,7 @@ CLOSED: [2021-07-10 Sat 09:04]
   - Lexical analyzer (Lexer)
   - Syntax analyzer (Parser)
   - Semantic analyzer
-- Middeend
+- Middleend
   - Intermediate code generation
   - Code optimizer
 - Backend
