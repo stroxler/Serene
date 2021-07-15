@@ -1,7 +1,7 @@
 #+TITLE: Serene Development
 #+AUTHOR: Sameer Rahmani
 #+SEQ_TODO: TODO(t/!) NEXT(n/!) BLOCKED(b@/!) | DONE(d%) WONT_DO(c@/!) FAILED(f@/!)
-#+TAGS: DOCS(d) EXAMPLES(e) BOOTSTRAP(b) Old(o) Misc(m)
+#+TAGS: DOCS(d) EXAMPLES(e) serenecli(c) reader(r) context(x) Misc(m)
 #+STARTUP: logdrawer logdone logreschedule indent content align constSI entitiespretty nolatexpreview
 #+OPTIONS: tex:t
 #+HTML_MATHJAX: align: left indent: 5em tagside: left font: Neo-Eule
@@ -105,6 +105,15 @@ on ADF
 
 * TODOs
 ** Bootstrap
+*** TODO Add the support for =ns-paths=                 :serenecli:context:
+We need to add the support for an array of paths to lookup namespaces. The =ns-paths= should
+be an array that each entry represents a path which serene has to look into in order to find
+a namespace. For instance, when serene wants to load the =foo.bar= namespace, it should walk
+the paths in =ns-paths= and look for that ns. Similar to =classpath= in the JVM or =LOAD_PATH=
+in python.
+- [ ] Add the support to the *Context*.
+- [ ] Add the support to *Namespace*.
+- [ ] Add the cli argument to the =bin/serene.cpp=
 *** TODO Replace =llvm::outs()= with debug statements
 *** TODO Error handling
 Create proper error handling for the internal infra
