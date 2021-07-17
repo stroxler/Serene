@@ -56,9 +56,6 @@ void Reader::setInput(const llvm::StringRef input) {
 
 Reader::~Reader() { READER_LOG("Destroying the reader"); }
 
-/// Return the next character in the buffer and moves the location.
-///\param skip_whitespace If true it will skip whitespaces and EOL chars
-/// \return next char in the buffer.
 char Reader::getChar(bool skip_whitespace) {
   for (;;) {
     char c = input_stream.get();
@@ -68,7 +65,7 @@ char Reader::getChar(bool skip_whitespace) {
     // TODO: Handle the end of line with respect to the OS.
     // increase the current position in the buffer with respect to the end
     // of line.
-    inc_location(current_location, c == '\n');
+    incLocation(current_location, c == '\n');
 
     if (skip_whitespace == true && isspace(c)) {
       continue;
@@ -78,11 +75,10 @@ char Reader::getChar(bool skip_whitespace) {
   }
 };
 
-/// Moves back the location by one char. Basically unreads the last character.
 void Reader::ungetChar() {
   input_stream.unget();
   // The char that we just unget
-  dec_location(current_location, this->current_char == '\n');
+  decLocation(current_location, this->current_char == '\n');
 };
 
 /// A predicate function indicating whether the given char `c` is a valid
@@ -120,6 +116,7 @@ bool Reader::isValidForIdentifier(char c) {
 /// Reads a number,
 /// \param neg whether to read a negative number or not.
 exprs::Node Reader::readNumber(bool neg) {
+  READER_LOG("Reading a number...");
   std::string number(neg ? "-" : "");
   bool floatNum = false;
   bool empty    = false;
@@ -162,7 +159,7 @@ exprs::Node Reader::readSymbol() {
   bool empty = true;
   char c     = getChar(false);
 
-  READER_LOG("Reading symbol");
+  READER_LOG("Reading a symbol...");
   if (!this->isValidForIdentifier(c)) {
 
     // TODO: Replece this with a tranceback function or something to raise
@@ -207,6 +204,7 @@ exprs::Node Reader::readSymbol() {
 
 /// Reads a list recursively
 exprs::Node Reader::readList() {
+  READER_LOG("Reading a list...");
   auto list = exprs::makeAndCast<exprs::List>(current_location);
 
   char c = getChar(true);
@@ -239,8 +237,7 @@ exprs::Node Reader::readList() {
 /// Reads an expression by dispatching to the proper reader function.
 exprs::Node Reader::readExpr() {
   char c = getChar(false);
-  READER_LOG("CHAR: " << c);
-
+  READER_LOG("Read char at `readExpr`: " << c);
   ungetChar();
 
   switch (c) {

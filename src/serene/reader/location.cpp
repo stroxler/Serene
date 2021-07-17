@@ -45,7 +45,7 @@ std::string Location::toString() const {
 /// the `newline` in place.
 /// \param loc The `Location` data
 /// \param newline Whether or not we reached a new line
-void inc_location(Location &loc, bool newline) {
+void incLocation(Location &loc, bool newline) {
   loc.pos++;
 
   if (!newline) {
@@ -60,7 +60,7 @@ void inc_location(Location &loc, bool newline) {
 /// the `newline` in place.
 /// \param loc The `Location` data
 /// \param newline Whether or not we reached a new line
-void dec_location(Location &loc, bool newline) {
+void decLocation(Location &loc, bool newline) {
   loc.pos = loc.pos == 0 ? 0 : loc.pos - 1;
 
   if (newline) {

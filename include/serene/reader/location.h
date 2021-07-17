@@ -56,8 +56,8 @@ public:
   LocationRange(const LocationRange &);
 };
 
-void inc_location(Location &, bool);
-void dec_location(Location &, bool);
+void incLocation(Location &, bool);
+void decLocation(Location &, bool);
 
 } // namespace reader
 } // namespace serene

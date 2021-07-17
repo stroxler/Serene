@@ -43,11 +43,11 @@
 #include <system_error>
 #include <vector>
 
-#define READER_LOG(...) \
-  DEBUG_WITH_TYPE("READER", llvm::dbgs() << __VA_ARGS__ << "\n");
+#define READER_LOG(...)                  \
+  DEBUG_WITH_TYPE("READER", llvm::dbgs() \
+                                << "[READER]: " << __VA_ARGS__ << "\n");
 
-namespace serene {
-namespace reader {
+namespace serene::reader {
 
 /// Base reader class which reads from a string directly.
 class Reader {
@@ -56,12 +56,22 @@ private:
   std::stringstream input_stream;
   Location current_location{0, 0, 0};
 
+  /// Returns the next character from the stream.
+  /// @param skip_whitespace An indicator to whether skip white space like chars
+  /// or not
   char getChar(bool skip_whitespace);
+
+  /// Unreads the current character by moving the char pointer to the previous
+  /// char.
   void ungetChar();
+
+  /// Returns a boolean indicating whether the given input character is valid
+  /// for an identifier or not.
   bool isValidForIdentifier(char c);
 
   // The property to store the ast tree
   exprs::Ast ast;
+
   exprs::Node readSymbol();
   exprs::Node readNumber(bool);
   exprs::Node readList();
@@ -73,6 +83,8 @@ public:
 
   void setInput(const llvm::StringRef string);
 
+  /// Parses the the input and creates a possible AST out of it or errors
+  /// otherwise.
   Result<exprs::Ast> read();
 
   // Dumps the AST data to stdout
@@ -101,6 +113,5 @@ public:
 /// which may contains an AST or an `llvm::Error`
 Result<exprs::Ast> read(llvm::StringRef input);
 
-} // namespace reader
-} // namespace serene
+} // namespace serene::reader
 #endif
