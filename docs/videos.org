@@ -84,5 +84,20 @@ Deducted from https://www.aosabook.org/en/llvm.html
   to generate object files.
 - Call the default =c compiler= to link the object files and generate the machine code.
 * Episode 4 - The reader
-- We have a hand written parser/lexer since lisp already has a structure.
+** What is a Parser ?
+*** Algorithms
+- LL(k)
+- LR
+- LALR
+- PEG
+- .....
+
+Read More:
+- https://stereobooster.com/posts/an-overview-of-parsing-algorithms/
+- https://tomassetti.me/guide-parsing-algorithms-terminology/
+*** Libraries
+- https://en.wikipedia.org/wiki/Comparison_of_parser_generators
+*** Our Parser
+- We have a hand written LL(1.5) like parser/lexer since lisp already has a structure.
+- LL(1.5)? s
 - O(n)

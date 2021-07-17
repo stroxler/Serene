@@ -114,9 +114,9 @@ in python.
 - [ ] Add the support to the *Context*.
 - [ ] Add the support to *Namespace*.
 - [ ] Add the cli argument to the =bin/serene.cpp=
-*** TODO Replace =llvm::outs()= with debug statements
 *** TODO Error handling
 Create proper error handling for the internal infra
+*** TODO Replace =llvm::outs()= with debug statements
 *** TODO Language Spec                                               :DOCS:
 *** TODO A proper List implementation
 *** TODO Vector implementation
@@ -127,7 +127,6 @@ Create proper error handling for the internal infra
 - [ ] For namespaces and projects
 - [ ] API to interact with docstrings and helps
 *** TODO FFI interface
-*** TODO Load path and namespace loading
 *** TODO nREPL
 *** TODO Emacs mode                                                  :Misc:
 *** TODO Number implementation

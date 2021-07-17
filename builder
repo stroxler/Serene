@@ -135,7 +135,7 @@ case "$command" in
     "compile")
         compile
         ;;
-    "compile-and-test")
+    "compile-and-tests")
         compile
         run-tests
         ;;
