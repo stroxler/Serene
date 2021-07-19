@@ -87,10 +87,6 @@ public:
   /// otherwise.
   Result<exprs::Ast> read();
 
-  // Dumps the AST data to stdout
-  // TODO: Change the name to dump
-  void toString();
-
   ~Reader();
 };
 
@@ -102,8 +98,6 @@ class FileReader {
 public:
   FileReader(const std::string file_name)
       : file(file_name), reader(new Reader()) {}
-  // Dumps the AST data to stdout
-  void toString();
 
   Result<exprs::Ast> read();
 

@@ -274,22 +274,6 @@ Result<exprs::Ast> Reader::read() {
   return Result<exprs::Ast>::success(std::move(this->ast));
 };
 
-/// Reads the input into an AST and prints it out as string again.
-void Reader::toString() {
-  auto maybeAst      = read();
-  std::string result = "";
-
-  if (!maybeAst) {
-    throw std::move(maybeAst.getError());
-  }
-
-  exprs::Ast ast = std::move(maybeAst.getValue());
-
-  for (auto &node : ast) {
-    result = llvm::formatv("{0} {1}", result, node->toString());
-  }
-};
-
 /// Reads all the expressions from the file provided via its path
 // in the reader as an AST.
 /// Each expression type (from the reader perspective) has a
@@ -309,24 +293,6 @@ Result<exprs::Ast> FileReader::read() {
 
   reader->setInput(fileOrErr.get()->getBuffer().str());
   return reader->read();
-}
-
-/// Reads the input into an AST and prints it out as string again.
-void FileReader::toString() {
-  auto maybeAst = this->read();
-  exprs::Ast ast;
-
-  if (!maybeAst) {
-    throw std::move(maybeAst.getError());
-  }
-
-  ast = std::move(maybeAst.getValue());
-
-  std::string result = "";
-  for (auto &node : ast) {
-    result = llvm::formatv("{0} {1}", result, node->toString());
-  }
-  llvm::outs() << result << "\n";
 }
 
 FileReader::~FileReader() {
