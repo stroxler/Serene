@@ -30,8 +30,7 @@ namespace serene {
 namespace reader {
 
 TEST_CASE("Read numbers", "[reader]") {
-  auto r = new reader::Reader("3");
-  auto maybeAst = r->read();
+  auto maybeAst = reader::read("3");
 
   if (!maybeAst) {
     FAIL();
@@ -41,8 +40,7 @@ TEST_CASE("Read numbers", "[reader]") {
   REQUIRE_FALSE(ast.empty());
   CHECK(ast.front()->toString() ==  "<Number 3>");
 
-  r->setInput("-34");
-  maybeAst = r->read();
+  maybeAst = reader::read("-34");
 
   if (!maybeAst) {
     FAIL();
@@ -52,8 +50,7 @@ TEST_CASE("Read numbers", "[reader]") {
   REQUIRE_FALSE(ast.empty());
   CHECK(ast.front()->toString() ==  "<Number -34>");
 
-  r->setInput("-3.5434");
-  maybeAst = r->read();
+  maybeAst = reader::read("-3.5434");
 
   if (!maybeAst) {
     FAIL();
@@ -63,8 +60,7 @@ TEST_CASE("Read numbers", "[reader]") {
   REQUIRE_FALSE(ast.empty());
   CHECK(ast.front()->toString() ==  "<Number -3.5434>");
 
-  r->setInput("444323 2123 123123");
-  maybeAst = r->read();
+  maybeAst = reader::read("444323 2123 123123");
 
   if (!maybeAst) {
     FAIL();
@@ -75,13 +71,9 @@ TEST_CASE("Read numbers", "[reader]") {
   CHECK(ast.front()->toString() ==  "<Number 444323>");
   CHECK(ast[1]->toString() == "<Number 2123>" );
   CHECK(ast[2]->toString() == "<Number 123123>");
-
-  delete r;
 };
 TEST_CASE("Read Lists and Symbols", "[reader]") {
-  auto r = new reader::Reader("(x 1)");
-
-  auto maybeAst = r->read();
+  auto maybeAst = reader::read("(x 1)");
 
   if (!maybeAst) {
     FAIL();
@@ -91,8 +83,7 @@ TEST_CASE("Read Lists and Symbols", "[reader]") {
   REQUIRE_FALSE(ast.empty());
   CHECK(ast.front()->toString() ==  "<List  <Symbol x> <Number 1>>");
 
-  r->setInput("(x (y (z)))");
-  maybeAst = r->read();
+  maybeAst = reader::read("(x (y (z)))");
 
   if (!maybeAst) {
     FAIL();
@@ -102,8 +93,7 @@ TEST_CASE("Read Lists and Symbols", "[reader]") {
   REQUIRE_FALSE(ast.empty());
   CHECK(ast.front()->toString() == "<List  <Symbol x> <List  <Symbol y> <List  <Symbol z>>>>");
 
-  r->setInput("(x \n y)");
-  maybeAst = r->read();
+  maybeAst = reader::read("(x \n y)");
 
   if (!maybeAst) {
     FAIL();
@@ -112,8 +102,6 @@ TEST_CASE("Read Lists and Symbols", "[reader]") {
   ast = std::move(maybeAst.getValue());
   REQUIRE_FALSE(ast.empty());
   CHECK(ast.front()->toString() == "<List  <Symbol x> <Symbol y>>");
-
-  delete r;
 };
 } // namespace reader
 } // namespace serene

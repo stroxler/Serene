@@ -36,9 +36,7 @@ TEST_CASE("Namespace tests", "[namespace]") {
   auto userNs =
       makeNamespace(*ctx, "user", llvm::Optional<llvm::StringRef>("/some/file"));
 
-  auto r = new reader::Reader("(x 1) (def b a)");
-
-  auto maybeAst = r->read();
+  auto maybeAst = reader::read("(x 1) (def b a)");
 
   if (!maybeAst) {
     FAIL();
@@ -52,7 +50,6 @@ TEST_CASE("Namespace tests", "[namespace]") {
   CHECK(exprs::astToString(&userNs->getTree()) ==
         "<List  <Symbol x> <Number 1>> <List  <Symbol def> <Symbol b> <Symbol "
         "a>>");
-  delete r;
 };
 
 } // namespace serene

@@ -99,5 +99,12 @@ Read More:
 - https://en.wikipedia.org/wiki/Comparison_of_parser_generators
 *** Our Parser
 - We have a hand written LL(1.5) like parser/lexer since lisp already has a structure.
+#+BEGIN_SRC lisp
+  ;; pseudo code
+  (def some-fn (fn (x y)
+                   (+ x y)))
+  (defn main ()
+    (println "Result: " (some-fn 3 8)))
+#+END_SRC
 - LL(1.5)? s
 - O(n)
