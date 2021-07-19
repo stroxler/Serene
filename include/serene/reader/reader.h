@@ -88,6 +88,7 @@ public:
   Result<exprs::Ast> read();
 
   // Dumps the AST data to stdout
+  // TODO: Change the name to dump
   void toString();
 
   ~Reader();

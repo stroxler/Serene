@@ -30,7 +30,8 @@ CLOSED: [2021-07-10 Sat 09:04]
 - git hooks
 ** Source tree structure
 ** =dev.org= resources and TODOs
-* Episode 3 - Overview
+* DONE Episode 3 - Overview
+CLOSED: [2021-07-19 Mon 09:41]
 ** Generic Compiler
 - [[https://www.cs.princeton.edu/~appel/modern/ml/whichver.html][Modern Compiler Implementation in ML: Basic Techniques]]
 - [[https://suif.stanford.edu/dragonbook/][Compilers: Principles, Techniques, and Tools (The Dragon Book)]]
@@ -85,6 +86,7 @@ Deducted from https://www.aosabook.org/en/llvm.html
 - Call the default =c compiler= to link the object files and generate the machine code.
 * Episode 4 - The reader
 ** What is a Parser ?
+To put it simply, Parser converts the source code to an [[https://en.wikipedia.org/wiki/Abstract_syntax_tree][AST]]
 *** Algorithms
 - LL(k)
 - LR
@@ -106,5 +108,5 @@ Read More:
   (defn main ()
     (println "Result: " (some-fn 3 8)))
 #+END_SRC
-- LL(1.5)? s
+- LL(1.5)?
 - O(n)

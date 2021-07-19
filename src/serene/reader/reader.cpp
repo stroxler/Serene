@@ -208,6 +208,8 @@ exprs::Node Reader::readList() {
   auto list = exprs::makeAndCast<exprs::List>(current_location);
 
   char c = getChar(true);
+
+  // TODO: Replace the assert with an actual check.
   assert(c == '(');
 
   bool list_terminated = false;
@@ -221,7 +223,6 @@ exprs::Node Reader::readList() {
     case ')':
       list_terminated    = true;
       list->location.end = current_location;
-
       break;
 
     default:
