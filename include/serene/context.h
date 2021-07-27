@@ -31,6 +31,7 @@
 #include "serene/slir/dialect.h"
 
 #include <llvm/ADT/StringRef.h>
+#include <llvm/Support/Host.h>
 #include <memory>
 #include <mlir/Dialect/StandardOps/IR/Ops.h>
 #include <mlir/IR/MLIRContext.h>
@@ -65,6 +66,7 @@ public:
   llvm::LLVMContext llvmContext;
   mlir::MLIRContext mlirContext;
   mlir::PassManager pm;
+  std::string targetTriple;
 
   /// Insert the given `ns` into the context. The Context object is
   /// the owner of all the namespaces. The `ns` will overwrite any
@@ -84,7 +86,9 @@ public:
       : pm(&mlirContext), targetPhase(CompilationPhase::NoOptimization) {
     mlirContext.getOrLoadDialect<serene::slir::SereneDialect>();
     mlirContext.getOrLoadDialect<mlir::StandardOpsDialect>();
+    // TODO: Get the crash report path dynamically from the cli
     pm.enableCrashReproducerGeneration("/home/lxsameer/mlir.mlir");
+    targetTriple = llvm::sys::getDefaultTargetTriple();
   };
 
   void setOperationPhase(CompilationPhase phase);

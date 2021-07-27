@@ -32,6 +32,10 @@
 #include "serene/slir/generatable.h"
 #include "serene/slir/slir.h"
 
+#include "llvm/ADT/ArrayRef.h"
+#include "llvm/ADT/SmallString.h"
+#include "llvm/ADT/StringRef.h"
+
 #include <clang/Driver/Compilation.h>
 #include <clang/Driver/Driver.h>
 #include <clang/Frontend/TextDiagnosticPrinter.h>
@@ -41,6 +45,7 @@
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/FormatVariadic.h>
 #include <llvm/Support/Host.h>
+#include <llvm/Support/Path.h>
 #include <llvm/Support/TargetRegistry.h>
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Support/raw_ostream.h>
@@ -62,7 +67,8 @@ enum Action {
   DumpSemantic,
   DumpLIR,
   DumpIR,
-  CompileToObject
+  CompileToObject,
+  Compile,
 };
 }
 
@@ -71,13 +77,16 @@ static cl::opt<std::string> inputFile(cl::Positional,
                                       cl::init("-"),
                                       cl::value_desc("filename"));
 
-static cl::opt<std::string> outputFile("o",
-                                       cl::desc("The path to the output file"),
-                                       cl::init("-"),
-                                       cl::value_desc("filename"));
+static cl::opt<std::string> outputFile(
+    "o", cl::desc("The relative path to the output file from the build dir"),
+    cl::init("-"), cl::value_desc("filename"));
+
+static cl::opt<std::string>
+    outputDir("build-dir", cl::desc("The absolute path to the build directory"),
+              cl::init("-"), cl::value_desc("filename"));
 
 static cl::opt<enum Action> emitAction(
-    "emit", cl::desc("Select what to dump."), cl::init(CompileToObject),
+    "emit", cl::desc("Select what to dump."), cl::init(Compile),
     cl::values(clEnumValN(DumpSemantic, "semantic",
                           "Output the AST after one level of analysis only")),
     cl::values(clEnumValN(DumpIR, "ir", "Output the lowered IR only")),
@@ -88,7 +97,9 @@ static cl::opt<enum Action> emitAction(
                           "Output the LIR only (Lowerd to LLVM dialect)")),
     cl::values(clEnumValN(DumpAST, "ast", "Output the AST only")),
     cl::values(clEnumValN(CompileToObject, "object",
-                          "Compile to object file. (Default)"))
+                          "Compile to object file.")),
+    cl::values(clEnumValN(Compile, "target",
+                          "Compile to target code. (Default)"))
 
 );
 
@@ -114,13 +125,13 @@ exprs::Ast readAndAnalyze(SereneContext &ctx) {
 };
 
 int dumpAsObject(Namespace &ns) {
-
-  auto &module      = ns.getLLVMModule();
-  auto targetTriple = llvm::sys::getDefaultTargetTriple();
-  module.setTargetTriple(targetTriple);
+  // TODO: Move the compilation process to the Namespace class
+  auto &module = ns.getLLVMModule();
+  auto &ctx    = ns.getContext();
+  module.setTargetTriple(ctx.targetTriple);
 
   std::string Error;
-  auto target = llvm::TargetRegistry::lookupTarget(targetTriple, Error);
+  auto target = llvm::TargetRegistry::lookupTarget(ctx.targetTriple, Error);
 
   // Print an error and exit if we couldn't find the requested target.
   // This generally occurs if we've forgotten to initialise the
@@ -136,7 +147,7 @@ int dumpAsObject(Namespace &ns) {
   llvm::TargetOptions opt;
   auto rm = llvm::Optional<llvm::Reloc::Model>();
   auto targetMachinePtr =
-      target->createTargetMachine(targetTriple, cpu, features, opt, rm);
+      target->createTargetMachine(ctx.targetTriple, cpu, features, opt, rm);
   auto targetMachine = std::unique_ptr<llvm::TargetMachine>(targetMachinePtr);
 
   module.setDataLayout(targetMachine->createDataLayout());
@@ -145,8 +156,10 @@ int dumpAsObject(Namespace &ns) {
       strcmp(outputFile.c_str(), "-") == 0 ? "output" : outputFile.c_str();
 
   std::error_code ec;
-  llvm::raw_fd_ostream dest(llvm::formatv("{0}.o", filename).str(), ec,
-                            llvm::sys::fs::OF_None);
+  llvm::SmallString<256> destFile(outputDir);
+  llvm::sys::path::append(destFile, filename);
+  auto destObjFilePath = llvm::formatv("{0}.o", destFile).str();
+  llvm::raw_fd_ostream dest(destObjFilePath, ec, llvm::sys::fs::OF_None);
 
   if (ec) {
     llvm::errs() << "Could not open file: " << ec.message();
@@ -164,50 +177,42 @@ int dumpAsObject(Namespace &ns) {
   pass.run(module);
   dest.flush();
 
-  llvm::outs() << "Wrote " << filename << "\n";
+  if (emitAction == Action::Compile) {
+    llvm::IntrusiveRefCntPtr<clang::DiagnosticOptions> opts =
+        new clang::DiagnosticOptions;
+    clang::DiagnosticsEngine diags(
+        new clang::DiagnosticIDs, opts,
+        new clang::TextDiagnosticPrinter(llvm::errs(), opts.get()));
 
-  llvm::IntrusiveRefCntPtr<clang::DiagnosticOptions> opts =
-      new clang::DiagnosticOptions;
-  clang::DiagnosticsEngine diags(
-      new clang::DiagnosticIDs, opts,
-      new clang::TextDiagnosticPrinter(llvm::errs(), opts.get()));
+    clang::driver::Driver d("clang", ctx.targetTriple, diags,
+                            "Serene compiler");
+    std::vector<const char *> args = {"serenec"};
 
-  clang::driver::Driver d("clang", targetTriple, diags, "Serene compiler");
-  std::vector<const char *> args = {"hnt"};
-  auto objf =
-      llvm::formatv("/home/lxsameer/src/serene/serene/build/{0}.o", filename)
-          .str();
-  args.push_back(objf.c_str());
-  args.push_back("-o");
-  args.push_back(filename);
+    args.push_back(destObjFilePath.c_str());
+    args.push_back("-o");
+    args.push_back(destFile.c_str());
 
-  d.setCheckInputsExist(false);
+    d.setCheckInputsExist(false);
 
-  std::unique_ptr<clang::driver::Compilation> compilation;
-  compilation.reset(d.BuildCompilation(args));
+    std::unique_ptr<clang::driver::Compilation> compilation;
+    compilation.reset(d.BuildCompilation(args));
 
-  if (!compilation) {
-    return 1;
+    if (!compilation) {
+      return 1;
+    }
+
+    llvm::SmallVector<std::pair<int, const clang::driver::Command *>>
+        failCommand;
+    // compilation->ExecuteJobs(compilation->getJobs(), failCommand);
+
+    d.ExecuteCompilation(*compilation, failCommand);
+    if (failCommand.empty()) {
+      llvm::outs() << "Done!\n";
+    } else {
+      llvm::errs() << "Linking failed!\n";
+    }
   }
 
-  llvm::SmallVector<std::pair<int, const clang::driver::Command *>> failCommand;
-  // compilation->ExecuteJobs(compilation->getJobs(), failCommand);
-
-  d.ExecuteCompilation(*compilation, failCommand);
-  if (failCommand.empty()) {
-    llvm::outs() << "Done!\n";
-  } else {
-    llvm::errs() << "Linking failed!\n";
-  }
-  // const llvm::opt::ArgStringList *const cc1Args = n
-  //     getCC1Arguments(&diags, compilation.get());
-  // if (!cc1Args)
-  //   return 2;
-  // std::unique_ptr<clang::CompilerInvocation> Invocation(
-  //     clang::tooling::newInvocation(&diags, *cc1Args, "hnt"));
-  // return clang::tooling::runInvocation("hnt", compilation.get(),
-  //                                      std::move(Invocation),
-  //                                      std::move(PCHContainerOps));
   return 0;
 };
 
@@ -227,6 +232,15 @@ int main(int argc, char *argv[]) {
   auto ns  = makeNamespace(*ctx, "user", llvm::None);
   // TODO: We might want to find a better place for this
   applyPassManagerCLOptions(ctx->pm);
+
+  // TODO: handle the outputDir by not forcing it. it should be
+  //       default to the current working dir
+  if (outputDir == "-") {
+    llvm::errs() << "Error: The build directory is not set. Did you forget to "
+                    "use '-build-dir'?\n";
+    return 1;
+  }
+
   switch (emitAction) {
 
     // Just print out the raw AST
@@ -263,6 +277,11 @@ int main(int argc, char *argv[]) {
   }
 
   case Action::CompileToObject: {
+    ctx->setOperationPhase(CompilationPhase::NoOptimization);
+    break;
+  }
+
+  case Action::Compile: {
     ctx->setOperationPhase(CompilationPhase::NoOptimization);
     break;
   }
