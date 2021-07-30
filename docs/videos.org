@@ -84,7 +84,8 @@ Deducted from https://www.aosabook.org/en/llvm.html
 - Finally we fully lower =lir= to =LLVM IR= and pass it to the object generator
   to generate object files.
 - Call the default =c compiler= to link the object files and generate the machine code.
-* Episode 4 - The reader
+* DONE Episode 4 - The reader
+CLOSED: [2021-07-27 Tue 22:50]
 ** What is a Parser ?
 To put it simply, Parser converts the source code to an [[https://en.wikipedia.org/wiki/Abstract_syntax_tree][AST]]
 *** Algorithms
@@ -110,3 +111,21 @@ Read More:
 #+END_SRC
 - LL(1.5)?
 - O(n)
+* Episode 5 - The Abstract Syntax Tree
+** What is an AST?
+Ast is a tree representation of the abstract syntactic structure of source code. It's just a tree made of nodes that each node is
+a data structure describing the syntax.
+
+#+BEGIN_SRC lisp
+  ;; pseudo code
+  (def main (fn () 4))
+  (prn (main))
+#+END_SRC
+
+
+[[./imgs/ast.svg]]
+** The =Expression= abstract class
+*** Expressions
+- Expressions vs Statements
+- Serene(Lisp) and expressions
+** Node & AST

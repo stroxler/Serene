@@ -24,7 +24,9 @@
 
 #include "serene/exprs/symbol.h"
 
-#include "llvm/Support/FormatVariadic.h"
+#include "llvm/Support/Casting.h"
+
+#include <llvm/Support/FormatVariadic.h>
 
 namespace serene {
 namespace exprs {

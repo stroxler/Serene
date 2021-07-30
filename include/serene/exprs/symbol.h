@@ -28,8 +28,7 @@
 #include "serene/context.h"
 #include "serene/exprs/expression.h"
 
-#include "llvm/ADT/StringRef.h"
-
+#include <llvm/ADT/StringRef.h>
 #include <string>
 
 namespace serene {
@@ -51,12 +50,12 @@ public:
   ExprType getType() const;
   std::string toString() const;
 
-  static bool classof(const Expression *e);
-
   MaybeNode analyze(SereneContext &);
   void generateIR(serene::Namespace &){};
 
   ~Symbol() = default;
+
+  static bool classof(const Expression *e);
 };
 
 } // namespace exprs

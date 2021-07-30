@@ -29,10 +29,9 @@
 #include "serene/exprs/expression.h"
 #include "serene/namespace.h"
 
-#include "llvm/Support/FormatVariadic.h"
+#include <llvm/Support/FormatVariadic.h>
 
 namespace serene {
-
 namespace exprs {
 
 /// This data structure represent a number. I handles float points, integers,
@@ -40,7 +39,8 @@ namespace exprs {
 /// So it won't cast to actual numeric types and it has a string container
 /// to hold the parsed value.
 struct Number : public Expression {
-  // TODO: Use a variant here instead
+
+  // TODO: Use a variant here instead to store different number types
   std::string value;
 
   bool isNeg;
@@ -52,15 +52,16 @@ struct Number : public Expression {
 
   ExprType getType() const;
   std::string toString() const;
-  MaybeNode analyze(SereneContext &ctx);
 
-  static bool classof(const Expression *e);
+  MaybeNode analyze(SereneContext &ctx);
+  void generateIR(serene::Namespace &);
 
   // TODO: This is horrible, we need to fix it after the mvp
   int toI64();
 
-  void generateIR(serene::Namespace &);
   ~Number() = default;
+
+  static bool classof(const Expression *e);
 };
 
 } // namespace exprs

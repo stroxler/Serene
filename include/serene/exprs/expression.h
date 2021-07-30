@@ -44,7 +44,7 @@ class Expression;
 using Node     = std::shared_ptr<Expression>;
 using ErrorPtr = std::shared_ptr<errors::Error>;
 
-// tree? Yupe, Errors can be stackable which makes
+// tree? Yupe, Errors can be stackable which makes a vector of them a tree
 using ErrorTree = std::vector<ErrorPtr>;
 
 using MaybeNode = Result<Node, ErrorTree>;
@@ -53,6 +53,7 @@ using Ast      = std::vector<Node>;
 using MaybeAst = Result<Ast, ErrorTree>;
 
 static auto EmptyNode = MaybeNode::success(nullptr);
+
 /// The base class of the expressions which provides the common interface for
 /// the expressions to implement.
 class Expression {
@@ -80,6 +81,10 @@ public:
   /// \param ctx is the context object of the semantic analyzer.
   virtual MaybeNode analyze(SereneContext &ctx) = 0;
 
+  /// Genenates the correspondig SLIR of the expressoin and attach it to the
+  /// module of the given namespace.
+  ///
+  /// \param ns The namespace that current expression is in it.
   virtual void generateIR(serene::Namespace &ns) = 0;
 };
 
@@ -97,7 +102,6 @@ template <typename T, typename... Args>
 Node make(Args &&...args) {
   return std::make_shared<T>(std::forward<Args>(args)...);
 };
-
 /// Create a new `node` of type `T` and forwards any given parameter
 /// to the constructor of type `T`. This is the **official way** to create
 /// a new `Expression`. Here is an example:

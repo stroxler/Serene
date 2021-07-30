@@ -28,8 +28,7 @@
 #include "serene/context.h"
 #include "serene/exprs/expression.h"
 
-#include "llvm/ADT/Optional.h"
-
+#include <llvm/ADT/Optional.h>
 #include <string>
 
 namespace serene {
@@ -59,21 +58,31 @@ public:
   size_t count() const;
 
   Ast from(uint begin);
-  // llvm::MutableArrayRef<Expression> from(uint begin);
 
   llvm::Optional<Expression *> at(uint index);
 
+  /// Return an iterator to be used with the `for` loop. It's implicitly called
+  /// by the for loop.
   std::vector<Node>::const_iterator cbegin();
+
+  /// Return an iterator to be used with the `for` loop. It's implicitly called
+  /// by the for loop.
   std::vector<Node>::const_iterator cend();
+
+  /// Return an iterator to be used with the `for` loop. It's implicitly called
+  /// by the for loop.
   std::vector<Node>::iterator begin();
+
+  /// Return an iterator to be used with the `for` loop. It's implicitly called
+  /// by the for loop.
   std::vector<Node>::iterator end();
 
   MaybeNode analyze(SereneContext &);
   void generateIR(serene::Namespace &){};
 
-  static bool classof(const Expression *e);
-
   ~List() = default;
+
+  static bool classof(const Expression *e);
 };
 
 } // namespace exprs

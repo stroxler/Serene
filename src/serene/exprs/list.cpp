@@ -31,11 +31,10 @@
 #include "serene/exprs/fn.h"
 #include "serene/exprs/symbol.h"
 
-#include "llvm/Support/Casting.h"
-#include "llvm/Support/ErrorHandling.h"
-#include "llvm/Support/FormatVariadic.h"
-
 #include <iterator>
+#include <llvm/Support/Casting.h>
+#include <llvm/Support/ErrorHandling.h>
+#include <llvm/Support/FormatVariadic.h>
 
 namespace serene {
 namespace exprs {
@@ -91,20 +90,12 @@ bool List::classof(const Expression *e) {
   return e->getType() == ExprType::List;
 };
 
-/// Return an iterator to be used with the `for` loop. It's implicitly called by
-/// the for loop.
 std::vector<Node>::const_iterator List::cbegin() { return elements.begin(); }
 
-/// Return an iterator to be used with the `for` loop. It's implicitly called by
-/// the for loop.
 std::vector<Node>::const_iterator List::cend() { return elements.end(); }
 
-/// Return an iterator to be used with the `for` loop. It's implicitly called by
-/// the for loop.
 std::vector<Node>::iterator List::begin() { return elements.begin(); }
 
-/// Return an iterator to be used with the `for` loop. It's implicitly called by
-/// the for loop.
 std::vector<Node>::iterator List::end() { return elements.end(); }
 
 size_t List::count() const { return elements.size(); }
@@ -118,7 +109,6 @@ llvm::Optional<Expression *> List::at(uint index) {
 }
 
 Ast List::from(uint index) {
-
   if (index < elements.size()) {
     return Ast(elements.begin() + index, elements.end());
   }
