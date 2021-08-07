@@ -111,7 +111,8 @@ Read More:
 #+END_SRC
 - LL(1.5)?
 - O(n)
-* Episode 5 - The Abstract Syntax Tree
+* DONE Episode 5 - The Abstract Syntax Tree
+CLOSED: [2021-07-30 Fri 14:01]
 ** What is an AST?
 Ast is a tree representation of the abstract syntactic structure of source code. It's just a tree made of nodes that each node is
 a data structure describing the syntax.
@@ -129,3 +130,31 @@ a data structure describing the syntax.
 - Expressions vs Statements
 - Serene(Lisp) and expressions
 ** Node & AST
+* Episode 6 - The Semantic Analyzer
+** Qs
+- Why didn't we implement a linked list?
+- Why we are using the =std::vector= instead of llvm collections?
+** What is Semantic Analysis?
+- Semantic Analysis makes sure that the given program is semantically correct.
+- Type checkr works as part of this step as well.
+
+#+BEGIN_SRC lisp
+  ;; pseudo code
+  (4 main)
+#+END_SRC
+
+[[./imgs/incorrct_semantic.svg]]
+** Semantic Analysis and rewrites
+We need to reform the AST to reflect the semantics of Serene closly.
+
+#+BEGIN_SRC lisp
+  ;; pseudo code
+  (def main (fn () 4))
+  (prn (main))
+#+END_SRC
+[[./imgs/ast.svg]]
+
+[[./imgs/semantic.svg]]
+
+Let's run the compiler to see the semantic analysis in action.
+** Let's check out the code

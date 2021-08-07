@@ -31,12 +31,18 @@
 
 namespace serene::reader {
 using AnalyzeResult = Result<exprs::Ast, std::vector<exprs::ErrorPtr>>;
-/// This function is the entrypoint to the Semantic Analysis phase of **Serene**
-/// It will call the `analyze` method on every node in the given AST and
-/// returns a new AST as the result of the semantic analysis.
+/// The entry point to the Semantic analysis phase. It calls the `analyze`
+/// method of each node in the given AST and creates a new AST that contains a
+/// more comprehensive set of nodes in a semantically correct AST. If the
+/// `analyze` method of a node return a `nullptr` value as the `success` result
+/// (Checkout the `Result` type in `utils.h`) then the original node will be
+/// used instead. Also please note that in **Serene** Semantic errors
+/// represented as AST nodes as well. So you should expect an `analyze` method
+/// of a node to return a `Result<node>::Success(Error...)` in case of a
+/// semantic error.
 ///
-/// \param ctx The serene context
-/// \prama tree The raw AST to analyze
+/// \param ctx The semantic analysis context
+/// \param inputAst The raw AST to analyze and possibly rewrite.
 AnalyzeResult analyze(serene::SereneContext &ctx, exprs::Ast &tree);
 }; // namespace serene::reader
 

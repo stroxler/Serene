@@ -111,6 +111,7 @@ MaybeNode Def::make(SereneContext &ctx, List *list) {
     llvm_unreachable("Inserting a value in the semantic env failed!");
   }
 };
+
 void Def::generateIR(serene::Namespace &ns) {
   auto &module = ns.getModule();
 

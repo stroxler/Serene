@@ -69,6 +69,8 @@ enum Action {
   DumpIR,
   CompileToObject,
   Compile,
+  // TODO: Remove this option and replace it by a subcommand
+  JIT,
 };
 }
 
@@ -99,7 +101,8 @@ static cl::opt<enum Action> emitAction(
     cl::values(clEnumValN(CompileToObject, "object",
                           "Compile to object file.")),
     cl::values(clEnumValN(Compile, "target",
-                          "Compile to target code. (Default)"))
+                          "Compile to target code. (Default)")),
+    cl::values(clEnumValN(JIT, "jit", "Run the give input file with the JIT."))
 
 );
 
@@ -243,6 +246,10 @@ int main(int argc, char *argv[]) {
 
   switch (emitAction) {
 
+  case Action::JIT: {
+    break;
+  };
+
     // Just print out the raw AST
   case Action::DumpAST: {
     auto ast = readInputFile();
@@ -303,6 +310,8 @@ int main(int argc, char *argv[]) {
     }
     if (emitAction < CompileToObject) {
       serene::slir::dump<Namespace>(*ns);
+    } else if (emitAction == Action::JIT) {
+
     } else {
       return dumpAsObject(*ns);
     }

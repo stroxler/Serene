@@ -71,6 +71,8 @@ MaybeNode Fn::make(SereneContext &ctx, List *list) {
   }
 
   Symbol *fnSym = llvm::dyn_cast<Symbol>(list->elements[0].get());
+
+  // TODO: Replace this assert with a runtime check
   assert((fnSym && fnSym->name == "fn") &&
          "The first element of the list should be a 'fn'.");
 
@@ -80,12 +82,15 @@ MaybeNode Fn::make(SereneContext &ctx, List *list) {
     std::string msg =
         llvm::formatv("Arguments of a function has to be a list, got '{0}'",
                       stringifyExprType(list->elements[1]->getType()));
+
     return makeErrorful<Node>(list->elements[1]->location,
                               &errors::FnArgsMustBeList, msg);
   }
 
   Ast body;
 
+  // If there is a body for this function analyze the body and set
+  // the retuned ast as the final body
   if (list->count() > 2) {
     body          = std::vector<Node>(list->begin() + 2, list->end());
     auto maybeAst = reader::analyze(ctx, body);

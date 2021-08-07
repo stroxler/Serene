@@ -52,6 +52,7 @@ bool Call::classof(const Expression *e) {
 };
 
 MaybeNode Call::make(SereneContext &ctx, List *list) {
+  // TODO: replace this with a runtime check
   assert((list->count() != 0) && "Empty call? Seriously ?");
 
   // Let's find out what is the first element of the list

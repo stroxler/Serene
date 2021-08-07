@@ -22,55 +22,23 @@
  * SOFTWARE.
  */
 
-#ifndef EXPRS_DEF_H
-#define EXPRS_DEF_H
+#ifndef SERENE_JIT_H
+#define SERENE_JIT_H
 
-#include "serene/context.h"
-#include "serene/errors/error.h"
-#include "serene/exprs/expression.h"
+#include "serene/slir/generatable.h"
 
 #include "llvm/ADT/StringRef.h"
-#include "llvm/Support/Error.h"
 
 #include <memory>
-#include <string>
+#include <mlir/ExecutionEngine/ExecutionEngine.h>
 
 namespace serene {
-
-namespace exprs {
-class List;
-
-/// This data structure represents the operation to define a new binding via
-/// the `def` special form.
-class Def : public Expression {
+class JIT {
+  std::unique_ptr<mlir::ExecutionEngine> engine;
 
 public:
-  std::string binding;
-  Node value;
-
-  Def(reader::LocationRange &loc, llvm::StringRef binding, Node &v)
-      : Expression(loc), binding(binding), value(v){};
-
-  Def(Def &d) = delete;
-
-  ExprType getType() const;
-  std::string toString() const;
-  MaybeNode analyze(SereneContext &);
-  void generateIR(serene::Namespace &);
-
-  static bool classof(const Expression *e);
-
-  /// Create a Def node out a list. The list should contain the
-  /// correct `def` form like `(def blah value)`. This function
-  /// is supposed to be used in the semantic analysis phase.
-  ///
-  /// \param ctx The semantic analysis context object.
-  /// \param list the list containing the `def` form
-  static MaybeNode make(SereneContext &ctx, List *list);
-  ~Def() = default;
+  JIT(SereneContext &c, Namespace &entryNS, llvm::StringRef fn = "main") {}
 };
-
-} // namespace exprs
 } // namespace serene
 
 #endif
