@@ -25,6 +25,7 @@
 #include "serene/exprs/def.h"
 
 #include "serene/errors/error.h"
+#include "serene/exprs/expression.h"
 #include "serene/exprs/fn.h"
 #include "serene/exprs/list.h"
 #include "serene/exprs/symbol.h"
@@ -44,9 +45,7 @@ std::string Def::toString() const {
                        this->value->toString());
 }
 
-MaybeNode Def::analyze(SereneContext &ctx) {
-  return MaybeNode::success(nullptr);
-};
+MaybeNode Def::analyze(SereneContext &ctx) { return EmptyNode; };
 
 bool Def::classof(const Expression *e) {
   return e->getType() == ExprType::Def;
@@ -54,7 +53,6 @@ bool Def::classof(const Expression *e) {
 
 MaybeNode Def::make(SereneContext &ctx, List *list) {
   // TODO: Add support for docstring as the 3rd argument (4th element)
-
   if (list->count() != 3) {
     std::string msg = llvm::formatv("Expected 3 got {0}", list->count());
     return makeErrorful<Node>(list->elements[0]->location,
@@ -63,6 +61,8 @@ MaybeNode Def::make(SereneContext &ctx, List *list) {
 
   // Make sure that the list starts with a `def`
   Symbol *defSym = llvm::dyn_cast<Symbol>(list->elements[0].get());
+
+  // TODO: Replace this one with a runtime check
   assert((defSym && defSym->name == "def") &&
          "The first element of the list should be a 'def'.");
 
@@ -77,6 +77,7 @@ MaybeNode Def::make(SereneContext &ctx, List *list) {
   MaybeNode value = list->elements[2]->analyze(ctx);
   Node analyzedValue;
 
+  // TODO: To refactor this logic into a generic function
   if (value) {
     // Success value
     auto &valueNode = value.getValue();
@@ -98,8 +99,10 @@ MaybeNode Def::make(SereneContext &ctx, List *list) {
     if (!tmp) {
       llvm_unreachable("inconsistent getType for function");
     }
+
     tmp->setName(binding->name);
   }
+
   // auto analayzedValuePtr = analyzedValue;
   auto result = ctx.getCurrentNS()->semanticEnv.insert_symbol(binding->name,
                                                               analyzedValue);

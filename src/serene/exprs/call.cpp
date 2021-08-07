@@ -91,6 +91,7 @@ MaybeNode Call::make(SereneContext &ctx, List *list) {
     if (!sym) {
       llvm_unreachable("Couldn't case to Symbol while the type is symbol!");
     }
+
     // TODO: Lookup the symbol in the namespace via a method that looks
     //       into the current environment.
     auto maybeResult = ctx.getCurrentNS()->semanticEnv.lookup(sym->name);

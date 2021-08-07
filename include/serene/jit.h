@@ -27,8 +27,7 @@
 
 #include "serene/slir/generatable.h"
 
-#include "llvm/ADT/StringRef.h"
-
+#include <llvm/ADT/StringRef.h>
 #include <memory>
 #include <mlir/ExecutionEngine/ExecutionEngine.h>
 

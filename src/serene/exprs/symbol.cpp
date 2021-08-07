@@ -24,6 +24,8 @@
 
 #include "serene/exprs/symbol.h"
 
+#include "serene/exprs/expression.h"
+
 #include "llvm/Support/Casting.h"
 
 #include <llvm/Support/FormatVariadic.h>
@@ -37,9 +39,7 @@ std::string Symbol::toString() const {
   return llvm::formatv("<Symbol {0}>", this->name);
 }
 
-MaybeNode Symbol::analyze(SereneContext &ctx) {
-  return MaybeNode::success(nullptr);
-};
+MaybeNode Symbol::analyze(SereneContext &ctx) { return EmptyNode; };
 
 bool Symbol::classof(const Expression *e) {
   return e->getType() == ExprType::Symbol;

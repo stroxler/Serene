@@ -25,6 +25,7 @@
 
 #include "serene/exprs/number.h"
 
+#include "serene/exprs/expression.h"
 #include "serene/slir/dialect.h"
 #include "serene/slir/utils.h"
 
@@ -37,9 +38,7 @@ std::string Number::toString() const {
   return llvm::formatv("<Number {0}>", value);
 }
 
-MaybeNode Number::analyze(SereneContext &ctx) {
-  return MaybeNode::success(nullptr);
-};
+MaybeNode Number::analyze(SereneContext &ctx) { return EmptyNode; };
 
 bool Number::classof(const Expression *e) {
   return e->getType() == ExprType::Number;

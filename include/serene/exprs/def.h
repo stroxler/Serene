@@ -67,6 +67,7 @@ public:
   /// \param ctx The semantic analysis context object.
   /// \param list the list containing the `def` form
   static MaybeNode make(SereneContext &ctx, List *list);
+
   ~Def() = default;
 };
 
