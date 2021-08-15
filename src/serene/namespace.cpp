@@ -115,20 +115,20 @@ void Namespace::dump() {
     return;
   }
 
-  maybeModuleOp.getValue().dump();
+  maybeModuleOp.getValue()->dump();
 };
 
 MaybeModule Namespace::compileToLLVM() {
-  auto m = generate();
+  auto maybeModule = generate();
 
-  if (!m) {
+  if (!maybeModule) {
     NAMESPACE_LOG("IR generation failed for '" << name << "'");
     return MaybeModule::error(true);
   }
 
   if (ctx.getTargetPhase() >= CompilationPhase::IR) {
-    return MaybeModule::success(
-        ::serene::slir::compileToLLVMIR(ctx, m.getValue()));
+    mlir::ModuleOp module = maybeModule.getValue().get();
+    return MaybeModule::success(::serene::slir::compileToLLVMIR(ctx, module));
   }
 
   return MaybeModule::error(true);

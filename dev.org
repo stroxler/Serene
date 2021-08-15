@@ -104,7 +104,7 @@ on ADF
 - https://en.wikipedia.org/wiki/Collision_attack
 
 * TODOs
-** Bootstrap
+** Bootstrap*
 *** TODO Add the support for =ns-paths=                 :serenecli:context:
 We need to add the support for an array of paths to lookup namespaces. The =ns-paths= should
 be an array that each entry represents a path which serene has to look into in order to find
@@ -114,9 +114,11 @@ in python.
 - [ ] Add the support to the *Context*.
 - [ ] Add the support to *Namespace*.
 - [ ] Add the cli argument to the =bin/serene.cpp=
+
 *** TODO Error handling
 Create proper error handling for the internal infra
 *** TODO Replace =llvm::outs()= with debug statements
+*  ** TODO Move the generatable logic out of its files and remove them
 *** TODO Language Spec                                               :DOCS:
 *** TODO A proper List implementation
 *** TODO Vector implementation

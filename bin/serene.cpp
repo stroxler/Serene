@@ -131,7 +131,7 @@ int dumpAsObject(Namespace &ns) {
   // TODO: Fix this call to raise the wrapped error instead
   auto module = std::move(
       maybeModule.getValueOrFail("Faild to generato LLVM IR for namespace"));
-  auto &ctx    = ns.getContext();
+  auto &ctx = ns.getContext();
 
   // TODO: We need to set the triple data layout and everything to that sort in
   // one place. We want them for the JIT as well and also we're kinda
@@ -309,9 +309,14 @@ int main(int argc, char *argv[]) {
 
   if (isSet.succeeded()) {
     ctx->insertNS(ns);
-    if (emitAction < CompileToObject) {
+    switch (emitAction) {
+    case Action::DumpSLIR:
+    case Action::DumpMLIR:
+    case Action::DumpLIR: {
       ns->dump();
-    } else if (emitAction == Action::DumpIR) {
+      break;
+    };
+    case Action::DumpIR: {
       auto maybeModule = ns->compileToLLVM();
 
       if (!maybeModule) {
@@ -320,13 +325,19 @@ int main(int argc, char *argv[]) {
       }
 
       maybeModule.getValue()->dump();
-    } else if (emitAction == Action::JIT) {
+      break;
+    };
 
-    } else {
+    case Action::Compile:
+    case Action::CompileToObject: {
       return dumpAsObject(*ns);
+    };
+    default: {
+      llvm::errs() << "Action is not supported yet!\n";
+    };
     }
   } else {
-    llvm::outs() << "Can't set the tree of the namespace!\n";
+    llvm::errs() << "Can't set the tree of the namespace!\n";
   }
 
   return 0;

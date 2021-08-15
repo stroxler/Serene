@@ -38,6 +38,7 @@
 #include <memory>
 #include <mlir/IR/Builders.h>
 #include <mlir/IR/BuiltinOps.h>
+#include <mlir/IR/OwningOpRef.h>
 #include <mlir/IR/Value.h>
 #include <mlir/Support/LogicalResult.h>
 #include <string>
@@ -57,7 +58,7 @@ using Ast  = std::vector<Node>;
 using MaybeModule = Result<std::unique_ptr<llvm::Module>, bool>;
 
 // TODO: replace the temporary `bool` by errors::Error
-using MaybeModuleOp = Result<mlir::ModuleOp, bool>;
+using MaybeModuleOp = Result<mlir::OwningOpRef<mlir::ModuleOp>, bool>;
 
 /// Serene's namespaces are the unit of compilation. Any code that needs to be
 /// compiled has to be in a namespace. The official way to create a new
