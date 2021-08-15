@@ -1,4 +1,4 @@
-/**
+/*
  * Serene programming language.
  *
  *  Copyright (c) 2020 Sameer Rahmani <lxsameer@gnu.org>
@@ -24,15 +24,18 @@
 
 #include "serene/namespace.h"
 
-#include "mlir/IR/Builders.h"
-#include "mlir/IR/BuiltinOps.h"
 #include "serene/context.h"
+#include "serene/errors/constants.h"
 #include "serene/exprs/expression.h"
 #include "serene/llvm/IR/Value.h"
+#include "serene/slir/slir.h"
 
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/FormatVariadic.h>
 #include <llvm/Support/raw_ostream.h>
+#include <memory>
+#include <mlir/IR/Builders.h>
+#include <mlir/IR/BuiltinOps.h>
 #include <stdexcept>
 #include <string>
 
@@ -46,9 +49,6 @@ Namespace::Namespace(SereneContext &ctx, llvm::StringRef ns_name,
     : ctx(ctx), name(ns_name)
 
 {
-  mlir::OpBuilder builder(&ctx.mlirContext);
-  // TODO: Fix the unknown location by pointing to the `ns` form
-  module = mlir::ModuleOp::create(builder.getUnknownLoc(), ns_name);
   if (filename.hasValue()) {
     this->filename.emplace(filename.getValue().str());
   }
@@ -80,49 +80,60 @@ makeNamespace(SereneContext &ctx, llvm::StringRef name,
 
 uint Namespace::nextFnCounter() { return fn_counter++; };
 
-mlir::ModuleOp &Namespace::getModule() { return this->module; };
 SereneContext &Namespace::getContext() { return this->ctx; };
-void Namespace::setLLVMModule(std::unique_ptr<llvm::Module> m) {
-  this->llvmModule = std::move(m);
-};
 
-llvm::Module &Namespace::getLLVMModule() {
-  // TODO: check the llvm module to make sure it is initialized
-  return *llvmModule;
-};
+MaybeModuleOp Namespace::generate() {
+  mlir::OpBuilder builder(&ctx.mlirContext);
+  // TODO: Fix the unknown location by pointing to the `ns` form
+  // TODO: We need to call `erase` method of module somewhere to clean it up
+  //       maybe use a unique ptr?
+  auto module = mlir::ModuleOp::create(builder.getUnknownLoc(), name);
 
-mlir::LogicalResult Namespace::generate() {
   for (auto &x : getTree()) {
-    x->generateIR(*this);
+    x->generateIR(*this, module);
   }
 
-  if (mlir::failed(runPasses())) {
+  if (mlir::failed(runPasses(module))) {
     // TODO: throw a proper errer
     module.emitError("Failure in passes!");
-    return mlir::failure();
+    return MaybeModuleOp::error(true);
   }
 
-  if (ctx.getTargetPhase() >= CompilationPhase::IR) {
-    auto llvmTmpModule = slir::toLLVMIR<Namespace>(*this);
-    this->llvmModule   = std::move(llvmTmpModule);
-  }
-
-  return mlir::success();
+  return MaybeModuleOp::success(module);
 }
 
-mlir::LogicalResult Namespace::runPasses() { return ctx.pm.run(module); };
+mlir::LogicalResult Namespace::runPasses(mlir::ModuleOp &m) {
+  return ctx.pm.run(m);
+};
 
 void Namespace::dump() {
   llvm::outs() << "\nMLIR: \n";
-  module->dump();
-  if (llvmModule) {
-    llvm::outs() << "\nLLVM IR: \n";
-    llvmModule->dump();
+  auto maybeModuleOp = generate();
+
+  if (!maybeModuleOp) {
+    llvm::outs() << "Failed to generate the IR.\n";
+    return;
   }
+
+  maybeModuleOp.getValue().dump();
 };
 
-Namespace::~Namespace() { this->module.erase(); }
-namespace slir {
-template class Generatable<Namespace>;
-}
+MaybeModule Namespace::compileToLLVM() {
+  auto m = generate();
+
+  if (!m) {
+    NAMESPACE_LOG("IR generation failed for '" << name << "'");
+    return MaybeModule::error(true);
+  }
+
+  if (ctx.getTargetPhase() >= CompilationPhase::IR) {
+    return MaybeModule::success(
+        ::serene::slir::compileToLLVMIR(ctx, m.getValue()));
+  }
+
+  return MaybeModule::error(true);
+};
+
+Namespace::~Namespace(){};
+
 } // namespace serene

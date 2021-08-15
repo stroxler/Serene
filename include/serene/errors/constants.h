@@ -39,6 +39,7 @@ enum ErrID {
   E0004,
   E0005,
   E0006,
+  E0007,
 };
 
 struct ErrorVariant {
@@ -71,11 +72,13 @@ static ErrorVariant
     DontKnowHowToCallNode(E0006, "Don't know how to call the given expression.",
                           "");
 
+static ErrorVariant PassFailureError(E0007, "Pass Failure.", "");
+
 static std::map<ErrID, ErrorVariant *> ErrDesc = {
-    {E0000, &UnknownError},         {E0001, &DefExpectSymbol},
-    {E0002, &DefWrongNumberOfArgs}, {E0003, &FnNoArgsList},
-    {E0004, &FnArgsMustBeList},     {E0005, &CantResolveSymbol},
-    {E0006, &DontKnowHowToCallNode}};
+    {E0000, &UnknownError},          {E0001, &DefExpectSymbol},
+    {E0002, &DefWrongNumberOfArgs},  {E0003, &FnNoArgsList},
+    {E0004, &FnArgsMustBeList},      {E0005, &CantResolveSymbol},
+    {E0006, &DontKnowHowToCallNode}, {E0007, &PassFailureError}};
 
 } // namespace errors
 } // namespace serene

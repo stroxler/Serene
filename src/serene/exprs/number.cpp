@@ -46,15 +46,14 @@ bool Number::classof(const Expression *e) {
 
 int Number::toI64() { return std::stoi(this->value); };
 
-void Number::generateIR(serene::Namespace &ns) {
+void Number::generateIR(serene::Namespace &ns, mlir::ModuleOp &m) {
   mlir::OpBuilder builder(&ns.getContext().mlirContext);
-  mlir::ModuleOp &module = ns.getModule();
 
   auto op = builder.create<serene::slir::ValueOp>(
       serene::slir::toMLIRLocation(ns, location.start), toI64());
 
   if (op) {
-    module.push_back(op);
+    m.push_back(op);
   }
   // TODO: in case of failure attach the error to the NS
 };

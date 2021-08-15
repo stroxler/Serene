@@ -24,7 +24,6 @@
 
 #include "serene/serene.h"
 
-#include "mlir/ExecutionEngine/ExecutionEngine.h"
 #include "serene/context.h"
 #include "serene/namespace.h"
 #include "serene/reader/reader.h"
@@ -32,14 +31,13 @@
 #include "serene/slir/generatable.h"
 #include "serene/slir/slir.h"
 
-#include "llvm/ADT/ArrayRef.h"
-#include "llvm/ADT/SmallString.h"
-#include "llvm/ADT/StringRef.h"
-
 #include <clang/Driver/Compilation.h>
 #include <clang/Driver/Driver.h>
 #include <clang/Frontend/TextDiagnosticPrinter.h>
 #include <clang/Tooling/Tooling.h>
+#include <llvm/ADT/ArrayRef.h>
+#include <llvm/ADT/SmallString.h>
+#include <llvm/ADT/StringRef.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/Support/CommandLine.h>
 #include <llvm/Support/FileSystem.h>
@@ -129,9 +127,16 @@ exprs::Ast readAndAnalyze(SereneContext &ctx) {
 
 int dumpAsObject(Namespace &ns) {
   // TODO: Move the compilation process to the Namespace class
-  auto &module = ns.getLLVMModule();
+  auto maybeModule = ns.compileToLLVM();
+  // TODO: Fix this call to raise the wrapped error instead
+  auto module = std::move(
+      maybeModule.getValueOrFail("Faild to generato LLVM IR for namespace"));
   auto &ctx    = ns.getContext();
-  module.setTargetTriple(ctx.targetTriple);
+
+  // TODO: We need to set the triple data layout and everything to that sort in
+  // one place. We want them for the JIT as well and also we're kinda
+  // duplicating what we're doing in `Namespace#compileToLLVM`.
+  module->setTargetTriple(ctx.targetTriple);
 
   std::string Error;
   auto target = llvm::TargetRegistry::lookupTarget(ctx.targetTriple, Error);
@@ -153,7 +158,7 @@ int dumpAsObject(Namespace &ns) {
       target->createTargetMachine(ctx.targetTriple, cpu, features, opt, rm);
   auto targetMachine = std::unique_ptr<llvm::TargetMachine>(targetMachinePtr);
 
-  module.setDataLayout(targetMachine->createDataLayout());
+  module->setDataLayout(targetMachine->createDataLayout());
 
   auto filename =
       strcmp(outputFile.c_str(), "-") == 0 ? "output" : outputFile.c_str();
@@ -177,7 +182,7 @@ int dumpAsObject(Namespace &ns) {
     return 1;
   }
 
-  pass.run(module);
+  pass.run(*module);
   dest.flush();
 
   if (emitAction == Action::Compile) {
@@ -304,12 +309,17 @@ int main(int argc, char *argv[]) {
 
   if (isSet.succeeded()) {
     ctx->insertNS(ns);
-    if (mlir::failed(serene::slir::generate<Namespace>(*ns))) {
-      llvm::errs() << "IR generation faild\n";
-      return 1;
-    }
     if (emitAction < CompileToObject) {
-      serene::slir::dump<Namespace>(*ns);
+      ns->dump();
+    } else if (emitAction == Action::DumpIR) {
+      auto maybeModule = ns->compileToLLVM();
+
+      if (!maybeModule) {
+        llvm::errs() << "Failed to generate the IR.\n";
+        return 1;
+      }
+
+      maybeModule.getValue()->dump();
     } else if (emitAction == Action::JIT) {
 
     } else {

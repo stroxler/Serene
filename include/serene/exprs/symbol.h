@@ -51,7 +51,7 @@ public:
   std::string toString() const;
 
   MaybeNode analyze(SereneContext &);
-  void generateIR(serene::Namespace &){};
+  void generateIR(serene::Namespace &, mlir::ModuleOp &){};
 
   ~Symbol() = default;
 

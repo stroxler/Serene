@@ -105,10 +105,10 @@ MaybeNode Fn::make(SereneContext &ctx, List *list) {
   return makeSuccessfulNode<Fn>(ctx, list->location, *args, body);
 };
 
-void Fn::generateIR(serene::Namespace &ns) {
+void Fn::generateIR(serene::Namespace &ns, mlir::ModuleOp &m) {
   auto loc     = slir::toMLIRLocation(ns, location.start);
   auto &ctx    = ns.getContext();
-  auto &module = ns.getModule();
+
   mlir::OpBuilder builder(&ctx.mlirContext);
 
   // llvm::SmallVector<mlir::Type, 4> arg_types;
@@ -118,7 +118,7 @@ void Fn::generateIR(serene::Namespace &ns) {
     auto *argSym = llvm::dyn_cast<Symbol>(arg.get());
 
     if (!argSym) {
-      module->emitError(llvm::formatv(
+      m->emitError(llvm::formatv(
           "Arguments of a function have to be symbols. Fn: '{0}'", name));
       return;
     }
@@ -134,7 +134,7 @@ void Fn::generateIR(serene::Namespace &ns) {
       builder.getStringAttr("public"));
 
   if (!fn) {
-    module.emitError(llvm::formatv("Can't create the function '{0}'", name));
+    m.emitError(llvm::formatv("Can't create the function '{0}'", name));
   }
 
   auto *entryBlock = new mlir::Block();
@@ -146,11 +146,11 @@ void Fn::generateIR(serene::Namespace &ns) {
   mlir::ReturnOp returnOp = builder.create<mlir::ReturnOp>(loc, retVal);
 
   if (!returnOp) {
-    module.emitError(
+    m.emitError(
         llvm::formatv("Can't create the return value of function '{0}'", name));
     return;
   }
-  module.push_back(fn);
+  m.push_back(fn);
 };
 } // namespace exprs
 } // namespace serene

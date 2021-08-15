@@ -57,7 +57,7 @@ public:
   ExprType getType() const;
   std::string toString() const;
   MaybeNode analyze(SereneContext &);
-  void generateIR(serene::Namespace &){};
+  void generateIR(serene::Namespace &, mlir::ModuleOp &){};
 
   static bool classof(const Expression *e);
 

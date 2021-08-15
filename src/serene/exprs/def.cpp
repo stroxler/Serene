@@ -115,14 +115,13 @@ MaybeNode Def::make(SereneContext &ctx, List *list) {
   }
 };
 
-void Def::generateIR(serene::Namespace &ns) {
-  auto &module = ns.getModule();
+void Def::generateIR(serene::Namespace &ns, mlir::ModuleOp &m) {
 
   if (value->getType() == ExprType::Fn) {
-    value->generateIR(ns);
+    value->generateIR(ns, m);
     return;
   }
-  module.emitError("Def: not implemented!");
+  m.emitError("Def: not implemented!");
 };
 } // namespace exprs
 } // namespace serene

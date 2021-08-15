@@ -25,18 +25,70 @@
 #ifndef SERENE_JIT_H
 #define SERENE_JIT_H
 
+#include "serene/errors.h"
 #include "serene/slir/generatable.h"
+#include "serene/utils.h"
 
 #include <llvm/ADT/StringRef.h>
+#include <llvm/ExecutionEngine/JITEventListener.h>
+#include <llvm/ExecutionEngine/ObjectCache.h>
+#include <llvm/ExecutionEngine/Orc/LLJIT.h>
+#include <llvm/Support/CodeGen.h>
+#include <llvm/Support/Debug.h>
 #include <memory>
-#include <mlir/ExecutionEngine/ExecutionEngine.h>
+#include <mlir/Support/LLVM.h>
+
+#define JIT_LOG(...) \
+  DEBUG_WITH_TYPE("JIT", llvm::dbgs() << "[JIT]: " << __VA_ARGS__ << "\n");
 
 namespace serene {
+class JIT;
+
+using MaybeJIT = Result<std::unique_ptr<JIT>, serene::errors::Error>;
+
+/// A simple object cache following Lang's LLJITWithObjectCache example and
+/// MLIR's SimpelObjectCache.
+class ObjectCache : public llvm::ObjectCache {
+public:
+  /// Cache the given `objBuffer` for the given module `m`. The buffer contains
+  /// the combiled objects of the module
+  void notifyObjectCompiled(const llvm::Module *m,
+                            llvm::MemoryBufferRef objBuffer) override;
+
+  // Lookup the cache for the given module `m` or returen a nullptr.
+  std::unique_ptr<llvm::MemoryBuffer> getObject(const llvm::Module *m) override;
+
+  /// Dump cached object to output file `filename`.
+  void dumpToObjectFile(llvm::StringRef filename);
+
+private:
+  llvm::StringMap<std::unique_ptr<llvm::MemoryBuffer>> cachedObjects;
+};
+
 class JIT {
-  std::unique_ptr<mlir::ExecutionEngine> engine;
+  // TODO: Should the JIT own the context ???
+  Namespace &ns;
+
+  std::unique_ptr<llvm::orc::LLJIT> engine;
+
+  std::unique_ptr<ObjectCache> cache;
+
+  /// GDB notification listener.
+  llvm::JITEventListener *gdbListener;
+
+  /// Perf notification listener.
+  llvm::JITEventListener *perfListener;
 
 public:
-  JIT(SereneContext &c, Namespace &entryNS, llvm::StringRef fn = "main") {}
+  JIT(Namespace &ns, bool enableObjectCache = true,
+      bool enableGDBNotificationListener  = true,
+      bool enablePerfNotificationListener = true);
+
+  static MaybeJIT
+  make(Namespace &ns, mlir::ArrayRef<llvm::StringRef> sharedLibPaths = {},
+       mlir::Optional<llvm::CodeGenOpt::Level> jitCodeGenOptLevel = llvm::None,
+       bool enableObjectCache = true, bool enableGDBNotificationListener = true,
+       bool enablePerfNotificationListener = true);
 };
 } // namespace serene
 

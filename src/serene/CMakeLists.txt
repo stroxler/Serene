@@ -61,6 +61,7 @@ add_library(serene
   errors/error.cpp
 
   # IR
+  slir/slir.cpp
   slir/dialect.cpp
   slir/value_op.cpp
   slir/generatable.cpp

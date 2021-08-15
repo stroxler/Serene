@@ -31,6 +31,7 @@
 #include "serene/slir/dialect.h"
 
 #include <llvm/ADT/StringRef.h>
+#include <llvm/IR/LLVMContext.h>
 #include <llvm/Support/Host.h>
 #include <memory>
 #include <mlir/Dialect/StandardOps/IR/Ops.h>
@@ -87,7 +88,7 @@ public:
     mlirContext.getOrLoadDialect<serene::slir::SereneDialect>();
     mlirContext.getOrLoadDialect<mlir::StandardOpsDialect>();
     // TODO: Get the crash report path dynamically from the cli
-    pm.enableCrashReproducerGeneration("/home/lxsameer/mlir.mlir");
+    // pm.enableCrashReproducerGeneration("/home/lxsameer/mlir.mlir");
     targetTriple = llvm::sys::getDefaultTargetTriple();
   };
 

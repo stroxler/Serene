@@ -25,6 +25,7 @@
 #ifndef EXPRS_EXPRESSION_H
 #define EXPRS_EXPRESSION_H
 
+#include "mlir/IR/BuiltinOps.h"
 #include "serene/context.h"
 #include "serene/errors/error.h"
 #include "serene/exprs/traits.h"
@@ -82,10 +83,11 @@ public:
   virtual MaybeNode analyze(SereneContext &ctx) = 0;
 
   /// Genenates the correspondig SLIR of the expressoin and attach it to the
-  /// module of the given namespace.
+  /// given module.
   ///
   /// \param ns The namespace that current expression is in it.
-  virtual void generateIR(serene::Namespace &ns) = 0;
+  /// \param m  The target MLIR moduleOp to attach the operations to
+  virtual void generateIR(serene::Namespace &ns, mlir::ModuleOp &m) = 0;
 };
 
 /// Create a new `node` of type `T` and forwards any given parameter

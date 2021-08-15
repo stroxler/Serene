@@ -53,18 +53,21 @@ class Expression;
 using Node = std::shared_ptr<Expression>;
 using Ast  = std::vector<Node>;
 } // namespace exprs
+  // TODO: replace the temporary `bool` by errors::Error
+using MaybeModule = Result<std::unique_ptr<llvm::Module>, bool>;
+
+// TODO: replace the temporary `bool` by errors::Error
+using MaybeModuleOp = Result<mlir::ModuleOp, bool>;
 
 /// Serene's namespaces are the unit of compilation. Any code that needs to be
 /// compiled has to be in a namespace. The official way to create a new
 /// namespace is to use the `makeNamespace` function.
-class Namespace : public WithTrait<Namespace, slir::Generatable> {
+class Namespace {
 private:
   SereneContext &ctx;
   bool initialized             = false;
   std::atomic<uint> fn_counter = 0;
   exprs::Ast tree;
-  std::unique_ptr<llvm::Module> llvmModule;
-  mlir::ModuleOp module;
 
 public:
   mlir::StringRef name;
@@ -82,16 +85,15 @@ public:
   mlir::LogicalResult setTree(exprs::Ast &);
   uint nextFnCounter();
 
-  mlir::ModuleOp &getModule();
   SereneContext &getContext();
-  void setLLVMModule(std::unique_ptr<llvm::Module>);
-  llvm::Module &getLLVMModule();
-
-  // Generatable Trait
 
   /// Generate the IR of the namespace with respect to the compilation phase
-  mlir::LogicalResult generate();
-  mlir::LogicalResult runPasses();
+  MaybeModuleOp generate();
+  /// Compile the given namespace to the llvm module. It will call the
+  /// `generate` method of the namespace to generate the IR.
+  MaybeModule compileToLLVM();
+
+  mlir::LogicalResult runPasses(mlir::ModuleOp &m);
 
   /// Dumps the namespace with respect to the compilation phase
   void dump();
@@ -102,6 +104,7 @@ public:
 std::shared_ptr<Namespace>
 makeNamespace(SereneContext &ctx, llvm::StringRef name,
               llvm::Optional<llvm::StringRef> filename, bool setCurrent = true);
+
 } // namespace serene
 
 #endif

@@ -54,7 +54,7 @@ struct Number : public Expression {
   std::string toString() const;
 
   MaybeNode analyze(SereneContext &ctx);
-  void generateIR(serene::Namespace &);
+  void generateIR(serene::Namespace &, mlir::ModuleOp &);
 
   // TODO: This is horrible, we need to fix it after the mvp
   int toI64();

@@ -100,6 +100,8 @@ std::unique_ptr<llvm::Module> toLLVMIR(Generatable<T> &t) {
   // Initialize LLVM targets.
   llvm::InitializeNativeTarget();
   llvm::InitializeNativeTargetAsmPrinter();
+
+  // TODO: replace this call with our own version of setupTargetTriple
   mlir::ExecutionEngine::setupTargetTriple(llvmModule.get());
 
   /// Optionally run an optimization pipeline over the llvm module.

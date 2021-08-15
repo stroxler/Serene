@@ -78,7 +78,7 @@ public:
   std::vector<Node>::iterator end();
 
   MaybeNode analyze(SereneContext &);
-  void generateIR(serene::Namespace &){};
+  void generateIR(serene::Namespace &, mlir::ModuleOp &){};
 
   ~List() = default;
 
