@@ -321,4 +321,13 @@ llvm::Error JIT::invokePacked(llvm::StringRef name,
   return llvm::Error::success();
 }
 
+void JIT::registerSymbols(
+    llvm::function_ref<llvm::orc::SymbolMap(llvm::orc::MangleAndInterner)>
+        symbolMap) {
+  auto &mainJitDylib = engine->getMainJITDylib();
+  cantFail(mainJitDylib.define(
+      absoluteSymbols(symbolMap(llvm::orc::MangleAndInterner(
+          mainJitDylib.getExecutionSession(), engine->getDataLayout())))));
+}
+
 } // namespace serene

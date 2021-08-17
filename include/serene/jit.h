@@ -144,8 +144,7 @@ public:
   ///                                     result(result));
   template <typename... Args>
   llvm::Error invoke(llvm::StringRef funcName, Args... args) {
-    const std::string adapterName =
-        std::string("_mlir_ciface_") + funcName.str();
+    const std::string adapterName = std::string("") + funcName.str();
     llvm::SmallVector<void *> argsArray;
     // Pack every arguments in an array of pointers. Delegate the packing to a
     // trait so that it can be overridden per argument type.

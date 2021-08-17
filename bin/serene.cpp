@@ -25,6 +25,7 @@
 #include "serene/serene.h"
 
 #include "serene/context.h"
+#include "serene/jit.h"
 #include "serene/namespace.h"
 #include "serene/reader/reader.h"
 #include "serene/reader/semantics.h"
@@ -68,7 +69,7 @@ enum Action {
   CompileToObject,
   Compile,
   // TODO: Remove this option and replace it by a subcommand
-  JIT,
+  RunJIT,
 };
 }
 
@@ -100,7 +101,8 @@ static cl::opt<enum Action> emitAction(
                           "Compile to object file.")),
     cl::values(clEnumValN(Compile, "target",
                           "Compile to target code. (Default)")),
-    cl::values(clEnumValN(JIT, "jit", "Run the give input file with the JIT."))
+    cl::values(clEnumValN(RunJIT, "jit",
+                          "Run the give input file with the JIT."))
 
 );
 
@@ -251,7 +253,9 @@ int main(int argc, char *argv[]) {
 
   switch (emitAction) {
 
-  case Action::JIT: {
+  case Action::RunJIT: {
+    // TODO: Replace it by a proper jit configuration
+    ctx->setOperationPhase(CompilationPhase::NoOptimization);
     break;
   };
 
@@ -325,6 +329,18 @@ int main(int argc, char *argv[]) {
       }
 
       maybeModule.getValue()->dump();
+      break;
+    };
+
+    case Action::RunJIT: {
+      auto maybeJIT = JIT::make(*ns.get());
+      auto jit = std::move(maybeJIT.getValueOrFail("Couldn't creat the JIT!"));
+
+      if (jit->invoke("main")) {
+        llvm::errs() << "Faild to invoke the 'main' function.\n";
+        return 1;
+      }
+      llvm::outs() << "Done!";
       break;
     };
 
