@@ -112,7 +112,7 @@ public:
 
   T &&getValueOrFail(llvm::StringRef msg, int exitCode = 1) && {
     if (ok()) {
-      return getValue();
+      return std::move(getValue());
     }
 
     llvm::errs() << msg << "\n";

@@ -35,7 +35,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   # Let's ensure -std=c++xx instead of -std=g++xx
   set(CMAKE_CXX_EXTENSIONS OFF)
   set(CMAKE_CXX_FLAGS_DEBUG
-    "${CMAKE_CXX_FLAGS_DEBUG} -g -fno-omit-frame-pointer $ENV{ASAN_FLAG} -fno-builtin-strlen -ggdb -fno-inline ")
+    "${CMAKE_CXX_FLAGS_DEBUG} -g -fno-omit-frame-pointer $ENV{ASAN_FLAG} -fno-builtin-strlen -ggdb -fno-inline -fdebug-prefix-map=$PWD=.")
   set(CMAKE_LINKER_FLAGS_DEBUG
     "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer $ENV{ASAN_FLAG}")
 

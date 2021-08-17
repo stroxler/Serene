@@ -37,4 +37,3 @@ target_include_directories(serene PRIVATE ${INCLUDE_DIR})
 
 install(TARGETS serenec DESTINATION bin)
 install(FILES "${PROJECT_BINARY_DIR}/config.h" DESTINATION include)
-cotire(serenec)

@@ -44,6 +44,14 @@
 
 namespace serene {
 
+// TODO: Remove this function and replace it by our own version of
+//       error handler
+/// Wrap a string into an llvm::StringError.
+static llvm::Error make_string_error(const llvm::Twine &message) {
+  return llvm::make_error<llvm::StringError>(message.str(),
+                                             llvm::inconvertibleErrorCode());
+}
+
 static std::string makePackedFunctionName(llvm::StringRef name) {
   return "_serene_" + name.str();
 }
@@ -183,15 +191,13 @@ MaybeJIT JIT::make(Namespace &ns,
   // run it.
   std::unique_ptr<llvm::LLVMContext> ctx(new llvm::LLVMContext);
 
-  if (ns.generate().failed()) {
-    // TODO: Return a MaybeJIT::error() with a proper error
-    throw std::runtime_error("Can't compile the slir module");
-  }
+  auto maybeModule = jitEngine->ns.compileToLLVM();
 
-  auto &llvmModule = ns.getLLVMModule();
-  packFunctionArguments(&llvmModule);
+  auto llvmModule =
+      std::move(maybeModule.getValueOrFail("Compilation Failed!"));
+  packFunctionArguments(llvmModule.get());
 
-  auto dataLayout = llvmModule.getDataLayout();
+  auto dataLayout = llvmModule->getDataLayout();
 
   // Callback to create the object layer with symbol resolution to current
   // process and dynamically linked libraries.
@@ -211,7 +217,7 @@ MaybeJIT JIT::make(Namespace &ns,
     // COFF format binaries (Windows) need special handling to deal with
     // exported symbol visibility.
     // cf llvm/lib/ExecutionEngine/Orc/LLJIT.cpp LLJIT::createObjectLinkingLayer
-    llvm::Triple targetTriple(llvm::Twine(llvmModule.getTargetTriple()));
+    llvm::Triple targetTriple(llvm::Twine(llvmModule->getTargetTriple()));
     if (targetTriple.isOSBinFormatCOFF()) {
       objectLayer->setOverrideObjectFlagsWithResponsibilityFlags(true);
       objectLayer->setAutoClaimResponsibilityForObjectSymbols(true);
@@ -278,4 +284,41 @@ MaybeJIT JIT::make(Namespace &ns,
 
   return MaybeJIT::success(std::move(jitEngine));
 };
+
+llvm::Expected<void (*)(void **)> JIT::lookup(llvm::StringRef name) const {
+  auto expectedSymbol = engine->lookup(makePackedFunctionName(name));
+
+  // JIT lookup may return an Error referring to strings stored internally by
+  // the JIT. If the Error outlives the ExecutionEngine, it would want have a
+  // dangling reference, which is currently caught by an assertion inside JIT
+  // thanks to hand-rolled reference counting. Rewrap the error message into a
+  // string before returning. Alternatively, ORC JIT should consider copying
+  // the string into the error message.
+  if (!expectedSymbol) {
+    std::string errorMessage;
+    llvm::raw_string_ostream os(errorMessage);
+    llvm::handleAllErrors(expectedSymbol.takeError(),
+                          [&os](llvm::ErrorInfoBase &ei) { ei.log(os); });
+    return make_string_error(os.str());
+  }
+
+  auto rawFPtr = expectedSymbol->getAddress();
+  auto fptr    = reinterpret_cast<void (*)(void **)>(rawFPtr);
+  if (!fptr)
+    return make_string_error("looked up function is null");
+  return fptr;
+}
+
+llvm::Error JIT::invokePacked(llvm::StringRef name,
+                              llvm::MutableArrayRef<void *> args) {
+  auto expectedFPtr = lookup(name);
+  if (!expectedFPtr)
+    return expectedFPtr.takeError();
+  auto fptr = *expectedFPtr;
+
+  (*fptr)(args.data());
+
+  return llvm::Error::success();
+}
+
 } // namespace serene

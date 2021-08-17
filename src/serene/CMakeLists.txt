@@ -33,6 +33,7 @@ set(HEADER_LIST
   "${INCLUDE_DIR}/serene/slir/generatable.h"
   "${INCLUDE_DIR}/serene/slir/utils.h"
   "${INCLUDE_DIR}/serene/namespace.h"
+  "${INCLUDE_DIR}/serene/jit.h"
 
   "${INCLUDE_DIR}/serene/passes.h")
 
@@ -50,6 +51,7 @@ add_library(serene
   context.cpp
   serene.cpp
   namespace.cpp
+  jit.cpp
 
   # Reader
   reader/reader.cpp
@@ -108,5 +110,9 @@ target_link_libraries(serene
     MLIRSideEffectInterfaces
     MLIRTargetLLVMIRExport
     MLIRTransforms
-    ${llvm_libs}
-    )
+    ${llvm_libs})
+
+target_precompile_headers(serene
+  PRIVATE
+  <serene_precompiles.h>
+)
