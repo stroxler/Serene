@@ -118,7 +118,9 @@ in python.
 *** TODO Error handling
 Create proper error handling for the internal infra
 *** TODO Replace =llvm::outs()= with debug statements
-*  ** TODO Move the generatable logic out of its files and remove them
+*** TODO Move the generatable logic out of its files and remove them
+*** TODO Add a CLI option to get any extra pass
+*** TODO Add support for =sourcemgr= for input files
 *** TODO Language Spec                                               :DOCS:
 *** TODO A proper List implementation
 *** TODO Vector implementation

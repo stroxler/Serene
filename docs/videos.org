@@ -130,7 +130,8 @@ a data structure describing the syntax.
 - Expressions vs Statements
 - Serene(Lisp) and expressions
 ** Node & AST
-* Episode 6 - The Semantic Analyzer
+* DONE Episode 6 - The Semantic Analyzer
+CLOSED: [2021-08-21 Sat 18:44]
 ** Qs
 - Why didn't we implement a linked list?
 - Why we are using the =std::vector= instead of llvm collections?
@@ -158,3 +159,13 @@ We need to reform the AST to reflect the semantics of Serene closly.
 
 Let's run the compiler to see the semantic analysis in action.
 ** Let's check out the code
+* Episode 7 - The Context and Namespace
+** Namespaces
+*** Unit of compilation
+*** Usually maps to a file
+*** keeps the state and evironment
+** SereneContext vs LLVM Context vs MLIR Context
+*** Compilers global state
+*** The owner of LLVM/MLIR contexts
+*** Holds the namespace table
+*** Probably will contain the primitive types as well

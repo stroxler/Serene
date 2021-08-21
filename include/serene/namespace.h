@@ -66,8 +66,13 @@ using MaybeModuleOp = Result<mlir::OwningOpRef<mlir::ModuleOp>, bool>;
 class Namespace {
 private:
   SereneContext &ctx;
-  bool initialized             = false;
+  bool initialized = false;
+
+  // Anonymous function counter. We need to assing a unique name to each
+  // anonymous function and we use this counter to generate those names
   std::atomic<uint> fn_counter = 0;
+
+  // The content of the namespace
   exprs::Ast tree;
 
 public:
@@ -78,22 +83,30 @@ public:
   /// Which is a mapping from names to AST nodes ( no evaluation ).
   Environment<std::string, exprs::Node> semanticEnv;
 
+  /// Th root environmanet to store the MLIR value during the IR generation
+  /// phase.
   Environment<llvm::StringRef, mlir::Value> symbolTable;
+
   Namespace(SereneContext &ctx, llvm::StringRef ns_name,
             llvm::Optional<llvm::StringRef> filename);
 
   exprs::Ast &getTree();
   mlir::LogicalResult setTree(exprs::Ast &);
+
+  /// Increase the function counter by one
   uint nextFnCounter();
 
   SereneContext &getContext();
 
-  /// Generate the IR of the namespace with respect to the compilation phase
+  /// Generate and return a MLIR ModuleOp tha contains the IR of the namespace
+  /// with respect to the compilation phase
   MaybeModuleOp generate();
-  /// Compile the given namespace to the llvm module. It will call the
+
+  /// Compile the namespace to a llvm module. It will call the
   /// `generate` method of the namespace to generate the IR.
   MaybeModule compileToLLVM();
 
+  /// Run all the passes specified in the context on the given MLIR ModuleOp.
   mlir::LogicalResult runPasses(mlir::ModuleOp &m);
 
   /// Dumps the namespace with respect to the compilation phase
@@ -102,6 +115,10 @@ public:
   ~Namespace();
 };
 
+/// Create a naw namespace with the given `name` and optional `filename` and
+/// return a shared pointer to it in the given Serene context. If the
+/// `setCurrent` argument is set to true, the created NS will become the curret
+/// namespace in the context
 std::shared_ptr<Namespace>
 makeNamespace(SereneContext &ctx, llvm::StringRef name,
               llvm::Optional<llvm::StringRef> filename, bool setCurrent = true);

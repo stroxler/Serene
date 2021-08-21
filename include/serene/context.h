@@ -79,8 +79,11 @@ public:
   /// will fail if the namespace does not exist in the namespace table.
   bool setCurrentNS(llvm::StringRef ns_name);
 
+  /// Return the current namespace that is being processed at the moment
   std::shared_ptr<Namespace> getCurrentNS();
 
+  /// Lookup the namespace with the give name in the current context and
+  /// return a shared pointer to it or a `nullptr` in it doesn't exist.
   std::shared_ptr<Namespace> getNS(llvm::StringRef ns_name);
 
   SereneContext()
@@ -89,15 +92,24 @@ public:
     mlirContext.getOrLoadDialect<mlir::StandardOpsDialect>();
     // TODO: Get the crash report path dynamically from the cli
     // pm.enableCrashReproducerGeneration("/home/lxsameer/mlir.mlir");
+
+    // TODO: Set the target triple with respect to the CLI args
     targetTriple = llvm::sys::getDefaultTargetTriple();
   };
 
+  /// Set the target compilation phase of the compiler. The compilation
+  /// phase dictates the behavior and the output type of the compiler.
   void setOperationPhase(CompilationPhase phase);
+
   CompilationPhase getTargetPhase() { return targetPhase; };
   int getOptimizatioLevel();
 
 private:
   CompilationPhase targetPhase;
+
+  // The namespace table. Every namespace that needs to be compiled has
+  // to register itself with the context and appear on this table.
+  // This table acts as a cache as well.
   std::map<std::string, std::shared_ptr<Namespace>> namespaces;
 
   // Why string vs pointer? We might rewrite the namespace and
