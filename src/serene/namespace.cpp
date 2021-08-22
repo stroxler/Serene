@@ -65,18 +65,6 @@ mlir::LogicalResult Namespace::setTree(exprs::Ast &t) {
   return mlir::success();
 }
 
-std::shared_ptr<Namespace>
-makeNamespace(SereneContext &ctx, llvm::StringRef name,
-              llvm::Optional<llvm::StringRef> filename, bool setCurrent) {
-  auto nsPtr = std::make_shared<Namespace>(ctx, name, filename);
-  ctx.insertNS(nsPtr);
-  if (setCurrent) {
-    if (!ctx.setCurrentNS(nsPtr->name)) {
-      throw std::runtime_error("Couldn't set the current NS");
-    }
-  }
-  return nsPtr;
-};
 
 uint Namespace::nextFnCounter() { return fn_counter++; };
 
@@ -136,4 +124,16 @@ MaybeModule Namespace::compileToLLVM() {
 
 Namespace::~Namespace(){};
 
+std::shared_ptr<Namespace>
+makeNamespace(SereneContext &ctx, llvm::StringRef name,
+              llvm::Optional<llvm::StringRef> filename, bool setCurrent) {
+  auto nsPtr = std::make_shared<Namespace>(ctx, name, filename);
+  ctx.insertNS(nsPtr);
+  if (setCurrent) {
+    if (!ctx.setCurrentNS(nsPtr->name)) {
+      throw std::runtime_error("Couldn't set the current NS");
+    }
+  }
+  return nsPtr;
+};
 } // namespace serene

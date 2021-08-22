@@ -52,6 +52,7 @@ bool SereneContext::setCurrentNS(llvm::StringRef ns_name) {
 };
 
 std::shared_ptr<Namespace> SereneContext::getCurrentNS() {
+  // TODO: replace the assertion with a runtime check
   assert(!this->current_ns.empty() && "Current namespace is not set");
 
   if (namespaces.count(this->current_ns)) {
