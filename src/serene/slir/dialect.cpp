@@ -26,6 +26,7 @@
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/BuiltinTypes.h"
 #include "mlir/IR/OpImplementation.h"
+#include "serene/slir/dialect.cpp.inc"
 
 namespace serene {
 namespace slir {
