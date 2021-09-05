@@ -47,7 +47,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 
   add_compile_options(-fno-rtti)
 
-  configure_file(${INCLUDE_DIR}/config.h.in config.h)
+  configure_file(${INCLUDE_DIR}/serene/config.h.in serene/config.h)
 
   # Let's nicely support folders in IDEs
   set_property(GLOBAL PROPERTY USE_FOLDERS ON)

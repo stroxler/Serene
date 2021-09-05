@@ -29,6 +29,10 @@
 #include "serene/namespace.h"
 #include "serene/passes.h"
 #include "serene/slir/dialect.h"
+#include "serene/source_mgr.h"
+
+#include "llvm/ADT/Optional.h"
+#include "llvm/Support/SMLoc.h"
 
 #include <llvm/ADT/StringRef.h>
 #include <llvm/IR/LLVMContext.h>
@@ -67,6 +71,11 @@ public:
   llvm::LLVMContext llvmContext;
   mlir::MLIRContext mlirContext;
   mlir::PassManager pm;
+
+  /// The source manager is responsible for loading namespaces and practically
+  /// managing the source code in form of memory buffers.
+  SourceMgr sourceManager;
+
   std::string targetTriple;
 
   /// Insert the given `ns` into the context. The Context object is
@@ -103,6 +112,9 @@ public:
 
   CompilationPhase getTargetPhase() { return targetPhase; };
   int getOptimizatioLevel();
+
+  NSPtr readNamespace(std::string name);
+  NSPtr readNamespace(std::string name, llvm::SMLoc loc);
 
 private:
   CompilationPhase targetPhase;

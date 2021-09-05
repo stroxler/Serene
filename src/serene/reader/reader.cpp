@@ -29,13 +29,16 @@
 #include "serene/exprs/symbol.h"
 #include "serene/namespace.h"
 
-#include "llvm/Support/Error.h"
-#include "llvm/Support/ErrorOr.h"
-#include "llvm/Support/FormatVariadic.h"
-#include "llvm/Support/MemoryBuffer.h"
+#include "llvm/Support/ErrorHandling.h"
 
 #include <assert.h>
+#include <cctype>
 #include <fstream>
+#include <llvm/Support/Error.h>
+#include <llvm/Support/ErrorOr.h>
+#include <llvm/Support/FormatVariadic.h>
+#include <llvm/Support/MemoryBuffer.h>
+#include <llvm/Support/SMLoc.h>
 #include <memory>
 #include <string>
 
@@ -43,43 +46,50 @@ namespace serene {
 
 namespace reader {
 
-Reader::Reader(const llvm::StringRef input) { this->setInput(input); };
+Reader::Reader(SereneContext &ctx, llvm::StringRef buffer)
+    : ctx(ctx), buf(buffer){};
 
-/// Set the input of the reader.
-///\param input Set the input to the given string
-void Reader::setInput(const llvm::StringRef input) {
-  current_location = Location::unit();
-  ast.clear();
-  input_stream.clear();
-  input_stream.write(input.str().c_str(), input.size());
-};
+Reader::Reader(SereneContext &ctx, llvm::MemoryBufferRef buffer)
+    : ctx(ctx), buf(buffer.getBuffer()){};
 
 Reader::~Reader() { READER_LOG("Destroying the reader"); }
 
-char Reader::getChar(bool skip_whitespace) {
+const char *Reader::getChar(bool skip_whitespace) {
   for (;;) {
-    char c = input_stream.get();
+    if (current_char == NULL) {
+      READER_LOG("Setting the first char of the buffer");
+      current_char = buf.begin();
+      current_pos  = 1;
+    } else {
+      current_char++;
+      current_pos++;
+    }
 
-    this->current_char = c;
+    READER_LOG("Current Char: " << *current_char);
+    incLocation(current_location, current_char);
 
-    // TODO: Handle the end of line with respect to the OS.
-    // increase the current position in the buffer with respect to the end
-    // of line.
-    incLocation(current_location, c == '\n');
-
-    if (skip_whitespace == true && isspace(c)) {
+    if (skip_whitespace == true && isspace(*current_char)) {
+      READER_LOG("Skip whitespace is true and the char is a whitespace");
       continue;
     } else {
-      return c;
+      return current_char;
     }
   }
 };
 
 void Reader::ungetChar() {
-  input_stream.unget();
+  READER_LOG("Unread Char: " << *current_char);
+  current_char--;
+  current_pos--;
   // The char that we just unget
-  decLocation(current_location, this->current_char == '\n');
+  decLocation(current_location, current_char);
 };
+
+bool Reader::isEndOfBuffer(const char *c) {
+  return *c == '\0' || current_pos > buf.size() || *c == EOF;
+};
+
+Location Reader::getCurrentLocation() { return current_location.clone(); };
 
 /// A predicate function indicating whether the given char `c` is a valid
 /// char for the starting point of a symbol or not.
@@ -106,8 +116,7 @@ bool Reader::isValidForIdentifier(char c) {
     return true;
   }
 
-  if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
-      (c >= '0' && c <= '9')) {
+  if (std::isalnum(c)) {
     return true;
   }
   return false;
@@ -122,31 +131,33 @@ exprs::Node Reader::readNumber(bool neg) {
   bool empty    = false;
 
   LocationRange loc;
-  char c = getChar(false);
+  auto c = getChar(false);
 
-  loc.start = current_location;
+  loc.start = getCurrentLocation();
 
-  while (c != EOF &&
-         ((!(isspace(c)) && ((c >= '0' && c <= '9') | (c == '.'))))) {
+  while (!isEndOfBuffer(c) &&
+         ((!(isspace(*c)) && ((isdigit(*c)) | (*c == '.'))))) {
 
-    if (c == '.' && floatNum == true) {
-
-      llvm::errs() << "Two float points in a number?\n";
-      // TODO: Return a proper error
-      return nullptr;
+    if (*c == '.' && floatNum == true) {
+      ctx.sourceManager.PrintMessage(
+          llvm::errs(), llvm::SMLoc::getFromPointer(c),
+          ctx.sourceManager.DK_Error,
+          llvm::formatv("Two float points in a number?\n", c));
+      exit(1);
     }
 
-    if (c == '.') {
+    if (*c == '.') {
       floatNum = true;
     }
-    number += c;
+
+    number += *c;
     c     = getChar(false);
     empty = false;
   }
 
   if (!empty) {
     ungetChar();
-    loc.end = current_location;
+    loc.end = getCurrentLocation();
     return exprs::make<exprs::Number>(loc, number, neg, floatNum);
   }
 
@@ -156,73 +167,85 @@ exprs::Node Reader::readNumber(bool neg) {
 /// Reads a symbol. If the symbol looks like a number
 /// If reads it as number
 exprs::Node Reader::readSymbol() {
+  READER_LOG("Reading a symbol...");
   bool empty = true;
-  char c     = getChar(false);
+  auto c     = getChar(false);
 
   READER_LOG("Reading a symbol...");
-  if (!this->isValidForIdentifier(c)) {
+  if (!this->isValidForIdentifier(*c)) {
 
     // TODO: Replece this with a tranceback function or something to raise
     // synatx error.
-    llvm::errs() << llvm::formatv(
-        "Invalid character at the start of a symbol: '{0}'\n", c);
+    ctx.sourceManager.PrintMessage(
+        llvm::errs(), llvm::SMLoc::getFromPointer(c),
+        ctx.sourceManager.DK_Error,
+        llvm::formatv("Invalid character at the start of a symbol: '{0}'\n",
+                      c));
     exit(1);
   }
 
-  if (c == '-') {
-    char next = getChar(false);
-    if (next >= '0' && next <= '9') {
-      ungetChar();
+  if (*c == '-') {
+    auto next = getChar(false);
+    ungetChar();
+    if (isdigit(*next)) {
       return readNumber(true);
     }
   }
 
-  if (c >= '0' && c <= '9') {
+  if (isdigit(*c)) {
     ungetChar();
     return readNumber(false);
   }
 
   std::string sym("");
   LocationRange loc;
-  loc.start = current_location;
+  loc.start = getCurrentLocation();
 
-  while (c != EOF && ((!(isspace(c)) && this->isValidForIdentifier(c)))) {
-    sym += c;
+  while (!isEndOfBuffer(c) &&
+         ((!(isspace(*c)) && this->isValidForIdentifier(*c)))) {
+    sym += *c;
     c     = getChar(false);
     empty = false;
   }
 
   if (!empty) {
     ungetChar();
-    loc.end = current_location;
+    loc.end = getCurrentLocation();
     return exprs::make<exprs::Symbol>(loc, sym);
   }
 
-  // TODO: it should never happens
+  llvm_unreachable("Unpredicted symbol read scenario");
   return nullptr;
 };
 
 /// Reads a list recursively
 exprs::Node Reader::readList() {
   READER_LOG("Reading a list...");
-  auto list = exprs::makeAndCast<exprs::List>(current_location);
+  auto list = exprs::makeAndCast<exprs::List>(getCurrentLocation());
 
-  char c = getChar(true);
+  auto c = getChar(true);
 
   // TODO: Replace the assert with an actual check.
-  assert(c == '(');
+  assert(*c == '(');
 
   bool list_terminated = false;
 
   do {
-    char c = getChar(true);
+    auto c = getChar(true);
 
-    switch (c) {
-    case EOF:
-      throw ReadError(const_cast<char *>("EOF reached before closing of list"));
+    if (isEndOfBuffer(c)) {
+      ctx.sourceManager.PrintMessage(
+          llvm::errs(), llvm::SMLoc::getFromPointer(c),
+          ctx.sourceManager.DK_Error,
+          llvm::formatv("EOF reached before closing of list"));
+
+      exit(1);
+    }
+
+    switch (*c) {
     case ')':
       list_terminated    = true;
-      list->location.end = current_location;
+      list->location.end = getCurrentLocation();
       break;
 
     default:
@@ -237,18 +260,20 @@ exprs::Node Reader::readList() {
 
 /// Reads an expression by dispatching to the proper reader function.
 exprs::Node Reader::readExpr() {
-  char c = getChar(false);
-  READER_LOG("Read char at `readExpr`: " << c);
+  auto c = getChar(true);
+  READER_LOG("Read char at `readExpr`: " << *c << " << " << current_pos << "|"
+                                         << buf.size() << " BB "
+                                         << isEndOfBuffer(c));
   ungetChar();
 
-  switch (c) {
-  case '(': {
+  if (isEndOfBuffer(c)) {
+    return nullptr;
+  }
 
+  switch (*c) {
+  case '(': {
     return readList();
   }
-  case EOF:
-    return nullptr;
-
   default:
     return readSymbol();
   }
@@ -258,50 +283,32 @@ exprs::Node Reader::readExpr() {
 /// Each expression type (from the reader perspective) has a
 /// reader function.
 Result<exprs::Ast> Reader::read() {
-  char c = getChar(true);
+  // auto c = getChar(true);
 
-  while (c != EOF) {
-    ungetChar();
+  // while (!isEndOfBuffer(c)) {
+  for (size_t current_pos = 0; current_pos < buf.size();) {
+    // ungetChar();
     auto tmp{readExpr()};
 
     if (tmp) {
       this->ast.push_back(move(tmp));
+    } else {
+      break;
     }
-
-    c = getChar(true);
+    // c = getChar(true);
   }
 
   return Result<exprs::Ast>::success(std::move(this->ast));
 };
 
-/// Reads all the expressions from the file provided via its path
-// in the reader as an AST.
-/// Each expression type (from the reader perspective) has a
-/// reader function.
-Result<exprs::Ast> FileReader::read() {
-
-  // TODO: Add support for relative path as well
-  llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> fileOrErr =
-      llvm::MemoryBuffer::getFileOrSTDIN(file);
-
-  if (std::error_code EC = fileOrErr.getError()) {
-    llvm::errs() << "Could not open input file: " << EC.message() << "\n";
-    llvm::errs() << llvm::formatv("File: '{0}'\n", file);
-    llvm::errs() << "Use absolute path for now\n";
-    return Result<exprs::Ast>::error(llvm::make_error<MissingFileError>(file));
-  }
-
-  reader->setInput(fileOrErr.get()->getBuffer().str());
-  return reader->read();
+Result<exprs::Ast> read(SereneContext &ctx, const llvm::StringRef input) {
+  reader::Reader r(ctx, input);
+  auto ast = r.read();
+  return ast;
 }
 
-FileReader::~FileReader() {
-  delete this->reader;
-  READER_LOG("Destroying the file reader");
-}
-
-Result<exprs::Ast> read(llvm::StringRef input) {
-  reader::Reader r(input);
+Result<exprs::Ast> read(SereneContext &ctx, const llvm::MemoryBufferRef input) {
+  reader::Reader r(ctx, input);
   auto ast = r.read();
   return ast;
 }

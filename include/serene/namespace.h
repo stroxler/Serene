@@ -115,13 +115,14 @@ public:
   ~Namespace();
 };
 
+using NSPtr = std::shared_ptr<Namespace>;
 /// Create a naw namespace with the given `name` and optional `filename` and
 /// return a shared pointer to it in the given Serene context. If the
 /// `setCurrent` argument is set to true, the created NS will become the curret
 /// namespace in the context
-std::shared_ptr<Namespace>
-makeNamespace(SereneContext &ctx, llvm::StringRef name,
-              llvm::Optional<llvm::StringRef> filename, bool setCurrent = true);
+NSPtr makeNamespace(SereneContext &ctx, llvm::StringRef name,
+                    llvm::Optional<llvm::StringRef> filename,
+                    bool setCurrent = true);
 
 } // namespace serene
 

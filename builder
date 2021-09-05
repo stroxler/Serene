@@ -52,7 +52,7 @@ function popd_build() {
 
 function compile() {
     pushed_build
-    ninja -j "$(nproc)"
+    cmake --build .
     popd_build
 }
 
@@ -61,28 +61,28 @@ function build() {
     echo "Running: "
     echo "cmake -G Ninja $CMAKE_CCACHE -DCMAKE_BUILD_TYPE=Debug \"$@\" \"$ROOT_DIR\""
     cmake -G Ninja $CMAKE_CCACHE -DCMAKE_BUILD_TYPE=Debug "$@" "$ROOT_DIR"
-    ninja -j "$(nproc)"
+    cmake --build .
     popd_build
 }
 
 function build-20() {
     pushed_build
     cmake -G Ninja $CMAKE_CCACHE -DCMAKE_BUILD_TYPE=Debug -DCPP_20_SUPPORT=ON "$@" "$ROOT_DIR"
-    ninja -j "$(nproc)"
+    cmake --build .
     popd_build
 }
 
 function build-release() {
     pushed_build
     cmake -G Ninja -DCMAKE_BUILD_TYPE=Release "$ROOT_DIR"
-    ninja -j "$(nproc)"
+    cmake --build .
     popd_build
 }
 
 function build-docs() {
     pushed_build
     cmake -G Ninja $CMAKE_CCACHE -DCMAKE_BUILD_TYPE=Docs "$ROOT_DIR"
-    ninja -j "$(nproc)"
+    cmake --build .
     popd_build
 }
 
@@ -111,7 +111,7 @@ function run-tests() {
 function tests() {
     pushed_build
     cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON "$ROOT_DIR"
-    ninja -j "$(nproc)"
+    cmake --build .
     popd_build
 }
 

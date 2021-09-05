@@ -24,9 +24,8 @@
 
 #include "serene/reader/location.h"
 
-#include "mlir/IR/Identifier.h"
-
-#include "llvm/Support/FormatVariadic.h"
+#include <llvm/Support/FormatVariadic.h>
+#include <mlir/IR/Identifier.h>
 
 namespace serene {
 namespace reader {
@@ -38,33 +37,41 @@ LocationRange::LocationRange(const LocationRange &loc) {
 
 /// Return the string represenation of the location.
 std::string Location::toString() const {
-  return llvm::formatv("{0}:{1}:{2}", line, col, pos);
+  return llvm::formatv("{0}:{1}", line, col);
 };
+
+Location Location::clone() { return Location{c, bufferId, line, col}; }
 
 /// Increase the given location by one and set the line/col value in respect to
 /// the `newline` in place.
 /// \param loc The `Location` data
-/// \param newline Whether or not we reached a new line
-void incLocation(Location &loc, bool newline) {
-  loc.pos++;
+/// \param c A pointer to the current char that the location has to point to
+void incLocation(Location &loc, const char *c) {
+  // TODO: Handle the end of line with respect to the OS.
+  // increase the current position in the buffer with respect to the end
+  // of line.
+  auto newline = *c == '\n';
 
   if (!newline) {
     loc.col++;
-  } else {
-    loc.col = 0;
-    loc.line++;
   }
+
+  loc.line++;
 }
 
 /// decrease the given location by one and set the line/col value in respect to
 /// the `newline` in place.
 /// \param loc The `Location` data
-/// \param newline Whether or not we reached a new line
-void decLocation(Location &loc, bool newline) {
-  loc.pos = loc.pos == 0 ? 0 : loc.pos - 1;
+/// \param c A pointer to the current char that the location has to point to
+void decLocation(Location &loc, const char *c) {
+  // TODO: Handle the end of line with respect to the OS.
+  // increase the current position in the buffer with respect to the end
+  // of line.
+  auto newline = *c == '\n';
 
   if (newline) {
     loc.line = loc.line == 0 ? 0 : loc.line - 1;
+
     // We don't move back the `col` value because we simply don't know it
   } else {
     loc.col = loc.col == 0 ? 0 : loc.col - 1;

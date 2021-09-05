@@ -92,7 +92,17 @@ int SereneContext::getOptimizatioLevel() {
   return 3;
 }
 
+NSPtr SereneContext::readNamespace(std::string name) {
+  llvm::SMLoc loc;
+  return readNamespace(name, loc);
+};
+
+NSPtr SereneContext::readNamespace(std::string name, llvm::SMLoc loc) {
+  return sourceManager.readNamespace(*this, name, loc);
+}
+
 std::unique_ptr<SereneContext> makeSereneContext() {
   return std::make_unique<SereneContext>();
 };
+
 }; // namespace serene

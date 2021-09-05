@@ -34,7 +34,7 @@ set(HEADER_LIST
   "${INCLUDE_DIR}/serene/slir/utils.h"
   "${INCLUDE_DIR}/serene/namespace.h"
   "${INCLUDE_DIR}/serene/jit.h"
-
+  "${INCLUDE_DIR}/serene/source_mgr.h"
   "${INCLUDE_DIR}/serene/passes.h")
 
 # Make an automatic library - will be static or dynamic based on user setting
@@ -52,6 +52,7 @@ add_library(serene
   serene.cpp
   namespace.cpp
   jit.cpp
+  source_mgr.cpp
 
   # Reader
   reader/reader.cpp
@@ -112,7 +113,7 @@ target_link_libraries(serene
     MLIRTransforms
     ${llvm_libs})
 
-target_precompile_headers(serene
-  PRIVATE
-  <serene_precompiles.h>
-)
+# target_precompile_headers(serene
+#   PRIVATE
+#   <serene_precompiles.h>
+# )

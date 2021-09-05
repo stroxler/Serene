@@ -34,6 +34,8 @@
 #include "serene/serene.h"
 
 #include <llvm/Support/Debug.h>
+#include <llvm/Support/MemoryBuffer.h>
+#include <llvm/Support/MemoryBufferRef.h>
 #include <llvm/Support/raw_ostream.h>
 #include <memory>
 #include <sstream>
@@ -51,14 +53,24 @@ namespace serene::reader {
 /// Base reader class which reads from a string directly.
 class Reader {
 private:
-  char current_char = ';'; // Some arbitary char to begin with
-  std::stringstream input_stream;
-  Location current_location{0, 0, 0};
+  SereneContext &ctx;
 
+  const char *current_char = NULL;
+
+  llvm::StringRef buf;
+
+  /// The position tracker that we will use to determine the end of the
+  /// buffer since the buffer might not be null terminated
+  size_t current_pos = -1;
+
+  Location current_location;
+
+  /// Returns a clone of the current location
+  Location getCurrentLocation();
   /// Returns the next character from the stream.
   /// @param skip_whitespace An indicator to whether skip white space like chars
   /// or not
-  char getChar(bool skip_whitespace);
+  const char *getChar(bool skip_whitespace);
 
   /// Unreads the current character by moving the char pointer to the previous
   /// char.
@@ -76,11 +88,13 @@ private:
   exprs::Node readList();
   exprs::Node readExpr();
 
-public:
-  Reader() : input_stream(""){};
-  Reader(const llvm::StringRef string);
+  bool isEndOfBuffer(const char *);
 
-  void setInput(const llvm::StringRef string);
+public:
+  Reader(SereneContext &ctx, llvm::StringRef buf);
+  Reader(SereneContext &ctx, llvm::MemoryBufferRef buf);
+
+  // void setInput(const llvm::StringRef string);
 
   /// Parses the the input and creates a possible AST out of it or errors
   /// otherwise.
@@ -89,23 +103,9 @@ public:
   ~Reader();
 };
 
-/// A reader to read the content of a file as AST
-class FileReader {
-  std::string file;
-  Reader *reader;
-
-public:
-  FileReader(const std::string file_name)
-      : file(file_name), reader(new Reader()) {}
-
-  Result<exprs::Ast> read();
-
-  ~FileReader();
-};
-
 /// Parses the given `input` string and returns a `Result<ast>`
 /// which may contains an AST or an `llvm::Error`
-Result<exprs::Ast> read(llvm::StringRef input);
-
+Result<exprs::Ast> read(SereneContext &ctx, const llvm::StringRef input);
+Result<exprs::Ast> read(SereneContext &ctx, const llvm::MemoryBufferRef but);
 } // namespace serene::reader
 #endif

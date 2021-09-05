@@ -37,12 +37,21 @@ namespace reader {
 /// It represents a location in the input string to the parser via `line`,
 struct Location {
 
-  int pos; // Position of in the input string.
-  int line;
-  int col;
+  /// A pointer to the character that this location is pointing to
+  /// it the input buffer
+  const char *c;
+
+  /// The id of the buffer that this location belongs too.
+  unsigned bufferId;
+
+  /// At this stage we only support 65535 lines of code in each file
+  unsigned short int line;
+  /// At this stage we only support 65535 chars in each line
+  unsigned short int col;
 
   ::std::string toString() const;
-  static Location unit() { return {0, 0, 0}; };
+  Location() = default;
+  Location clone();
 };
 
 class LocationRange {
@@ -50,14 +59,14 @@ public:
   Location start;
   Location end;
 
-  LocationRange() : start(Location{0, 0, 0}), end(Location{0, 0, 0}){};
+  LocationRange() = default;
   LocationRange(Location _start) : start(_start), end(_start){};
   LocationRange(Location _start, Location _end) : start(_start), end(_end){};
   LocationRange(const LocationRange &);
 };
 
-void incLocation(Location &, bool);
-void decLocation(Location &, bool);
+void incLocation(Location &, const char *);
+void decLocation(Location &, const char *);
 
 } // namespace reader
 } // namespace serene

@@ -24,6 +24,7 @@
 
 #include "serene/serene.h"
 
+#include "serene/config.h"
 #include "serene/context.h"
 #include "serene/jit.h"
 #include "serene/namespace.h"
@@ -72,19 +73,26 @@ enum Action {
   RunJIT,
 };
 }
+static std::string banner =
+    llvm::formatv("\n\nSerene Compiler Version {0}"
+                  "\nCopyright (C) 2019-2021 "
+                  "Sameer Rahmani <lxsameer@gnu.org>\n"
+                  "Serene comes with ABSOLUTELY NO WARRANTY;\n"
+                  "This is free software, and you are welcome\n"
+                  "to redistribute it under certain conditions; \n"
+                  "for details take a look at the LICENSE file.\n",
+                  SERENE_VERSION);
 
-static cl::opt<std::string> inputFile(cl::Positional,
-                                      cl::desc("The Serene file to compile"),
-                                      cl::init("-"),
-                                      cl::value_desc("filename"));
+static cl::opt<std::string> inputNS(cl::Positional, cl::desc("<namespace>"),
+                                    cl::Required);
 
 static cl::opt<std::string> outputFile(
     "o", cl::desc("The relative path to the output file from the build dir"),
     cl::init("-"), cl::value_desc("filename"));
 
 static cl::opt<std::string>
-    outputDir("build-dir", cl::desc("The absolute path to the build directory"),
-              cl::init("-"), cl::value_desc("filename"));
+    outputDir("b", cl::desc("The absolute path to the build directory"),
+              cl::value_desc("filename"), cl::Required);
 
 static cl::opt<enum Action> emitAction(
     "emit", cl::desc("Select what to dump."), cl::init(Compile),
@@ -106,26 +114,11 @@ static cl::opt<enum Action> emitAction(
 
 );
 
-exprs::Ast readInputFile() {
-  auto r        = make_unique<reader::FileReader>(inputFile);
-  auto maybeAst = r->read();
-
-  if (!maybeAst) {
-    throw std::move(maybeAst.getError());
-  }
-  return maybeAst.getValue();
-};
-
-exprs::Ast readAndAnalyze(SereneContext &ctx) {
-  auto ast      = readInputFile();
-  auto afterAst = reader::analyze(ctx, ast);
-
-  if (!afterAst) {
-    throw std::move(afterAst.getError());
-  }
-
-  return afterAst.getValue();
-};
+llvm::cl::OptionCategory clOptionsCategory{"Discovery options"};
+static cl::list<std::string>
+    loadPaths("l", cl::desc("The load path to use for compilation."),
+              llvm::cl::ZeroOrMore, llvm::cl::MiscFlags::PositionalEatsArgs,
+              llvm::cl::cat(clOptionsCategory));
 
 int dumpAsObject(Namespace &ns) {
   // TODO: Move the compilation process to the Namespace class
@@ -237,11 +230,20 @@ int main(int argc, char *argv[]) {
   llvm::InitializeAllAsmParsers();
   llvm::InitializeAllAsmPrinters();
 
-  cl::ParseCommandLineOptions(argc, argv, "Serene compiler \n");
-  auto ctx = makeSereneContext();
-  auto ns  = makeNamespace(*ctx, "user", llvm::None);
+  cl::ParseCommandLineOptions(argc, argv, banner);
+  auto ctx    = makeSereneContext();
+  auto userNS = makeNamespace(*ctx, "user", llvm::None);
+
   // TODO: We might want to find a better place for this
   applyPassManagerCLOptions(ctx->pm);
+  ctx->sourceManager.setLoadPaths(loadPaths);
+
+  auto runLoc = llvm::SMLoc();
+  auto ns     = ctx->sourceManager.readNamespace(*ctx, inputNS, runLoc, true);
+
+  if (!ns) {
+    return (int)std::errc::no_such_file_or_directory;
+  }
 
   // TODO: handle the outputDir by not forcing it. it should be
   //       default to the current working dir
@@ -261,13 +263,21 @@ int main(int argc, char *argv[]) {
 
     // Just print out the raw AST
   case Action::DumpAST: {
-    auto ast = readInputFile();
+    auto ast = ns->getTree();
     llvm::outs() << exprs::astToString(&ast) << "\n";
     return 0;
   };
 
   case Action::DumpSemantic: {
-    auto ast = readAndAnalyze(*ctx);
+    auto ast      = ns->getTree();
+    auto afterAst = reader::analyze(*ctx, ast);
+
+    if (!afterAst) {
+      throw std::move(afterAst.getError());
+    }
+
+    ast = afterAst.getValue();
+
     llvm::outs() << exprs::astToString(&ast) << "\n";
     return 0;
   };
@@ -308,9 +318,13 @@ int main(int argc, char *argv[]) {
   }
   }
 
-  auto afterAst = readAndAnalyze(*ctx);
-  auto isSet    = ns->setTree(afterAst);
+  // Perform the semantic analytics
+  auto afterAst = reader::analyze(*ctx, ns->getTree());
+  if (!afterAst) {
+    throw std::move(afterAst.getError());
+  }
 
+  auto isSet = ns->setTree(afterAst.getValue());
   if (isSet.succeeded()) {
     ctx->insertNS(ns);
     switch (emitAction) {
