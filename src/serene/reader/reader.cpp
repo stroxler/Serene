@@ -24,11 +24,16 @@
 
 #include "serene/reader/reader.h"
 
+#include "mlir/IR/Diagnostics.h"
+#include "mlir/IR/Location.h"
+#include "mlir/Support/LogicalResult.h"
 #include "serene/exprs/list.h"
 #include "serene/exprs/number.h"
 #include "serene/exprs/symbol.h"
 #include "serene/namespace.h"
 
+#include "clang/AST/Stmt.h"
+#include "llvm/ADT/StringRef.h"
 #include "llvm/Support/ErrorHandling.h"
 
 #include <assert.h>
@@ -46,11 +51,17 @@ namespace serene {
 
 namespace reader {
 
-Reader::Reader(SereneContext &ctx, llvm::StringRef buffer)
-    : ctx(ctx), buf(buffer){};
+Reader::Reader(SereneContext &ctx, llvm::StringRef buffer, llvm::StringRef ns,
+               llvm::Optional<llvm::StringRef> filename)
+    : ctx(ctx), ns(ns), filename(filename), buf(buffer) {
+  current_location.ns = ns;
+};
 
-Reader::Reader(SereneContext &ctx, llvm::MemoryBufferRef buffer)
-    : ctx(ctx), buf(buffer.getBuffer()){};
+Reader::Reader(SereneContext &ctx, llvm::MemoryBufferRef buffer,
+               llvm::StringRef ns, llvm::Optional<llvm::StringRef> filename)
+    : ctx(ctx), ns(ns), filename(filename), buf(buffer.getBuffer()) {
+  current_location.ns = ns;
+};
 
 Reader::~Reader() { READER_LOG("Destroying the reader"); }
 
@@ -136,7 +147,7 @@ exprs::Node Reader::readNumber(bool neg) {
   loc.start = getCurrentLocation();
 
   while (!isEndOfBuffer(c) &&
-         ((!(isspace(*c)) && ((isdigit(*c)) | (*c == '.'))))) {
+         ((!(isspace(*c)) && (isdigit(*c) || *c == '.')))) {
 
     if (*c == '.' && floatNum == true) {
       ctx.sourceManager.PrintMessage(
@@ -153,6 +164,14 @@ exprs::Node Reader::readNumber(bool neg) {
     number += *c;
     c     = getChar(false);
     empty = false;
+  }
+
+  if (std::isalpha(*c)) {
+    ctx.sourceManager.PrintMessage(
+        llvm::errs(), llvm::SMLoc::getFromPointer(c),
+        ctx.sourceManager.DK_Error,
+        llvm::formatv("Invalid digit for a number. Are you drunk?\n", c));
+    exit(1);
   }
 
   if (!empty) {
@@ -260,7 +279,7 @@ exprs::Node Reader::readList() {
 
 /// Reads an expression by dispatching to the proper reader function.
 exprs::Node Reader::readExpr() {
-  auto c = getChar(true);
+  auto c = getChar(false);
   READER_LOG("Read char at `readExpr`: " << *c << " << " << current_pos << "|"
                                          << buf.size() << " BB "
                                          << isEndOfBuffer(c));
@@ -274,6 +293,7 @@ exprs::Node Reader::readExpr() {
   case '(': {
     return readList();
   }
+
   default:
     return readSymbol();
   }
@@ -283,11 +303,16 @@ exprs::Node Reader::readExpr() {
 /// Each expression type (from the reader perspective) has a
 /// reader function.
 Result<exprs::Ast> Reader::read() {
-  // auto c = getChar(true);
 
   // while (!isEndOfBuffer(c)) {
   for (size_t current_pos = 0; current_pos < buf.size();) {
-    // ungetChar();
+    auto c = getChar(true);
+    if (isEndOfBuffer(c)) {
+      break;
+    }
+
+    ungetChar();
+
     auto tmp{readExpr()};
 
     if (tmp) {
@@ -301,14 +326,19 @@ Result<exprs::Ast> Reader::read() {
   return Result<exprs::Ast>::success(std::move(this->ast));
 };
 
-Result<exprs::Ast> read(SereneContext &ctx, const llvm::StringRef input) {
-  reader::Reader r(ctx, input);
+Result<exprs::Ast> read(SereneContext &ctx, const llvm::StringRef input,
+                        llvm::StringRef ns,
+                        llvm::Optional<llvm::StringRef> filename) {
+  reader::Reader r(ctx, input, ns, filename);
   auto ast = r.read();
   return ast;
 }
 
-Result<exprs::Ast> read(SereneContext &ctx, const llvm::MemoryBufferRef input) {
-  reader::Reader r(ctx, input);
+Result<exprs::Ast> read(SereneContext &ctx, const llvm::MemoryBufferRef input,
+                        llvm::StringRef ns,
+                        llvm::Optional<llvm::StringRef> filename) {
+  reader::Reader r(ctx, input, ns, filename);
+
   auto ast = r.read();
   return ast;
 }

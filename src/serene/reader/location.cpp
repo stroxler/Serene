@@ -24,6 +24,8 @@
 
 #include "serene/reader/location.h"
 
+#include "serene/context.h"
+
 #include <llvm/Support/FormatVariadic.h>
 #include <mlir/IR/Identifier.h>
 
@@ -40,8 +42,14 @@ std::string Location::toString() const {
   return llvm::formatv("{0}:{1}", line, col);
 };
 
-Location Location::clone() { return Location{c, bufferId, line, col}; }
+Location Location::clone() { return Location{ns, c, line, col}; }
 
+mlir::Location Location::toMLIRLocation(SereneContext &ctx,
+                                        llvm::StringRef ns) {
+  // TODO: Create a new Location attribute that is namespace base
+
+  return mlir::FileLineColLoc::get(&ctx.mlirContext, ns, line, col);
+}
 /// Increase the given location by one and set the line/col value in respect to
 /// the `newline` in place.
 /// \param loc The `Location` data

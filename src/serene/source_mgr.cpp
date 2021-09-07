@@ -87,7 +87,8 @@ NSPtr SourceMgr::readNamespace(SereneContext &ctx, std::string name,
   auto *buf = getMemoryBuffer(bufferId);
 
   // Read the content of the buffer by passing it the reader
-  auto maybeAst = reader::read(ctx, buf->getBuffer());
+  auto maybeAst = reader::read(ctx, buf->getBuffer(), name,
+                               llvm::Optional(llvm::StringRef(includedFile)));
 
   if (!maybeAst) {
     SMGR_LOG("Couldn't Read namespace: " + name)
@@ -97,6 +98,7 @@ NSPtr SourceMgr::readNamespace(SereneContext &ctx, std::string name,
   // Create the NS and set the AST
   auto ns =
       makeNamespace(ctx, name, llvm::Optional(llvm::StringRef(includedFile)));
+
   if (mlir::failed(ns->setTree(maybeAst.getValue()))) {
     SMGR_LOG("Couldn't set the AST for namespace: " + name)
     return nullptr;

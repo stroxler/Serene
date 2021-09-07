@@ -55,6 +55,9 @@ class Reader {
 private:
   SereneContext &ctx;
 
+  llvm::StringRef ns;
+  llvm::Optional<llvm::StringRef> filename;
+
   const char *current_char = NULL;
 
   llvm::StringRef buf;
@@ -91,8 +94,10 @@ private:
   bool isEndOfBuffer(const char *);
 
 public:
-  Reader(SereneContext &ctx, llvm::StringRef buf);
-  Reader(SereneContext &ctx, llvm::MemoryBufferRef buf);
+  Reader(SereneContext &ctx, llvm::StringRef buf, llvm::StringRef ns,
+         llvm::Optional<llvm::StringRef> filename);
+  Reader(SereneContext &ctx, llvm::MemoryBufferRef buf, llvm::StringRef ns,
+         llvm::Optional<llvm::StringRef> filename);
 
   // void setInput(const llvm::StringRef string);
 
@@ -105,7 +110,11 @@ public:
 
 /// Parses the given `input` string and returns a `Result<ast>`
 /// which may contains an AST or an `llvm::Error`
-Result<exprs::Ast> read(SereneContext &ctx, const llvm::StringRef input);
-Result<exprs::Ast> read(SereneContext &ctx, const llvm::MemoryBufferRef but);
+Result<exprs::Ast> read(SereneContext &ctx, const llvm::StringRef input,
+                        llvm::StringRef ns,
+                        llvm::Optional<llvm::StringRef> filename);
+Result<exprs::Ast> read(SereneContext &ctx, const llvm::MemoryBufferRef but,
+                        llvm::StringRef ns,
+                        llvm::Optional<llvm::StringRef> filename);
 } // namespace serene::reader
 #endif

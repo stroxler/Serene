@@ -101,6 +101,10 @@ private:
   /// This is all of the buffers that we are reading from.
   std::vector<SrcBuffer> buffers;
 
+  /// A mapping from the ns name to buffer id. The ns name is a reference to
+  /// the actual name that is stored in the Namespace instance.
+  llvm::DenseMap<llvm::StringRef, unsigned> nsToBufId;
+
   // This is the list of directories we should search for include files in.
   std::vector<std::string> loadPaths;
 

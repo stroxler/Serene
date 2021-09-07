@@ -70,7 +70,10 @@ public:
   // --------------------------------------------------------------------------
   llvm::LLVMContext llvmContext;
   mlir::MLIRContext mlirContext;
+
   mlir::PassManager pm;
+
+  mlir::DiagnosticEngine &diagEngine;
 
   /// The source manager is responsible for loading namespaces and practically
   /// managing the source code in form of memory buffers.
@@ -96,7 +99,8 @@ public:
   std::shared_ptr<Namespace> getNS(llvm::StringRef ns_name);
 
   SereneContext()
-      : pm(&mlirContext), targetPhase(CompilationPhase::NoOptimization) {
+      : pm(&mlirContext), diagEngine(mlirContext.getDiagEngine()),
+        targetPhase(CompilationPhase::NoOptimization) {
     mlirContext.getOrLoadDialect<serene::slir::SereneDialect>();
     mlirContext.getOrLoadDialect<mlir::StandardOpsDialect>();
     // TODO: Get the crash report path dynamically from the cli

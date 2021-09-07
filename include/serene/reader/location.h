@@ -25,24 +25,22 @@
 #ifndef LOCATION_H
 #define LOCATION_H
 
-#include "mlir/IR/Location.h"
-#include "mlir/IR/MLIRContext.h"
-#include "mlir/IR/OpDefinition.h"
+#include "mlir/IR/Diagnostics.h"
 
+#include <mlir/IR/Location.h>
 #include <string>
 
 namespace serene {
+class SereneContext;
+
 namespace reader {
 
 /// It represents a location in the input string to the parser via `line`,
 struct Location {
-
+  llvm::StringRef ns;
   /// A pointer to the character that this location is pointing to
   /// it the input buffer
-  const char *c;
-
-  /// The id of the buffer that this location belongs too.
-  unsigned bufferId;
+  const char *c = nullptr;
 
   /// At this stage we only support 65535 lines of code in each file
   unsigned short int line;
@@ -52,6 +50,8 @@ struct Location {
   ::std::string toString() const;
   Location() = default;
   Location clone();
+
+  mlir::Location toMLIRLocation(SereneContext &ctx, llvm::StringRef ns);
 };
 
 class LocationRange {
