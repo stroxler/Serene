@@ -69,7 +69,6 @@ private:
   Location currentLocation;
 
   bool readEOL = false;
-  bool startedReading = false;
 
   /// Returns a clone of the current location
   Location getCurrentLocation();

@@ -56,7 +56,7 @@ Reader::Reader(SereneContext &ctx, llvm::StringRef buffer, llvm::StringRef ns,
     : ctx(ctx), ns(ns), filename(filename), buf(buffer),
       currentLocation(Location(ns, filename)) {
   READER_LOG("Setting the first char of the buffer");
-  currentChar          = buf.begin();
+  currentChar          = buf.begin() - 1;
   currentPos           = 1;
   currentLocation.line = 1;
   currentLocation.col  = 1;
@@ -94,8 +94,6 @@ void Reader::advanceByOne() {
                                 << currentLocation.toString());
 };
 void Reader::advance(bool skipWhitespace) {
-  startedReading = true;
-
   if (skipWhitespace) {
     for (;;) {
       auto next = currentChar + 1;
@@ -112,10 +110,6 @@ void Reader::advance(bool skipWhitespace) {
 };
 
 const char *Reader::nextChar(bool skipWhitespace, unsigned count) {
-  if (!startedReading) {
-    return currentChar;
-  }
-
   if (!skipWhitespace) {
     READER_LOG("Next char: " << *(currentChar + count));
     return currentChar + count;

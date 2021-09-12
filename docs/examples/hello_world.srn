@@ -1,10 +1,9 @@
 (def main
-  (fn () 3))
+  (fn () 4))
 
 (def main1 (fn (v y n) 3))
 ht
 
 
-3d
 
 (- 3 4 (sh - r e 3bea -32) ((((())))))
