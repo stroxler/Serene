@@ -26,13 +26,15 @@
 #define SERENE_SOURCE_MGR_H
 
 #include "serene/namespace.h"
+#include "serene/reader/location.h"
 
-#include "llvm/ADT/SmallVector.h"
-#include "llvm/Support/ErrorOr.h"
-#include "llvm/Support/MemoryBuffer.h"
-
+#include <llvm/ADT/SmallVector.h>
+#include <llvm/Support/ErrorOr.h>
+#include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/SourceMgr.h>
 #include <memory>
+#include <mlir/IR/Diagnostics.h>
+#include <mlir/Support/Timing.h>
 
 #define SMGR_LOG(...)                       \
   DEBUG_WITH_TYPE("sourcemgr", llvm::dbgs() \
@@ -89,7 +91,7 @@ private:
     const char *getPointerForLineNumberSpecialized(unsigned lineNo) const;
 
     /// This is the location of the parent include, or null if at the top level.
-    llvm::SMLoc includeLoc;
+    reader::LocationRange includeLoc;
 
     SrcBuffer() = default;
     SrcBuffer(SrcBuffer &&);
@@ -153,101 +155,97 @@ public:
     return 1;
   }
 
-  llvm::SMLoc getParentIncludeLoc(unsigned i) const {
-    assert(isValidBufferID(i));
-    return buffers[i - 1].includeLoc;
-  }
+  // reader::LocationRange getParentIncludeLoc(unsigned i) const {
+  //   assert(isValidBufferID(i));
+  //   return buffers[i - 1].includeLoc;
+  // }
 
   /// Add a new source buffer to this source manager. This takes ownership of
   /// the memory buffer.
   unsigned AddNewSourceBuffer(std::unique_ptr<llvm::MemoryBuffer> f,
-                              llvm::SMLoc includeLoc) {
-    SrcBuffer nb;
-    nb.buffer     = std::move(f);
-    nb.includeLoc = includeLoc;
-    buffers.push_back(std::move(nb));
-    return buffers.size();
-  }
-
+                              reader::LocationRange includeLoc);
   /// Search for a file with the specified name in the current directory or in
   /// one of the IncludeDirs.
   ///
   /// If no file is found, this returns 0, otherwise it returns the buffer ID
   /// of the stacked file. The full path to the included file can be found in
   /// \p IncludedFile.
-  unsigned AddIncludeFile(const std::string &filename, llvm::SMLoc includeLoc,
-                          std::string &includedFile);
+  // unsigned AddIncludeFile(const std::string &filename, llvm::SMLoc
+  // includeLoc,
+  //                         std::string &includedFile);
 
   NSPtr readNamespace(SereneContext &ctx, std::string name,
-                      llvm::SMLoc importLoc, bool entryNS = false);
+                      reader::LocationRange importLoc, bool entryNS = false);
 
-  /// Return the ID of the buffer containing the specified location.
-  ///
-  /// 0 is returned if the buffer is not found.
-  unsigned FindBufferContainingLoc(llvm::SMLoc loc) const;
+  // /// Return the ID of the buffer containing the specified location.
+  // ///
+  // /// 0 is returned if the buffer is not found.
+  // unsigned FindBufferContainingLoc(llvm::SMLoc loc) const;
 
-  /// Find the line number for the specified location in the specified file.
-  /// This is not a fast method.
-  unsigned FindLineNumber(llvm::SMLoc loc, unsigned bufferID = 0) const {
-    return getLineAndColumn(loc, bufferID).first;
-  }
+  // /// Find the line number for the specified location in the specified file.
+  // /// This is not a fast method.
+  // unsigned FindLineNumber(llvm::SMLoc loc, unsigned bufferID = 0) const {
+  //   return getLineAndColumn(loc, bufferID).first;
+  // }
 
-  /// Find the line and column number for the specified location in the
-  /// specified file. This is not a fast method.
-  std::pair<unsigned, unsigned> getLineAndColumn(llvm::SMLoc loc,
-                                                 unsigned bufferID = 0) const;
+  // /// Find the line and column number for the specified location in the
+  // /// specified file. This is not a fast method.
+  // std::pair<unsigned, unsigned> getLineAndColumn(llvm::SMLoc loc,
+  //                                                unsigned bufferID = 0)
+  //                                                const;
 
-  /// Get a string with the \p llvm::SMLoc filename and line number
-  /// formatted in the standard style.
-  std::string getFormattedLocationNoOffset(llvm::SMLoc loc,
-                                           bool includePath = false) const;
+  // /// Get a string with the \p llvm::SMLoc filename and line number
+  // /// formatted in the standard style.
+  // std::string getFormattedLocationNoOffset(llvm::SMLoc loc,
+  //                                          bool includePath = false) const;
 
-  /// Given a line and column number in a mapped buffer, turn it into an
-  /// llvm::SMLoc. This will return a null llvm::SMLoc if the line/column
-  /// location is invalid.
-  llvm::SMLoc FindLocForLineAndColumn(unsigned bufferID, unsigned lineNo,
-                                      unsigned colNo);
+  // /// Given a line and column number in a mapped buffer, turn it into an
+  // /// llvm::SMLoc. This will return a null llvm::SMLoc if the line/column
+  // /// location is invalid.
+  // llvm::SMLoc FindLocForLineAndColumn(unsigned bufferID, unsigned lineNo,
+  //                                     unsigned colNo);
 
-  /// Emit a message about the specified location with the specified string.
-  ///
-  /// \param ShowColors Display colored messages if output is a terminal and
-  /// the default error handler is used.
-  void PrintMessage(llvm::raw_ostream &os, llvm::SMLoc loc, DiagKind kind,
-                    const llvm::Twine &msg,
-                    llvm::ArrayRef<llvm::SMRange> ranges = {},
-                    llvm::ArrayRef<llvm::SMFixIt> fixIts = {},
-                    bool showColors                      = true) const;
+  // /// Emit a message about the specified location with the specified string.
+  // ///
+  // /// \param ShowColors Display colored messages if output is a terminal and
+  // /// the default error handler is used.
+  // void PrintMessage(llvm::raw_ostream &os, llvm::SMLoc loc, DiagKind kind,
+  //                   const llvm::Twine &msg,
+  //                   llvm::ArrayRef<llvm::SMRange> ranges = {},
+  //                   llvm::ArrayRef<llvm::SMFixIt> fixIts = {},
+  //                   bool showColors                      = true) const;
 
-  /// Emits a diagnostic to llvm::errs().
-  void PrintMessage(llvm::SMLoc loc, DiagKind kind, const llvm::Twine &msg,
-                    llvm::ArrayRef<llvm::SMRange> ranges = {},
-                    llvm::ArrayRef<llvm::SMFixIt> fixIts = {},
-                    bool showColors                      = true) const;
+  // /// Emits a diagnostic to llvm::errs().
+  // void PrintMessage(llvm::SMLoc loc, DiagKind kind, const llvm::Twine &msg,
+  //                   llvm::ArrayRef<llvm::SMRange> ranges = {},
+  //                   llvm::ArrayRef<llvm::SMFixIt> fixIts = {},
+  //                   bool showColors                      = true) const;
 
-  /// Emits a manually-constructed diagnostic to the given output stream.
-  ///
-  /// \param ShowColors Display colored messages if output is a terminal and
-  /// the default error handler is used.
-  void PrintMessage(llvm::raw_ostream &os, const SMDiagnostic &diagnostic,
-                    bool showColors = true) const;
+  // /// Emits a manually-constructed diagnostic to the given output stream.
+  // ///
+  // /// \param ShowColors Display colored messages if output is a terminal and
+  // /// the default error handler is used.
+  // void PrintMessage(llvm::raw_ostream &os, const SMDiagnostic &diagnostic,
+  //                   bool showColors = true) const;
 
-  /// Return an SMDiagnostic at the specified location with the specified
-  /// string.
-  ///
-  /// \param Msg If non-null, the kind of message (e.g., "error") which is
-  /// prefixed to the message.
-  SMDiagnostic GetMessage(llvm::SMLoc loc, DiagKind kind,
-                          const llvm::Twine &msg,
-                          llvm::ArrayRef<llvm::SMRange> ranges = {},
-                          llvm::ArrayRef<llvm::SMFixIt> fixIts = {}) const;
+  // /// Return an SMDiagnostic at the specified location with the specified
+  // /// string.
+  // ///
+  // /// \param Msg If non-null, the kind of message (e.g., "error") which is
+  // /// prefixed to the message.
+  // SMDiagnostic GetMessage(llvm::SMLoc loc, DiagKind kind,
+  //                         const llvm::Twine &msg,
+  //                         llvm::ArrayRef<llvm::SMRange> ranges = {},
+  //                         llvm::ArrayRef<llvm::SMFixIt> fixIts = {}) const;
 
-  /// Prints the names of included files and the line of the file they were
-  /// included from. A diagnostic handler can use this before printing its
-  /// custom formatted message.
-  ///
-  /// \param IncludeLoc The location of the include.
-  /// \param OS the raw_ostream to print on.
-  void PrintIncludeStack(llvm::SMLoc includeLoc, llvm::raw_ostream &os) const;
+  // /// Prints the names of included files and the line of the file they were
+  // /// included from. A diagnostic handler can use this before printing its
+  // /// custom formatted message.
+  // ///
+  // /// \param IncludeLoc The location of the include.
+  // /// \param OS the raw_ostream to print on.
+  // void PrintIncludeStack(llvm::SMLoc includeLoc, llvm::raw_ostream &os)
+  // const;
 };
 
 /// Instances of this class encapsulate one diagnostic report, allowing

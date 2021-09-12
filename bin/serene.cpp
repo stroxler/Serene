@@ -28,6 +28,7 @@
 #include "serene/context.h"
 #include "serene/jit.h"
 #include "serene/namespace.h"
+#include "serene/reader/location.h"
 #include "serene/reader/reader.h"
 #include "serene/reader/semantics.h"
 #include "serene/slir/generatable.h"
@@ -238,7 +239,7 @@ int main(int argc, char *argv[]) {
   applyPassManagerCLOptions(ctx->pm);
   ctx->sourceManager.setLoadPaths(loadPaths);
 
-  auto runLoc = llvm::SMLoc();
+  auto runLoc = reader::LocationRange::UnknownLocation(inputNS);
   auto ns     = ctx->sourceManager.readNamespace(*ctx, inputNS, runLoc, true);
 
   if (!ns) {

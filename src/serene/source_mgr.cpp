@@ -25,7 +25,9 @@
 #include "serene/source_mgr.h"
 
 #include "mlir/Support/LogicalResult.h"
+#include "serene/errors/constants.h"
 #include "serene/namespace.h"
+#include "serene/reader/location.h"
 #include "serene/reader/reader.h"
 
 #include "llvm/Support/MemoryBufferRef.h"
@@ -49,7 +51,7 @@ std::string inline SourceMgr::convertNamespaceToPath(std::string ns_name) {
 };
 
 NSPtr SourceMgr::readNamespace(SereneContext &ctx, std::string name,
-                               llvm::SMLoc importLoc, bool entryNS) {
+                               reader::LocationRange importLoc, bool entryNS) {
   std::string includedFile;
   auto path = convertNamespaceToPath(name);
 
@@ -69,16 +71,19 @@ NSPtr SourceMgr::readNamespace(SereneContext &ctx, std::string name,
   }
 
   if (!newBufOrErr) {
-    PrintMessage(importLoc, DiagKind::DK_Error,
-                 llvm::formatv("Couldn't find namespace '{0}'", name));
+    auto msg = llvm::formatv("Couldn't find namespace '{0}'", name);
+    ctx.diagEngine->emitSyntaxError(importLoc, errors::NSLoadError,
+                                    llvm::StringRef(msg));
     return nullptr;
   }
 
   auto bufferId = AddNewSourceBuffer(std::move(*newBufOrErr), importLoc);
 
   if (bufferId == 0) {
-    PrintMessage(importLoc, DiagKind::DK_Error,
-                 llvm::formatv("Couldn't add namespace '{0}'", name));
+    auto msg = llvm::formatv("Couldn't add namespace '{0}'", name);
+    ctx.diagEngine->emitSyntaxError(importLoc, errors::NSAddToSMError,
+                                    llvm::StringRef(msg));
+
     return nullptr;
   }
 
@@ -107,122 +112,132 @@ NSPtr SourceMgr::readNamespace(SereneContext &ctx, std::string name,
   return ns;
 };
 
-unsigned SourceMgr::AddIncludeFile(const std::string &filename,
-                                   llvm::SMLoc includeLoc,
-                                   std::string &includedFile) {
-  includedFile = filename;
-  llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> NewBufOrErr =
-      llvm::MemoryBuffer::getFile(includedFile);
+unsigned SourceMgr::AddNewSourceBuffer(std::unique_ptr<llvm::MemoryBuffer> f,
+                                       reader::LocationRange includeLoc) {
+  SrcBuffer nb;
+  nb.buffer     = std::move(f);
+  nb.includeLoc = includeLoc;
+  buffers.push_back(std::move(nb));
+  return buffers.size();
+};
 
-  // If the file didn't exist directly, see if it's in an include path.
-  for (unsigned i = 0, e = loadPaths.size(); i != e && !NewBufOrErr; ++i) {
-    includedFile =
-        loadPaths[i] + llvm::sys::path::get_separator().data() + filename;
-    NewBufOrErr = llvm::MemoryBuffer::getFile(includedFile);
-  }
+// unsigned SourceMgr::AddIncludeFile(const std::string &filename,
+//                                    llvm::SMLoc includeLoc,
+//                                    std::string &includedFile) {
+//   includedFile = filename;
+//   llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> NewBufOrErr =
+//       llvm::MemoryBuffer::getFile(includedFile);
 
-  if (!NewBufOrErr)
-    return 0;
+//   // If the file didn't exist directly, see if it's in an include path.
+//   for (unsigned i = 0, e = loadPaths.size(); i != e && !NewBufOrErr; ++i) {
+//     includedFile =
+//         loadPaths[i] + llvm::sys::path::get_separator().data() + filename;
+//     NewBufOrErr = llvm::MemoryBuffer::getFile(includedFile);
+//   }
 
-  return AddNewSourceBuffer(std::move(*NewBufOrErr), includeLoc);
-}
+//   if (!NewBufOrErr)
+//     return 0;
 
-unsigned SourceMgr::FindBufferContainingLoc(llvm::SMLoc loc) const {
-  for (unsigned i = 0, e = buffers.size(); i != e; ++i)
-    if (loc.getPointer() >= buffers[i].buffer->getBufferStart() &&
-        // Use <= here so that a pointer to the null at the end of the buffer
-        // is included as part of the buffer.
-        loc.getPointer() <= buffers[i].buffer->getBufferEnd())
-      return i + 1;
-  return 0;
-}
+//   return AddNewSourceBuffer(std::move(*NewBufOrErr), includeLoc);
+// }
 
-template <typename T>
-static std::vector<T> &GetOrCreateOffsetCache(void *&offsetCache,
-                                              llvm::MemoryBuffer *buffer) {
-  if (offsetCache)
-    return *static_cast<std::vector<T> *>(offsetCache);
+// unsigned SourceMgr::FindBufferContainingLoc(llvm::SMLoc loc) const {
+//   for (unsigned i = 0, e = buffers.size(); i != e; ++i)
+//     if (loc.getPointer() >= buffers[i].buffer->getBufferStart() &&
+//         // Use <= here so that a pointer to the null at the end of the buffer
+//         // is included as part of the buffer.
+//         loc.getPointer() <= buffers[i].buffer->getBufferEnd())
+//       return i + 1;
+//   return 0;
+// }
 
-  // Lazily fill in the offset cache.
-  auto *offsets = new std::vector<T>();
-  size_t sz     = buffer->getBufferSize();
-  assert(sz <= std::numeric_limits<T>::max());
-  llvm::StringRef s = buffer->getBuffer();
-  for (size_t n = 0; n < sz; ++n) {
-    if (s[n] == '\n')
-      offsets->push_back(static_cast<T>(n));
-  }
+// template <typename T>
+// static std::vector<T> &GetOrCreateOffsetCache(void *&offsetCache,
+//                                               llvm::MemoryBuffer *buffer) {
+//   if (offsetCache)
+//     return *static_cast<std::vector<T> *>(offsetCache);
 
-  offsetCache = offsets;
-  return *offsets;
-}
+//   // Lazily fill in the offset cache.
+//   auto *offsets = new std::vector<T>();
+//   size_t sz     = buffer->getBufferSize();
+//   assert(sz <= std::numeric_limits<T>::max());
+//   llvm::StringRef s = buffer->getBuffer();
+//   for (size_t n = 0; n < sz; ++n) {
+//     if (s[n] == '\n')
+//       offsets->push_back(static_cast<T>(n));
+//   }
 
-template <typename T>
-unsigned SourceMgr::SrcBuffer::getLineNumberSpecialized(const char *ptr) const {
-  std::vector<T> &offsets =
-      GetOrCreateOffsetCache<T>(offsetCache, buffer.get());
+//   offsetCache = offsets;
+//   return *offsets;
+// }
 
-  const char *bufStart = buffer->getBufferStart();
-  assert(ptr >= bufStart && ptr <= buffer->getBufferEnd());
-  ptrdiff_t ptrDiff = ptr - bufStart;
-  assert(ptrDiff >= 0 &&
-         static_cast<size_t>(ptrDiff) <= std::numeric_limits<T>::max());
-  T ptrOffset = static_cast<T>(ptrDiff);
+// template <typename T>
+// unsigned SourceMgr::SrcBuffer::getLineNumberSpecialized(const char *ptr)
+// const {
+//   std::vector<T> &offsets =
+//       GetOrCreateOffsetCache<T>(offsetCache, buffer.get());
 
-  // llvm::lower_bound gives the number of EOL before PtrOffset. Add 1 to get
-  // the line number.
-  return llvm::lower_bound(offsets, ptrOffset) - offsets.begin() + 1;
-}
+//   const char *bufStart = buffer->getBufferStart();
+//   assert(ptr >= bufStart && ptr <= buffer->getBufferEnd());
+//   ptrdiff_t ptrDiff = ptr - bufStart;
+//   assert(ptrDiff >= 0 &&
+//          static_cast<size_t>(ptrDiff) <= std::numeric_limits<T>::max());
+//   T ptrOffset = static_cast<T>(ptrDiff);
 
-/// Look up a given \p Ptr in in the buffer, determining which line it came
-/// from.
-unsigned SourceMgr::SrcBuffer::getLineNumber(const char *ptr) const {
-  size_t sz = buffer->getBufferSize();
-  if (sz <= std::numeric_limits<uint8_t>::max())
-    return getLineNumberSpecialized<uint8_t>(ptr);
-  else if (sz <= std::numeric_limits<uint16_t>::max())
-    return getLineNumberSpecialized<uint16_t>(ptr);
-  else if (sz <= std::numeric_limits<uint32_t>::max())
-    return getLineNumberSpecialized<uint32_t>(ptr);
-  else
-    return getLineNumberSpecialized<uint64_t>(ptr);
-}
+//   // llvm::lower_bound gives the number of EOL before PtrOffset. Add 1 to get
+//   // the line number.
+//   return llvm::lower_bound(offsets, ptrOffset) - offsets.begin() + 1;
+// }
 
-template <typename T>
-const char *SourceMgr::SrcBuffer::getPointerForLineNumberSpecialized(
-    unsigned lineNo) const {
-  std::vector<T> &offsets =
-      GetOrCreateOffsetCache<T>(offsetCache, buffer.get());
+// /// Look up a given \p Ptr in in the buffer, determining which line it came
+// /// from.
+// unsigned SourceMgr::SrcBuffer::getLineNumber(const char *ptr) const {
+//   size_t sz = buffer->getBufferSize();
+//   if (sz <= std::numeric_limits<uint8_t>::max())
+//     return getLineNumberSpecialized<uint8_t>(ptr);
+//   else if (sz <= std::numeric_limits<uint16_t>::max())
+//     return getLineNumberSpecialized<uint16_t>(ptr);
+//   else if (sz <= std::numeric_limits<uint32_t>::max())
+//     return getLineNumberSpecialized<uint32_t>(ptr);
+//   else
+//     return getLineNumberSpecialized<uint64_t>(ptr);
+// }
 
-  // We start counting line and column numbers from 1.
-  if (lineNo != 0)
-    --lineNo;
+// template <typename T>
+// const char *SourceMgr::SrcBuffer::getPointerForLineNumberSpecialized(
+//     unsigned lineNo) const {
+//   std::vector<T> &offsets =
+//       GetOrCreateOffsetCache<T>(offsetCache, buffer.get());
 
-  const char *bufStart = buffer->getBufferStart();
+//   // We start counting line and column numbers from 1.
+//   if (lineNo != 0)
+//     --lineNo;
 
-  // The offset cache contains the location of the \n for the specified line,
-  // we want the start of the line.  As such, we look for the previous entry.
-  if (lineNo == 0)
-    return bufStart;
-  if (lineNo > offsets.size())
-    return nullptr;
-  return bufStart + offsets[lineNo - 1] + 1;
-}
+//   const char *bufStart = buffer->getBufferStart();
 
-/// Return a pointer to the first character of the specified line number or
-/// null if the line number is invalid.
-const char *
-SourceMgr::SrcBuffer::getPointerForLineNumber(unsigned lineNo) const {
-  size_t sz = buffer->getBufferSize();
-  if (sz <= std::numeric_limits<uint8_t>::max())
-    return getPointerForLineNumberSpecialized<uint8_t>(lineNo);
-  else if (sz <= std::numeric_limits<uint16_t>::max())
-    return getPointerForLineNumberSpecialized<uint16_t>(lineNo);
-  else if (sz <= std::numeric_limits<uint32_t>::max())
-    return getPointerForLineNumberSpecialized<uint32_t>(lineNo);
-  else
-    return getPointerForLineNumberSpecialized<uint64_t>(lineNo);
-}
+//   // The offset cache contains the location of the \n for the specified line,
+//   // we want the start of the line.  As such, we look for the previous entry.
+//   if (lineNo == 0)
+//     return bufStart;
+//   if (lineNo > offsets.size())
+//     return nullptr;
+//   return bufStart + offsets[lineNo - 1] + 1;
+// }
+
+// /// Return a pointer to the first character of the specified line number or
+// /// null if the line number is invalid.
+// const char *
+// SourceMgr::SrcBuffer::getPointerForLineNumber(unsigned lineNo) const {
+//   size_t sz = buffer->getBufferSize();
+//   if (sz <= std::numeric_limits<uint8_t>::max())
+//     return getPointerForLineNumberSpecialized<uint8_t>(lineNo);
+//   else if (sz <= std::numeric_limits<uint16_t>::max())
+//     return getPointerForLineNumberSpecialized<uint16_t>(lineNo);
+//   else if (sz <= std::numeric_limits<uint32_t>::max())
+//     return getPointerForLineNumberSpecialized<uint32_t>(lineNo);
+//   else
+//     return getPointerForLineNumberSpecialized<uint64_t>(lineNo);
+// }
 
 SourceMgr::SrcBuffer::SrcBuffer(SourceMgr::SrcBuffer &&other)
     : buffer(std::move(other.buffer)), offsetCache(other.offsetCache),
@@ -245,190 +260,195 @@ SourceMgr::SrcBuffer::~SrcBuffer() {
   }
 }
 
-std::pair<unsigned, unsigned>
-SourceMgr::getLineAndColumn(llvm::SMLoc loc, unsigned bufferID) const {
-  if (!bufferID)
-    bufferID = FindBufferContainingLoc(loc);
-  assert(bufferID && "Invalid location!");
+// std::pair<unsigned, unsigned>
+// SourceMgr::getLineAndColumn(llvm::SMLoc loc, unsigned bufferID) const {
+//   if (!bufferID)
+//     bufferID = FindBufferContainingLoc(loc);
+//   assert(bufferID && "Invalid location!");
 
-  auto &sb        = getBufferInfo(bufferID);
-  const char *ptr = loc.getPointer();
+//   auto &sb        = getBufferInfo(bufferID);
+//   const char *ptr = loc.getPointer();
 
-  unsigned lineNo      = sb.getLineNumber(ptr);
-  const char *bufStart = sb.buffer->getBufferStart();
-  size_t newlineOffs =
-      llvm::StringRef(bufStart, ptr - bufStart).find_last_of("\n\r");
-  if (newlineOffs == llvm::StringRef::npos)
-    newlineOffs = ~(size_t)0;
-  return std::make_pair(lineNo, ptr - bufStart - newlineOffs);
-}
+//   unsigned lineNo      = sb.getLineNumber(ptr);
+//   const char *bufStart = sb.buffer->getBufferStart();
+//   size_t newlineOffs =
+//       llvm::StringRef(bufStart, ptr - bufStart).find_last_of("\n\r");
+//   if (newlineOffs == llvm::StringRef::npos)
+//     newlineOffs = ~(size_t)0;
+//   return std::make_pair(lineNo, ptr - bufStart - newlineOffs);
+// }
 
-// FIXME: Note that the formatting of source locations is spread between
-// multiple functions, some in SourceMgr and some in SMDiagnostic. A better
-// solution would be a general-purpose source location formatter
-// in one of those two classes, or possibly in llvm::SMLoc.
+// // FIXME: Note that the formatting of source locations is spread between
+// // multiple functions, some in SourceMgr and some in SMDiagnostic. A better
+// // solution would be a general-purpose source location formatter
+// // in one of those two classes, or possibly in llvm::SMLoc.
 
-/// Get a string with the source location formatted in the standard
-/// style, but without the line offset. If \p IncludePath is true, the path
-/// is included. If false, only the file name and extension are included.
-std::string SourceMgr::getFormattedLocationNoOffset(llvm::SMLoc loc,
-                                                    bool includePath) const {
-  auto bufferID = FindBufferContainingLoc(loc);
-  assert(bufferID && "Invalid location!");
-  auto fileSpec = getBufferInfo(bufferID).buffer->getBufferIdentifier();
+// /// Get a string with the source location formatted in the standard
+// /// style, but without the line offset. If \p IncludePath is true, the path
+// /// is included. If false, only the file name and extension are included.
+// std::string SourceMgr::getFormattedLocationNoOffset(llvm::SMLoc loc,
+//                                                     bool includePath) const {
+//   auto bufferID = FindBufferContainingLoc(loc);
+//   assert(bufferID && "Invalid location!");
+//   auto fileSpec = getBufferInfo(bufferID).buffer->getBufferIdentifier();
 
-  if (includePath) {
-    return fileSpec.str() + ":" + std::to_string(FindLineNumber(loc, bufferID));
-  } else {
-    auto I = fileSpec.find_last_of("/\\");
-    I      = (I == fileSpec.size()) ? 0 : (I + 1);
-    return fileSpec.substr(I).str() + ":" +
-           std::to_string(FindLineNumber(loc, bufferID));
-  }
-}
+//   if (includePath) {
+//     return fileSpec.str() + ":" + std::to_string(FindLineNumber(loc,
+//     bufferID));
+//   } else {
+//     auto I = fileSpec.find_last_of("/\\");
+//     I      = (I == fileSpec.size()) ? 0 : (I + 1);
+//     return fileSpec.substr(I).str() + ":" +
+//            std::to_string(FindLineNumber(loc, bufferID));
+//   }
+// }
 
-/// Given a line and column number in a mapped buffer, turn it into an
-/// llvm::SMLoc. This will return a null llvm::SMLoc if the line/column location
-/// is invalid.
-llvm::SMLoc SourceMgr::FindLocForLineAndColumn(unsigned bufferID,
-                                               unsigned lineNo,
-                                               unsigned colNo) {
-  auto &sb        = getBufferInfo(bufferID);
-  const char *ptr = sb.getPointerForLineNumber(lineNo);
-  if (!ptr)
-    return llvm::SMLoc();
+// /// Given a line and column number in a mapped buffer, turn it into an
+// /// llvm::SMLoc. This will return a null llvm::SMLoc if the line/column
+// location
+// /// is invalid.
+// llvm::SMLoc SourceMgr::FindLocForLineAndColumn(unsigned bufferID,
+//                                                unsigned lineNo,
+//                                                unsigned colNo) {
+//   auto &sb        = getBufferInfo(bufferID);
+//   const char *ptr = sb.getPointerForLineNumber(lineNo);
+//   if (!ptr)
+//     return llvm::SMLoc();
 
-  // We start counting line and column numbers from 1.
-  if (colNo != 0)
-    --colNo;
+//   // We start counting line and column numbers from 1.
+//   if (colNo != 0)
+//     --colNo;
 
-  // If we have a column number, validate it.
-  if (colNo) {
-    // Make sure the location is within the current line.
-    if (ptr + colNo > sb.buffer->getBufferEnd())
-      return llvm::SMLoc();
+//   // If we have a column number, validate it.
+//   if (colNo) {
+//     // Make sure the location is within the current line.
+//     if (ptr + colNo > sb.buffer->getBufferEnd())
+//       return llvm::SMLoc();
 
-    // Make sure there is no newline in the way.
-    if (llvm::StringRef(ptr, colNo).find_first_of("\n\r") !=
-        llvm::StringRef::npos)
-      return llvm::SMLoc();
+//     // Make sure there is no newline in the way.
+//     if (llvm::StringRef(ptr, colNo).find_first_of("\n\r") !=
+//         llvm::StringRef::npos)
+//       return llvm::SMLoc();
 
-    ptr += colNo;
-  }
+//     ptr += colNo;
+//   }
 
-  return llvm::SMLoc::getFromPointer(ptr);
-}
+//   return llvm::SMLoc::getFromPointer(ptr);
+// }
 
-void SourceMgr::PrintIncludeStack(llvm::SMLoc includeLoc,
-                                  llvm::raw_ostream &os) const {
-  if (includeLoc == llvm::SMLoc())
-    return; // Top of stack.
+// void SourceMgr::PrintIncludeStack(llvm::SMLoc includeLoc,
+//                                   llvm::raw_ostream &os) const {
+//   if (includeLoc == llvm::SMLoc())
+//     return; // Top of stack.
 
-  unsigned curBuf = FindBufferContainingLoc(includeLoc);
-  assert(curBuf && "Invalid or unspecified location!");
+//   unsigned curBuf = FindBufferContainingLoc(includeLoc);
+//   assert(curBuf && "Invalid or unspecified location!");
 
-  PrintIncludeStack(getBufferInfo(curBuf).includeLoc, os);
+//   PrintIncludeStack(getBufferInfo(curBuf).includeLoc, os);
 
-  os << "Included from " << getBufferInfo(curBuf).buffer->getBufferIdentifier()
-     << ":" << FindLineNumber(includeLoc, curBuf) << ":\n";
-}
+//   os << "Included from " <<
+//   getBufferInfo(curBuf).buffer->getBufferIdentifier()
+//      << ":" << FindLineNumber(includeLoc, curBuf) << ":\n";
+// }
 
-SMDiagnostic SourceMgr::GetMessage(llvm::SMLoc loc, SourceMgr::DiagKind kind,
-                                   const llvm::Twine &msg,
-                                   llvm::ArrayRef<llvm::SMRange> ranges,
-                                   llvm::ArrayRef<llvm::SMFixIt> fixIts) const {
-  // First thing to do: find the current buffer containing the specified
-  // location to pull out the source line.
-  llvm::SmallVector<std::pair<unsigned, unsigned>, 4> colRanges;
-  std::pair<unsigned, unsigned> lineAndCol;
-  llvm::StringRef bufferID = "<unknown>";
-  llvm::StringRef lineStr;
+// SMDiagnostic SourceMgr::GetMessage(llvm::SMLoc loc, SourceMgr::DiagKind kind,
+//                                    const llvm::Twine &msg,
+//                                    llvm::ArrayRef<llvm::SMRange> ranges,
+//                                    llvm::ArrayRef<llvm::SMFixIt> fixIts)
+//                                    const {
+//   // First thing to do: find the current buffer containing the specified
+//   // location to pull out the source line.
+//   llvm::SmallVector<std::pair<unsigned, unsigned>, 4> colRanges;
+//   std::pair<unsigned, unsigned> lineAndCol;
+//   llvm::StringRef bufferID = "<unknown>";
+//   llvm::StringRef lineStr;
 
-  if (loc.isValid()) {
-    unsigned curBuf = FindBufferContainingLoc(loc);
-    assert(curBuf && "Invalid or unspecified location!");
+//   if (loc.isValid()) {
+//     unsigned curBuf = FindBufferContainingLoc(loc);
+//     assert(curBuf && "Invalid or unspecified location!");
 
-    const llvm::MemoryBuffer *curMB = getMemoryBuffer(curBuf);
-    bufferID                        = curMB->getBufferIdentifier();
+//     const llvm::MemoryBuffer *curMB = getMemoryBuffer(curBuf);
+//     bufferID                        = curMB->getBufferIdentifier();
 
-    // Scan backward to find the start of the line.
-    const char *lineStart = loc.getPointer();
-    const char *bufStart  = curMB->getBufferStart();
-    while (lineStart != bufStart && lineStart[-1] != '\n' &&
-           lineStart[-1] != '\r')
-      --lineStart;
+//     // Scan backward to find the start of the line.
+//     const char *lineStart = loc.getPointer();
+//     const char *bufStart  = curMB->getBufferStart();
+//     while (lineStart != bufStart && lineStart[-1] != '\n' &&
+//            lineStart[-1] != '\r')
+//       --lineStart;
 
-    // Get the end of the line.
-    const char *lineEnd = loc.getPointer();
-    const char *bufEnd  = curMB->getBufferEnd();
-    while (lineEnd != bufEnd && lineEnd[0] != '\n' && lineEnd[0] != '\r')
-      ++lineEnd;
-    lineStr = llvm::StringRef(lineStart, lineEnd - lineStart);
+//     // Get the end of the line.
+//     const char *lineEnd = loc.getPointer();
+//     const char *bufEnd  = curMB->getBufferEnd();
+//     while (lineEnd != bufEnd && lineEnd[0] != '\n' && lineEnd[0] != '\r')
+//       ++lineEnd;
+//     lineStr = llvm::StringRef(lineStart, lineEnd - lineStart);
 
-    // Convert any ranges to column ranges that only intersect the line of the
-    // location.
-    for (unsigned i = 0, e = ranges.size(); i != e; ++i) {
-      llvm::SMRange r = ranges[i];
-      if (!r.isValid())
-        continue;
+//     // Convert any ranges to column ranges that only intersect the line of
+//     the
+//     // location.
+//     for (unsigned i = 0, e = ranges.size(); i != e; ++i) {
+//       llvm::SMRange r = ranges[i];
+//       if (!r.isValid())
+//         continue;
 
-      // If the line doesn't contain any part of the range, then ignore it.
-      if (r.Start.getPointer() > lineEnd || r.End.getPointer() < lineStart)
-        continue;
+//       // If the line doesn't contain any part of the range, then ignore it.
+//       if (r.Start.getPointer() > lineEnd || r.End.getPointer() < lineStart)
+//         continue;
 
-      // Ignore pieces of the range that go onto other lines.
-      if (r.Start.getPointer() < lineStart)
-        r.Start = llvm::SMLoc::getFromPointer(lineStart);
-      if (r.End.getPointer() > lineEnd)
-        r.End = llvm::SMLoc::getFromPointer(lineEnd);
+//       // Ignore pieces of the range that go onto other lines.
+//       if (r.Start.getPointer() < lineStart)
+//         r.Start = llvm::SMLoc::getFromPointer(lineStart);
+//       if (r.End.getPointer() > lineEnd)
+//         r.End = llvm::SMLoc::getFromPointer(lineEnd);
 
-      // Translate from llvm::SMLoc ranges to column ranges.
-      // FIXME: Handle multibyte characters.
-      colRanges.push_back(std::make_pair(r.Start.getPointer() - lineStart,
-                                         r.End.getPointer() - lineStart));
-    }
+//       // Translate from llvm::SMLoc ranges to column ranges.
+//       // FIXME: Handle multibyte characters.
+//       colRanges.push_back(std::make_pair(r.Start.getPointer() - lineStart,
+//                                          r.End.getPointer() - lineStart));
+//     }
 
-    lineAndCol = getLineAndColumn(loc, curBuf);
-  }
+//     lineAndCol = getLineAndColumn(loc, curBuf);
+//   }
 
-  return SMDiagnostic(*this, loc, bufferID, lineAndCol.first,
-                      lineAndCol.second - 1, kind, msg.str(), lineStr,
-                      colRanges, fixIts);
-}
+//   return SMDiagnostic(*this, loc, bufferID, lineAndCol.first,
+//                       lineAndCol.second - 1, kind, msg.str(), lineStr,
+//                       colRanges, fixIts);
+// }
 
-void SourceMgr::PrintMessage(llvm::raw_ostream &os,
-                             const SMDiagnostic &diagnostic,
-                             bool showColors) const {
-  // Report the message with the diagnostic handler if present.
-  if (diagHandler) {
-    diagHandler(diagnostic, diagContext);
-    return;
-  }
+// void SourceMgr::PrintMessage(llvm::raw_ostream &os,
+//                              const SMDiagnostic &diagnostic,
+//                              bool showColors) const {
+//   // Report the message with the diagnostic handler if present.
+//   if (diagHandler) {
+//     diagHandler(diagnostic, diagContext);
+//     return;
+//   }
 
-  if (diagnostic.getLoc().isValid()) {
-    unsigned CurBuf = FindBufferContainingLoc(diagnostic.getLoc());
-    assert(CurBuf && "Invalid or unspecified location!");
-    PrintIncludeStack(getBufferInfo(CurBuf).includeLoc, os);
-  }
+//   if (diagnostic.getLoc().isValid()) {
+//     unsigned CurBuf = FindBufferContainingLoc(diagnostic.getLoc());
+//     assert(CurBuf && "Invalid or unspecified location!");
+//     PrintIncludeStack(getBufferInfo(CurBuf).includeLoc, os);
+//   }
 
-  diagnostic.print(nullptr, os, showColors);
-}
+//   diagnostic.print(nullptr, os, showColors);
+// }
 
-void SourceMgr::PrintMessage(llvm::raw_ostream &os, llvm::SMLoc loc,
-                             SourceMgr::DiagKind kind, const llvm::Twine &msg,
-                             llvm::ArrayRef<llvm::SMRange> ranges,
-                             llvm::ArrayRef<llvm::SMFixIt> fixIts,
-                             bool showColors) const {
-  PrintMessage(os, GetMessage(loc, kind, msg, ranges, fixIts), showColors);
-}
+// void SourceMgr::PrintMessage(llvm::raw_ostream &os, llvm::SMLoc loc,
+//                              SourceMgr::DiagKind kind, const llvm::Twine
+//                              &msg, llvm::ArrayRef<llvm::SMRange> ranges,
+//                              llvm::ArrayRef<llvm::SMFixIt> fixIts,
+//                              bool showColors) const {
+//   PrintMessage(os, GetMessage(loc, kind, msg, ranges, fixIts), showColors);
+// }
 
-void SourceMgr::PrintMessage(llvm::SMLoc loc, SourceMgr::DiagKind kind,
-                             const llvm::Twine &msg,
-                             llvm::ArrayRef<llvm::SMRange> ranges,
-                             llvm::ArrayRef<llvm::SMFixIt> fixIts,
-                             bool showColors) const {
-  PrintMessage(llvm::errs(), loc, kind, msg, ranges, fixIts, showColors);
-}
+// void SourceMgr::PrintMessage(llvm::SMLoc loc, SourceMgr::DiagKind kind,
+//                              const llvm::Twine &msg,
+//                              llvm::ArrayRef<llvm::SMRange> ranges,
+//                              llvm::ArrayRef<llvm::SMFixIt> fixIts,
+//                              bool showColors) const {
+//   PrintMessage(llvm::errs(), loc, kind, msg, ranges, fixIts, showColors);
+// }
 
 //===----------------------------------------------------------------------===//
 // SMDiagnostic Implementation

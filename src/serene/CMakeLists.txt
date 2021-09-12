@@ -4,6 +4,7 @@ set(HEADER_LIST
   "${INCLUDE_DIR}/serene/context.h"
   "${INCLUDE_DIR}/serene/environment.h"
   "${INCLUDE_DIR}/serene/traits.h"
+  "${INCLUDE_DIR}/serene/diagnostics.h"
 
   "${INCLUDE_DIR}/serene/exprs/expression.h"
   "${INCLUDE_DIR}/serene/exprs/symbol.h"
@@ -53,6 +54,7 @@ add_library(serene
   namespace.cpp
   jit.cpp
   source_mgr.cpp
+  diagnostics.cpp
 
   # Reader
   reader/reader.cpp

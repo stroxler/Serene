@@ -1,0 +1,36 @@
+FROM debian:11-slim
+
+RUN apt-get update && apt-get install -y wget gnupg
+
+RUN wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|apt-key add -
+RUN echo "deb http://apt.llvm.org/bullseye/ llvm-toolchain-bullseye-13 main" >> /etc/apt/sources.list
+RUN apt-get update
+RUN apt-get install -y ccache cmake ccache git ninja-build build-essential clang-13 lldb-13 lld-13
+
+ENV CXX=clang++-13
+ENV CC=clang-13
+
+RUN mkdir -p /opt/build
+COPY ./llvm-project /usr/src/llvm-project
+
+WORKDIR /opt/build
+
+ENV LDFLAGS="-fuse-ld=lld-13"
+
+RUN cmake -G Ninja /usr/src/llvm-project/llvm \
+          -DCMAKE_INSTALL_PREFIX=/opt/llvm \
+          -DLLVM_PARALLEL_COMPILE_JOBS=7 \
+          -DLLVM_PARALLEL_LINK_JOBS=1 \
+          -DLLVM_BUILD_EXAMPLES=ON \
+          -DLLVM_TARGETS_TO_BUILD="X86" \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DLLVM_ENABLE_ASSERTIONS=ON \
+          -DLLVM_CCACHE_BUILD=ON \
+          -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+          -DLLVM_ENABLE_PROJECTS='clang;lldb;lld;mlir;clang-tools-extra;compiler-rt' \
+          -DCMAKE_C_COMPILER=clang-13 \
+          -DCMAKE_CXX_COMPILER=clang++-13 \
+          -DLLVM_ENABLE_LLD=ON
+
+RUN cmake --build .
+RUN cmake -DCMAKE_INSTALL_PREFIX=/opt/llvm -P cmake_install.cmake

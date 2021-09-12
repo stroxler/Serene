@@ -58,22 +58,30 @@ private:
   llvm::StringRef ns;
   llvm::Optional<llvm::StringRef> filename;
 
-  const char *current_char = NULL;
+  const char *currentChar = NULL;
 
   llvm::StringRef buf;
 
   /// The position tracker that we will use to determine the end of the
   /// buffer since the buffer might not be null terminated
-  size_t current_pos = -1;
+  size_t currentPos = -1;
 
-  Location current_location;
+  Location currentLocation;
+
+  /// When we're dealing with the end of line we need to know what is the col
+  /// number for that EOL
+  unsigned prevCol = 0;
+
+  bool readEOL = false;
 
   /// Returns a clone of the current location
   Location getCurrentLocation();
   /// Returns the next character from the stream.
   /// @param skip_whitespace An indicator to whether skip white space like chars
   /// or not
-  const char *getChar(bool skip_whitespace);
+  const char *getChar(bool skipWhitespace);
+
+  const char *nextChar();
 
   /// Unreads the current character by moving the char pointer to the previous
   /// char.

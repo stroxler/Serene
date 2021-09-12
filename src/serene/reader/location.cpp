@@ -32,22 +32,30 @@
 namespace serene {
 namespace reader {
 
-LocationRange::LocationRange(const LocationRange &loc) {
-  start = loc.start;
-  end   = loc.end;
-}
+// LocationRange::LocationRange(const LocationRange &loc) {
+//   start = loc.start.clone();
+//   end   = loc.end.clone();
+// }
 
 /// Return the string represenation of the location.
 std::string Location::toString() const {
   return llvm::formatv("{0}:{1}", line, col);
 };
 
-Location Location::clone() { return Location{ns, c, line, col}; }
+Location Location::clone() {
+  return Location{ns, filename, c, line, col, knownLocation};
+}
 
-mlir::Location Location::toMLIRLocation(SereneContext &ctx,
-                                        llvm::StringRef ns) {
+Location Location::clone() const {
+  return Location{ns, filename, c, line, col, knownLocation};
+}
+
+mlir::Location Location::toMLIRLocation(SereneContext &ctx) {
   // TODO: Create a new Location attribute that is namespace base
-
+  if (filename.hasValue()) {
+    return mlir::FileLineColLoc::get(&ctx.mlirContext, filename.getValue(),
+                                     line, col);
+  }
   return mlir::FileLineColLoc::get(&ctx.mlirContext, ns, line, col);
 }
 /// Increase the given location by one and set the line/col value in respect to
@@ -62,9 +70,10 @@ void incLocation(Location &loc, const char *c) {
 
   if (!newline) {
     loc.col++;
+  } else {
+    loc.line++;
+    loc.col = 0;
   }
-
-  loc.line++;
 }
 
 /// decrease the given location by one and set the line/col value in respect to

@@ -26,6 +26,7 @@
 
 #include "serene/namespace.h"
 #include "serene/passes.h"
+#include "serene/reader/location.h"
 #include "serene/slir/generatable.h"
 
 namespace serene {
@@ -93,11 +94,13 @@ int SereneContext::getOptimizatioLevel() {
 }
 
 NSPtr SereneContext::readNamespace(std::string name) {
-  llvm::SMLoc loc;
+  auto loc = reader::LocationRange::UnknownLocation(name);
+
   return readNamespace(name, loc);
 };
 
-NSPtr SereneContext::readNamespace(std::string name, llvm::SMLoc loc) {
+NSPtr SereneContext::readNamespace(std::string name,
+                                   reader::LocationRange loc) {
   return sourceManager.readNamespace(*this, name, loc);
 }
 

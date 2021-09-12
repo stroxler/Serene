@@ -40,10 +40,17 @@ enum ErrID {
   E0005,
   E0006,
   E0007,
+  E0008,
+  E0009,
+  E0010,
+  E0011,
+  E0012,
+  E0013,
 };
 
 struct ErrorVariant {
   ErrID id;
+
   std::string description;
   std::string longDescription;
 
@@ -73,12 +80,30 @@ static ErrorVariant
                           "");
 
 static ErrorVariant PassFailureError(E0007, "Pass Failure.", "");
+static ErrorVariant NSLoadError(E0008, "Faild to find a namespace.", "");
+static ErrorVariant
+    NSAddToSMError(E0009, "Faild to add the namespace to the source manager.",
+                   "");
+
+static ErrorVariant
+    EOFWhileScaningAList(E0010, "EOF reached before closing of list", "");
+
+static ErrorVariant InvalidDigitForNumber(E0011, "Invalid digit for a number.",
+                                          "");
+
+static ErrorVariant
+    TwoFloatPoints(E0012, "Two or more float point characters in a number", "");
+static ErrorVariant InvalidCharacterForSymbol(
+    E0013, "Two or more float point characters in a number", "");
 
 static std::map<ErrID, ErrorVariant *> ErrDesc = {
     {E0000, &UnknownError},          {E0001, &DefExpectSymbol},
     {E0002, &DefWrongNumberOfArgs},  {E0003, &FnNoArgsList},
     {E0004, &FnArgsMustBeList},      {E0005, &CantResolveSymbol},
-    {E0006, &DontKnowHowToCallNode}, {E0007, &PassFailureError}};
+    {E0006, &DontKnowHowToCallNode}, {E0007, &PassFailureError},
+    {E0008, &NSLoadError},           {E0009, &NSAddToSMError},
+    {E0010, &EOFWhileScaningAList},  {E0011, &InvalidDigitForNumber},
+    {E0012, &TwoFloatPoints},        {E0013, &InvalidCharacterForSymbol}};
 
 } // namespace errors
 } // namespace serene

@@ -25,15 +25,14 @@
 #ifndef SERENE_CONTEXT_H
 #define SERENE_CONTEXT_H
 
+#include "serene/diagnostics.h"
 #include "serene/environment.h"
 #include "serene/namespace.h"
 #include "serene/passes.h"
 #include "serene/slir/dialect.h"
 #include "serene/source_mgr.h"
 
-#include "llvm/ADT/Optional.h"
-#include "llvm/Support/SMLoc.h"
-
+#include <llvm/ADT/Optional.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/Support/Host.h>
@@ -43,6 +42,10 @@
 #include <mlir/Pass/PassManager.h>
 
 namespace serene {
+
+namespace reader {
+class LocationRange;
+}
 
 namespace exprs {
 class Expression;
@@ -61,6 +64,13 @@ enum class CompilationPhase {
 };
 
 class SereneContext {
+  struct Options {
+    /// Whether to use colors for the output or not
+    bool withColors = true;
+
+    Options() = default;
+  };
+
 public:
   // --------------------------------------------------------------------------
   // IMPORTANT:
@@ -73,11 +83,14 @@ public:
 
   mlir::PassManager pm;
 
-  mlir::DiagnosticEngine &diagEngine;
+  std::unique_ptr<DiagnosticEngine> diagEngine;
 
   /// The source manager is responsible for loading namespaces and practically
   /// managing the source code in form of memory buffers.
   SourceMgr sourceManager;
+
+  /// The set of options to change the compilers behaivoirs
+  Options opts;
 
   std::string targetTriple;
 
@@ -99,7 +112,7 @@ public:
   std::shared_ptr<Namespace> getNS(llvm::StringRef ns_name);
 
   SereneContext()
-      : pm(&mlirContext), diagEngine(mlirContext.getDiagEngine()),
+      : pm(&mlirContext), diagEngine(makeDiagnosticEngine(*this)),
         targetPhase(CompilationPhase::NoOptimization) {
     mlirContext.getOrLoadDialect<serene::slir::SereneDialect>();
     mlirContext.getOrLoadDialect<mlir::StandardOpsDialect>();
@@ -118,7 +131,7 @@ public:
   int getOptimizatioLevel();
 
   NSPtr readNamespace(std::string name);
-  NSPtr readNamespace(std::string name, llvm::SMLoc loc);
+  NSPtr readNamespace(std::string name, reader::LocationRange loc);
 
 private:
   CompilationPhase targetPhase;

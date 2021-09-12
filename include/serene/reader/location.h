@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#ifndef LOCATION_H
-#define LOCATION_H
+#ifndef SERENE_LOCATION_H
+#define SERENE_LOCATION_H
 
 #include "mlir/IR/Diagnostics.h"
 
@@ -37,21 +37,40 @@ namespace reader {
 
 /// It represents a location in the input string to the parser via `line`,
 struct Location {
+  /// Since namespaces are our unit of compilation, we need to have
+  /// a namespace in hand
   llvm::StringRef ns;
+
+  llvm::Optional<llvm::StringRef> filename = llvm::None;
   /// A pointer to the character that this location is pointing to
   /// it the input buffer
   const char *c = nullptr;
 
   /// At this stage we only support 65535 lines of code in each file
-  unsigned short int line;
+  unsigned short int line = 0;
   /// At this stage we only support 65535 chars in each line
-  unsigned short int col;
+  unsigned short int col = 0;
+
+  bool knownLocation = true;
 
   ::std::string toString() const;
-  Location() = default;
-  Location clone();
 
-  mlir::Location toMLIRLocation(SereneContext &ctx, llvm::StringRef ns);
+  Location() = default;
+  Location(llvm::StringRef ns,
+           llvm::Optional<llvm::StringRef> fname = llvm::None,
+           const char *c = nullptr, unsigned short int line = 0,
+           unsigned short int col = 0, bool knownLocation = true)
+      : ns(ns), filename(fname), c(c), line(line), col(col){};
+
+  Location clone();
+  Location clone() const;
+
+  mlir::Location toMLIRLocation(SereneContext &ctx);
+
+  /// Returns an unknown location for the given \p ns.
+  static Location UnknownLocation(llvm::StringRef ns) {
+    return Location(ns, llvm::None, nullptr, 0, 0, false);
+  }
 };
 
 class LocationRange {
@@ -62,7 +81,13 @@ public:
   LocationRange() = default;
   LocationRange(Location _start) : start(_start), end(_start){};
   LocationRange(Location _start, Location _end) : start(_start), end(_end){};
-  LocationRange(const LocationRange &);
+  // LocationRange(const LocationRange &);
+
+  bool isKnownLocation() { return start.knownLocation; };
+
+  static LocationRange UnknownLocation(llvm::StringRef ns) {
+    return LocationRange(Location::UnknownLocation(ns));
+  }
 };
 
 void incLocation(Location &, const char *);
