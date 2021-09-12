@@ -80,7 +80,9 @@ static ErrorVariant
                           "");
 
 static ErrorVariant PassFailureError(E0007, "Pass Failure.", "");
+
 static ErrorVariant NSLoadError(E0008, "Faild to find a namespace.", "");
+
 static ErrorVariant
     NSAddToSMError(E0009, "Faild to add the namespace to the source manager.",
                    "");
@@ -93,8 +95,9 @@ static ErrorVariant InvalidDigitForNumber(E0011, "Invalid digit for a number.",
 
 static ErrorVariant
     TwoFloatPoints(E0012, "Two or more float point characters in a number", "");
-static ErrorVariant InvalidCharacterForSymbol(
-    E0013, "Two or more float point characters in a number", "");
+
+static ErrorVariant
+    InvalidCharacterForSymbol(E0013, "Invalid character for a symbol", "");
 
 static std::map<ErrID, ErrorVariant *> ErrDesc = {
     {E0000, &UnknownError},          {E0001, &DefExpectSymbol},

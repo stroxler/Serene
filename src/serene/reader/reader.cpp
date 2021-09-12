@@ -54,83 +54,80 @@ namespace reader {
 Reader::Reader(SereneContext &ctx, llvm::StringRef buffer, llvm::StringRef ns,
                llvm::Optional<llvm::StringRef> filename)
     : ctx(ctx), ns(ns), filename(filename), buf(buffer),
-      currentLocation(Location(ns, filename)){};
+      currentLocation(Location(ns, filename)) {
+  READER_LOG("Setting the first char of the buffer");
+  currentChar          = buf.begin();
+  currentPos           = 1;
+  currentLocation.line = 1;
+  currentLocation.col  = 1;
+};
 
 Reader::Reader(SereneContext &ctx, llvm::MemoryBufferRef buffer,
                llvm::StringRef ns, llvm::Optional<llvm::StringRef> filename)
-    : ctx(ctx), ns(ns), filename(filename), buf(buffer.getBuffer()),
-      currentLocation(Location(ns, filename)){};
+    : Reader(ctx, buffer.getBuffer(), ns, filename){};
 
 Reader::~Reader() { READER_LOG("Destroying the reader"); }
 
-const char *Reader::getChar(bool skip_whitespace) {
-  for (;;) {
-    if (currentChar == NULL) {
-      READER_LOG("Setting the first char of the buffer");
-      currentChar          = buf.begin();
-      currentPos           = 1;
-      currentLocation.line = 1;
-      currentLocation.col  = 1;
-    } else {
-      currentChar++;
-      currentPos++;
+void Reader::advanceByOne() {
+  currentChar++;
+  currentPos++;
+  currentLocation.col++;
 
-      prevCol = currentLocation.col;
-      currentLocation.col++;
+  if (*currentChar == '\n') {
+    READER_LOG("Detected end of line");
 
-      if (*currentChar == '\n') {
-        READER_LOG("Detected end of line");
+    if (readEOL) {
+      currentLocation.col = 1;
+      currentLocation.line++;
+    }
 
-        if (readEOL) {
-          currentLocation.col = 1;
-          currentLocation.line++;
-        }
+    readEOL = true;
+  } else {
+    if (readEOL) {
+      currentLocation.line++;
+      currentLocation.col = 1;
+    }
+    readEOL = false;
+  }
 
-        readEOL = true;
-      } else {
+  READER_LOG("Moving to Char: " << *currentChar << " at location: "
+                                << currentLocation.toString());
+};
+void Reader::advance(bool skipWhitespace) {
+  startedReading = true;
 
-        if (readEOL) {
-          currentLocation.line++;
-          currentLocation.col = 1;
-        }
-        readEOL = false;
+  if (skipWhitespace) {
+    for (;;) {
+      auto next = currentChar + 1;
+
+      if (!isspace(*next)) {
+        return;
       }
-    }
-    READER_LOG("Current Char: " << *currentChar
-                                << " Location: " << currentLocation.toString());
 
-    if (skip_whitespace == true && isspace(*currentChar)) {
-      READER_LOG("Skip whitespace is true and the char is a whitespace");
-      continue;
-    } else {
-      return currentChar;
+      advanceByOne();
     }
+  } else {
+    advanceByOne();
   }
 };
 
-const char *Reader::nextChar() { return currentChar + 1; };
-
-void Reader::ungetChar() {
-  READER_LOG("Unread Char: " << *currentChar);
-  currentChar--;
-  currentPos--;
-  // The char that we just unget
-
-  if (*currentChar == '\n') {
-    // In case of EOL we don't decrease the line counter because we will read
-    //  it again and it will be pointless
-    READER_LOG("Detected end of line");
-    currentLocation.col = prevCol;
-
-  } else {
-    prevCol = prevCol == 0 ? 0 : prevCol - 1;
-
-    currentLocation.col =
-        currentLocation.col == 0 ? 0 : currentLocation.col - 1;
+const char *Reader::nextChar(bool skipWhitespace, unsigned count) {
+  if (!startedReading) {
+    return currentChar;
   }
 
-  READER_LOG("Current Char after unread: " << *currentChar << " Location: "
-                                           << currentLocation.toString());
+  if (!skipWhitespace) {
+    READER_LOG("Next char: " << *(currentChar + count));
+    return currentChar + count;
+  }
+
+  auto c = currentChar + 1;
+  while (isspace(*c)) {
+    c++;
+  };
+
+  READER_LOG("Next char: " << *c);
+  return c;
 };
 
 bool Reader::isEndOfBuffer(const char *c) {
@@ -178,98 +175,103 @@ exprs::Node Reader::readNumber(bool neg) {
   bool floatNum = false;
   bool empty    = false;
 
-  LocationRange loc;
-  auto c = getChar(false);
+  auto c = nextChar();
+  advance();
 
-  loc.start = getCurrentLocation();
+  LocationRange loc(getCurrentLocation());
 
-  while (!isEndOfBuffer(c) &&
-         ((!(isspace(*c)) && (isdigit(*c) || *c == '.')))) {
+  if (!isdigit(*c)) {
 
-    if (*c == '.' && floatNum == true) {
-      loc.end = getCurrentLocation();
-      ctx.diagEngine->emitSyntaxError(loc, errors::TwoFloatPoints);
-      exit(1);
-    }
-
-    if (*c == '.') {
-      floatNum = true;
-    }
-
-    number += *c;
-    c     = getChar(false);
-    empty = false;
+    ctx.diagEngine->emitSyntaxError(loc, errors::InvalidDigitForNumber);
+    exit(1);
   }
 
-  if (std::isalpha(*c)) {
+  for (;;) {
+    number += *c;
+    c     = nextChar(false);
+    empty = false;
+
+    if (isdigit(*c) || *c == '.') {
+      if (*c == '.' && floatNum == true) {
+        loc = LocationRange(getCurrentLocation());
+        ctx.diagEngine->emitSyntaxError(loc, errors::TwoFloatPoints);
+        exit(1);
+      }
+
+      if (*c == '.') {
+        floatNum = true;
+      }
+
+      advance();
+      continue;
+    }
+    break;
+  }
+
+  if ((std::isalpha(*c) && !empty) || empty) {
     loc.end = getCurrentLocation();
     ctx.diagEngine->emitSyntaxError(loc, errors::InvalidDigitForNumber);
     exit(1);
   }
 
-  if (!empty) {
-    ungetChar();
-    loc.end = getCurrentLocation();
-    return exprs::make<exprs::Number>(loc, number, neg, floatNum);
-  }
-
-  return nullptr;
+  loc.end = getCurrentLocation();
+  return exprs::make<exprs::Number>(loc, number, neg, floatNum);
 };
 
 /// Reads a symbol. If the symbol looks like a number
 /// If reads it as number
 exprs::Node Reader::readSymbol() {
   READER_LOG("Reading a symbol...");
-  bool empty = true;
-  auto c     = getChar(false);
   LocationRange loc;
-  loc.start = getCurrentLocation();
+  auto c = nextChar();
 
-  READER_LOG("Reading a symbol...");
-  if (!this->isValidForIdentifier(*c)) {
-    loc.end = getCurrentLocation();
+  if (!this->isValidForIdentifier(*c) || isEndOfBuffer(c) || isspace(*c)) {
+    advance();
+    loc = LocationRange(getCurrentLocation());
     ctx.diagEngine->emitSyntaxError(loc, errors::InvalidCharacterForSymbol);
     exit(1);
   }
 
   if (*c == '-') {
-    auto next = getChar(false);
-    ungetChar();
+    auto next = nextChar(false, 2);
     if (isdigit(*next)) {
+      // Swallow the -
+      advance();
       return readNumber(true);
     }
   }
 
   if (isdigit(*c)) {
-    ungetChar();
     return readNumber(false);
   }
 
   std::string sym("");
+  advance();
 
-  while (!isEndOfBuffer(c) &&
-         ((!(isspace(*c)) && this->isValidForIdentifier(*c)))) {
+  for (;;) {
     sym += *c;
-    c     = getChar(false);
-    empty = false;
+    c = nextChar();
+
+    if (!isEndOfBuffer(c) &&
+        ((!(isspace(*c)) && this->isValidForIdentifier(*c)))) {
+      advance();
+      continue;
+    }
+    break;
   }
 
-  if (!empty) {
-    ungetChar();
-    loc.end = getCurrentLocation();
-    return exprs::make<exprs::Symbol>(loc, sym);
-  }
-
-  llvm_unreachable("Unpredicted symbol read scenario");
-  return nullptr;
+  loc.end = getCurrentLocation();
+  return exprs::make<exprs::Symbol>(loc, sym);
 };
 
 /// Reads a list recursively
 exprs::Node Reader::readList() {
   READER_LOG("Reading a list...");
-  auto list = exprs::makeAndCast<exprs::List>(getCurrentLocation());
 
-  auto c = getChar(true);
+  auto c = nextChar();
+  advance();
+
+  auto list = exprs::makeAndCast<exprs::List>(getCurrentLocation());
 
   // TODO: Replace the assert with an actual check.
   assert(*c == '(');
@@ -277,9 +279,11 @@ exprs::Node Reader::readList() {
   bool list_terminated = false;
 
   do {
-    auto c = getChar(true);
+    auto c = nextChar(true);
 
     if (isEndOfBuffer(c)) {
+      advance(true);
+      advance();
       list->location.end = getCurrentLocation();
       ctx.diagEngine->emitSyntaxError(list->location,
                                       errors::EOFWhileScaningAList);
@@ -288,12 +292,14 @@ exprs::Node Reader::readList() {
 
     switch (*c) {
     case ')':
+      advance(true);
+      advance();
       list_terminated    = true;
       list->location.end = getCurrentLocation();
       break;
 
     default:
-      ungetChar();
+      advance(true);
       list->append(readExpr());
     }
 
@@ -304,9 +310,9 @@ exprs::Node Reader::readList() {
 
 /// Reads an expression by dispatching to the proper reader function.
 exprs::Node Reader::readExpr() {
-  auto c = getChar(false);
+  auto c = nextChar(true);
+
   READER_LOG("Read char at `readExpr`: " << *c);
-  ungetChar();
 
   if (isEndOfBuffer(c)) {
     return nullptr;
@@ -314,10 +320,12 @@ exprs::Node Reader::readExpr() {
 
   switch (*c) {
   case '(': {
+    advance(true);
     return readList();
   }
 
   default:
+    advance(true);
     return readSymbol();
   }
 };
@@ -327,14 +335,14 @@ exprs::Node Reader::readExpr() {
 /// reader function.
 Result<exprs::Ast> Reader::read() {
 
-  // while (!isEndOfBuffer(c)) {
   for (size_t current_pos = 0; current_pos < buf.size();) {
-    auto c = getChar(true);
+    auto c = nextChar(true);
+
     if (isEndOfBuffer(c)) {
       break;
     }
 
-    ungetChar();
+    advance(true);
 
     auto tmp{readExpr()};
 
@@ -343,7 +351,6 @@ Result<exprs::Ast> Reader::read() {
     } else {
       break;
     }
-    // c = getChar(true);
   }
 
   return Result<exprs::Ast>::success(std::move(this->ast));

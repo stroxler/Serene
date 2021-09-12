@@ -68,24 +68,18 @@ private:
 
   Location currentLocation;
 
-  /// When we're dealing with the end of line we need to know what is the col
-  /// number for that EOL
-  unsigned prevCol = 0;
-
   bool readEOL = false;
+  bool startedReading = false;
 
   /// Returns a clone of the current location
   Location getCurrentLocation();
   /// Returns the next character from the stream.
   /// @param skip_whitespace An indicator to whether skip white space like chars
   /// or not
-  const char *getChar(bool skipWhitespace);
+  void advance(bool skipWhitespace = false);
+  void advanceByOne();
 
-  const char *nextChar();
-
-  /// Unreads the current character by moving the char pointer to the previous
-  /// char.
-  void ungetChar();
+  const char *nextChar(bool skipWhitespace = false, unsigned count = 1);
 
   /// Returns a boolean indicating whether the given input character is valid
   /// for an identifier or not.
