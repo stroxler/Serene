@@ -84,18 +84,22 @@ void Diagnostic::print(llvm::raw_ostream &os, llvm::StringRef prefix) {
   llvm::WithColor s(os, llvm::raw_ostream::SAVEDCOLOR, true, false, mode);
 
   s << "[";
+  if (err) {
+    writeColorByType(os, err->getErrId());
+  }
+  s << "] ";
   writeColorByType(os, getPrefix(prefix));
-  s << "]: ";
+  s << ": ";
 
   if (err) {
-    s << err->description << "\n";
+    s << err->description << '\n';
   }
 
   if (message != "") {
     s.changeColor(llvm::raw_ostream::Colors::YELLOW);
-    s << "With message: ";
+    s << "With message";
     s.resetColor();
-    s << message << "\n";
+    s << ": " << message << "\n";
   }
 
   s << "In ns '";

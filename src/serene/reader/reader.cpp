@@ -222,7 +222,14 @@ exprs::Node Reader::readSymbol() {
   if (!this->isValidForIdentifier(*c) || isEndOfBuffer(c) || isspace(*c)) {
     advance();
     loc = LocationRange(getCurrentLocation());
-    ctx.diagEngine->emitSyntaxError(loc, errors::InvalidCharacterForSymbol);
+    std::string msg;
+
+    if (*c == ')') {
+      msg = "An extra ')' is detected.";
+    }
+
+    ctx.diagEngine->emitSyntaxError(loc, errors::InvalidCharacterForSymbol,
+                                    msg);
     exit(1);
   }
 
