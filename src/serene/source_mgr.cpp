@@ -29,6 +29,7 @@
 #include "serene/namespace.h"
 #include "serene/reader/location.h"
 #include "serene/reader/reader.h"
+#include "serene/utils.h"
 
 #include "llvm/Support/MemoryBufferRef.h"
 
@@ -78,6 +79,8 @@ NSPtr SourceMgr::readNamespace(SereneContext &ctx, std::string name,
   }
 
   auto bufferId = AddNewSourceBuffer(std::move(*newBufOrErr), importLoc);
+
+  UNUSED(nsTable.insert_or_assign(name, bufferId));
 
   if (bufferId == 0) {
     auto msg = llvm::formatv("Couldn't add namespace '{0}'", name);
@@ -151,25 +154,25 @@ unsigned SourceMgr::AddNewSourceBuffer(std::unique_ptr<llvm::MemoryBuffer> f,
 //   return 0;
 // }
 
-// template <typename T>
-// static std::vector<T> &GetOrCreateOffsetCache(void *&offsetCache,
-//                                               llvm::MemoryBuffer *buffer) {
-//   if (offsetCache)
-//     return *static_cast<std::vector<T> *>(offsetCache);
+template <typename T>
+static std::vector<T> &GetOrCreateOffsetCache(void *&offsetCache,
+                                              llvm::MemoryBuffer *buffer) {
+  if (offsetCache)
+    return *static_cast<std::vector<T> *>(offsetCache);
 
-//   // Lazily fill in the offset cache.
-//   auto *offsets = new std::vector<T>();
-//   size_t sz     = buffer->getBufferSize();
-//   assert(sz <= std::numeric_limits<T>::max());
-//   llvm::StringRef s = buffer->getBuffer();
-//   for (size_t n = 0; n < sz; ++n) {
-//     if (s[n] == '\n')
-//       offsets->push_back(static_cast<T>(n));
-//   }
+  // Lazily fill in the offset cache.
+  auto *offsets = new std::vector<T>();
+  size_t sz     = buffer->getBufferSize();
+  assert(sz <= std::numeric_limits<T>::max());
+  llvm::StringRef s = buffer->getBuffer();
+  for (size_t n = 0; n < sz; ++n) {
+    if (s[n] == '\n')
+      offsets->push_back(static_cast<T>(n));
+  }
 
-//   offsetCache = offsets;
-//   return *offsets;
-// }
+  offsetCache = offsets;
+  return *offsets;
+}
 
 // template <typename T>
 // unsigned SourceMgr::SrcBuffer::getLineNumberSpecialized(const char *ptr)
@@ -203,41 +206,41 @@ unsigned SourceMgr::AddNewSourceBuffer(std::unique_ptr<llvm::MemoryBuffer> f,
 //     return getLineNumberSpecialized<uint64_t>(ptr);
 // }
 
-// template <typename T>
-// const char *SourceMgr::SrcBuffer::getPointerForLineNumberSpecialized(
-//     unsigned lineNo) const {
-//   std::vector<T> &offsets =
-//       GetOrCreateOffsetCache<T>(offsetCache, buffer.get());
+template <typename T>
+const char *SourceMgr::SrcBuffer::getPointerForLineNumberSpecialized(
+    unsigned lineNo) const {
+  std::vector<T> &offsets =
+      GetOrCreateOffsetCache<T>(offsetCache, buffer.get());
 
-//   // We start counting line and column numbers from 1.
-//   if (lineNo != 0)
-//     --lineNo;
+  // We start counting line and column numbers from 1.
+  if (lineNo != 0)
+    --lineNo;
 
-//   const char *bufStart = buffer->getBufferStart();
+  const char *bufStart = buffer->getBufferStart();
 
-//   // The offset cache contains the location of the \n for the specified line,
-//   // we want the start of the line.  As such, we look for the previous entry.
-//   if (lineNo == 0)
-//     return bufStart;
-//   if (lineNo > offsets.size())
-//     return nullptr;
-//   return bufStart + offsets[lineNo - 1] + 1;
-// }
+  // The offset cache contains the location of the \n for the specified line,
+  // we want the start of the line.  As such, we look for the previous entry.
+  if (lineNo == 0)
+    return bufStart;
+  if (lineNo > offsets.size())
+    return nullptr;
+  return bufStart + offsets[lineNo - 1] + 1;
+}
 
-// /// Return a pointer to the first character of the specified line number or
-// /// null if the line number is invalid.
-// const char *
-// SourceMgr::SrcBuffer::getPointerForLineNumber(unsigned lineNo) const {
-//   size_t sz = buffer->getBufferSize();
-//   if (sz <= std::numeric_limits<uint8_t>::max())
-//     return getPointerForLineNumberSpecialized<uint8_t>(lineNo);
-//   else if (sz <= std::numeric_limits<uint16_t>::max())
-//     return getPointerForLineNumberSpecialized<uint16_t>(lineNo);
-//   else if (sz <= std::numeric_limits<uint32_t>::max())
-//     return getPointerForLineNumberSpecialized<uint32_t>(lineNo);
-//   else
-//     return getPointerForLineNumberSpecialized<uint64_t>(lineNo);
-// }
+/// Return a pointer to the first character of the specified line number or
+/// null if the line number is invalid.
+const char *
+SourceMgr::SrcBuffer::getPointerForLineNumber(unsigned lineNo) const {
+  size_t sz = buffer->getBufferSize();
+  if (sz <= std::numeric_limits<uint8_t>::max())
+    return getPointerForLineNumberSpecialized<uint8_t>(lineNo);
+  else if (sz <= std::numeric_limits<uint16_t>::max())
+    return getPointerForLineNumberSpecialized<uint16_t>(lineNo);
+  else if (sz <= std::numeric_limits<uint32_t>::max())
+    return getPointerForLineNumberSpecialized<uint32_t>(lineNo);
+  else
+    return getPointerForLineNumberSpecialized<uint64_t>(lineNo);
+}
 
 SourceMgr::SrcBuffer::SrcBuffer(SourceMgr::SrcBuffer &&other)
     : buffer(std::move(other.buffer)), offsetCache(other.offsetCache),

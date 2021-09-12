@@ -175,7 +175,6 @@ exprs::Node Reader::readNumber(bool neg) {
   LocationRange loc(getCurrentLocation());
 
   if (!isdigit(*c)) {
-
     ctx.diagEngine->emitSyntaxError(loc, errors::InvalidDigitForNumber);
     exit(1);
   }
@@ -203,7 +202,8 @@ exprs::Node Reader::readNumber(bool neg) {
   }
 
   if ((std::isalpha(*c) && !empty) || empty) {
-    loc.end = getCurrentLocation();
+    advance();
+    loc.start = getCurrentLocation();
     ctx.diagEngine->emitSyntaxError(loc, errors::InvalidDigitForNumber);
     exit(1);
   }

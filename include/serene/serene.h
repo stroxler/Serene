@@ -28,9 +28,6 @@
 #include "serene/context.h"
 #include "serene/source_mgr.h"
 
-// Sometimes we need this to make both analyzer happy
-// and the fn signature right.
-#define UNUSED(x) (void)(x)
 
 namespace serene {} // namespace serene
 #endif

@@ -32,6 +32,7 @@
 #include "llvm/Support/WithColor.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include <llvm/Support/FormatAdapters.h>
 #include <llvm/Support/FormatVariadic.h>
 #include <memory>
 
@@ -83,24 +84,9 @@ void Diagnostic::print(llvm::raw_ostream &os, llvm::StringRef prefix) {
 
   llvm::WithColor s(os, llvm::raw_ostream::SAVEDCOLOR, true, false, mode);
 
-  s << "[";
-  if (err) {
-    writeColorByType(os, err->getErrId());
-  }
-  s << "] ";
-  writeColorByType(os, getPrefix(prefix));
-  s << ": ";
-
-  if (err) {
-    s << err->description << '\n';
-  }
-
-  if (message != "") {
-    s.changeColor(llvm::raw_ostream::Colors::YELLOW);
-    s << "With message";
-    s.resetColor();
-    s << ": " << message << "\n";
-  }
+  s << "\n[";
+  writeColorByType(os, "Error");
+  s << "]>\n";
 
   s << "In ns '";
   s.changeColor(llvm::raw_ostream::Colors::MAGENTA);
@@ -120,6 +106,50 @@ void Diagnostic::print(llvm::raw_ostream &os, llvm::StringRef prefix) {
     s.changeColor(llvm::raw_ostream::Colors::CYAN);
     s << loc.start.col;
     s.resetColor();
+  }
+
+  s << "\n\n";
+
+  auto &srcBuf     = ctx.sourceManager.getBufferInfo(loc.start.ns);
+  const char *line = srcBuf.getPointerForLineNumber(loc.start.line);
+
+  while (*line != '\n' && line != srcBuf.buffer->getBufferEnd()) {
+    s << *line;
+    line++;
+  }
+
+  s << '\n';
+
+  s.changeColor(llvm::raw_ostream::Colors::GREEN);
+  s << llvm::formatv("{0}", llvm::fmt_pad("^", (size_t)loc.start.col - 1, 0));
+  s.resetColor();
+
+  s << '\n';
+
+  s << "[";
+  if (err) {
+    writeColorByType(os, err->getErrId());
+  }
+  s << "] ";
+  writeColorByType(os, getPrefix(prefix));
+  s << ": ";
+
+  if (err) {
+    s << err->description << '\n';
+  }
+
+  if (message != "") {
+    s.changeColor(llvm::raw_ostream::Colors::YELLOW);
+    s << "With message";
+    s.resetColor();
+    s << ": " << message << "\n";
+  }
+
+  if (err) {
+    s << "For more information checkout";
+    s.changeColor(llvm::raw_ostream::Colors::CYAN);
+    s << " `serenec --explain ";
+    s << err->getErrId() << "`\n";
   }
 };
 

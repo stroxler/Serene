@@ -28,6 +28,9 @@
 #include "serene/namespace.h"
 #include "serene/reader/location.h"
 
+#include "llvm/ADT/StringMap.h"
+#include "llvm/Support/ErrorHandling.h"
+
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/Support/ErrorOr.h>
 #include <llvm/Support/MemoryBuffer.h>
@@ -103,6 +106,8 @@ private:
   /// This is all of the buffers that we are reading from.
   std::vector<SrcBuffer> buffers;
 
+  llvm::StringMap<unsigned> nsTable;
+
   /// A mapping from the ns name to buffer id. The ns name is a reference to
   /// the actual name that is stored in the Namespace instance.
   llvm::DenseMap<llvm::StringRef, unsigned> nsToBufId;
@@ -141,6 +146,18 @@ public:
   const SrcBuffer &getBufferInfo(unsigned i) const {
     assert(isValidBufferID(i));
     return buffers[i - 1];
+  }
+
+  const SrcBuffer &getBufferInfo(llvm::StringRef ns) const {
+    auto bufferId = nsTable.lookup(ns);
+
+    if (bufferId == 0) {
+      // No such namespace
+      llvm_unreachable("couldn't find the src buffer for a namespace. It "
+                       "should never happen.");
+    }
+
+    return buffers[bufferId - 1];
   }
 
   const llvm::MemoryBuffer *getMemoryBuffer(unsigned i) const {

@@ -29,6 +29,10 @@
 
 #include <variant>
 
+// Sometimes we need this to make both analyzer happy
+// and the fn signature right.
+#define UNUSED(x) (void)(x)
+
 // C++17 required. We can't go back to 14 any more :))
 
 namespace serene {
