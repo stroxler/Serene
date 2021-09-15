@@ -45,24 +45,29 @@
 
 namespace serene {
 class SereneContext;
-class SMDiagnostic;
 
+/// This class is quite similar to the `llvm::SourceMgr` in functionality. We
+/// even borrowed some of the code from the original implementation but removed
+/// a lot of code that ar irrelevant to us.
+///
+/// SouceMgr is responsible for finding a namespace in the `loadPaths` and read
+/// the content of the `.srn` (or any of the `DEFAULT_SUFFIX`) into a
+/// `llvm::MemoryBuffer` embedded in a `SrcBuffer` object as the owner of the
+/// source files and then it will call the `reader` on the buffer to parse it
+/// and create the actual `Namespace` object from the parsed AST.
+///
+/// Later on, whenever we need to refer to the source file of a namespace for
+/// diagnosis purposes or any other purpose we can use the functions in this
+/// class to get hold of a pointer to a specific `reader::Location` of the
+/// buffer.
+///
+/// Note: Unlike the original version, SourceMgr does not handle the diagnostics
+/// and it uses the Serene's `DiagnosticEngine` for that matter.
 class SourceMgr {
 
 public:
+  // TODO: Make it a vector of supported suffixes
   std::string DEFAULT_SUFFIX = "srn";
-
-  enum DiagKind {
-    DK_Error,
-    DK_Warning,
-    DK_Remark,
-    DK_Note,
-  };
-
-  /// Clients that want to handle their own diagnostics in a custom way can
-  /// register a function pointer+context as a diagnostic handler.
-  /// It gets called each time PrintMessage is invoked.
-  using DiagHandlerTy = void (*)(const SMDiagnostic &, void *context);
 
 private:
   struct SrcBuffer {
@@ -90,11 +95,13 @@ private:
     /// Return a pointer to the first character of the specified line number or
     /// null if the line number is invalid.
     const char *getPointerForLineNumber(unsigned lineNo) const;
+
     template <typename T>
     const char *getPointerForLineNumberSpecialized(unsigned lineNo) const;
 
-    /// This is the location of the parent include, or null if at the top level.
-    reader::LocationRange includeLoc;
+    /// This is the location of the parent import or unknown location if it is
+    /// the main namespace
+    reader::LocationRange importLoc;
 
     SrcBuffer() = default;
     SrcBuffer(SrcBuffer &&);
@@ -106,17 +113,12 @@ private:
   /// This is all of the buffers that we are reading from.
   std::vector<SrcBuffer> buffers;
 
+  /// A hashtable that works as an index from namespace names to the buffer
+  /// position it the `buffer`
   llvm::StringMap<unsigned> nsTable;
-
-  /// A mapping from the ns name to buffer id. The ns name is a reference to
-  /// the actual name that is stored in the Namespace instance.
-  llvm::DenseMap<llvm::StringRef, unsigned> nsToBufId;
 
   // This is the list of directories we should search for include files in.
   std::vector<std::string> loadPaths;
-
-  DiagHandlerTy diagHandler = nullptr;
-  void *diagContext         = nullptr;
 
   bool isValidBufferID(unsigned i) const { return i && i <= buffers.size(); }
 
@@ -131,23 +133,18 @@ public:
   SourceMgr &operator=(SourceMgr &&) = default;
   ~SourceMgr()                       = default;
 
+  /// Set the `loadPaths` to the given \p dirs. `loadPaths` is a vector of
+  /// directories that Serene will look in order to find a file that constains a
+  /// namespace which it is looking for.
   void setLoadPaths(const std::vector<std::string> &dirs) { loadPaths = dirs; }
 
-  /// Specify a diagnostic handler to be invoked every time PrintMessage is
-  /// called. \p Ctx is passed into the handler when it is invoked.
-  void setDiagHandler(DiagHandlerTy dh, void *ctx = nullptr) {
-    diagHandler = dh;
-    diagContext = ctx;
-  }
-
-  DiagHandlerTy getDiagHandler() const { return diagHandler; }
-  void *getDiagContext() const { return diagContext; }
-
+  /// Return a reference to a `SrcBuffer` with the given ID \p i.
   const SrcBuffer &getBufferInfo(unsigned i) const {
     assert(isValidBufferID(i));
     return buffers[i - 1];
   }
 
+  /// Return a reference to a `SrcBuffer` with the given namspace name \p ns.
   const SrcBuffer &getBufferInfo(llvm::StringRef ns) const {
     auto bufferId = nsTable.lookup(ns);
 
@@ -160,6 +157,8 @@ public:
     return buffers[bufferId - 1];
   }
 
+  /// Return a pointer to the internal `llvm::MemoryBuffer` of the `SrcBuffer`
+  /// with the given ID \p i.
   const llvm::MemoryBuffer *getMemoryBuffer(unsigned i) const {
     assert(isValidBufferID(i));
     return buffers[i - 1].buffer.get();
@@ -167,150 +166,21 @@ public:
 
   unsigned getNumBuffers() const { return buffers.size(); }
 
-  unsigned getMainFileID() const {
-    assert(getNumBuffers());
-    return 1;
-  }
-
-  // reader::LocationRange getParentIncludeLoc(unsigned i) const {
-  //   assert(isValidBufferID(i));
-  //   return buffers[i - 1].includeLoc;
-  // }
-
   /// Add a new source buffer to this source manager. This takes ownership of
   /// the memory buffer.
   unsigned AddNewSourceBuffer(std::unique_ptr<llvm::MemoryBuffer> f,
                               reader::LocationRange includeLoc);
-  /// Search for a file with the specified name in the current directory or in
-  /// one of the IncludeDirs.
+
+  /// Lookup for a file containing the namespace definition of with given
+  /// namespace name \p name and throw an error. In case that the file exists,
+  /// use the parser to read the file and create an AST from it. Then create a
+  /// namespace, set the its AST to the AST that we just read from the file and
+  /// return a shared pointer to the namespace.
   ///
-  /// If no file is found, this returns 0, otherwise it returns the buffer ID
-  /// of the stacked file. The full path to the included file can be found in
-  /// \p IncludedFile.
-  // unsigned AddIncludeFile(const std::string &filename, llvm::SMLoc
-  // includeLoc,
-  //                         std::string &includedFile);
-
+  /// \p importLoc is a location in the source code where the give namespace is
+  /// imported.
   NSPtr readNamespace(SereneContext &ctx, std::string name,
-                      reader::LocationRange importLoc, bool entryNS = false);
-
-  // /// Return the ID of the buffer containing the specified location.
-  // ///
-  // /// 0 is returned if the buffer is not found.
-  // unsigned FindBufferContainingLoc(llvm::SMLoc loc) const;
-
-  // /// Find the line number for the specified location in the specified file.
-  // /// This is not a fast method.
-  // unsigned FindLineNumber(llvm::SMLoc loc, unsigned bufferID = 0) const {
-  //   return getLineAndColumn(loc, bufferID).first;
-  // }
-
-  // /// Find the line and column number for the specified location in the
-  // /// specified file. This is not a fast method.
-  // std::pair<unsigned, unsigned> getLineAndColumn(llvm::SMLoc loc,
-  //                                                unsigned bufferID = 0)
-  //                                                const;
-
-  // /// Get a string with the \p llvm::SMLoc filename and line number
-  // /// formatted in the standard style.
-  // std::string getFormattedLocationNoOffset(llvm::SMLoc loc,
-  //                                          bool includePath = false) const;
-
-  // /// Given a line and column number in a mapped buffer, turn it into an
-  // /// llvm::SMLoc. This will return a null llvm::SMLoc if the line/column
-  // /// location is invalid.
-  // llvm::SMLoc FindLocForLineAndColumn(unsigned bufferID, unsigned lineNo,
-  //                                     unsigned colNo);
-
-  // /// Emit a message about the specified location with the specified string.
-  // ///
-  // /// \param ShowColors Display colored messages if output is a terminal and
-  // /// the default error handler is used.
-  // void PrintMessage(llvm::raw_ostream &os, llvm::SMLoc loc, DiagKind kind,
-  //                   const llvm::Twine &msg,
-  //                   llvm::ArrayRef<llvm::SMRange> ranges = {},
-  //                   llvm::ArrayRef<llvm::SMFixIt> fixIts = {},
-  //                   bool showColors                      = true) const;
-
-  // /// Emits a diagnostic to llvm::errs().
-  // void PrintMessage(llvm::SMLoc loc, DiagKind kind, const llvm::Twine &msg,
-  //                   llvm::ArrayRef<llvm::SMRange> ranges = {},
-  //                   llvm::ArrayRef<llvm::SMFixIt> fixIts = {},
-  //                   bool showColors                      = true) const;
-
-  // /// Emits a manually-constructed diagnostic to the given output stream.
-  // ///
-  // /// \param ShowColors Display colored messages if output is a terminal and
-  // /// the default error handler is used.
-  // void PrintMessage(llvm::raw_ostream &os, const SMDiagnostic &diagnostic,
-  //                   bool showColors = true) const;
-
-  // /// Return an SMDiagnostic at the specified location with the specified
-  // /// string.
-  // ///
-  // /// \param Msg If non-null, the kind of message (e.g., "error") which is
-  // /// prefixed to the message.
-  // SMDiagnostic GetMessage(llvm::SMLoc loc, DiagKind kind,
-  //                         const llvm::Twine &msg,
-  //                         llvm::ArrayRef<llvm::SMRange> ranges = {},
-  //                         llvm::ArrayRef<llvm::SMFixIt> fixIts = {}) const;
-
-  // /// Prints the names of included files and the line of the file they were
-  // /// included from. A diagnostic handler can use this before printing its
-  // /// custom formatted message.
-  // ///
-  // /// \param IncludeLoc The location of the include.
-  // /// \param OS the raw_ostream to print on.
-  // void PrintIncludeStack(llvm::SMLoc includeLoc, llvm::raw_ostream &os)
-  // const;
-};
-
-/// Instances of this class encapsulate one diagnostic report, allowing
-/// printing to a raw_ostream as a caret diagnostic.
-class SMDiagnostic {
-  const SourceMgr *sm = nullptr;
-  llvm::SMLoc loc;
-  std::string filename;
-  int lineNo               = 0;
-  int columnNo             = 0;
-  SourceMgr::DiagKind kind = SourceMgr::DK_Error;
-  std::string message, lineContents;
-  std::vector<std::pair<unsigned, unsigned>> ranges;
-  llvm::SmallVector<llvm::SMFixIt, 4> fixIts;
-
-public:
-  // Null diagnostic.
-  SMDiagnostic() = default;
-  // Diagnostic with no location (e.g. file not found, command line arg error).
-  SMDiagnostic(llvm::StringRef filename, SourceMgr::DiagKind knd,
-               llvm::StringRef msg)
-      : filename(filename), lineNo(-1), columnNo(-1), kind(knd), message(msg) {}
-
-  // Diagnostic with a location.
-  SMDiagnostic(const SourceMgr &sm, llvm::SMLoc l, llvm::StringRef fn, int line,
-               int col, SourceMgr::DiagKind kind, llvm::StringRef msg,
-               llvm::StringRef lineStr,
-               llvm::ArrayRef<std::pair<unsigned, unsigned>> ranges,
-               llvm::ArrayRef<llvm::SMFixIt> fixIts = {});
-
-  const SourceMgr *getSourceMgr() const { return sm; }
-  llvm::SMLoc getLoc() const { return loc; }
-  llvm::StringRef getFilename() const { return filename; }
-  int getLineNo() const { return lineNo; }
-  int getColumnNo() const { return columnNo; }
-  SourceMgr::DiagKind getKind() const { return kind; }
-  llvm::StringRef getMessage() const { return message; }
-  llvm::StringRef getLineContents() const { return lineContents; }
-  llvm::ArrayRef<std::pair<unsigned, unsigned>> getRanges() const {
-    return ranges;
-  }
-
-  void addFixIt(const llvm::SMFixIt &hint) { fixIts.push_back(hint); }
-
-  llvm::ArrayRef<llvm::SMFixIt> getFixIts() const { return fixIts; }
-
-  void print(const char *progName, llvm::raw_ostream &s, bool showColors = true,
-             bool showKindLabel = true) const;
+                      reader::LocationRange importLoc);
 };
 
 }; // namespace serene
