@@ -27,6 +27,17 @@ function clang_format_staged() {
 
 }
 
+function git_add_changes() {
+    local files=$(get_changed_files)
+
+    if [[ "$files" ]];
+    then
+        git add $(get_changed_files)
+    fi
+
+}
+
+
 fix_includes
 clang_format_staged
-git add $(get_changed_files)
+git_add_changes
