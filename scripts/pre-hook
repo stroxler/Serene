@@ -1,0 +1,28 @@
+#! /bin/bash
+
+
+function get_changed_files() {
+    local files=$(git diff --cached --name-status | awk '$1 != "D" { print $2 }')
+
+    if [[ "$files" ]]; then
+        echo $files
+    else
+        echo "LICENSE"
+    fi
+}
+
+function fix_includes() {
+    sed -i -E '/^#include "(serene|\.)/!s/^.include \"(.*)\"/#include <\1>/g' $(get_changed_files)
+
+}
+
+function clang_format_staged() {
+    for file in $(get_changed_files)
+    do
+        clang-format -i $file
+    done
+}
+
+fix_includes
+clang_format_staged
+git add $(get_changed_files)

@@ -29,6 +29,7 @@ export LSAN_OPTIONS
 # root of the source tree
 ROOT_DIR=$(pwd)
 BUILD_DIR=$ROOT_DIR/build
+ME=$(cd "$(dirname "$0")/." >/dev/null 2>&1 ; pwd -P)
 
 scanbuild=scan-build
 
@@ -118,12 +119,8 @@ function tests() {
 
 case "$command" in
     "setup")
-        pushd ./scripts || return
-        ./git-pre-commit-format install
-        popd || return
-	echo "=== Manual action required ==="
-	echo "Set this environment variable. (clang-format-diff.py is located inside llvm's source directory)."
-	echo 'export CLANG_FORMAT_DIFF="python3 /path/to/llvm/saurce/llvm-project/clang/tools/clang-format/clang-format-diff.py"'
+        rm -rv $ME/.git/hooks/pre-commit
+        ln -s $ME/scripts/pre-hook $ME/.git/hooks/pre-commit
         ;;
     "build")
         clean
