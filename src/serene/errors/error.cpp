@@ -22,9 +22,10 @@
  * SOFTWARE.
  */
 
-#include "serene/errors/error.h"
+
 
 #include "llvm/Support/FormatVariadic.h"
+#include "serene/errors/error.h"
 
 namespace serene {
 namespace errors {
