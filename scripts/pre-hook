@@ -2,7 +2,6 @@
 
 function get_changed_files() {
     git diff --cached --name-status |egrep '*\.(cpp|h|hpp|cpp.inc|h.inc)'|awk '$1 != "D" { print $2 }'
-
 }
 
 function fix_includes(){
@@ -10,6 +9,7 @@ function fix_includes(){
 
     if [[ "$files" ]];
     then
+        echo "Fixing '#include' syntax...."
         sed -i -E '/^#include "(serene|\.)/!s/^.include \"(.*)\"/#include <\1>/g' $files
     fi
 }
@@ -21,6 +21,7 @@ function clang_format_staged() {
     then
         for file in $(get_changed_files)
         do
+            echo "Reformatting $file..."
             clang-format -i $file
         done
     fi
