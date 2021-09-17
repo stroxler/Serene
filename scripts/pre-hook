@@ -10,7 +10,7 @@ function fix_includes(){
 
     if [[ "$files" ]];
     then
-        sed - i -E '/^#include "(serene|\.)/!s/^.include \"(.*)\"/#include <\1>/g' $(files)
+        sed -i -E '/^#include "(serene|\.)/!s/^.include \"(.*)\"/#include <\1>/g' $files
     fi
 }
 
@@ -32,7 +32,7 @@ function git_add_changes() {
 
     if [[ "$files" ]];
     then
-        git add $(get_changed_files)
+        git add $files
     fi
 
 }

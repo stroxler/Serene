@@ -30,7 +30,6 @@
 #include "serene/traits.h"
 #include "serene/utils.h"
 
-#include <algorithm>
 #include <atomic>
 #include <llvm/ADT/SmallString.h>
 #include <llvm/ADT/StringRef.h>
@@ -98,6 +97,7 @@ public:
 
   SereneContext &getContext();
 
+  // TODO: Fix the return type and use a `llvm::Optional` instead
   /// Generate and return a MLIR ModuleOp tha contains the IR of the namespace
   /// with respect to the compilation phase
   MaybeModuleOp generate();

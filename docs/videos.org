@@ -170,7 +170,8 @@ CLOSED: [2021-09-04 Sat 10:53]
 *** The owner of LLVM/MLIR contexts
 *** Holds the namespace table
 *** Probably will contain the primitive types as well
-* Episode 8 - MLIR Basics
+* DONE Episode 8 - MLIR Basics
+CLOSED: [2021-09-17 Fri 10:18]
 ** Serene Changes
 - Introducing a SourceManager
 - Reader changes
@@ -376,3 +377,4 @@ define i64 @main1(i64 %0, i64 %1, i64 %2) !dbg !9 {
 - https://mlir.llvm.org/docs/LangRef
 - https://en.wikipedia.org/wiki/Basic_block
 
+* Episode 9 - Code Generation

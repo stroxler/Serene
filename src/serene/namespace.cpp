@@ -65,7 +65,6 @@ mlir::LogicalResult Namespace::setTree(exprs::Ast &t) {
   return mlir::success();
 }
 
-
 uint Namespace::nextFnCounter() { return fn_counter++; };
 
 SereneContext &Namespace::getContext() { return this->ctx; };
@@ -73,16 +72,18 @@ SereneContext &Namespace::getContext() { return this->ctx; };
 MaybeModuleOp Namespace::generate() {
   mlir::OpBuilder builder(&ctx.mlirContext);
   // TODO: Fix the unknown location by pointing to the `ns` form
-  // TODO: We need to call `erase` method of module somewhere to clean it up
-  //       maybe use a unique ptr?
   auto module = mlir::ModuleOp::create(builder.getUnknownLoc(), name);
 
+  // Walk the AST and call the `generateIR` function of each node.
+  // Since nodes will have access to the a reference of the
+  // namespace they can use the builder and keep adding more
+  // operations to the module via the builder
   for (auto &x : getTree()) {
     x->generateIR(*this, module);
   }
 
   if (mlir::failed(runPasses(module))) {
-    // TODO: throw a proper errer
+    // TODO: Report a proper error
     module.emitError("Failure in passes!");
     return MaybeModuleOp::error(true);
   }
@@ -99,7 +100,7 @@ void Namespace::dump() {
   auto maybeModuleOp = generate();
 
   if (!maybeModuleOp) {
-    llvm::outs() << "Failed to generate the IR.\n";
+    llvm::errs() << "Failed to generate the IR.\n";
     return;
   }
 

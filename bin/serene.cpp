@@ -240,7 +240,7 @@ int main(int argc, char *argv[]) {
   ctx->sourceManager.setLoadPaths(loadPaths);
 
   auto runLoc = reader::LocationRange::UnknownLocation(inputNS);
-  auto ns     = ctx->sourceManager.readNamespace(*ctx, inputNS, runLoc, true);
+  auto ns     = ctx->sourceManager.readNamespace(*ctx, inputNS, runLoc);
 
   if (!ns) {
     return (int)std::errc::no_such_file_or_directory;
@@ -328,6 +328,7 @@ int main(int argc, char *argv[]) {
   auto isSet = ns->setTree(afterAst.getValue());
   if (isSet.succeeded()) {
     ctx->insertNS(ns);
+
     switch (emitAction) {
     case Action::DumpSLIR:
     case Action::DumpMLIR:
