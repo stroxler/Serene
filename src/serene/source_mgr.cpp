@@ -28,6 +28,7 @@
 #include "serene/namespace.h"
 #include "serene/reader/location.h"
 #include "serene/reader/reader.h"
+#include "serene/reader/semantics.h"
 #include "serene/utils.h"
 
 #include <llvm/Support/FormatVariadic.h>
@@ -102,11 +103,18 @@ NSPtr SourceMgr::readNamespace(SereneContext &ctx, std::string name,
     return nullptr;
   }
 
+  // Perform the semantic analytics
+  auto afterAst = reader::analyze(ctx, maybeAst.getValue());
+  if (!afterAst) {
+    // TODO: Do we need raise an error here too?
+    return nullptr;
+  }
+
   // Create the NS and set the AST
   auto ns =
       makeNamespace(ctx, name, llvm::Optional(llvm::StringRef(importedFile)));
 
-  if (mlir::failed(ns->setTree(maybeAst.getValue()))) {
+  if (mlir::failed(ns->setTree(afterAst.getValue()))) {
     SMGR_LOG("Couldn't set the AST for namespace: " + name)
     return nullptr;
   }
@@ -117,8 +125,8 @@ NSPtr SourceMgr::readNamespace(SereneContext &ctx, std::string name,
 unsigned SourceMgr::AddNewSourceBuffer(std::unique_ptr<llvm::MemoryBuffer> f,
                                        reader::LocationRange includeLoc) {
   SrcBuffer nb;
-  nb.buffer     = std::move(f);
-  nb.importLoc  = includeLoc;
+  nb.buffer    = std::move(f);
+  nb.importLoc = includeLoc;
   buffers.push_back(std::move(nb));
   return buffers.size();
 };

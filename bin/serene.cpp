@@ -125,9 +125,13 @@ int dumpAsObject(Namespace &ns) {
   // TODO: Move the compilation process to the Namespace class
   auto maybeModule = ns.compileToLLVM();
   // TODO: Fix this call to raise the wrapped error instead
-  auto module = std::move(
-      maybeModule.getValueOrFail("Faild to generato LLVM IR for namespace"));
-  auto &ctx = ns.getContext();
+  if (!maybeModule) {
+    // TODO: Rais and error: "Faild to generato LLVM IR for namespace"
+    return -1;
+  }
+
+  auto module = std::move(maybeModule.getValue());
+  auto &ctx   = ns.getContext();
 
   // TODO: We need to set the triple data layout and everything to that sort in
   // one place. We want them for the JIT as well and also we're kinda
@@ -350,7 +354,11 @@ int main(int argc, char *argv[]) {
 
     case Action::RunJIT: {
       auto maybeJIT = JIT::make(*ns.get());
-      auto jit = std::move(maybeJIT.getValueOrFail("Couldn't creat the JIT!"));
+      if (!maybeJIT) {
+        // TODO: panic in here: "Couldn't creat the JIT!"
+        return -1;
+      }
+      auto jit = std::move(maybeJIT.getValue());
 
       if (jit->invoke("main")) {
         llvm::errs() << "Faild to invoke the 'main' function.\n";

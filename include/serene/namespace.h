@@ -53,11 +53,9 @@ class Expression;
 using Node = std::shared_ptr<Expression>;
 using Ast  = std::vector<Node>;
 } // namespace exprs
-  // TODO: replace the temporary `bool` by errors::Error
-using MaybeModule = Result<std::unique_ptr<llvm::Module>, bool>;
 
-// TODO: replace the temporary `bool` by errors::Error
-using MaybeModuleOp = Result<mlir::OwningOpRef<mlir::ModuleOp>, bool>;
+using MaybeModule   = llvm::Optional<std::unique_ptr<llvm::Module>>;
+using MaybeModuleOp = llvm::Optional<mlir::OwningOpRef<mlir::ModuleOp>>;
 
 /// Serene's namespaces are the unit of compilation. Any code that needs to be
 /// compiled has to be in a namespace. The official way to create a new

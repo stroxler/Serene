@@ -193,8 +193,11 @@ MaybeJIT JIT::make(Namespace &ns,
 
   auto maybeModule = jitEngine->ns.compileToLLVM();
 
-  auto llvmModule =
-      std::move(maybeModule.getValueOrFail("Compilation Failed!"));
+  if (!maybeModule.hasValue()) {
+    return llvm::None;
+  }
+
+  auto llvmModule = std::move(maybeModule.getValue());
   packFunctionArguments(llvmModule.get());
 
   auto dataLayout = llvmModule->getDataLayout();
@@ -282,7 +285,7 @@ MaybeJIT JIT::make(Namespace &ns,
       cantFail(llvm::orc::DynamicLibrarySearchGenerator::GetForCurrentProcess(
           dataLayout.getGlobalPrefix())));
 
-  return MaybeJIT::success(std::move(jitEngine));
+  return MaybeJIT(std::move(jitEngine));
 };
 
 llvm::Expected<void (*)(void **)> JIT::lookup(llvm::StringRef name) const {

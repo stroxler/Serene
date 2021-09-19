@@ -44,7 +44,7 @@
 namespace serene {
 class JIT;
 
-using MaybeJIT = Result<std::unique_ptr<JIT>, serene::errors::Error>;
+using MaybeJIT = llvm::Optional<std::unique_ptr<JIT>>;
 
 /// A simple object cache following Lang's LLJITWithObjectCache example and
 /// MLIR's SimpelObjectCache.

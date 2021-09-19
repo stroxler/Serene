@@ -60,6 +60,7 @@ mlir::LogicalResult Namespace::setTree(exprs::Ast &t) {
   if (initialized) {
     return mlir::failure();
   }
+
   this->tree        = std::move(t);
   this->initialized = true;
   return mlir::success();
@@ -85,10 +86,10 @@ MaybeModuleOp Namespace::generate() {
   if (mlir::failed(runPasses(module))) {
     // TODO: Report a proper error
     module.emitError("Failure in passes!");
-    return MaybeModuleOp::error(true);
+    return llvm::None;
   }
 
-  return MaybeModuleOp::success(module);
+  return MaybeModuleOp(module);
 }
 
 mlir::LogicalResult Namespace::runPasses(mlir::ModuleOp &m) {
@@ -112,15 +113,15 @@ MaybeModule Namespace::compileToLLVM() {
 
   if (!maybeModule) {
     NAMESPACE_LOG("IR generation failed for '" << name << "'");
-    return MaybeModule::error(true);
+    return llvm::None;
   }
 
   if (ctx.getTargetPhase() >= CompilationPhase::IR) {
     mlir::ModuleOp module = maybeModule.getValue().get();
-    return MaybeModule::success(::serene::slir::compileToLLVMIR(ctx, module));
+    return MaybeModule(::serene::slir::compileToLLVMIR(ctx, module));
   }
 
-  return MaybeModule::error(true);
+  return llvm::None;
 };
 
 Namespace::~Namespace(){};
