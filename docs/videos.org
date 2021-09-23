@@ -377,4 +377,28 @@ define i64 @main1(i64 %0, i64 %1, i64 %2) !dbg !9 {
 - https://mlir.llvm.org/docs/LangRef
 - https://en.wikipedia.org/wiki/Basic_block
 
-* Episode 9 - Code Generation
+* Episode 9 - IR (SLIR) generation
+** Updates:
+- Source manager
+- Diagnostic Engine
+- JIT
+
+There will be an episode dedicated to eache of these
+** How does IR generation works
+- Pass around MLIR context
+- Create Builder objects that creates operations in specific
+  locations
+- ModuleOp
+- Namespace
+** How to define a new dialect
+- Pure C++
+- Tablegen
+** SLIR
+*** The SLIR goal
+- An IR that follows the AST
+- Rename?
+*** Steps
+- [X] Define the new dialect
+- [X] Setup the tablegen
+- [X] Define the operations
+- [X] Walk the AST and generate the operations

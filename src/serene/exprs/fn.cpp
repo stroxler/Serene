@@ -24,7 +24,6 @@
 
 #include "serene/exprs/fn.h"
 
-#include "mlir/IR/BuiltinAttributes.h"
 #include "serene/errors/error.h"
 #include "serene/exprs/expression.h"
 #include "serene/exprs/list.h"
@@ -37,6 +36,7 @@
 #include <llvm/Support/Casting.h>
 #include <llvm/Support/FormatVariadic.h>
 #include <mlir/IR/Block.h>
+#include <mlir/IR/BuiltinAttributes.h>
 
 namespace serene {
 namespace exprs {
@@ -106,8 +106,8 @@ MaybeNode Fn::make(SereneContext &ctx, List *list) {
 };
 
 void Fn::generateIR(serene::Namespace &ns, mlir::ModuleOp &m) {
-  auto loc     = slir::toMLIRLocation(ns, location.start);
-  auto &ctx    = ns.getContext();
+  auto loc  = slir::toMLIRLocation(ns, location.start);
+  auto &ctx = ns.getContext();
 
   mlir::OpBuilder builder(&ctx.mlirContext);
 
@@ -127,7 +127,6 @@ void Fn::generateIR(serene::Namespace &ns, mlir::ModuleOp &m) {
         argSym->name, mlir::TypeAttr::get(builder.getI64Type())));
   }
 
-  // auto funcType = builder.getFunctionType(arg_types, builder.getI64Type());
   auto fn = builder.create<slir::FnOp>(
       loc, builder.getI64Type(), name,
       mlir::DictionaryAttr::get(builder.getContext(), arguments),
@@ -135,21 +134,26 @@ void Fn::generateIR(serene::Namespace &ns, mlir::ModuleOp &m) {
 
   if (!fn) {
     m.emitError(llvm::formatv("Can't create the function '{0}'", name));
+    return;
   }
 
-  auto *entryBlock = new mlir::Block();
   auto &body       = fn.body();
+  auto *entryBlock = new mlir::Block();
+
   body.push_back(entryBlock);
+
   builder.setInsertionPointToStart(entryBlock);
   auto retVal = builder.create<slir::ValueOp>(loc, 0).getResult();
 
-  mlir::ReturnOp returnOp = builder.create<mlir::ReturnOp>(loc, retVal);
+  slir::ReturnOp returnOp = builder.create<slir::ReturnOp>(loc, retVal);
 
   if (!returnOp) {
     m.emitError(
         llvm::formatv("Can't create the return value of function '{0}'", name));
+    fn.erase();
     return;
   }
+
   m.push_back(fn);
 };
 } // namespace exprs

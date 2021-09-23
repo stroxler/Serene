@@ -22,6 +22,21 @@
  * SOFTWARE.
  */
 
+/**
+ * Commentary:
+ * `Reader` is the base parser class and accepts a buffer like objenct (usually
+ * `llvm::StringRef`) as the input and parsess it to create an AST (look at the
+ * `serene::exprs::Expression` class).
+ *
+ * The parsing algorithm is quite simple and it is a LL(2). It means that, we
+ * start parsing the input from the very first character and parse the input
+ * one char at a time till we reach the end of the input. Please note that
+ * when we call the `advance` function to move forward in the buffer, we
+ * can't go back. In order to look ahead in the buffer without moving in the
+ * buffer we use the `nextChar` method-
+
+ */
+
 #ifndef READER_H
 #define READER_H
 
