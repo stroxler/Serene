@@ -28,6 +28,7 @@
 #include "serene/errors/constants.h"
 #include "serene/exprs/expression.h"
 #include "serene/llvm/IR/Value.h"
+#include "serene/reader/semantics.h"
 #include "serene/slir/slir.h"
 
 #include <llvm/ADT/StringRef.h>
@@ -36,6 +37,8 @@
 #include <memory>
 #include <mlir/IR/Builders.h>
 #include <mlir/IR/BuiltinOps.h>
+#include <mlir/IR/Verifier.h>
+#include <mlir/Support/LogicalResult.h>
 #include <stdexcept>
 #include <string>
 
@@ -54,15 +57,31 @@ Namespace::Namespace(SereneContext &ctx, llvm::StringRef ns_name,
   }
 };
 
+void Namespace::enqueueError(llvm::StringRef e) {
+  ctx.diagEngine->enqueueError(e);
+}
+
 exprs::Ast &Namespace::getTree() { return this->tree; }
 
-mlir::LogicalResult Namespace::setTree(exprs::Ast &t) {
-  if (initialized) {
+mlir::LogicalResult Namespace::expandTree(exprs::Ast &ast) {
+
+  if (ctx.getTargetPhase() == CompilationPhase::Parse) {
+    // we just want the raw AST
+    this->tree.insert(this->tree.end(), ast.begin(), ast.end());
+    return mlir::success();
+  }
+
+  // Run the semantic analyer on the ast and then if everything
+  // is ok expand the currnt tree by the semantically correct ast.
+  auto maybeAst = reader::analyze(ctx, ast);
+
+  if (!maybeAst) {
+    enqueueError("Semantic analysis failed!");
     return mlir::failure();
   }
 
-  this->tree        = std::move(t);
-  this->initialized = true;
+  auto semanticAst = std::move(maybeAst.getValue());
+  this->tree.insert(this->tree.end(), semanticAst.begin(), semanticAst.end());
   return mlir::success();
 }
 
@@ -73,7 +92,8 @@ SereneContext &Namespace::getContext() { return this->ctx; };
 MaybeModuleOp Namespace::generate() {
   mlir::OpBuilder builder(&ctx.mlirContext);
   // TODO: Fix the unknown location by pointing to the `ns` form
-  auto module = mlir::ModuleOp::create(builder.getUnknownLoc(), name);
+  auto module = mlir::ModuleOp::create(builder.getUnknownLoc(),
+                                       llvm::Optional<llvm::StringRef>(name));
 
   // Walk the AST and call the `generateIR` function of each node.
   // Since nodes will have access to the a reference of the
@@ -81,6 +101,12 @@ MaybeModuleOp Namespace::generate() {
   // operations to the module via the builder
   for (auto &x : getTree()) {
     x->generateIR(*this, module);
+  }
+
+  if (mlir::failed(mlir::verify(module))) {
+    module.emitError("Can't verify the module");
+    module.erase();
+    return llvm::None;
   }
 
   if (mlir::failed(runPasses(module))) {
@@ -105,7 +131,10 @@ void Namespace::dump() {
     return;
   }
 
-  maybeModuleOp.getValue()->dump();
+  mlir::OpPrintingFlags flags;
+  flags.enableDebugInfo();
+
+  maybeModuleOp.getValue()->print(llvm::outs(), flags);
 };
 
 MaybeModule Namespace::compileToLLVM() {

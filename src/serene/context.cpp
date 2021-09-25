@@ -32,7 +32,7 @@
 namespace serene {
 
 void SereneContext::insertNS(std::shared_ptr<Namespace> ns) {
-  namespaces[ns->name.str()] = ns;
+  namespaces[ns->name] = ns;
 };
 
 std::shared_ptr<Namespace> SereneContext::getNS(llvm::StringRef ns_name) {

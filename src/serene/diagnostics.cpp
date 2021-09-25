@@ -28,12 +28,11 @@
 #include "serene/reader/location.h"
 #include "serene/source_mgr.h"
 
-#include "llvm/ADT/StringRef.h"
-#include "llvm/Support/WithColor.h"
-#include "llvm/Support/raw_ostream.h"
-
+#include <llvm/ADT/StringRef.h>
 #include <llvm/Support/FormatAdapters.h>
 #include <llvm/Support/FormatVariadic.h>
+#include <llvm/Support/WithColor.h>
+#include <llvm/Support/raw_ostream.h>
 #include <memory>
 
 namespace serene {
@@ -164,6 +163,11 @@ Diagnostic DiagnosticEngine::toDiagnostic(reader::LocationRange loc,
                                           llvm::StringRef fn) {
 
   return Diagnostic(ctx, loc, &e, msg, fn);
+};
+
+void DiagnosticEngine::enqueueError(llvm::StringRef msg) {
+  llvm::errs() << llvm::formatv("FIX ME (better emit error): {0}\n", msg);
+  exit(1);
 };
 
 void DiagnosticEngine::emitSyntaxError(reader::LocationRange loc,

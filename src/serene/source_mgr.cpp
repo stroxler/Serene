@@ -55,6 +55,7 @@ NSPtr SourceMgr::readNamespace(SereneContext &ctx, std::string name,
   std::string importedFile;
   auto path = convertNamespaceToPath(name);
 
+  // TODO: Fix this to enqueue a proper error instead
   llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> newBufOrErr(
       std::make_error_code(std::errc::no_such_file_or_directory));
 
@@ -84,6 +85,7 @@ NSPtr SourceMgr::readNamespace(SereneContext &ctx, std::string name,
 
   if (bufferId == 0) {
     auto msg = llvm::formatv("Couldn't add namespace '{0}'", name);
+    // TODO: enqueue the error here
     ctx.diagEngine->emitSyntaxError(importLoc, errors::NSAddToSMError,
                                     llvm::StringRef(msg));
 
@@ -99,14 +101,9 @@ NSPtr SourceMgr::readNamespace(SereneContext &ctx, std::string name,
                                llvm::Optional(llvm::StringRef(importedFile)));
 
   if (!maybeAst) {
-    SMGR_LOG("Couldn't Read namespace: " + name)
-    return nullptr;
-  }
-
-  // Perform the semantic analytics
-  auto afterAst = reader::analyze(ctx, maybeAst.getValue());
-  if (!afterAst) {
-    // TODO: Do we need raise an error here too?
+    SMGR_LOG("Couldn't Read namespace: " + name);
+    // The code that is calling this function has to flush the dia engine, so we
+    // don't have to emit an error
     return nullptr;
   }
 
@@ -114,8 +111,11 @@ NSPtr SourceMgr::readNamespace(SereneContext &ctx, std::string name,
   auto ns =
       makeNamespace(ctx, name, llvm::Optional(llvm::StringRef(importedFile)));
 
-  if (mlir::failed(ns->setTree(afterAst.getValue()))) {
-    SMGR_LOG("Couldn't set the AST for namespace: " + name)
+  if (mlir::failed(ns->expandTree(maybeAst.getValue()))) {
+    SMGR_LOG("Couldn't set the AST for namespace: " + name);
+    // The code that is calling this function has to flush the dia engine, so we
+    // don't have to emit an error
+
     return nullptr;
   }
 

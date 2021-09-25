@@ -53,6 +53,8 @@ using Node = std::shared_ptr<Expression>;
 } // namespace exprs
 
 enum class CompilationPhase {
+  Parse,
+  Analysis,
   SLIR,
   MLIR, // Lowered slir to other dialects
   LIR,  // Lowered to the llvm ir dialect

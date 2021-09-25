@@ -2,10 +2,15 @@
 #define SERENE_DIALECT
 
 include "mlir/IR/OpBase.td"
+include "mlir/IR/OpAsmInterface.td"
+include "mlir/IR/SymbolInterfaces.td"
 include "mlir/Interfaces/SideEffectInterfaces.td"
 include "mlir/Interfaces/CallInterfaces.td"
 include "mlir/Interfaces/CastInterfaces.td"
+include "mlir/Interfaces/SideEffectInterfaces.td"
+include "mlir/Interfaces/ControlFlowInterfaces.td"
 include "mlir/Interfaces/DataLayoutInterfaces.td"
+include "mlir/Interfaces/VectorInterfaces.td"
 
 
 // Dialect definition. It will directly generate the SereneDialect class
@@ -32,49 +37,17 @@ class Serene_Op<string mnemonic, list<OpTrait> traits = []> :
 class Serene_Type<string name> : TypeDef<Serene_Dialect, name> { }
 
 
-// def SymbolType : Serene_Type<"Symbol"> {
-
-//   let mnemonic = "symbol";
-
-//   let summary = "A typical Lisp symbol";
-
-//   let description = [{
-//       A symbol is just a name and nothing more. Just a name
-//       to give to a value or to use it as it is.
-//   }];
-
-//   //  let cppNamespace = "::serene::sir";
-//   let parameters = (ins "std::string":$name);
-
-//   // We define the printer inline.
-//   let printer = [{
-//     $_printer << "Symbol<" << getImpl()->name << ">";
-//   }];
-
-//   // The parser is defined here also.
-//   let parser = [{
-//     if ($_parser.parseLess())
-//       return Type();
-
-//     std::string name;
-//     if ($_parser.parseInteger(name))
-//       return Type();
-
-//     return get($_ctxt, name);
-//   }];
-// }
-
 def ValueOp: Serene_Op<"value"> {
 
     let summary = "This operation represent a value";
     let description = [{
-        some description
+        ValueOp
     }];
 
     let arguments = (ins I64Attr:$value);
     let results = (outs I64);
 
-    // let verifier = [{ return serene::sir::verify(*this); }];
+    //let verifier = [{ return serene::sir::verify(*this); }];
 
     let builders = [
         OpBuilder<(ins "int":$value), [{
@@ -85,9 +58,12 @@ def ValueOp: Serene_Op<"value"> {
     ];
 }
 
+
+
+// TODO: Add the FunctionLike trait here and include its header file in dialect.h
 def FnOp: Serene_Op<"fn", [
   AffineScope, AutomaticAllocationScope,
-  IsolatedFromAbove
+  IsolatedFromAbove,
 ]> {
 
     let summary = "This operation is just a place holder for a function";
@@ -102,23 +78,21 @@ def FnOp: Serene_Op<"fn", [
                          OptionalAttr<StrAttr>:$sym_visibility);
 
     let regions = (region AnyRegion:$body);
-    let results = (outs NoneType);
+    let results = (outs I64);
 
-  // let builders = [
-  //     OpBuilder<(ins
-  //       "llvm::StringRef":$name, "mlir::FunctionType":$type,
-  //       CArg<"llvm::ArrayRef<mlir::NamedAttribute>", "{}">:$attrs,
-  //       CArg<"llvm::ArrayRef<mlir::DictionaryAttr>", "{}">:$argAttrs)
-  // >];
-
-  // let extraClassDeclaration = [{
-  //   static FnOp create(mlir::Location location, llvm::StringRef name, mlir::FunctionType type,
-  //                      llvm::ArrayRef<mlir::NamedAttribute> attrs = {});
-    // static FnOp create(mlir::Location location, llvm::StringRef name, mlir::FunctionType type,
-    //                    mlir::Operation::dialect_attr_range attrs);
-    // static FnOp create(mlir::Location location, llvm::StringRef name, mlir::FunctionType type,
-    //                    llvm::ArrayRef<mlir::NamedAttribute> attrs,
-    //                    llvm::ArrayRef<mlir::DictionaryAttr> argAttrs);
-    // }];
 }
+
+def ReturnOp: Serene_Op<"return", [NoSideEffect, HasParent<"FnOp">,
+                                   ReturnLike, Terminator]> {
+
+    let summary = "This operation marks the return value of a function";
+    let description = [{
+        ReturnOp
+    }];
+
+    let arguments = (ins AnyType:$operand);
+    let assemblyFormat =
+          [{ attr-dict $operand  `:` type($operand) }];
+}
+
 #endif // SERENE_DIALECT

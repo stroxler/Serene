@@ -243,13 +243,6 @@ int main(int argc, char *argv[]) {
   applyPassManagerCLOptions(ctx->pm);
   ctx->sourceManager.setLoadPaths(loadPaths);
 
-  auto runLoc = reader::LocationRange::UnknownLocation(inputNS);
-  auto ns     = ctx->sourceManager.readNamespace(*ctx, inputNS, runLoc);
-
-  if (!ns) {
-    return (int)std::errc::no_such_file_or_directory;
-  }
-
   // TODO: handle the outputDir by not forcing it. it should be
   //       default to the current working dir
   if (outputDir == "-") {
@@ -268,23 +261,13 @@ int main(int argc, char *argv[]) {
 
     // Just print out the raw AST
   case Action::DumpAST: {
-    auto ast = ns->getTree();
-    llvm::outs() << exprs::astToString(&ast) << "\n";
-    return 0;
+    ctx->setOperationPhase(CompilationPhase::Parse);
+    break;
   };
 
   case Action::DumpSemantic: {
-    auto ast      = ns->getTree();
-    auto afterAst = reader::analyze(*ctx, ast);
-
-    if (!afterAst) {
-      throw std::move(afterAst.getError());
-    }
-
-    ast = afterAst.getValue();
-
-    llvm::outs() << exprs::astToString(&ast) << "\n";
-    return 0;
+    ctx->setOperationPhase(CompilationPhase::Analysis);
+    break;
   };
 
   case Action::DumpSLIR: {
@@ -323,61 +306,63 @@ int main(int argc, char *argv[]) {
   }
   }
 
-  // Perform the semantic analytics
-  auto afterAst = reader::analyze(*ctx, ns->getTree());
-  if (!afterAst) {
-    throw std::move(afterAst.getError());
+  auto runLoc = reader::LocationRange::UnknownLocation(inputNS);
+  auto ns     = ctx->sourceManager.readNamespace(*ctx, inputNS, runLoc);
+
+  if (!ns) {
+    return (int)std::errc::no_such_file_or_directory;
   }
 
-  auto isSet = ns->setTree(afterAst.getValue());
-  if (isSet.succeeded()) {
-    ctx->insertNS(ns);
+  ctx->insertNS(ns);
 
-    switch (emitAction) {
-    case Action::DumpSLIR:
-    case Action::DumpMLIR:
-    case Action::DumpLIR: {
-      ns->dump();
-      break;
-    };
-    case Action::DumpIR: {
-      auto maybeModule = ns->compileToLLVM();
+  switch (emitAction) {
+  case Action::DumpAST:
+  case Action::DumpSemantic: {
+    auto ast = ns->getTree();
+    llvm::outs() << exprs::astToString(&ast) << "\n";
+    return 0;
+  }
+  case Action::DumpSLIR:
+  case Action::DumpMLIR:
+  case Action::DumpLIR: {
+    ns->dump();
+    break;
+  };
+  case Action::DumpIR: {
+    auto maybeModule = ns->compileToLLVM();
 
-      if (!maybeModule) {
-        llvm::errs() << "Failed to generate the IR.\n";
-        return 1;
-      }
-
-      maybeModule.getValue()->dump();
-      break;
-    };
-
-    case Action::RunJIT: {
-      auto maybeJIT = JIT::make(*ns.get());
-      if (!maybeJIT) {
-        // TODO: panic in here: "Couldn't creat the JIT!"
-        return -1;
-      }
-      auto jit = std::move(maybeJIT.getValue());
-
-      if (jit->invoke("main")) {
-        llvm::errs() << "Faild to invoke the 'main' function.\n";
-        return 1;
-      }
-      llvm::outs() << "Done!";
-      break;
-    };
-
-    case Action::Compile:
-    case Action::CompileToObject: {
-      return dumpAsObject(*ns);
-    };
-    default: {
-      llvm::errs() << "Action is not supported yet!\n";
-    };
+    if (!maybeModule) {
+      llvm::errs() << "Failed to generate the IR.\n";
+      return 1;
     }
-  } else {
-    llvm::errs() << "Can't set the tree of the namespace!\n";
+
+    maybeModule.getValue()->dump();
+    break;
+  };
+
+  case Action::RunJIT: {
+    auto maybeJIT = JIT::make(*ns.get());
+    if (!maybeJIT) {
+      // TODO: panic in here: "Couldn't creat the JIT!"
+      return -1;
+    }
+    auto jit = std::move(maybeJIT.getValue());
+
+    if (jit->invoke("main")) {
+      llvm::errs() << "Faild to invoke the 'main' function.\n";
+      return 1;
+    }
+    llvm::outs() << "Done!";
+    break;
+  };
+
+  case Action::Compile:
+  case Action::CompileToObject: {
+    return dumpAsObject(*ns);
+  };
+  default: {
+    llvm::errs() << "Action is not supported yet!\n";
+  };
   }
 
   return 0;

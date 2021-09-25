@@ -83,6 +83,7 @@ class DiagnosticEngine {
 public:
   DiagnosticEngine(SereneContext &ctx);
 
+  void enqueueError(llvm::StringRef msg);
   void emitSyntaxError(reader::LocationRange loc, errors::ErrorVariant &e,
                        llvm::StringRef msg = "");
 };

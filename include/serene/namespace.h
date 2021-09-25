@@ -22,6 +22,15 @@
  * SOFTWARE.
  */
 
+/**
+ * Commentary:
+ * Rules of a namespace:
+ * - A namespace has have a name and it has to own it.
+ * - A namespace may or may not be assiciated with a file
+ * - The internal AST of a namespace is an evergrowing tree which may expand at
+ *   any given time. For example via iteration of a REPL
+ */
+
 #ifndef SERENE_NAMESPACE_H
 #define SERENE_NAMESPACE_H
 
@@ -33,6 +42,7 @@
 #include <atomic>
 #include <llvm/ADT/SmallString.h>
 #include <llvm/ADT/StringRef.h>
+#include <llvm/ADT/Twine.h>
 #include <llvm/IR/Module.h>
 #include <memory>
 #include <mlir/IR/Builders.h>
@@ -63,17 +73,18 @@ using MaybeModuleOp = llvm::Optional<mlir::OwningOpRef<mlir::ModuleOp>>;
 class Namespace {
 private:
   SereneContext &ctx;
-  bool initialized = false;
 
   // Anonymous function counter. We need to assing a unique name to each
   // anonymous function and we use this counter to generate those names
   std::atomic<uint> fn_counter = 0;
 
-  // The content of the namespace
+  /// The content of the namespace. It should alway hold a semantically
+  /// correct AST. It means thet the AST that we want to stor here has
+  /// to pass the semantic analyzer.
   exprs::Ast tree;
 
 public:
-  mlir::StringRef name;
+  std::string name;
   llvm::Optional<std::string> filename;
 
   /// The root environment of the namespace on the semantic analysis phase.
@@ -88,7 +99,11 @@ public:
             llvm::Optional<llvm::StringRef> filename);
 
   exprs::Ast &getTree();
-  mlir::LogicalResult setTree(exprs::Ast &);
+
+  /// Expand the current tree of the namespace with the given \p ast by
+  /// semantically analazing it first. If the give \p ast in not valid
+  /// it will emit an error.
+  mlir::LogicalResult expandTree(exprs::Ast &ast);
 
   /// Increase the function counter by one
   uint nextFnCounter();
@@ -109,6 +124,8 @@ public:
 
   /// Dumps the namespace with respect to the compilation phase
   void dump();
+
+  void enqueueError(llvm::StringRef e);
 
   ~Namespace();
 };

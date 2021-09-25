@@ -24,9 +24,10 @@
 #ifndef SERENE_SLIR_DIALECT_H_
 #define SERENE_SLIR_DIALECT_H_
 
-#include "mlir/IR/BuiltinOps.h"
-#include "mlir/IR/Dialect.h"
-#include "mlir/Interfaces/SideEffectInterfaces.h"
+#include <mlir/IR/BuiltinOps.h>
+#include <mlir/IR/Dialect.h>
+#include <mlir/Interfaces/ControlFlowInterfaces.h>
+#include <mlir/Interfaces/SideEffectInterfaces.h>
 
 // Include the auto-generated header file containing the declaration of the
 // serene's dialect.
