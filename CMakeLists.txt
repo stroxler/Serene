@@ -38,8 +38,8 @@ option(CPP_20_SUPPORT "C++20 Support" OFF)
 option(SERENE_BUILD_TESTING "Enable tests" OFF)
 option(SERENE_ENABLE_BUILDID "Enable build id." OFF)
 option(SERENE_ENABLE_THINLTO "Enable ThisLTO." ON)
-option(SERENE_ENABLE_ASAN "Enable address sanitizer" ON)
 option(SERENE_ENABLE_DOCS "Enable document generation" OFF)
+option(SERENE_DISABLE_CCACHE "Disable automatic ccache integration" OFF)
 
 # Only do these if this is the main project, and not if it is included through add_subdirectory
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
@@ -88,7 +88,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     # For the sake of debugging
     $<$<CONFIG:DEBUG>:-fno-inline>
     # To make the local ccache happy
-    $<$<CONFIG:DEBUG>:-fdebug-prefix-map=$PWD=.>
+    $<$<CONFIG:DEBUG>:-fdebug-prefix-map=${PROJECT_SOURCE_DIR}=.>
 
     $<$<CONFIG:DEBUG>:-fno-omit-frame-pointer>
     $<$<CONFIG:RELEASE>:-fomit-frame-pointer>
@@ -99,21 +99,53 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   add_link_options(
     # We enforce the lld linker
     -fuse-ld=lld
-    -fsanitize=address
+    $<$<CONFIG:DEBUG>:-fsanitize=address>
+
     # Do not link against shared libraries
     #--static
     )
+
+
+  find_program(LLD_PROGRAM REQUIRED NAMES lld)
+  find_program(MLIRTBLGEN_PROGRAM REQUIRED NAMES mlir-tblgen)
 
   if(SERENE_ENABLE_BUILDID)
     add_link_options(-Wl,--build-id)
   endif()
 
-  if(SERENE_ENABLE_ASAN)
-    add_compile_options(-fsanitize=address)
-  endif()
 
   if(SERENE_ENABLE_THINLTO)
   endif()
+
+
+  # CCache support ==============================
+  if(SERENE_DISABLE_CCACHE)
+    message(STATUS "CCache support is disabled")
+  else()
+
+    find_program(CCACHE_PROGRAM ccache)
+
+    if(CCACHE_PROGRAM)
+      message(STATUS "Found CCache")
+      set(SERENE_CCACHE_MAXSIZE "" CACHE STRING "Size of ccache")
+      set(SERENE_CCACHE_DIR "" CACHE STRING "Directory to keep ccached data")
+      set(SERENE_CCACHE_PARAMS "CCACHE_CPP2=yes CCACHE_HASHDIR=yes"
+        CACHE STRING "Parameters to pass through to ccache")
+
+      set(CCACHE_PROGRAM "${SERENE_CCACHE_PARAMS} ${CCACHE_PROGRAM}")
+
+      if (SERENE_CCACHE_MAXSIZE)
+        set(CCACHE_PROGRAM "CCACHE_MAXSIZE=${SERENE_CCACHE_MAXSIZE} ${CCACHE_PROGRAM}")
+      endif()
+      if (SERENE_CCACHE_DIR)
+        set(CCACHE_PROGRAM "CCACHE_DIR=${SERENE_CCACHE_DIR} ${CCACHE_PROGRAM}")
+      endif()
+      set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${CCACHE_PROGRAM})
+    else()
+      message(FATAL_ERROR "Unable to find the program ccache. Set SERENE_DISABLE_CCACHE to ON")
+    endif()
+  endif()
+
 
   # LLVM setup =========================================
   find_package(LLVM REQUIRED CONFIG)

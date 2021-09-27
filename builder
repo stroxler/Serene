@@ -2,22 +2,10 @@
 
 command=$1
 
-# Utilize `ccache` if available
-if type "ccache" > /dev/null
-then
-    echo "CCache detected."
-    CMAKE_CCACHE="-DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache"
-
-else
-    echo "CCache not detected."
-    CMAKE_CCACHE=""
-fi
-export CMAKE_CCACHE
-
 export CC=$(which clang)
 export CXX=$(which clang++)
 
-export CCACHE_SLOPPINESS="pch_defines,time_macros"
+#export CCACHE_SLOPPINESS="pch_defines,time_macros"
 # Meke sure to use `lld` linker it faster and has a better UX
 export ASAN_OPTIONS=check_initialization_order=1
 LSAN_OPTIONS=suppressions=$(pwd)/.ignore_sanitize
@@ -26,10 +14,9 @@ export LSAN_OPTIONS
 # The `builder` script is supposed to be run from the
 # root of the source tree
 ROOT_DIR=$(pwd)
-CMAKEARGS="-DLLVM_PARALLEL_COMPILE_JOBS=7 -DLLVM_PARALLEL_LINK_JOBS=7 "
 BUILD_DIR=$ROOT_DIR/build
 ME=$(cd "$(dirname "$0")/." >/dev/null 2>&1 ; pwd -P)
-
+CMAKEARGS="-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DSERENE_CCACHE_DIR=~/.ccache"
 scanbuild=scan-build
 
 
@@ -60,14 +47,14 @@ function build() {
     pushed_build
     echo "Running: "
     echo "cmake -G Ninja $CMAKE_CCACHE $CMAKEARGS -DCMAKE_BUILD_TYPE=Debug \"$@\" \"$ROOT_DIR\""
-    cmake -G Ninja $CMAKE_CCACHE $CMAKEARGS -DCMAKE_BUILD_TYPE=Debug "$@" "$ROOT_DIR"
+    cmake -G Ninja $CMAKEARGS -DCMAKE_BUILD_TYPE=Debug "$@" "$ROOT_DIR"
     cmake --build .
     popd_build
 }
 
 function build-20() {
     pushed_build
-    cmake -G Ninja $CMAKE_CCACHE -DCMAKE_BUILD_TYPE=Debug -DCPP_20_SUPPORT=ON "$@" "$ROOT_DIR"
+    cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCPP_20_SUPPORT=ON "$@" "$ROOT_DIR"
     cmake --build .
     popd_build
 }
@@ -81,7 +68,7 @@ function build-release() {
 
 function build-docs() {
     pushed_build
-    cmake -G Ninja $CMAKE_CCACHE -DCMAKE_BUILD_TYPE=Docs "$ROOT_DIR"
+    cmake -G Ninja -DCMAKE_BUILD_TYPE=Docs "$ROOT_DIR"
     cmake --build .
     popd_build
 }
