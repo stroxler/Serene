@@ -50,8 +50,8 @@ public:
   List(const reader::LocationRange &loc, Node &e);
   List(const reader::LocationRange &loc, Ast elems);
 
-  ExprType getType() const;
-  std::string toString() const;
+  ExprType getType() const override;
+  std::string toString() const override;
 
   void append(Node);
 
@@ -77,8 +77,8 @@ public:
   /// by the for loop.
   std::vector<Node>::iterator end();
 
-  MaybeNode analyze(SereneContext &);
-  void generateIR(serene::Namespace &, mlir::ModuleOp &){};
+  MaybeNode analyze(SereneContext &) override;
+  void generateIR(serene::Namespace &, mlir::ModuleOp &) override{};
 
   ~List() = default;
 

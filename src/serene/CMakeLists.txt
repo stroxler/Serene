@@ -1,42 +1,24 @@
-set(HEADER_LIST
-  "${INCLUDE_DIR}/serene/serene.h"
-  "${INCLUDE_DIR}/serene/utils.h"
-  "${INCLUDE_DIR}/serene/context.h"
-  "${INCLUDE_DIR}/serene/environment.h"
-  "${INCLUDE_DIR}/serene/traits.h"
-  "${INCLUDE_DIR}/serene/diagnostics.h"
-
-  "${INCLUDE_DIR}/serene/exprs/expression.h"
-  "${INCLUDE_DIR}/serene/exprs/symbol.h"
-  "${INCLUDE_DIR}/serene/exprs/list.h"
-  "${INCLUDE_DIR}/serene/exprs/number.h"
-  "${INCLUDE_DIR}/serene/exprs/def.h"
-  "${INCLUDE_DIR}/serene/exprs/fn.h"
-  "${INCLUDE_DIR}/serene/exprs/traits.h"
-  "${INCLUDE_DIR}/serene/exprs/call.h"
-
-  # Reader
-  "${INCLUDE_DIR}/serene/reader/reader.h"
-  "${INCLUDE_DIR}/serene/reader/location.h"
-  "${INCLUDE_DIR}/serene/reader/errors.h"
-  "${INCLUDE_DIR}/serene/reader/semantics.h"
-  "${INCLUDE_DIR}/serene/reader/traits.h"
-
-  "${INCLUDE_DIR}/serene/errors.h"
-  "${INCLUDE_DIR}/serene/errors/error.h"
-  "${INCLUDE_DIR}/serene/errors/errc.h"
-  "${INCLUDE_DIR}/serene/errors/constants.h"
-  "${INCLUDE_DIR}/serene/errors/traits.h"
-
-
-  "${INCLUDE_DIR}/serene/slir/slir.h"
-  "${INCLUDE_DIR}/serene/slir/dialect.h"
-  "${INCLUDE_DIR}/serene/slir/generatable.h"
-  "${INCLUDE_DIR}/serene/slir/utils.h"
-  "${INCLUDE_DIR}/serene/namespace.h"
-  "${INCLUDE_DIR}/serene/jit.h"
-  "${INCLUDE_DIR}/serene/source_mgr.h"
-  "${INCLUDE_DIR}/serene/passes.h")
+# Serene programming language.
+#
+#  Copyright (c) 2019-2021 Sameer Rahmani <lxsameer@gnu.org>
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 
 # Make an automatic library - will be static or dynamic based on user setting
 add_library(serene
@@ -48,7 +30,6 @@ add_library(serene
   exprs/fn.cpp
   exprs/call.cpp
 
-
   context.cpp
   serene.cpp
   namespace.cpp
@@ -59,7 +40,6 @@ add_library(serene
   # Reader
   reader/reader.cpp
   reader/location.cpp
-  reader/errors.cpp
   reader/semantics.cpp
 
   # Errors
@@ -74,12 +54,11 @@ add_library(serene
   slir/ops.cpp
   passes/slir_lowering.cpp
   passes/to_llvm_dialect.cpp
-  ${HEADER_LIST})
-
+  )
+#${HEADER_LIST}
 
 # Make sure to generate files related to the dialects first
 add_dependencies(serene SereneDialectGen)
-
 
 if (CPP_20_SUPPORT)
   target_compile_features(serene PUBLIC cxx_std_20)
@@ -89,7 +68,7 @@ endif()
 
 
 # We need this directory, and users of our library will need it too
-target_include_directories(serene PRIVATE ${INCLUDE_DIR})
+target_include_directories(serene PUBLIC ${INCLUDE_DIR})
 target_include_directories(serene PUBLIC ${PROJECT_BINARY_DIR})
 
 
@@ -99,7 +78,7 @@ get_property(dialect_libs GLOBAL PROPERTY MLIR_DIALECT_LIBS)
 get_property(conversion_libs GLOBAL PROPERTY MLIR_CONVERSION_LIBS)
 # This depends on (header only) boost
 target_link_libraries(serene
-  PRIVATE
+  PUBLIC
     ${dialect_libs}
     ${conversion_libs}
     MLIRAnalysis

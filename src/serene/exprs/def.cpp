@@ -45,7 +45,10 @@ std::string Def::toString() const {
                        this->value->toString());
 }
 
-MaybeNode Def::analyze(SereneContext &ctx) { return EmptyNode; };
+MaybeNode Def::analyze(SereneContext &ctx) {
+  UNUSED(ctx);
+  return EmptyNode;
+};
 
 bool Def::classof(const Expression *e) {
   return e->getType() == ExprType::Def;

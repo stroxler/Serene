@@ -27,6 +27,7 @@
 #include "serene/context.h"
 #include "serene/reader/location.h"
 #include "serene/source_mgr.h"
+#include "serene/utils.h"
 
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/FormatAdapters.h>
@@ -155,7 +156,10 @@ void Diagnostic::print(llvm::raw_ostream &os, llvm::StringRef prefix) {
 DiagnosticEngine::DiagnosticEngine(SereneContext &ctx)
     : ctx(ctx), diagEngine(ctx.mlirContext.getDiagEngine()){};
 
-void DiagnosticEngine::print(llvm::raw_ostream &os, Diagnostic &d){};
+void DiagnosticEngine::print(llvm::raw_ostream &os, Diagnostic &d) {
+  UNUSED(os);
+  UNUSED(d);
+};
 
 Diagnostic DiagnosticEngine::toDiagnostic(reader::LocationRange loc,
                                           errors::ErrorVariant &e,

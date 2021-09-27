@@ -108,7 +108,13 @@ on ADF
 
 * TODOs
 ** Bootstrap*
-*** TODO Add the support for =ns-paths=                 :serenecli:context:
+*** TODO Investigate the huge size of serenec
+- Checkout -ffunction-sections -fdata-sections flags of lld
+*** DONE Add the support for =ns-paths=                 :serenecli:context:
+CLOSED: [2021-09-25 Sat 19:22]
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2021-09-25 Sat 19:22]
+:END:
 We need to add the support for an array of paths to lookup namespaces. The =ns-paths= should
 be an array that each entry represents a path which serene has to look into in order to find
 a namespace. For instance, when serene wants to load the =foo.bar= namespace, it should walk

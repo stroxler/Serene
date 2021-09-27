@@ -19,8 +19,6 @@ export CXX=$(which clang++)
 
 export CCACHE_SLOPPINESS="pch_defines,time_macros"
 # Meke sure to use `lld` linker it faster and has a better UX
-export LDFLAGS="-fuse-ld=lld"
-export ASAN_FLAG="-fsanitize=address"
 export ASAN_OPTIONS=check_initialization_order=1
 LSAN_OPTIONS=suppressions=$(pwd)/.ignore_sanitize
 export LSAN_OPTIONS
@@ -28,6 +26,7 @@ export LSAN_OPTIONS
 # The `builder` script is supposed to be run from the
 # root of the source tree
 ROOT_DIR=$(pwd)
+CMAKEARGS="-DLLVM_PARALLEL_COMPILE_JOBS=7 -DLLVM_PARALLEL_LINK_JOBS=7 "
 BUILD_DIR=$ROOT_DIR/build
 ME=$(cd "$(dirname "$0")/." >/dev/null 2>&1 ; pwd -P)
 
@@ -60,8 +59,8 @@ function compile() {
 function build() {
     pushed_build
     echo "Running: "
-    echo "cmake -G Ninja $CMAKE_CCACHE -DCMAKE_BUILD_TYPE=Debug \"$@\" \"$ROOT_DIR\""
-    cmake -G Ninja $CMAKE_CCACHE -DCMAKE_BUILD_TYPE=Debug "$@" "$ROOT_DIR"
+    echo "cmake -G Ninja $CMAKE_CCACHE $CMAKEARGS -DCMAKE_BUILD_TYPE=Debug \"$@\" \"$ROOT_DIR\""
+    cmake -G Ninja $CMAKE_CCACHE $CMAKEARGS -DCMAKE_BUILD_TYPE=Debug "$@" "$ROOT_DIR"
     cmake --build .
     popd_build
 }

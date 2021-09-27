@@ -25,8 +25,7 @@
 #ifndef SERENE_LOCATION_H
 #define SERENE_LOCATION_H
 
-#include "mlir/IR/Diagnostics.h"
-
+#include <mlir/IR/Diagnostics.h>
 #include <mlir/IR/Location.h>
 #include <string>
 
@@ -60,7 +59,8 @@ struct Location {
            llvm::Optional<llvm::StringRef> fname = llvm::None,
            const char *c = nullptr, unsigned short int line = 0,
            unsigned short int col = 0, bool knownLocation = true)
-      : ns(ns), filename(fname), c(c), line(line), col(col){};
+      : ns(ns), filename(fname), c(c), line(line), col(col),
+        knownLocation(knownLocation){};
 
   Location clone();
   Location clone() const;

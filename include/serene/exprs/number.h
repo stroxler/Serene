@@ -50,11 +50,11 @@ struct Number : public Expression {
          bool isFloat)
       : Expression(loc), value(num), isNeg(isNeg), isFloat(isFloat){};
 
-  ExprType getType() const;
-  std::string toString() const;
+  ExprType getType() const override;
+  std::string toString() const override;
 
-  MaybeNode analyze(SereneContext &ctx);
-  void generateIR(serene::Namespace &, mlir::ModuleOp &);
+  MaybeNode analyze(SereneContext &ctx) override;
+  void generateIR(serene::Namespace &, mlir::ModuleOp &) override;
 
   // TODO: This is horrible, we need to fix it after the mvp
   int toI64();

@@ -206,6 +206,7 @@ MaybeJIT JIT::make(Namespace &ns,
   // process and dynamically linked libraries.
   auto objectLinkingLayerCreator = [&](llvm::orc::ExecutionSession &session,
                                        const llvm::Triple &tt) {
+    UNUSED(tt);
     auto objectLayer =
         std::make_unique<llvm::orc::RTDyldObjectLinkingLayer>(session, []() {
           return std::make_unique<llvm::SectionMemoryManager>();

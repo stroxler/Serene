@@ -30,10 +30,11 @@
 #include "serene/exprs/list.h"
 #include "serene/exprs/symbol.h"
 #include "serene/reader/semantics.h"
+#include "serene/utils.h"
 
-#include "llvm/Support/Casting.h"
-#include "llvm/Support/ErrorHandling.h"
-#include "llvm/Support/FormatVariadic.h"
+#include <llvm/Support/Casting.h>
+#include <llvm/Support/ErrorHandling.h>
+#include <llvm/Support/FormatVariadic.h>
 
 namespace serene {
 namespace exprs {
@@ -45,7 +46,10 @@ std::string Call::toString() const {
                        astToString(&this->params));
 }
 
-MaybeNode Call::analyze(SereneContext &ctx) { return EmptyNode; };
+MaybeNode Call::analyze(SereneContext &ctx) {
+  UNUSED(ctx);
+  return EmptyNode;
+};
 
 bool Call::classof(const Expression *e) {
   return e->getType() == ExprType::Call;

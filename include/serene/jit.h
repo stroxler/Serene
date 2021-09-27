@@ -22,6 +22,10 @@
  * SOFTWARE.
  */
 
+/**
+ * Commentary:
+ */
+
 #ifndef SERENE_JIT_H
 #define SERENE_JIT_H
 
@@ -153,6 +157,7 @@ public:
     (void)dummy;
     return invokePacked(adapterName, argsArray);
   };
+
   /// Dump object code to output file `filename`.
   void dumpToObjectFile(llvm::StringRef filename);
 

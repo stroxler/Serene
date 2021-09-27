@@ -56,7 +56,10 @@ std::string Fn::toString() const {
                        this->body.empty() ? "<>" : astToString(&this->body));
 }
 
-MaybeNode Fn::analyze(SereneContext &ctx) { return EmptyNode; };
+MaybeNode Fn::analyze(SereneContext &ctx) {
+  UNUSED(ctx);
+  return EmptyNode;
+};
 
 bool Fn::classof(const Expression *e) { return e->getType() == ExprType::Fn; };
 

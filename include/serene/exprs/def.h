@@ -29,9 +29,8 @@
 #include "serene/errors/error.h"
 #include "serene/exprs/expression.h"
 
-#include "llvm/ADT/StringRef.h"
-#include "llvm/Support/Error.h"
-
+#include <llvm/ADT/StringRef.h>
+#include <llvm/Support/Error.h>
 #include <memory>
 #include <string>
 
@@ -53,10 +52,10 @@ public:
 
   Def(Def &d) = delete;
 
-  ExprType getType() const;
-  std::string toString() const;
-  MaybeNode analyze(SereneContext &);
-  void generateIR(serene::Namespace &, mlir::ModuleOp &);
+  ExprType getType() const override;
+  std::string toString() const override;
+  MaybeNode analyze(SereneContext &) override;
+  void generateIR(serene::Namespace &, mlir::ModuleOp &) override;
 
   static bool classof(const Expression *e);
 

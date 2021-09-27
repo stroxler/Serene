@@ -47,11 +47,11 @@ public:
 
   Symbol(Symbol &s) : Expression(s.location) { this->name = s.name; }
 
-  ExprType getType() const;
-  std::string toString() const;
+  ExprType getType() const override;
+  std::string toString() const override;
 
-  MaybeNode analyze(SereneContext &);
-  void generateIR(serene::Namespace &, mlir::ModuleOp &){};
+  MaybeNode analyze(SereneContext &) override;
+  void generateIR(serene::Namespace &, mlir::ModuleOp &) override{};
 
   ~Symbol() = default;
 

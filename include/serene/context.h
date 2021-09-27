@@ -32,6 +32,7 @@
 #include "serene/slir/dialect.h"
 #include "serene/source_mgr.h"
 
+#include <llvm/ADT/None.h>
 #include <llvm/ADT/Optional.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/IR/LLVMContext.h>
@@ -118,6 +119,11 @@ public:
         targetPhase(CompilationPhase::NoOptimization) {
     mlirContext.getOrLoadDialect<serene::slir::SereneDialect>();
     mlirContext.getOrLoadDialect<mlir::StandardOpsDialect>();
+
+    // We need to create one empty namespace, so that the JIT can
+    // start it's operation.
+    auto ns = makeNamespace(*this, "serene.user", llvm::None);
+
     // TODO: Get the crash report path dynamically from the cli
     // pm.enableCrashReproducerGeneration("/home/lxsameer/mlir.mlir");
 

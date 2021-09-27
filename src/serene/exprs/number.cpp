@@ -38,7 +38,10 @@ std::string Number::toString() const {
   return llvm::formatv("<Number {0}>", value);
 }
 
-MaybeNode Number::analyze(SereneContext &ctx) { return EmptyNode; };
+MaybeNode Number::analyze(SereneContext &ctx) {
+  UNUSED(ctx);
+  return EmptyNode;
+};
 
 bool Number::classof(const Expression *e) {
   return e->getType() == ExprType::Number;
