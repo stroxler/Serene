@@ -16,7 +16,8 @@ export LSAN_OPTIONS
 ROOT_DIR=$(pwd)
 BUILD_DIR=$ROOT_DIR/build
 ME=$(cd "$(dirname "$0")/." >/dev/null 2>&1 ; pwd -P)
-CMAKEARGS="-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DSERENE_CCACHE_DIR=~/.ccache"
+# -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
+CMAKEARGS=" -DSERENE_CCACHE_DIR=~/.ccache"
 scanbuild=scan-build
 
 

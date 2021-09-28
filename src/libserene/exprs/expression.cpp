@@ -21,14 +21,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#include "mlir/IR/Builders.h"
-#include "mlir/IR/MLIRContext.h"
-#include "mlir/IR/Value.h"
-#include "serene/slir/dialect.h"
-#include "serene/slir/slir.h"
 
-#include "llvm/Support/Casting.h"
+#include "serene/exprs/expression.h"
+
+#include <llvm/Support/FormatVariadic.h>
 
 namespace serene {
-namespace slir {} // namespace slir
+namespace exprs {
+
+std::string astToString(const Ast *tree) {
+  if (tree->size() == 0) {
+    return "";
+  }
+
+  std::string result = tree->at(0)->toString();
+
+  for (unsigned int i = 1; i < tree->size(); i++) {
+    result = llvm::formatv("{0} {1}", result, tree->at(i)->toString());
+  }
+
+  return result;
+}
+
+std::string stringifyExprType(ExprType t) { return exprTypes[(int)t]; };
+
+/// Dump the given AST tree to the standard out
+void dump(Ast &tree) { llvm::outs() << astToString(&tree) << "\n"; };
+
+} // namespace exprs
 } // namespace serene

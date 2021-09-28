@@ -22,13 +22,13 @@
  * SOFTWARE.
  */
 
-#include "mlir/IR/Attributes.h"
-#include "mlir/IR/BuiltinAttributes.h"
-#include "mlir/IR/Identifier.h"
 #include "serene/slir/dialect.h"
 
 #include <llvm/Support/FormatVariadic.h>
+#include <mlir/IR/Attributes.h>
 #include <mlir/IR/Builders.h>
+#include <mlir/IR/BuiltinAttributes.h>
+#include <mlir/IR/Identifier.h>
 #include <mlir/IR/OperationSupport.h>
 
 namespace serene::slir {

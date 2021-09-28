@@ -22,17 +22,16 @@
  * SOFTWARE.
  */
 
-#include "mlir/IR/Attributes.h"
-#include "mlir/IR/BuiltinAttributes.h"
 #include "serene/passes.h"
 #include "serene/slir/dialect.h"
 
-#include "llvm/Support/Casting.h"
-
+#include <llvm/Support/Casting.h>
 #include <mlir/Dialect/Affine/IR/AffineOps.h>
 #include <mlir/Dialect/LLVMIR/LLVMDialect.h>
 #include <mlir/Dialect/MemRef/IR/MemRef.h>
 #include <mlir/Dialect/StandardOps/IR/Ops.h>
+#include <mlir/IR/Attributes.h>
+#include <mlir/IR/BuiltinAttributes.h>
 #include <mlir/IR/BuiltinOps.h>
 #include <mlir/Pass/Pass.h>
 #include <mlir/Transforms/DialectConversion.h>
@@ -150,8 +149,7 @@ struct SLIRToAffinePass
 
 void SLIRToAffinePass::getDependentDialects(
     mlir::DialectRegistry &registry) const {
-  registry.insert<mlir::AffineDialect, mlir::memref::MemRefDialect,
-                  mlir::StandardOpsDialect>();
+  registry.insert<mlir::StandardOpsDialect>();
 };
 
 /// Return the current function being transformed.
@@ -170,8 +168,7 @@ void SLIRToAffinePass::runOnModule() {
   // We define the specific operations, or dialects, that are legal targets for
   // this lowering. In our case, we are lowering to a combination of the
   // `Affine`, `MemRef` and `Standard` dialects.
-  target.addLegalDialect<mlir::AffineDialect, mlir::memref::MemRefDialect,
-                         mlir::StandardOpsDialect>();
+  target.addLegalDialect<mlir::StandardOpsDialect>();
 
   // We also define the Toy dialect as Illegal so that the conversion will fail
   // if any of these operations are *not* converted. Given that we actually want

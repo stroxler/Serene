@@ -24,27 +24,26 @@
 
 #include "serene/reader/reader.h"
 
-#include "mlir/IR/Diagnostics.h"
-#include "mlir/IR/Location.h"
-#include "mlir/Support/LogicalResult.h"
 #include "serene/errors/constants.h"
 #include "serene/exprs/list.h"
 #include "serene/exprs/number.h"
 #include "serene/exprs/symbol.h"
 #include "serene/namespace.h"
 
-#include "llvm/ADT/StringRef.h"
-#include "llvm/Support/ErrorHandling.h"
-
 #include <assert.h>
 #include <cctype>
 #include <fstream>
+#include <llvm/ADT/StringRef.h>
 #include <llvm/Support/Error.h>
+#include <llvm/Support/ErrorHandling.h>
 #include <llvm/Support/ErrorOr.h>
 #include <llvm/Support/FormatVariadic.h>
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/SMLoc.h>
 #include <memory>
+#include <mlir/IR/Diagnostics.h>
+#include <mlir/IR/Location.h>
+#include <mlir/Support/LogicalResult.h>
 #include <string>
 
 namespace serene {

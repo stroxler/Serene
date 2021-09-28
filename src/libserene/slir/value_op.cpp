@@ -1,7 +1,7 @@
-/**
+/* -*- C++ -*-
  * Serene programming language.
  *
- *  Copyright (c) 2020 Sameer Rahmani <lxsameer@gnu.org>
+ *  Copyright (c) 2019-2021 Sameer Rahmani <lxsameer@gnu.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,9 +21,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#include "serene/slir/dialect.h"
+#include "serene/slir/slir.h"
 
-#include "serene/serene.h"
+#include <llvm/Support/Casting.h>
+#include <mlir/IR/Builders.h>
+#include <mlir/IR/MLIRContext.h>
+#include <mlir/IR/Value.h>
 
-#include "serene/reader/reader.h"
-
-#include <iostream>
+namespace serene {
+namespace slir {} // namespace slir
+} // namespace serene

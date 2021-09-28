@@ -22,8 +22,6 @@
  * SOFTWARE.
  */
 
-#include "serene/serene.h"
-
 #include "serene/config.h"
 #include "serene/context.h"
 #include "serene/jit.h"
@@ -31,6 +29,7 @@
 #include "serene/reader/location.h"
 #include "serene/reader/reader.h"
 #include "serene/reader/semantics.h"
+#include "serene/serene.h"
 #include "serene/slir/generatable.h"
 #include "serene/slir/slir.h"
 

@@ -19,7 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.19)
 
 # Project name and a few useful settings. Other commands can pick up the results
 project(Serene
@@ -189,17 +189,9 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/include/)
 
   # The compiled library code is here
-  add_subdirectory(src/serene)
+  add_subdirectory(src)
   # The executable code is here
-  add_subdirectory(bin)
   add_subdirectory(include)
-
-  # Testing only available if this is the main app
-  # Emergency override SERENE_CMAKE_BUILD_TESTING provided as well
-  if(SERENE_BUILD_TESTING)
-    message("Build the test binary")
-    add_subdirectory(src/tests)
-  endif()
 
   if (SERENE_ENABLE_DOCS)
     # Docs only available if this is the main app

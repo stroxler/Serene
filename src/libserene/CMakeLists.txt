@@ -20,8 +20,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Make an automatic library - will be static or dynamic based on user setting
-add_library(serene
+option(SERENE_SHOW_MLIR_DIALECTS "Print out a list of MLIR dialect libs" OFF)
+option(SERENE_SHOW_MLIR_TRANSFORMERS "Print out a list of MLIR dialect transformer libs" OFF)
+option(SERENE_SHOW_LLVM_LIBS "Print all the llvm libs available" OFF)
+
+
+add_library(libserene OBJECT
   exprs/symbol.cpp
   exprs/list.cpp
   exprs/number.cpp
@@ -31,7 +35,6 @@ add_library(serene
   exprs/call.cpp
 
   context.cpp
-  serene.cpp
   namespace.cpp
   jit.cpp
   source_mgr.cpp
@@ -55,46 +58,76 @@ add_library(serene
   passes/slir_lowering.cpp
   passes/to_llvm_dialect.cpp
   )
-#${HEADER_LIST}
 
-# Make sure to generate files related to the dialects first
-add_dependencies(serene SereneDialectGen)
+add_dependencies(libserene SereneDialectGen)
 
 if (CPP_20_SUPPORT)
-  target_compile_features(serene PUBLIC cxx_std_20)
+  target_compile_features(libserene PUBLIC cxx_std_20)
 else()
-  target_compile_features(serene PUBLIC cxx_std_17)
+  target_compile_features(libserene PUBLIC cxx_std_17)
 endif()
 
 
 # We need this directory, and users of our library will need it too
-target_include_directories(serene PUBLIC ${INCLUDE_DIR})
-target_include_directories(serene PUBLIC ${PROJECT_BINARY_DIR})
+target_include_directories(libserene PUBLIC ${INCLUDE_DIR})
+target_include_directories(libserene PUBLIC ${PROJECT_BINARY_DIR})
 
-
-source_group(TREE "${INCLUDE_DIR}" PREFIX "Header Files" FILES ${HEADER_LIST})
-#target_precompile_headers(serene PRIVATE ${HEADER_LIST})
 get_property(dialect_libs GLOBAL PROPERTY MLIR_DIALECT_LIBS)
 get_property(conversion_libs GLOBAL PROPERTY MLIR_CONVERSION_LIBS)
-# This depends on (header only) boost
-target_link_libraries(serene
-  PUBLIC
-    ${dialect_libs}
-    ${conversion_libs}
-    MLIRAnalysis
-    MLIRCallInterfaces
-    MLIRCastInterfaces
-    MLIRExecutionEngine
-    MLIRIR
-    MLIRLLVMToLLVMIRTranslation
-    MLIRParser
-    MLIRPass
-    MLIRSideEffectInterfaces
-    MLIRTargetLLVMIRExport
-    MLIRTransforms
-    ${llvm_libs})
 
-# target_precompile_headers(serene
-#   PRIVATE
-#   <serene_precompiles.h>
-# )
+
+if(SERENE_SHOW_MLIR_DIALECTS)
+  message(STATUS "MLIR Dialects to choose from:")
+  foreach(lib ${dialect_libs})
+    message(STATUS "\t${lib}")
+  endforeach()
+endif()
+
+
+if(SERENE_SHOW_MLIR_TRANSFORMERS)
+  message(STATUS "MLIR Dialects transformers to choose from:")
+  foreach(lib ${conversion_libs})
+    message(STATUS "\t${lib}")
+  endforeach()
+endif()
+
+if(SERENE_SHOW_LLVM_LIBS)
+  execute_process(COMMAND llvm-config --libs all
+    OUTPUT_VARIABLE SERENE_LLVM_LIBS)
+  message(STATUS "LLVM libs available:\n ${SERENE_LLVM_LIBS}")
+endif()
+
+
+set(serene_lib_dialects_in_use
+  MLIRStandard)
+
+set(serene_lib_transformers_in_use
+  MLIRStandardToLLVM)
+
+set(static_deps
+  MLIRIR
+  MLIRPass
+  MLIRTransforms
+
+  ${serene_lib_dialects_in_use}
+  ${serene_lib_transformers_in_use}
+
+  # LLVM's JIT lib
+  LLVMExecutionEngine
+  LLVMOrcJIT
+  MLIRLLVMToLLVMIRTranslation
+
+  #TODO: Remove this lib, we're just using one func
+  MLIRExecutionEngine
+
+  ${llvm_libs})
+
+set_target_properties(libserene PROPERTIES StaticDeps "${static_deps}")
+
+
+
+# Create an ALIAS target. This way if we mess up the name
+# there will be an cmake error inseat of a linker error which is harder
+# to understand. So any binary that wants to use libserene has to
+# use `Serene::lib` alias instead
+add_library(Serene::lib ALIAS libserene)

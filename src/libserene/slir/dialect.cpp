@@ -23,10 +23,11 @@
  */
 #include "serene/slir/dialect.h"
 
-#include "mlir/IR/Builders.h"
-#include "mlir/IR/BuiltinTypes.h"
-#include "mlir/IR/OpImplementation.h"
 #include "serene/slir/dialect.cpp.inc"
+
+#include <mlir/IR/Builders.h>
+#include <mlir/IR/BuiltinTypes.h>
+#include <mlir/IR/OpImplementation.h>
 
 namespace serene {
 namespace slir {

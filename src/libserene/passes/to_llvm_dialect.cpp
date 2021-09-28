@@ -65,16 +65,17 @@ void SLIRToLLVMDialect::runOnOperation() {
 
   // Now that the conversion target has been defined, we need to provide the
   // patterns used for lowering. At this point of the compilation process, we
-  // have a combination of `toy`, `affine`, and `std` operations. Luckily, there
-  // are already exists a set of patterns to transform `affine` and `std`
+  // have a combination of `serene`, `affine`, and `std` operations. Luckily,
+  // there are already exists a set of patterns to transform `affine` and `std`
   // dialects. These patterns lowering in multiple stages, relying on transitive
   // lowerings. Transitive lowering, or A->B->C lowering, is when multiple
   // patterns must be applied to fully transform an illegal operation into a
   // set of legal ones.
   mlir::RewritePatternSet patterns(&getContext());
-  mlir::populateAffineToStdConversionPatterns(patterns);
-  populateLoopToStdConversionPatterns(patterns);
-  populateStdToLLVMConversionPatterns(typeConverter, patterns);
+
+  // mlir::populateAffineToStdConversionPatterns(patterns);
+  // populateLoopToStdConversionPatterns(patterns);
+  // populateStdToLLVMConversionPatterns(typeConverter, patterns);
 
   // patterns.add<PrintOpLowering>(&getContext());
 

@@ -1,7 +1,13 @@
 #! /bin/bash
 
 function get_changed_files() {
-    git diff --cached --name-status |egrep '*\.(cpp|h|hpp|cpp.inc|h.inc)'|awk '$1 != "D" { print $2 }'
+    local add_modified
+    local renamed
+    add_modified=$(git diff --cached --name-status |egrep '*\.(cpp|h|hpp|cpp.inc|h.inc)'|awk '($1 != "D" && $1 !~ /R.+/) { print $2 }')
+    renamed=$(git diff --cached --name-status |egrep '*\.(cpp|h|hpp|cpp.inc|h.inc)'|awk '$1 ~ /^R.+/ { print $3 }')
+
+    echo $add_modified | sed '/^[[:space:]]*$/d'
+    echo $renamed | sed '/^[[:space:]]*$/d'
 }
 
 function fix_includes(){
