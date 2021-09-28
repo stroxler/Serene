@@ -124,8 +124,6 @@ set(static_deps
 
 set_target_properties(libserene PROPERTIES StaticDeps "${static_deps}")
 
-
-
 # Create an ALIAS target. This way if we mess up the name
 # there will be an cmake error inseat of a linker error which is harder
 # to understand. So any binary that wants to use libserene has to

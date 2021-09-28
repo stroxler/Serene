@@ -77,7 +77,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     -Werror
     -fno-rtti
     -fno-builtin-strlen
-
+    -flto=thin
     # Dedicate a section to each function, so the linker
     # can do a better job on dead code elimination
     -ffunction-sections

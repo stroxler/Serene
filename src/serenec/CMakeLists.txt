@@ -29,7 +29,9 @@ else()
 endif()
 
 get_property(serene_lib_deps TARGET Serene::lib PROPERTY StaticDeps)
-set(serenec_deps
+
+target_link_libraries(serenec
+  PRIVATE
   ${serene_lib_deps}
   LLVMX86AsmParser
   LLVMTarget
@@ -41,13 +43,6 @@ set(serenec_deps
   clangFrontend
   clangEdit
   clangLex
-  )
-
-message(STATUS "ooooooo ${serene_lib_deps}")
-message(STATUS "ooooooo ${serenec_deps}")
-
-target_link_libraries(serenec PUBLIC
-  ${serenec_deps}
   )
 
 target_include_directories(serenec PRIVATE ${PROJECT_BINARY_DIR})
