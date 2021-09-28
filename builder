@@ -106,8 +106,8 @@ function tests() {
 
 case "$command" in
     "setup")
-        rm -rv $ME/.git/hooks/pre-commit
-        ln -s $ME/scripts/pre-hook $ME/.git/hooks/pre-commit
+        rm -rfv $ME/.git/hooks/pre-commit
+        ln -s $ME/scripts/pre-commit $ME/.git/hooks/pre-commit
         ;;
     "build")
         clean
