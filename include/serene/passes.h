@@ -29,7 +29,11 @@
 
 namespace serene::passes {
 
-std::unique_ptr<mlir::Pass> createSLIRLowerToAffinePass();
+/// Return a pass to convert SLIR dialect to built-in dialects
+/// of MLIR.
+std::unique_ptr<mlir::Pass> createSLIRLowerToMLIRPass();
+
+/// Return a pass to convert different dialects of MLIR to LLVM dialect.
 std::unique_ptr<mlir::Pass> createSLIRLowerToLLVMDialectPass();
 
 } // namespace serene::passes

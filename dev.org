@@ -108,8 +108,11 @@ on ADF
 
 * TODOs
 ** Bootstrap*
+*** TODO Create different pass pipeline for different compilation phases
+So we can use them directly via command line, like -O1 for example
+
 *** TODO Investigate the huge size of serenec
-- Checkout -ffunction-sections -fdata-sections flags of lld
+So far it seems that the static linking and the lack of tree shaking is the issue
 *** DONE Add the support for =ns-paths=                 :serenecli:context:
 CLOSED: [2021-09-25 Sat 19:22]
 :LOGBOOK:

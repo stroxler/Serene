@@ -71,7 +71,7 @@ void SereneContext::setOperationPhase(CompilationPhase phase) {
   }
 
   if (phase >= CompilationPhase::MLIR) {
-    pm.addPass(serene::passes::createSLIRLowerToAffinePass());
+    pm.addPass(serene::passes::createSLIRLowerToMLIRPass());
   }
 
   if (phase >= CompilationPhase::LIR) {

@@ -377,7 +377,8 @@ define i64 @main1(i64 %0, i64 %1, i64 %2) !dbg !9 {
 - https://mlir.llvm.org/docs/LangRef
 - https://en.wikipedia.org/wiki/Basic_block
 
-* Episode 9 - IR (SLIR) generation
+* DONE Episode 9 - IR (SLIR) generation
+CLOSED: [2021-10-01 Fri 18:56]
 ** Updates:
 - Source manager
 - Diagnostic Engine
@@ -402,3 +403,99 @@ There will be an episode dedicated to eache of these
 - [X] Setup the tablegen
 - [X] Define the operations
 - [X] Walk the AST and generate the operations
+
+* Episode 10 - Pass Infrastructure
+** The next Step
+** Updates:
+*** CMake changes
+** What is a Pass
+*** Passes are the unit of abstraction for optimization and transformation in LLVM/MLIR
+*** Compilation is all about transforming the input data and produce an output
+
+Source code -> IR X -> IR Y -> IR Z -> ... -> Target Code
+
+*** Almost like a function composition
+*** The big picture
+*** Pass Managers (Pipelines) are made out of a collection of passes and can be nested
+*** The most of the interesting parts of the compiler reside in Passes.
+*** We will probably spend most of our time working with passes
+
+** Pass Infrastructure
+*** ODS or C++
+*** Operation is the main abstract unit of transformation
+*** OperationPass is the base class for all the passes.
+*** We need to override =runOnOperation=
+*** There's some rules you need to follow when defining your Pass
+**** Must not maintain any global mutable state
+**** Must not modify the state of another operation not nested within the current operation being operated on
+**** ...
+
+*** Passes are either OpSpecific or OpAgnostic
+**** OpSpecific
+#+BEGIN_SRC C++
+  struct MyFunctionPass : public PassWrapper<MyFunctionPass,
+                                             OperationPass<FuncOp>> {
+    void runOnOperation() override {
+      // Get the current FuncOp operation being operated on.
+      FuncOp f = getOperation();
+
+      // Walk the operations within the function.
+      f.walk([](Operation *inst) {
+        // ....
+      });
+    }
+  };
+
+  /// Register this pass so that it can be built via from a textual pass pipeline.
+  /// (Pass registration is discussed more below)
+  void registerMyPass() {
+    PassRegistration<MyFunctionPass>();
+  }
+#+END_SRC
+**** OpAgnostic
+#+BEGIN_SRC C++
+  struct MyOperationPass : public PassWrapper<MyOperationPass, OperationPass<>> {
+    void runOnOperation() override {
+      // Get the current operation being operated on.
+      Operation *op = getOperation();
+      // ...
+    }
+  };
+#+END_SRC
+*** How transformation works?
+*** Analyses and Passes
+*** Pass management and nested pass managers
+#+BEGIN_SRC C++
+  // Create a top-level `PassManager` class. If an operation type is not
+  // explicitly specific, the default is the builtin `module` operation.
+  PassManager pm(ctx);
+
+  // Note: We could also create the above `PassManager` this way.
+  PassManager pm(ctx, /*operationName=*/"builtin.module");
+
+  // Add a pass on the top-level module operation.
+  pm.addPass(std::make_unique<MyModulePass>());
+
+  // Nest a pass manager that operates on `spirv.module` operations nested
+  // directly under the top-level module.
+  OpPassManager &nestedModulePM = pm.nest<spirv::ModuleOp>();
+  nestedModulePM.addPass(std::make_unique<MySPIRVModulePass>());
+
+  // Nest a pass manager that operates on functions within the nested SPIRV
+  // module.
+  OpPassManager &nestedFunctionPM = nestedModulePM.nest<FuncOp>();
+  nestedFunctionPM.addPass(std::make_unique<MyFunctionPass>());
+
+  // Run the pass manager on the top-level module.
+  ModuleOp m = ...;
+  if (failed(pm.run(m))) {
+    // Handle the failure
+   }
+#+END_SRC
+
+* Episode 11 - Lowering SLIR
+** Dialect lowering
+*** Why?
+*** Transforming a dialect to another dialect or LLVM IR
+*** The goal is to lower SLIR to LLVM IR directly or indirectly.
+** Dealing with Pass failures

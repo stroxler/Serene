@@ -77,7 +77,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     -Werror
     -fno-rtti
     -fno-builtin-strlen
-    -flto=thin
+
     # Dedicate a section to each function, so the linker
     # can do a better job on dead code elimination
     -ffunction-sections
@@ -92,15 +92,21 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 
     $<$<CONFIG:DEBUG>:-fno-omit-frame-pointer>
     $<$<CONFIG:RELEASE>:-fomit-frame-pointer>
+    $<$<CONFIG:DEBUG>:-fsanitize=address>
 
     $<$<CONFIG:RELEASE>:-O3>
+    $<$<CONFIG:RELEASE>:-fmerge-all-constants>
+    $<$<CONFIG:RELEASE>:-flto=thin>
+
     )
 
   add_link_options(
     # We enforce the lld linker
     -fuse-ld=lld
+    $<$<CONFIG:RELEASE>:-fsanitize-address-globals-dead-stripping>
     $<$<CONFIG:DEBUG>:-fsanitize=address>
-
+    $<$<CONFIG:RELEASE>:-flto=thin>
+    $<$<CONFIG:RELEASE>:-s>
     # Do not link against shared libraries
     #--static
     )

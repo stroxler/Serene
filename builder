@@ -80,7 +80,7 @@ function clean() {
 
 function run() {
     pushed_build
-    "$BUILD_DIR"/bin/serenec "$@"
+    "$BUILD_DIR"/src/serenec/serenec "$@"
     popd_build
 }
 

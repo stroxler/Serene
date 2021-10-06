@@ -26,7 +26,6 @@
 #include "serene/slir/dialect.h"
 
 #include <llvm/Support/Casting.h>
-#include <mlir/Dialect/Affine/IR/AffineOps.h>
 #include <mlir/Dialect/LLVMIR/LLVMDialect.h>
 #include <mlir/Dialect/MemRef/IR/MemRef.h>
 #include <mlir/Dialect/StandardOps/IR/Ops.h>
@@ -102,7 +101,7 @@ FnOpLowering::matchAndRewrite(serene::slir::FnOp op,
     auto attr = std::get<1>(arg).dyn_cast<mlir::TypeAttr>();
 
     if (!attr) {
-      llvm::outs() << "It's not a type attr\n";
+      op.emitError("It's not a type attr");
       return mlir::failure();
     }
     arg_types.push_back(attr.getValue());
@@ -110,13 +109,15 @@ FnOpLowering::matchAndRewrite(serene::slir::FnOp op,
 
   auto func_type = rewriter.getFunctionType(arg_types, rewriter.getI64Type());
   auto fn        = rewriter.create<mlir::FuncOp>(loc, name, func_type);
+
   if (!fn) {
-    llvm::outs() << "Value Rewrite fn is null\n";
+    op.emitError("Value Rewrite fn is null");
     return mlir::failure();
   }
 
-  auto &entryBlock = *fn.addEntryBlock();
-  rewriter.setInsertionPointToStart(&entryBlock);
+  auto *entryBlock = fn.addEntryBlock();
+
+  rewriter.setInsertionPointToStart(entryBlock);
   auto retVal =
       rewriter
           .create<mlir::ConstantIntOp>(loc, (int64_t)3, rewriter.getI64Type())
@@ -125,7 +126,8 @@ FnOpLowering::matchAndRewrite(serene::slir::FnOp op,
   mlir::ReturnOp returnOp = rewriter.create<mlir::ReturnOp>(loc, retVal);
 
   if (!returnOp) {
-    llvm::outs() << "Value Rewrite returnOp is null\n";
+    op.emitError("Value Rewrite returnOp is null");
+    rewriter.eraseOp(fn);
     return mlir::failure();
   }
 
@@ -138,8 +140,8 @@ FnOpLowering::matchAndRewrite(serene::slir::FnOp op,
 }
 
 // SLIR lowering pass
-struct SLIRToAffinePass
-    : public mlir::PassWrapper<SLIRToAffinePass,
+struct SLIRToMLIRPass
+    : public mlir::PassWrapper<SLIRToMLIRPass,
                                mlir::OperationPass<mlir::ModuleOp>> {
   void getDependentDialects(mlir::DialectRegistry &registry) const override;
   void runOnOperation() final;
@@ -147,17 +149,17 @@ struct SLIRToAffinePass
   mlir::ModuleOp getModule();
 };
 
-void SLIRToAffinePass::getDependentDialects(
+void SLIRToMLIRPass::getDependentDialects(
     mlir::DialectRegistry &registry) const {
   registry.insert<mlir::StandardOpsDialect>();
 };
 
 /// Return the current function being transformed.
-mlir::ModuleOp SLIRToAffinePass::getModule() { return this->getOperation(); }
+mlir::ModuleOp SLIRToMLIRPass::getModule() { return this->getOperation(); }
 
-void SLIRToAffinePass::runOnOperation() { runOnModule(); }
+void SLIRToMLIRPass::runOnOperation() { runOnModule(); }
 
-void SLIRToAffinePass::runOnModule() {
+void SLIRToMLIRPass::runOnModule() {
 
   auto module = getModule();
 
@@ -190,7 +192,7 @@ void SLIRToAffinePass::runOnModule() {
     signalPassFailure();
 };
 
-std::unique_ptr<mlir::Pass> createSLIRLowerToAffinePass() {
-  return std::make_unique<SLIRToAffinePass>();
+std::unique_ptr<mlir::Pass> createSLIRLowerToMLIRPass() {
+  return std::make_unique<SLIRToMLIRPass>();
 };
 } // namespace serene::passes
