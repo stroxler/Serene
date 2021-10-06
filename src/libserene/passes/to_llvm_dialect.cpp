@@ -75,7 +75,7 @@ void SLIRToLLVMDialect::runOnOperation() {
 
   // mlir::populateAffineToStdConversionPatterns(patterns);
   // populateLoopToStdConversionPatterns(patterns);
-  // populateStdToLLVMConversionPatterns(typeConverter, patterns);
+  populateStdToLLVMConversionPatterns(typeConverter, patterns);
 
   // patterns.add<PrintOpLowering>(&getContext());
 

@@ -55,12 +55,12 @@ ValueOpLowering::matchAndRewrite(serene::slir::ValueOp op,
   auto func_type = rewriter.getFunctionType(arg_types, rewriter.getI64Type());
   auto fn        = rewriter.create<mlir::FuncOp>(loc, "randomname", func_type);
   if (!fn) {
-    llvm::outs() << "Value Rewrite fn is null\n";
+    op.emitOpError("Value Rewrite fn is null");
     return mlir::failure();
   }
 
-  auto &entryBlock = *fn.addEntryBlock();
-  rewriter.setInsertionPointToStart(&entryBlock);
+  auto entryBlock = fn.addEntryBlock();
+  rewriter.setInsertionPointToStart(entryBlock);
   auto retVal = rewriter
                     .create<mlir::ConstantIntOp>(loc, (int64_t)value,
                                                  rewriter.getI64Type())
@@ -69,7 +69,7 @@ ValueOpLowering::matchAndRewrite(serene::slir::ValueOp op,
   mlir::ReturnOp returnOp = rewriter.create<mlir::ReturnOp>(loc, retVal);
 
   if (!returnOp) {
-    llvm::outs() << "Value Rewrite returnOp is null\n";
+    op.emitError("Value Rewrite returnOp is null");
     return mlir::failure();
   }
 
@@ -123,13 +123,7 @@ FnOpLowering::matchAndRewrite(serene::slir::FnOp op,
           .create<mlir::ConstantIntOp>(loc, (int64_t)3, rewriter.getI64Type())
           .getResult();
 
-  mlir::ReturnOp returnOp = rewriter.create<mlir::ReturnOp>(loc, retVal);
-
-  if (!returnOp) {
-    op.emitError("Value Rewrite returnOp is null");
-    rewriter.eraseOp(fn);
-    return mlir::failure();
-  }
+  rewriter.create<mlir::ReturnOp>(loc, retVal);
 
   if (!isPublic) {
     fn.setPrivate();
@@ -188,8 +182,9 @@ void SLIRToMLIRPass::runOnModule() {
   // With the target and rewrite patterns defined, we can now attempt the
   // conversion. The conversion will signal failure if any of our `illegal`
   // operations were not converted successfully.
-  if (failed(applyPartialConversion(module, target, std::move(patterns))))
+  if (failed(applyPartialConversion(module, target, std::move(patterns)))) {
     signalPassFailure();
+  }
 };
 
 std::unique_ptr<mlir::Pass> createSLIRLowerToMLIRPass() {

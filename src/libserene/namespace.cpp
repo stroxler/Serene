@@ -112,6 +112,7 @@ MaybeModuleOp Namespace::generate() {
   if (mlir::failed(runPasses(module))) {
     // TODO: Report a proper error
     module.emitError("Failure in passes!");
+    module.erase();
     return llvm::None;
   }
 
