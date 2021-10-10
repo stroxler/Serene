@@ -28,10 +28,9 @@
 #include "serene/namespace.h"
 #include "serene/reader/location.h"
 
-#include "llvm/ADT/StringMap.h"
-#include "llvm/Support/ErrorHandling.h"
-
 #include <llvm/ADT/SmallVector.h>
+#include <llvm/ADT/StringMap.h>
+#include <llvm/Support/ErrorHandling.h>
 #include <llvm/Support/ErrorOr.h>
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/SourceMgr.h>
@@ -63,7 +62,7 @@ class SereneContext;
 ///
 /// Note: Unlike the original version, SourceMgr does not handle the diagnostics
 /// and it uses the Serene's `DiagnosticEngine` for that matter.
-class SourceMgr {
+class SERENE_EXPORT SourceMgr {
 
 public:
   // TODO: Make it a vector of supported suffixes

@@ -41,6 +41,15 @@ option(SERENE_ENABLE_THINLTO "Enable ThisLTO." ON)
 option(SERENE_ENABLE_DOCS "Enable document generation" OFF)
 option(SERENE_DISABLE_CCACHE "Disable automatic ccache integration" OFF)
 
+# libserene
+option(SERENE_SHARED_LIB "Build libserene as a shared library" ON)
+option(SERENE_SHOW_MLIR_DIALECTS "Print out a list of MLIR dialect libs" OFF)
+option(SERENE_SHOW_MLIR_TRANSFORMERS "Print out a list of MLIR dialect transformer libs" OFF)
+option(SERENE_SHOW_LLVM_LIBS "Print all the llvm libs available" OFF)
+
+
+option(SERENE_WITH_MLIR_CL_OPTION "Add support for controlling MLIR via command line options" OFF)
+
 # Only do these if this is the main project, and not if it is included through add_subdirectory
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   ## Settings =======================
@@ -56,7 +65,6 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   # Setup the source locations
   set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
   set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
-  set(BIN_DIR ${CMAKE_SOURCE_DIR}/bin)
 
   set(CMAKE_CXX_CLANG_TIDY clang-tidy)
   # Let's ensure -std=c++xx instead of -std=g++xx
@@ -65,7 +73,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/scripts/cmake")
   set(MemoryCheckCommand "valgrind")
 
-  configure_file(${INCLUDE_DIR}/serene/config.h.in serene/config.h)
+  configure_file(${INCLUDE_DIR}/serene/config.h.in include/serene/config.h)
 
   # Let's nicely support folders in IDEs
   set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -97,12 +105,14 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     $<$<CONFIG:RELEASE>:-O3>
     $<$<CONFIG:RELEASE>:-fmerge-all-constants>
     $<$<CONFIG:RELEASE>:-flto=thin>
-
+    $<$<CONFIG:DEBUG>:-shared-libsan>
     )
 
   add_link_options(
     # We enforce the lld linker
     -fuse-ld=lld
+    -Wl,-gc-sections
+    $<$<CONFIG:DEBUG>:-shared-libsan>
     $<$<CONFIG:RELEASE>:-fsanitize-address-globals-dead-stripping>
     $<$<CONFIG:DEBUG>:-fsanitize=address>
     $<$<CONFIG:RELEASE>:-flto=thin>
@@ -111,6 +121,10 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     #--static
     )
 
+  # Do we need to build serene as a shared lib? default is "yes"
+  if(SERENE_SHARED_LIB)
+    set(BUILD_SHARED_LIBS "${SERENE_SHARED_LIB}")
+  endif()
 
   find_program(LLD_PROGRAM REQUIRED NAMES lld)
   find_program(MLIRTBLGEN_PROGRAM REQUIRED NAMES mlir-tblgen)
@@ -119,7 +133,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     add_link_options(-Wl,--build-id)
   endif()
 
-
+  #TODO: Setup the THINLTO on release
   if(SERENE_ENABLE_THINLTO)
   endif()
 
@@ -182,7 +196,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   link_directories(${LLVM_BUILD_LIBRARY_DIR})
   add_definitions(${LLVM_DEFINITIONS})
 
-  llvm_map_components_to_libnames(llvm_libs support core irreader)
+  llvm_map_components_to_libnames(llvm_libs support)
 
 
 

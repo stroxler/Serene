@@ -5,8 +5,9 @@ command=$1
 export CC=$(which clang)
 export CXX=$(which clang++)
 
-#export CCACHE_SLOPPINESS="pch_defines,time_macros"
-# Meke sure to use `lld` linker it faster and has a better UX
+# TODO: Add sloppiness to the cmake list file as well
+export CCACHE_SLOPPINESS="pch_defines,time_macros"
+
 export ASAN_OPTIONS=check_initialization_order=1
 LSAN_OPTIONS=suppressions=$(pwd)/.ignore_sanitize
 export LSAN_OPTIONS
@@ -16,8 +17,9 @@ export LSAN_OPTIONS
 ROOT_DIR=$(pwd)
 BUILD_DIR=$ROOT_DIR/build
 ME=$(cd "$(dirname "$0")/." >/dev/null 2>&1 ; pwd -P)
-# -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
-CMAKEARGS=" -DSERENE_CCACHE_DIR=~/.ccache"
+
+CMAKEARGS_DEBUG=" -DCMAKE_BUILD_TYPE=Debug -DSERENE_WITH_MLIR_CL_OPTION=ON"
+CMAKEARGS="-DSERENE_CCACHE_DIR=~/.ccache"
 scanbuild=scan-build
 
 
@@ -48,8 +50,8 @@ function build() {
     pushed_build
     echo "Running: "
     echo "cmake -G Ninja $CMAKE_CCACHE $CMAKEARGS -DCMAKE_BUILD_TYPE=Debug \"$@\" \"$ROOT_DIR\""
-    cmake -G Ninja $CMAKEARGS -DCMAKE_BUILD_TYPE=Debug "$@" "$ROOT_DIR"
-    cmake --build .
+    cmake -G Ninja $CMAKEARGS $CMAKEARGS_DEBUG "$@" "$ROOT_DIR"
+    cmake --build . --verbose
     popd_build
 }
 
@@ -80,7 +82,7 @@ function clean() {
 
 function run() {
     pushed_build
-    "$BUILD_DIR"/src/serenec/serenec "$@"
+    LD_PRELOAD=$(clang -print-file-name=libclang_rt.asan-x86_64.so) "$BUILD_DIR"/src/serenec/serenec "$@"
     popd_build
 }
 
@@ -93,7 +95,7 @@ function memcheck() {
 }
 
 function run-tests() {
-    "$BUILD_DIR"/src/tests/tests
+    LD_PRELOAD=$(clang -print-file-name=libclang_rt.asan-x86_64.so) "$BUILD_DIR"/src/tests/tests
 }
 
 function tests() {

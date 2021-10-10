@@ -35,6 +35,7 @@
 #define SERENE_NAMESPACE_H
 
 #include "serene/environment.h"
+#include "serene/export.h"
 #include "serene/slir/generatable.h"
 #include "serene/traits.h"
 #include "serene/utils.h"
@@ -70,7 +71,7 @@ using MaybeModuleOp = llvm::Optional<mlir::OwningOpRef<mlir::ModuleOp>>;
 /// Serene's namespaces are the unit of compilation. Any code that needs to be
 /// compiled has to be in a namespace. The official way to create a new
 /// namespace is to use the `makeNamespace` function.
-class Namespace {
+class SERENE_EXPORT Namespace {
 private:
   SereneContext &ctx;
 
@@ -135,9 +136,9 @@ using NSPtr = std::shared_ptr<Namespace>;
 /// return a shared pointer to it in the given Serene context. If the
 /// `setCurrent` argument is set to true, the created NS will become the curret
 /// namespace in the context
-NSPtr makeNamespace(SereneContext &ctx, llvm::StringRef name,
-                    llvm::Optional<llvm::StringRef> filename,
-                    bool setCurrent = true);
+SERENE_EXPORT NSPtr makeNamespace(SereneContext &ctx, llvm::StringRef name,
+                                  llvm::Optional<llvm::StringRef> filename,
+                                  bool setCurrent = true);
 
 } // namespace serene
 

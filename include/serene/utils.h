@@ -25,8 +25,9 @@
 #ifndef SERENE_UTILS_H
 #define SERENE_UTILS_H
 
-#include "llvm/Support/Error.h"
+#include "serene/export.h"
 
+#include <llvm/Support/Error.h>
 #include <variant>
 
 // Sometimes we need this to make both analyzer happy
@@ -51,7 +52,7 @@ namespace serene {
 /// In order check for a value being errorful or successful checkout the `ok`
 /// method or simply use the value as a conditiona.
 template <typename T, typename E = llvm::Error>
-class Result {
+class SERENE_EXPORT Result {
 
   // The actual data container
   std::variant<T, E> contents;

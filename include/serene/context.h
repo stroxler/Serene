@@ -27,6 +27,7 @@
 
 #include "serene/diagnostics.h"
 #include "serene/environment.h"
+#include "serene/export.h"
 #include "serene/namespace.h"
 #include "serene/passes.h"
 #include "serene/slir/dialect.h"
@@ -66,7 +67,7 @@ enum class CompilationPhase {
   O3,
 };
 
-class SereneContext {
+class SERENE_EXPORT SereneContext {
   struct Options {
     /// Whether to use colors for the output or not
     bool withColors = true;
@@ -156,7 +157,7 @@ private:
 
 /// Creates a new context object. Contexts are used through out the compilation
 /// process to store the state
-std::unique_ptr<SereneContext> makeSereneContext();
+SERENE_EXPORT std::unique_ptr<SereneContext> makeSereneContext();
 
 }; // namespace serene
 

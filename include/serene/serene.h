@@ -22,12 +22,27 @@
  * SOFTWARE.
  */
 
-#ifndef SERENE_H
-#define SERENE_H
+#ifndef SERENE_SERENE_H
+#define SERENE_SERENE_H
 
+#include "serene/config.h"
 #include "serene/context.h"
+#include "serene/export.h"
 #include "serene/source_mgr.h"
 
+namespace serene {
 
-namespace serene {} // namespace serene
+/// Clinet applications have to call this function before any interaction with
+/// the Serene's compiler API.
+SERENE_EXPORT void initCompiler();
+
+/// Register the global CLI options of the serene compiler. If the client
+/// application needs to setup the compilers options automatically use this
+/// function in conjunction with `applySereneCLOptions`.
+SERENE_EXPORT void registerSereneCLOptions();
+
+/// Applies the global compiler options on the give \p SereneContext. This
+/// function has to be called after `llvm::cl::ParseCommandLineOptions`.
+SERENE_EXPORT void applySereneCLOptions(SereneContext &ctx);
+} // namespace serene
 #endif

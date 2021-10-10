@@ -30,6 +30,7 @@
 #define SERENE_JIT_H
 
 #include "serene/errors.h"
+#include "serene/export.h"
 #include "serene/slir/generatable.h"
 #include "serene/utils.h"
 
@@ -46,7 +47,7 @@
   DEBUG_WITH_TYPE("JIT", llvm::dbgs() << "[JIT]: " << __VA_ARGS__ << "\n");
 
 namespace serene {
-class JIT;
+class SERENE_EXPORT JIT;
 
 using MaybeJIT = llvm::Optional<std::unique_ptr<JIT>>;
 

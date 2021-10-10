@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-add_executable(serenec serenec.cpp $<TARGET_OBJECTS:Serene::lib>)
+add_executable(serenec serenec.cpp)
 
 if (CPP_20_SUPPORT)
   target_compile_features(serenec PRIVATE cxx_std_20)
@@ -28,12 +28,12 @@ else()
   target_compile_features(serenec PRIVATE cxx_std_17)
 endif()
 
-get_property(serene_lib_deps TARGET Serene::lib PROPERTY StaticDeps)
-
 target_link_libraries(serenec
   PRIVATE
-  ${serene_lib_deps}
-  LLVMX86AsmParser
+
+  Serene::lib
+  MLIRPass
+
   LLVMTarget
   LLVMOption
 

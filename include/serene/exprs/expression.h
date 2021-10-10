@@ -25,7 +25,6 @@
 #ifndef EXPRS_EXPRESSION_H
 #define EXPRS_EXPRESSION_H
 
-#include "mlir/IR/BuiltinOps.h"
 #include "serene/context.h"
 #include "serene/errors/error.h"
 #include "serene/exprs/traits.h"
@@ -33,6 +32,7 @@
 #include "serene/utils.h"
 
 #include <memory>
+#include <mlir/IR/BuiltinOps.h>
 
 namespace serene {
 
@@ -140,7 +140,7 @@ Result<T, ErrorTree> makeErrorful(Args &&...args) {
 
 /// Convert the given AST to string by calling the `toString` method
 /// of each node.
-std::string astToString(const Ast *);
+SERENE_EXPORT std::string astToString(const Ast *);
 /// Converts the given ExprType to string.
 std::string stringifyExprType(ExprType);
 

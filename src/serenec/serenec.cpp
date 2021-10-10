@@ -22,8 +22,6 @@
  * SOFTWARE.
  */
 
-#include "serene/config.h"
-#include "serene/context.h"
 #include "serene/jit.h"
 #include "serene/namespace.h"
 #include "serene/reader/location.h"
@@ -47,7 +45,6 @@
 #include <llvm/Support/Host.h>
 #include <llvm/Support/Path.h>
 #include <llvm/Support/TargetRegistry.h>
-#include <llvm/Support/TargetSelect.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetOptions.h>
@@ -113,12 +110,6 @@ static cl::opt<enum Action> emitAction(
                           "Run the give input file with the JIT."))
 
 );
-
-llvm::cl::OptionCategory clOptionsCategory{"Discovery options"};
-static cl::list<std::string>
-    loadPaths("l", cl::desc("The load path to use for compilation."),
-              llvm::cl::ZeroOrMore, llvm::cl::MiscFlags::PositionalEatsArgs,
-              llvm::cl::cat(clOptionsCategory));
 
 int dumpAsObject(Namespace &ns) {
   // TODO: Move the compilation process to the Namespace class
@@ -224,23 +215,15 @@ int dumpAsObject(Namespace &ns) {
 };
 
 int main(int argc, char *argv[]) {
-  // mlir::registerAsmPrinterCLOptions();
-  mlir::registerMLIRContextCLOptions();
-  mlir::registerPassManagerCLOptions();
-
-  llvm::InitializeAllTargetInfos();
-  llvm::InitializeAllTargets();
-  llvm::InitializeAllTargetMCs();
-  llvm::InitializeAllAsmParsers();
-  llvm::InitializeAllAsmPrinters();
+  initCompiler();
+  registerSereneCLOptions();
 
   cl::ParseCommandLineOptions(argc, argv, banner);
+
   auto ctx    = makeSereneContext();
   auto userNS = makeNamespace(*ctx, "user", llvm::None);
 
-  // TODO: We might want to find a better place for this
-  applyPassManagerCLOptions(ctx->pm);
-  ctx->sourceManager.setLoadPaths(loadPaths);
+  applySereneCLOptions(*ctx);
 
   // TODO: handle the outputDir by not forcing it. it should be
   //       default to the current working dir

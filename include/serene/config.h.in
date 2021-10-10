@@ -1,10 +1,11 @@
 #ifndef CONFIG_H
 #define CONFIG_H
-// the configured options and settings for Tutorial
+
+// the configured options and settings
+
 #define SERENE_VERSION "@PROJECT_VERSION@"
 
-#cmakedefine ENABLE_READER_LOG
-#cmakedefine ENABLE_EXPR_LOG
-#cmakedefine ENABLE_LOG
+// Should we build the support for MLIR CL OPTIONS?
+#cmakedefine SERENE_WITH_MLIR_CL_OPTION
 
 #endif

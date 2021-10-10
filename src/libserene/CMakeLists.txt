@@ -20,12 +20,18 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-option(SERENE_SHOW_MLIR_DIALECTS "Print out a list of MLIR dialect libs" OFF)
-option(SERENE_SHOW_MLIR_TRANSFORMERS "Print out a list of MLIR dialect transformer libs" OFF)
-option(SERENE_SHOW_LLVM_LIBS "Print all the llvm libs available" OFF)
+#TODO: To support MacOS look into cmake's public headers
+# https://cmake.org/cmake/help/latest/prop_tgt/PUBLIC_HEADER.html
+
+# Hide all the symbols by default
+if (NOT DEFINED CMAKE_CXX_VISIBILITY_PRESET AND
+    NOT DEFINED CMAKE_VISIBILITY_INLINES_HIDDEN)
+  set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+  set(CMAKE_VISIBILITY_INLINES_HIDDEN YES)
+endif ()
 
 
-add_library(libserene OBJECT
+add_library(serene
   exprs/symbol.cpp
   exprs/list.cpp
   exprs/number.cpp
@@ -34,6 +40,7 @@ add_library(libserene OBJECT
   exprs/fn.cpp
   exprs/call.cpp
 
+  serene.cpp
   context.cpp
   namespace.cpp
   jit.cpp
@@ -59,18 +66,51 @@ add_library(libserene OBJECT
   passes/to_llvm_dialect.cpp
   )
 
-add_dependencies(libserene SereneDialectGen)
+# Create an ALIAS target. This way if we mess up the name
+# there will be an cmake error inseat of a linker error which is harder
+# to understand. So any binary that wants to use serene has to
+# use `Serene::lib` alias instead
+add_library(Serene::lib ALIAS serene)
 
-if (CPP_20_SUPPORT)
-  target_compile_features(libserene PUBLIC cxx_std_20)
-else()
-  target_compile_features(libserene PUBLIC cxx_std_17)
+set_target_properties(serene PROPERTIES
+  VERSION ${PROJECT_VERSION}
+  SOVERSION ${PROJECT_VERSION_MAJOR})
+
+# Do we need to build serene as a shared lib? default is "yes"
+if(SERENE_SHARED_LIB)
+
+  # We need to use libsan as a shared lib on debug mode. The
+  # target executable has to be built with `-fsanitize=address`
+  # as well and it has to run with:
+  # LD_PRELOAD=$(clang -print-file-name=libclang_rt.asan-x86_64.so)
+  target_compile_options(serene PRIVATE
+    $<$<CONFIG:DEBUG>:-shared-libsan>
+    )
+  target_link_options(
+    serene PRIVATE
+    $<$<CONFIG:DEBUG>:-shared-libsan>
+    )
 endif()
 
 
+if (CPP_20_SUPPORT)
+  target_compile_features(serene PUBLIC cxx_std_20)
+else()
+  target_compile_features(serene PUBLIC cxx_std_17)
+endif()
+
+# Generate the tablegen ODS files before this target
+add_dependencies(serene SereneDialectGen)
+
 # We need this directory, and users of our library will need it too
-target_include_directories(libserene PUBLIC ${INCLUDE_DIR})
-target_include_directories(libserene PUBLIC ${PROJECT_BINARY_DIR})
+target_include_directories(serene PUBLIC "$<BUILD_INTERFACE:${INCLUDE_DIR}>")
+target_include_directories(serene PUBLIC "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>")
+
+# Generate the export.h
+include(GenerateExportHeader)
+generate_export_header(serene EXPORT_FILE_NAME ${PROJECT_BINARY_DIR}/include/serene/export.h)
+target_compile_definitions(
+  serene PUBLIC "$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:SERENE_STATIC_DEFINE>")
 
 get_property(dialect_libs GLOBAL PROPERTY MLIR_DIALECT_LIBS)
 get_property(conversion_libs GLOBAL PROPERTY MLIR_CONVERSION_LIBS)
@@ -104,7 +144,7 @@ set(serene_lib_dialects_in_use
 set(serene_lib_transformers_in_use
   MLIRStandardToLLVM)
 
-set(static_deps
+target_link_libraries(serene PRIVATE
   MLIRIR
   MLIRPass
   MLIRTransforms
@@ -112,20 +152,14 @@ set(static_deps
   ${serene_lib_dialects_in_use}
   ${serene_lib_transformers_in_use}
 
+  #TODO: Remove this lib, we're just using one func
+  MLIRExecutionEngine
+
   # LLVM's JIT lib
   LLVMExecutionEngine
   LLVMOrcJIT
   MLIRLLVMToLLVMIRTranslation
 
-  #TODO: Remove this lib, we're just using one func
-  MLIRExecutionEngine
+  LLVMX86AsmParser
 
   ${llvm_libs})
-
-set_target_properties(libserene PROPERTIES StaticDeps "${static_deps}")
-
-# Create an ALIAS target. This way if we mess up the name
-# there will be an cmake error inseat of a linker error which is harder
-# to understand. So any binary that wants to use libserene has to
-# use `Serene::lib` alias instead
-add_library(Serene::lib ALIAS libserene)
