@@ -74,7 +74,12 @@ add_library(Serene::lib ALIAS serene)
 
 set_target_properties(serene PROPERTIES
   VERSION ${PROJECT_VERSION}
-  SOVERSION ${PROJECT_VERSION_MAJOR})
+  SOVERSION ${PROJECT_VERSION_MAJOR}
+  # Warn on unused libs
+  LINK_WHAT_YOU_USE TRUE
+  # LTO support
+  INTERPROCEDURAL_OPTIMIZATION TRUE)
+
 
 # Do we need to build serene as a shared lib? default is "yes"
 if(SERENE_SHARED_LIB)

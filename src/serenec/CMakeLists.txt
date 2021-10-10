@@ -22,6 +22,16 @@
 
 add_executable(serenec serenec.cpp)
 
+set_target_properties(serenec PROPERTIES
+  VERSION ${PROJECT_VERSION}
+  SOVERSION ${PROJECT_VERSION_MAJOR}
+  # Warn on unused libs
+  LINK_WHAT_YOU_USE TRUE
+
+  # LTO support
+  INTERPROCEDURAL_OPTIMIZATION TRUE)
+
+
 if (CPP_20_SUPPORT)
   target_compile_features(serenec PRIVATE cxx_std_20)
 else()

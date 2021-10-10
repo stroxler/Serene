@@ -19,7 +19,7 @@ BUILD_DIR=$ROOT_DIR/build
 ME=$(cd "$(dirname "$0")/." >/dev/null 2>&1 ; pwd -P)
 
 CMAKEARGS_DEBUG=" -DCMAKE_BUILD_TYPE=Debug -DSERENE_WITH_MLIR_CL_OPTION=ON"
-CMAKEARGS="-DSERENE_CCACHE_DIR=~/.ccache"
+CMAKEARGS="-DSERENE_CCACHE_DIR=${HOME}/.ccache"
 scanbuild=scan-build
 
 
@@ -51,7 +51,7 @@ function build() {
     echo "Running: "
     echo "cmake -G Ninja $CMAKE_CCACHE $CMAKEARGS -DCMAKE_BUILD_TYPE=Debug \"$@\" \"$ROOT_DIR\""
     cmake -G Ninja $CMAKEARGS $CMAKEARGS_DEBUG "$@" "$ROOT_DIR"
-    cmake --build . --verbose
+    cmake --build .
     popd_build
 }
 
