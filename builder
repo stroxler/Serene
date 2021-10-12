@@ -101,6 +101,12 @@ function run() {
     popd_build
 }
 
+function repl() {
+    pushed_build
+    LD_PRELOAD=$(clang -print-file-name=libclang_rt.asan-x86_64.so) "$BUILD_DIR"/src/serene-repl/serene-repl "$@"
+    popd_build
+}
+
 function memcheck() {
     export ASAN_FLAG=""
     build
@@ -155,9 +161,15 @@ case "$command" in
         compile
         run-tests
         ;;
+
     "run")
         run "${@:2}"
         ;;
+
+    "repl")
+        repl "${@:2}"
+        ;;
+
     "run-tests")
         run-tests "${@:2}"
         ;;

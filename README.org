@@ -56,6 +56,16 @@ Setup the githook and install dependencies using the following commands:
 *** Emacs
     If you're using Emacs as your development environment just install =clangd= and =lsp=.
 
+** Heads up for devs
+While you're working on *Serene* be mindful of:
+- In =DEBUG= mode we dynamically link against =libsan= due to the fact that we build the =libserene=
+  as a shared lib by default. This means we need to =LD_PRELOAD= the =libclang_rt= before we run
+  any executable. If you're using the =builder= script you're all set otherwise you can run an
+  executable like:
+
+  #+BEGIN_SRC bash
+    LD_PRELOAD=$(clang -print-file-name=libclang_rt.asan-x86_64.so) /path/to/executable
+  #+END_SRC
 
 * How to build
 In order to build for development (Debug mode) just use =./builder build= to setup the build and build
