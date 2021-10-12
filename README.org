@@ -65,6 +65,22 @@ Check out the =builder= script for more subcommands and details.
 
 * Cheatsheets
   - [[https://github.com/muqsitnawaz/modern-cpp-cheatsheet][Modern C++ Cheatsheet]]
+
+* License
+Copyright (c) 2019-2021 Sameer Rahmani <lxsameer@gnu.org>
+
+*Serene* is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, version 2.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 * Get Help
   If you need help or you just want to hangout, you can find us at:
 
