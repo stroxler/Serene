@@ -24,12 +24,16 @@
 # https://cmake.org/cmake/help/latest/prop_tgt/PUBLIC_HEADER.html
 
 # Hide all the symbols by default
-if (NOT DEFINED CMAKE_CXX_VISIBILITY_PRESET AND
+if(NOT DEFINED CMAKE_CXX_VISIBILITY_PRESET AND
     NOT DEFINED CMAKE_VISIBILITY_INLINES_HIDDEN)
   set(CMAKE_CXX_VISIBILITY_PRESET hidden)
   set(CMAKE_VISIBILITY_INLINES_HIDDEN YES)
-endif ()
+endif()
 
+# Prevent any future RPATH issue on Posix
+if(NOT APPLE)
+  set(CMAKE_INSTALL_RPATH $ORIGIN)
+endif()
 
 add_library(serene
   exprs/symbol.cpp
