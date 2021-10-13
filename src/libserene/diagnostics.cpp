@@ -177,7 +177,32 @@ void DiagnosticEngine::emitSyntaxError(reader::LocationRange loc,
   exit(1);
 };
 
+void DiagnosticEngine::panic(llvm::StringRef msg) {
+  // TODO: Use Diagnostic class here instead
+  // TODO: Provide a trace if possible
+
+  llvm::ColorMode mode =
+      ctx.opts.withColors ? llvm::ColorMode::Auto : llvm::ColorMode::Disable;
+
+  llvm::WithColor s(llvm::errs(), llvm::raw_ostream::SAVEDCOLOR, true, false,
+                    mode);
+  s << "\n[";
+  s.changeColor(llvm::raw_ostream::Colors::RED);
+  s << "Panic";
+  s.resetColor();
+  s << "]: ";
+
+  s << msg << "\n";
+  // TODO: Use a proper error code
+  std::exit(1);
+};
+
 std::unique_ptr<DiagnosticEngine> makeDiagnosticEngine(SereneContext &ctx) {
   return std::make_unique<DiagnosticEngine>(ctx);
 }
+
+void panic(SereneContext &ctx, llvm::StringRef msg) {
+  ctx.diagEngine->panic(msg);
+};
+
 } // namespace serene

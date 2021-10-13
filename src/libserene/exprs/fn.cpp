@@ -38,7 +38,7 @@ namespace exprs {
 Fn::Fn(SereneContext &ctx, reader::LocationRange &loc, List &args, Ast body)
     : Expression(loc), args(args), body(body) {
   this->setName(
-      llvm::formatv("___fn___{0}", ctx.getCurrentNS()->nextFnCounter()));
+      llvm::formatv("___fn___{0}", ctx.getCurrentNS().nextFnCounter()));
 };
 
 ExprType Fn::getType() const { return ExprType::Fn; };

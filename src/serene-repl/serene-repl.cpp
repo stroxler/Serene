@@ -20,6 +20,7 @@
 #include "serene/serene.h"
 
 #include <llvm/Support/CommandLine.h>
+#include <llvm/Support/FormatVariadic.h>
 #include <llvm/Support/raw_ostream.h>
 
 using namespace serene;
@@ -66,7 +67,9 @@ int main(int argc, char *argv[]) {
   while (true) {
     // Read line
     std::string line;
-    auto quit = linenoise::Readline("user> ", line);
+    std::string prompt = ctx->getCurrentNS().name + "> ";
+
+    auto quit = linenoise::Readline(prompt.c_str(), line);
 
     if (quit) {
       break;

@@ -101,8 +101,8 @@ MaybeNode Def::make(SereneContext &ctx, List *list) {
   }
 
   // auto analayzedValuePtr = analyzedValue;
-  auto result = ctx.getCurrentNS()->semanticEnv.insert_symbol(binding->name,
-                                                              analyzedValue);
+  auto result = ctx.getCurrentNS().semanticEnv.insert_symbol(binding->name,
+                                                             analyzedValue);
 
   if (result.succeeded()) {
     return makeSuccessfulNode<Def>(list->location, binding->name,

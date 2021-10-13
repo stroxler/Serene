@@ -23,6 +23,8 @@
 #include "serene/reader/location.h"
 #include "serene/slir/generatable.h"
 
+#include <llvm/Support/FormatVariadic.h>
+
 namespace serene {
 
 void SereneContext::insertNS(std::shared_ptr<Namespace> ns) {
@@ -46,15 +48,14 @@ bool SereneContext::setCurrentNS(llvm::StringRef ns_name) {
   return false;
 };
 
-std::shared_ptr<Namespace> SereneContext::getCurrentNS() {
-  // TODO: replace the assertion with a runtime check
-  assert(!this->current_ns.empty() && "Current namespace is not set");
-
-  if (namespaces.count(this->current_ns)) {
-    return namespaces[this->current_ns];
+Namespace &SereneContext::getCurrentNS() {
+  if (this->current_ns.empty() || !namespaces.count(this->current_ns)) {
+    panic(*this, llvm::formatv("getCurrentNS: Namespace '{0}' does not exist",
+                               this->current_ns)
+                     .str());
   }
 
-  return nullptr;
+  return *namespaces[this->current_ns];
 };
 
 void SereneContext::setOperationPhase(CompilationPhase phase) {

@@ -80,9 +80,18 @@ public:
   void enqueueError(llvm::StringRef msg);
   void emitSyntaxError(reader::LocationRange loc, errors::ErrorVariant &e,
                        llvm::StringRef msg = "");
+
+  /// Throw out an error with the given `msg` and terminate the execution
+  void panic(llvm::StringRef msg);
 };
 
+/// Create a new instance of the `DiagnosticEngine` from the give
+/// `SereneContext`
 std::unique_ptr<DiagnosticEngine> makeDiagnosticEngine(SereneContext &ctx);
+
+/// Throw out an error with the given `msg` and terminate the execution
+void panic(SereneContext &ctx, llvm::StringRef msg);
+
 } // namespace serene
 
 #endif

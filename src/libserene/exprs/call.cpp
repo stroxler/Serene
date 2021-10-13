@@ -92,7 +92,7 @@ MaybeNode Call::make(SereneContext &ctx, List *list) {
 
     // TODO: Lookup the symbol in the namespace via a method that looks
     //       into the current environment.
-    auto maybeResult = ctx.getCurrentNS()->semanticEnv.lookup(sym->name);
+    auto maybeResult = ctx.getCurrentNS().semanticEnv.lookup(sym->name);
 
     if (!maybeResult.hasValue()) {
       std::string msg =

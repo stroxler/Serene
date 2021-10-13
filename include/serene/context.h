@@ -103,7 +103,7 @@ public:
   bool setCurrentNS(llvm::StringRef ns_name);
 
   /// Return the current namespace that is being processed at the moment
-  std::shared_ptr<Namespace> getCurrentNS();
+  Namespace &getCurrentNS();
 
   /// Lookup the namespace with the give name in the current context and
   /// return a shared pointer to it or a `nullptr` in it doesn't exist.
