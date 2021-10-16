@@ -61,6 +61,8 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 
   set(CMAKE_CXX_CLANG_TIDY clang-tidy)
+  set(CMAKE_CXX_INCLUDE_WHAT_YOU_USE include-what-you-use)
+
   # Let's ensure -std=c++xx instead of -std=g++xx
   set(CMAKE_CXX_EXTENSIONS OFF)
 
