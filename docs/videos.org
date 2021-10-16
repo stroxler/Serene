@@ -404,7 +404,8 @@ There will be an episode dedicated to eache of these
 - [X] Define the operations
 - [X] Walk the AST and generate the operations
 
-* Episode 10 - Pass Infrastructure
+* DONE Episode 10 - Pass Infrastructure
+CLOSED: [2021-10-15 Fri 14:17]
 ** The next Step
 ** Updates:
 *** CMake changes
@@ -494,8 +495,15 @@ Source code -> IR X -> IR Y -> IR Z -> ... -> Target Code
 #+END_SRC
 
 * Episode 11 - Lowering SLIR
+** Overview
 ** Dialect lowering
 *** Why?
 *** Transforming a dialect to another dialect or LLVM IR
 *** The goal is to lower SLIR to LLVM IR directly or indirectly.
+** Dialect Conversions
+This framework allows for transforming a set of illegal operations to a set of legal ones.
+*** Target Conversion
+*** Rewrite Patterns
+*** Type Converter
+** Full vs Partial Conversion
 ** Dealing with Pass failures

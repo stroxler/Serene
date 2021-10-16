@@ -49,9 +49,7 @@ namespace serene {
 
 Namespace::Namespace(SereneContext &ctx, llvm::StringRef ns_name,
                      llvm::Optional<llvm::StringRef> filename)
-    : ctx(ctx), name(ns_name)
-
-{
+    : ctx(ctx), name(ns_name) {
   if (filename.hasValue()) {
     this->filename.emplace(filename.getValue().str());
   }

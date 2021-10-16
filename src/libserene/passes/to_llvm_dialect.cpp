@@ -37,7 +37,7 @@ struct SLIRToLLVMDialect
     : public mlir::PassWrapper<SLIRToLLVMDialect,
                                mlir::OperationPass<mlir::ModuleOp>> {
   void getDependentDialects(mlir::DialectRegistry &registry) const override {
-    registry.insert<mlir::LLVM::LLVMDialect, mlir::scf::SCFDialect>();
+    registry.insert<mlir::LLVM::LLVMDialect>();
   }
 
   void runOnOperation() final;
@@ -67,8 +67,6 @@ void SLIRToLLVMDialect::runOnOperation() {
   // set of legal ones.
   mlir::RewritePatternSet patterns(&getContext());
 
-  // mlir::populateAffineToStdConversionPatterns(patterns);
-  // populateLoopToStdConversionPatterns(patterns);
   populateStdToLLVMConversionPatterns(typeConverter, patterns);
 
   // patterns.add<PrintOpLowering>(&getContext());
