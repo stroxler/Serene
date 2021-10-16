@@ -496,6 +496,8 @@ Source code -> IR X -> IR Y -> IR Z -> ... -> Target Code
 
 * Episode 11 - Lowering SLIR
 ** Overview
+- What is a Pass?
+- Pass Manager
 ** Dialect lowering
 *** Why?
 *** Transforming a dialect to another dialect or LLVM IR
@@ -506,4 +508,3 @@ This framework allows for transforming a set of illegal operations to a set of l
 *** Rewrite Patterns
 *** Type Converter
 ** Full vs Partial Conversion
-** Dealing with Pass failures

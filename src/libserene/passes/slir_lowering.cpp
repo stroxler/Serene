@@ -18,6 +18,7 @@
 
 #include "serene/passes.h"
 #include "serene/slir/dialect.h"
+#include "serene/utils.h"
 
 #include <llvm/Support/Casting.h>
 #include <mlir/Dialect/LLVMIR/LLVMDialect.h>
@@ -52,12 +53,7 @@ ValueOpLowering::matchAndRewrite(serene::slir::ValueOp op,
   // TODO: use a mechanism to generate unique names
   auto fn = rewriter.create<mlir::FuncOp>(loc, "randomname", func_type);
 
-  if (!fn) {
-    op.emitOpError("Value Rewrite fn is null");
-    return mlir::failure();
-  }
-
-  auto entryBlock = fn.addEntryBlock();
+  auto *entryBlock = fn.addEntryBlock();
   rewriter.setInsertionPointToStart(entryBlock);
 
   // Since we only support i64 at the moment we use ConstantIntOp
@@ -66,12 +62,7 @@ ValueOpLowering::matchAndRewrite(serene::slir::ValueOp op,
                                                  rewriter.getI64Type())
                     .getResult();
 
-  mlir::ReturnOp returnOp = rewriter.create<mlir::ReturnOp>(loc, retVal);
-
-  if (!returnOp) {
-    op.emitError("Value Rewrite returnOp is null");
-    return mlir::failure();
-  }
+  UNUSED(rewriter.create<mlir::ReturnOp>(loc, retVal));
 
   fn.setPrivate();
 
@@ -113,14 +104,10 @@ FnOpLowering::matchAndRewrite(serene::slir::FnOp op,
   auto func_type = rewriter.getFunctionType(arg_types, rewriter.getI64Type());
   auto fn        = rewriter.create<mlir::FuncOp>(loc, name, func_type);
 
-  if (!fn) {
-    op.emitError("Value Rewrite fn is null");
-    return mlir::failure();
-  }
-
   auto *entryBlock = fn.addEntryBlock();
 
   rewriter.setInsertionPointToStart(entryBlock);
+
   auto retVal =
       rewriter
           .create<mlir::ConstantIntOp>(loc, (int64_t)3, rewriter.getI64Type())
