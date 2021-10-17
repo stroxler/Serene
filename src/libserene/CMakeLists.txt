@@ -78,6 +78,9 @@ set_target_properties(serene PROPERTIES
   # LTO support
   INTERPROCEDURAL_OPTIMIZATION TRUE)
 
+if(SERENE_ENABLE_TIDY)
+  set_target_properties(serene PROPERTIES CXX_CLANG_TIDY ${CLANG_TIDY_PATH})
+endif()
 
 # Do we need to build serene as a shared lib? default is "yes"
 if(SERENE_SHARED_LIB)

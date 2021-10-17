@@ -33,6 +33,7 @@ option(SERENE_BUILD_TESTING "Enable tests" OFF)
 option(SERENE_ENABLE_BUILDID "Enable build id." OFF)
 option(SERENE_ENABLE_THINLTO "Enable ThisLTO." ON)
 option(SERENE_ENABLE_DOCS "Enable document generation" OFF)
+option(SERENE_ENABLE_TIDY "Enable clang tidy check" OFF)
 option(SERENE_DISABLE_CCACHE "Disable automatic ccache integration" OFF)
 
 # libserene
@@ -60,8 +61,9 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
   set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 
-  set(CMAKE_CXX_CLANG_TIDY clang-tidy)
-  set(CMAKE_CXX_INCLUDE_WHAT_YOU_USE include-what-you-use)
+  if(SERENE_ENABLE_TIDY)
+    find_program(CLANG_TIDY_PATH NAMES clang-tidy REQUIRED)
+  endif()
 
   # Let's ensure -std=c++xx instead of -std=g++xx
   set(CMAKE_CXX_EXTENSIONS OFF)

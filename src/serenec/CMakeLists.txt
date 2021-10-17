@@ -25,6 +25,9 @@ set_target_properties(serenec PROPERTIES
   # LTO support
   INTERPROCEDURAL_OPTIMIZATION TRUE)
 
+if(SERENE_ENABLE_TIDY)
+  set_target_properties(serenec PROPERTIES CXX_CLANG_TIDY ${CLANG_TIDY_PATH})
+endif()
 
 if (CPP_20_SUPPORT)
   target_compile_features(serenec PRIVATE cxx_std_20)

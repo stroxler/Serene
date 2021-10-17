@@ -15,4 +15,20 @@ AlignConsecutiveBitFields: Consecutive
 AlignEscapedNewlines: Left
 AlwaysBreakTemplateDeclarations: Yes
 IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex:           '^"(serene)/'
+    Priority:        1
+    SortPriority:    1
+    CaseSensitive:   true
+  - Regex:           '^<(llvm|llvm-c|clang|clang-c|mlir)/'
+    Priority:        3
+    SortPriority:    3
+    CaseSensitive:   true
+  - Regex:           '<[[:alnum:].]+>'
+    Priority:        5
+  - Regex:           '.*'
+    Priority:        2
+    SortPriority:    0
+SortIncludes: true
+SortUsingDeclarations: true
 ...

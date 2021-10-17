@@ -34,7 +34,7 @@ BUILD_DIR=$ROOT_DIR/build
 ME=$(cd "$(dirname "$0")/." >/dev/null 2>&1 ; pwd -P)
 
 CMAKEARGS_DEBUG=" -DCMAKE_BUILD_TYPE=Debug -DSERENE_WITH_MLIR_CL_OPTION=ON"
-CMAKEARGS="-DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DSERENE_CCACHE_DIR=${HOME}/.ccache"
+CMAKEARGS="-DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DSERENE_CCACHE_DIR=$HOME/.ccache"
 
 # The scan-build utility scans the build for bugs checkout the man page
 scanbuild="scan-build --force-analyze-debug-code --use-analyzer=$(which clang)"
@@ -71,7 +71,7 @@ function compile() {
 }
 
 function build() {
-    build-gen
+    build-gen "$@"
     pushed_build
     cmake --build .
     popd_build
@@ -144,6 +144,12 @@ case "$command" in
         mkdir -p "$BUILD_DIR"
         build "${@:2}"
         ;;
+    "build-tidy")
+        clean
+        mkdir -p "$BUILD_DIR"
+        build "-DSERENE_ENABLE_TIDY=ON" "${@:2}"
+        ;;
+
     "build-20")
         clean
         mkdir -p "$BUILD_DIR"

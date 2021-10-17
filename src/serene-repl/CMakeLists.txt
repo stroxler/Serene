@@ -26,6 +26,9 @@ set_target_properties(serene-repl PROPERTIES
   # LTO support
   INTERPROCEDURAL_OPTIMIZATION TRUE)
 
+if(SERENE_ENABLE_TIDY)
+  set_target_properties(serene PROPERTIES CXX_CLANG_TIDY ${CLANG_TIDY_PATH})
+endif()
 
 if (CPP_20_SUPPORT)
   target_compile_features(serene-repl PRIVATE cxx_std_20)

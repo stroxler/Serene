@@ -1,5 +1,7 @@
 #! /bin/bash
 
+set -e
+
 function get_changed_files() {
     local add_modified
     local renamed
@@ -41,7 +43,6 @@ function git_add_changes() {
     then
         git add $files
     fi
-
 }
 
 
