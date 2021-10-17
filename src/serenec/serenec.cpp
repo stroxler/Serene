@@ -63,7 +63,8 @@ enum Action {
   // TODO: Remove this option and replace it by a subcommand
   RunJIT,
 };
-}
+} // namespace
+
 static std::string banner =
     llvm::formatv("\n\nSerene Compiler Version {0}"
                   "\nCopyright (C) 2019-2021 "
@@ -123,32 +124,35 @@ int dumpAsObject(Namespace &ns) {
   module->setTargetTriple(ctx.targetTriple);
 
   std::string Error;
-  auto target = llvm::TargetRegistry::lookupTarget(ctx.targetTriple, Error);
+  const auto *target =
+      llvm::TargetRegistry::lookupTarget(ctx.targetTriple, Error);
 
   // Print an error and exit if we couldn't find the requested target.
   // This generally occurs if we've forgotten to initialise the
   // TargetRegistry or we have a bogus target triple.
-  if (!target) {
+  if (target == nullptr) {
     llvm::errs() << Error;
     return 1;
   }
 
-  auto cpu      = "generic";
-  auto features = "";
+  const auto *cpu      = "generic";
+  const auto *features = "";
 
   llvm::TargetOptions opt;
   auto rm = llvm::Optional<llvm::Reloc::Model>();
-  auto targetMachinePtr =
+  auto *targetMachinePtr =
       target->createTargetMachine(ctx.targetTriple, cpu, features, opt, rm);
   auto targetMachine = std::unique_ptr<llvm::TargetMachine>(targetMachinePtr);
 
   module->setDataLayout(targetMachine->createDataLayout());
 
-  auto filename =
+  const auto *filename =
       strcmp(outputFile.c_str(), "-") == 0 ? "output" : outputFile.c_str();
 
   std::error_code ec;
-  llvm::SmallString<256> destFile(outputDir);
+  const auto pathSize(256);
+
+  llvm::SmallString<pathSize> destFile(outputDir);
   llvm::sys::path::append(destFile, filename);
   auto destObjFilePath = llvm::formatv("{0}.o", destFile).str();
   llvm::raw_fd_ostream dest(destObjFilePath, ec, llvm::sys::fs::OF_None);
@@ -317,7 +321,7 @@ int main(int argc, char *argv[]) {
   };
 
   case Action::RunJIT: {
-    auto maybeJIT = JIT::make(*ns.get());
+    auto maybeJIT = JIT::make(*ns);
     if (!maybeJIT) {
       // TODO: panic in here: "Couldn't creat the JIT!"
       return -1;

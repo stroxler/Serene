@@ -34,8 +34,10 @@ BUILD_DIR=$ROOT_DIR/build
 ME=$(cd "$(dirname "$0")/." >/dev/null 2>&1 ; pwd -P)
 
 CMAKEARGS_DEBUG=" -DCMAKE_BUILD_TYPE=Debug -DSERENE_WITH_MLIR_CL_OPTION=ON"
-CMAKEARGS="-DSERENE_CCACHE_DIR=${HOME}/.ccache"
-scanbuild=scan-build
+CMAKEARGS="-DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DSERENE_CCACHE_DIR=${HOME}/.ccache"
+
+# The scan-build utility scans the build for bugs checkout the man page
+scanbuild="scan-build --force-analyze-debug-code --use-analyzer=$(which clang)"
 
 
 function gen_precompile_header_index() {
@@ -55,6 +57,13 @@ function popd_build() {
     popd > /dev/null || return
 }
 
+function build-gen() {
+    pushed_build
+    echo "Running: "
+    echo "cmake -G Ninja $CMAKEARGS $CMAKEARGS_DEBUG \"$@\" \"$ROOT_DIR\""
+    cmake -G Ninja $CMAKEARGS $CMAKEARGS_DEBUG "$@" "$ROOT_DIR"
+    popd_build
+}
 function compile() {
     pushed_build
     cmake --build .
@@ -62,10 +71,8 @@ function compile() {
 }
 
 function build() {
+    build-gen
     pushed_build
-    echo "Running: "
-    echo "cmake -G Ninja $CMAKE_CCACHE $CMAKEARGS -DCMAKE_BUILD_TYPE=Debug \"$@\" \"$ROOT_DIR\""
-    cmake -G Ninja $CMAKEARGS $CMAKEARGS_DEBUG "$@" "$ROOT_DIR"
     cmake --build .
     popd_build
 }
@@ -177,9 +184,9 @@ case "$command" in
     "scan-build")
         clean
         mkdir -p "$BUILD_DIR"
+        build-gen
         pushed_build
-        exec $scanbuild cmake "$ROOT_DIR"
-        exec $scanbuild scan-build make -j 4
+        exec $scanbuild cmake --build .
         popd_build
         ;;
     "memcheck")
