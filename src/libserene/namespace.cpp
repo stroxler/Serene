@@ -55,7 +55,7 @@ Namespace::Namespace(SereneContext &ctx, llvm::StringRef ns_name,
   }
 };
 
-void Namespace::enqueueError(llvm::StringRef e) {
+void Namespace::enqueueError(llvm::StringRef e) const {
   ctx.diagEngine->enqueueError(e);
 }
 

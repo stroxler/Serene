@@ -120,7 +120,7 @@ public:
   /// Dumps the namespace with respect to the compilation phase
   void dump();
 
-  void enqueueError(llvm::StringRef e);
+  void enqueueError(llvm::StringRef e) const;
 
   ~Namespace();
 };

@@ -28,6 +28,8 @@
 // and the fn signature right.
 #define UNUSED(x) (void)(x)
 
+// We use this value with llvm::SmallString<MAX_PATH_SLOTS>
+#define MAX_PATH_SLOTS 256
 // C++17 required. We can't go back to 14 any more :))
 
 namespace serene {

@@ -40,26 +40,28 @@
 
 namespace serene {
 
-std::string inline SourceMgr::convertNamespaceToPath(std::string ns_name) {
+std::string SourceMgr::convertNamespaceToPath(std::string ns_name) {
   std::replace(ns_name.begin(), ns_name.end(), '.', '/');
 
-  llvm::SmallString<256> path;
+  llvm::SmallString<MAX_PATH_SLOTS> path;
   path.append(ns_name);
   llvm::sys::path::native(path);
 
   return std::string(path);
 };
 
-NSPtr SourceMgr::readNamespace(SereneContext &ctx, std::string name,
-                               reader::LocationRange importLoc) {
-  std::string importedFile;
+bool SourceMgr::isValidBufferID(unsigned i) const {
+  return i != 0 && i <= buffers.size();
+};
+
+SourceMgr::ErrorOrMemBufPtr
+SourceMgr::findFileInLoadPath(const std::string &name,
+                              std::string &importedFile) {
+
   auto path = convertNamespaceToPath(name);
-
   // TODO: Fix this to enqueue a proper error instead
-  llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> newBufOrErr(
+  ErrorOrMemBufPtr newBufOrErr(
       std::make_error_code(std::errc::no_such_file_or_directory));
-
-  SMGR_LOG("Attempt to load namespace: " + name);
 
   // If the file didn't exist directly, see if it's in an include path.
   for (unsigned i = 0, e = loadPaths.size(); i != e && !newBufOrErr; ++i) {
@@ -71,6 +73,16 @@ NSPtr SourceMgr::readNamespace(SereneContext &ctx, std::string name,
     SMGR_LOG("Try to load the ns from: " + importedFile);
     newBufOrErr = llvm::MemoryBuffer::getFile(importedFile);
   }
+
+  return newBufOrErr;
+};
+
+NSPtr SourceMgr::readNamespace(SereneContext &ctx, std::string name,
+                               reader::LocationRange importLoc) {
+  std::string importedFile;
+
+  SMGR_LOG("Attempt to load namespace: " + name);
+  ErrorOrMemBufPtr newBufOrErr(findFileInLoadPath(name, importedFile));
 
   if (!newBufOrErr) {
     auto msg = llvm::formatv("Couldn't find namespace '{0}'", name);
@@ -94,7 +106,7 @@ NSPtr SourceMgr::readNamespace(SereneContext &ctx, std::string name,
 
   // Since we moved the buffer to be added as the source storage we
   // need to get a pointer to it again
-  auto *buf = getMemoryBuffer(bufferId);
+  const auto *buf = getMemoryBuffer(bufferId);
 
   // Read the content of the buffer by passing it the reader
   auto maybeAst = reader::read(ctx, buf->getBuffer(), name,
@@ -134,8 +146,9 @@ unsigned SourceMgr::AddNewSourceBuffer(std::unique_ptr<llvm::MemoryBuffer> f,
 template <typename T>
 static std::vector<T> &GetOrCreateOffsetCache(void *&offsetCache,
                                               llvm::MemoryBuffer *buffer) {
-  if (offsetCache)
+  if (offsetCache) {
     return *static_cast<std::vector<T> *>(offsetCache);
+  }
 
   // Lazily fill in the offset cache.
   auto *offsets = new std::vector<T>();
@@ -146,8 +159,9 @@ static std::vector<T> &GetOrCreateOffsetCache(void *&offsetCache,
 
   llvm::StringRef s = buffer->getBuffer();
   for (size_t n = 0; n < sz; ++n) {
-    if (s[n] == '\n')
+    if (s[n] == '\n') {
       offsets->push_back(static_cast<T>(n));
+    }
   }
 
   offsetCache = offsets;
@@ -161,17 +175,21 @@ const char *SourceMgr::SrcBuffer::getPointerForLineNumberSpecialized(
       GetOrCreateOffsetCache<T>(offsetCache, buffer.get());
 
   // We start counting line and column numbers from 1.
-  if (lineNo != 0)
+  if (lineNo != 0) {
     --lineNo;
+  }
 
   const char *bufStart = buffer->getBufferStart();
 
   // The offset cache contains the location of the \n for the specified line,
   // we want the start of the line.  As such, we look for the previous entry.
-  if (lineNo == 0)
+  if (lineNo == 0) {
     return bufStart;
-  if (lineNo > offsets.size())
+  }
+
+  if (lineNo > offsets.size()) {
     return nullptr;
+  }
   return bufStart + offsets[lineNo - 1] + 1;
 }
 
@@ -180,33 +198,39 @@ const char *SourceMgr::SrcBuffer::getPointerForLineNumberSpecialized(
 const char *
 SourceMgr::SrcBuffer::getPointerForLineNumber(unsigned lineNo) const {
   size_t sz = buffer->getBufferSize();
-  if (sz <= std::numeric_limits<uint8_t>::max())
+  if (sz <= std::numeric_limits<uint8_t>::max()) {
     return getPointerForLineNumberSpecialized<uint8_t>(lineNo);
-  else if (sz <= std::numeric_limits<uint16_t>::max())
+  }
+
+  if (sz <= std::numeric_limits<uint16_t>::max()) {
     return getPointerForLineNumberSpecialized<uint16_t>(lineNo);
-  else if (sz <= std::numeric_limits<uint32_t>::max())
+  }
+
+  if (sz <= std::numeric_limits<uint32_t>::max()) {
     return getPointerForLineNumberSpecialized<uint32_t>(lineNo);
-  else
-    return getPointerForLineNumberSpecialized<uint64_t>(lineNo);
+  }
+
+  return getPointerForLineNumberSpecialized<uint64_t>(lineNo);
 }
 
-SourceMgr::SrcBuffer::SrcBuffer(SourceMgr::SrcBuffer &&other)
+SourceMgr::SrcBuffer::SrcBuffer(SourceMgr::SrcBuffer &&other) noexcept
     : buffer(std::move(other.buffer)), offsetCache(other.offsetCache),
       importLoc(other.importLoc) {
   other.offsetCache = nullptr;
 }
 
 SourceMgr::SrcBuffer::~SrcBuffer() {
-  if (offsetCache) {
+  if (offsetCache != nullptr) {
     size_t sz = buffer->getBufferSize();
-    if (sz <= std::numeric_limits<uint8_t>::max())
+    if (sz <= std::numeric_limits<uint8_t>::max()) {
       delete static_cast<std::vector<uint8_t> *>(offsetCache);
-    else if (sz <= std::numeric_limits<uint16_t>::max())
+    } else if (sz <= std::numeric_limits<uint16_t>::max()) {
       delete static_cast<std::vector<uint16_t> *>(offsetCache);
-    else if (sz <= std::numeric_limits<uint32_t>::max())
+    } else if (sz <= std::numeric_limits<uint32_t>::max()) {
       delete static_cast<std::vector<uint32_t> *>(offsetCache);
-    else
+    } else {
       delete static_cast<std::vector<uint64_t> *>(offsetCache);
+    }
     offsetCache = nullptr;
   }
 }

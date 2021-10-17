@@ -97,11 +97,12 @@ private:
     reader::LocationRange importLoc;
 
     SrcBuffer() = default;
-    SrcBuffer(SrcBuffer &&);
+    SrcBuffer(SrcBuffer &&) noexcept;
     SrcBuffer(const SrcBuffer &) = delete;
     SrcBuffer &operator=(const SrcBuffer &) = delete;
     ~SrcBuffer();
   };
+  using ErrorOrMemBufPtr = llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>>;
 
   /// This is all of the buffers that we are reading from.
   std::vector<SrcBuffer> buffers;
@@ -113,10 +114,17 @@ private:
   // This is the list of directories we should search for include files in.
   std::vector<std::string> loadPaths;
 
-  bool isValidBufferID(unsigned i) const { return i && i <= buffers.size(); }
+  // Find a namespace file with the given \p name in the load path and \r retuns
+  // a unique pointer to the memory buffer containing the content or an error.
+  // In the success case it will put the path of the file into the \p
+  // importedFile.
+  ErrorOrMemBufPtr findFileInLoadPath(const std::string &name,
+                                      std::string &importedFile);
+
+  bool isValidBufferID(unsigned i) const;
 
   /// Converts the ns name to a partial path by replacing the dots with slashes
-  std::string inline convertNamespaceToPath(std::string ns_name);
+  static std::string convertNamespaceToPath(std::string ns_name);
 
 public:
   SourceMgr()                  = default;
