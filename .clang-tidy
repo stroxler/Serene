@@ -1,0 +1,237 @@
+---
+Checks:          'clang-diagnostic-*,clang-analyzer-*,-*,clang-analyzer-*,cert-*,-cert-err58-cpp,concurrency-*,llvm-*,performance-*,readability-*'
+WarningsAsErrors: 'clang-diagnostic-*,clang-analyzer-*,-*,clang-analyzer-*,cert-*,-cert-err58-cpp,concurrency-*,llvm-*,performance-*,readability-*'
+HeaderFilterRegex: ''
+AnalyzeTemporaryDtors: false
+FormatStyle:     file
+User:            lxsameer
+CheckOptions:
+  - key:             performance-unnecessary-copy-initialization.ExcludedContainerTypes
+    value:           ''
+  - key:             readability-suspicious-call-argument.PrefixSimilarAbove
+    value:           '30'
+  - key:             modernize-replace-auto-ptr.IncludeStyle
+    value:           llvm
+  - key:             performance-move-const-arg.CheckTriviallyCopyableMove
+    value:           'true'
+  - key:             readability-static-accessed-through-instance.NameSpecifierNestingThreshold
+    value:           '3'
+  - key:             readability-function-size.VariableThreshold
+    value:           '4294967295'
+  - key:             readability-simplify-subscript-expr.Types
+    value:           '::std::basic_string;::std::basic_string_view;::std::vector;::std::array'
+  - key:             cert-dcl16-c.NewSuffixes
+    value:           'L;LL;LU;LLU'
+  - key:             cert-dcl51-cpp.AggressiveDependentMemberLookup
+    value:           'false'
+  - key:             readability-identifier-naming.GetConfigPerFile
+    value:           'true'
+  - key:             cert-err61-cpp.MaxSize
+    value:           '0'
+  - key:             cert-sig30-c.AsyncSafeFunctionSet
+    value:           POSIX
+  - key:             readability-inconsistent-declaration-parameter-name.Strict
+    value:           'false'
+  - key:             readability-suspicious-call-argument.DiceDissimilarBelow
+    value:           '60'
+  - key:             cert-dcl37-c.AllowedIdentifiers
+    value:           ''
+  - key:             readability-function-size.NestingThreshold
+    value:           '4294967295'
+  - key:             llvm-namespace-comment.ShortNamespaceLines
+    value:           '1'
+  - key:             llvm-namespace-comment.SpacesBeforeComments
+    value:           '1'
+  - key:             readability-function-size.ParameterThreshold
+    value:           '4294967295'
+  - key:             readability-suspicious-call-argument.Equality
+    value:           'true'
+  - key:             readability-function-cognitive-complexity.IgnoreMacros
+    value:           'false'
+  - key:             cert-str34-c.DiagnoseSignedUnsignedCharComparisons
+    value:           'false'
+  - key:             readability-identifier-naming.AggressiveDependentMemberLookup
+    value:           'false'
+  - key:             readability-redundant-smartptr-get.IgnoreMacros
+    value:           'true'
+  - key:             cert-err61-cpp.WarnOnLargeObjects
+    value:           'false'
+  - key:             cert-err09-cpp.WarnOnLargeObjects
+    value:           'false'
+  - key:             google-readability-namespace-comments.ShortNamespaceLines
+    value:           '10'
+  - key:             readability-suspicious-call-argument.JaroWinklerDissimilarBelow
+    value:           '75'
+  - key:             readability-suspicious-call-argument.SuffixSimilarAbove
+    value:           '30'
+  - key:             readability-suspicious-call-argument.Suffix
+    value:           'true'
+  - key:             cert-oop57-cpp.MemSetNames
+    value:           ''
+  - key:             performance-type-promotion-in-math-fn.IncludeStyle
+    value:           llvm
+  - key:             readability-function-cognitive-complexity.DescribeBasicIncrements
+    value:           'true'
+  - key:             readability-suspicious-call-argument.MinimumIdentifierNameLength
+    value:           '3'
+  - key:             modernize-loop-convert.NamingStyle
+    value:           CamelCase
+  - key:             readability-inconsistent-declaration-parameter-name.IgnoreMacros
+    value:           'true'
+  - key:             performance-no-automatic-move.AllowedTypes
+    value:           ''
+  - key:             readability-suspicious-call-argument.SubstringDissimilarBelow
+    value:           '40'
+  - key:             performance-for-range-copy.WarnOnAllAutoCopies
+    value:           'false'
+  - key:             readability-identifier-naming.IgnoreFailedSplit
+    value:           'false'
+  - key:             modernize-pass-by-value.IncludeStyle
+    value:           llvm
+  - key:             readability-qualified-auto.AddConstToQualified
+    value:           'true'
+  - key:             readability-simplify-boolean-expr.ChainedConditionalReturn
+    value:           'false'
+  - key:             readability-else-after-return.WarnOnConditionVariables
+    value:           'true'
+  - key:             readability-uppercase-literal-suffix.IgnoreMacros
+    value:           'true'
+  - key:             modernize-use-nullptr.NullMacros
+    value:           'NULL'
+  - key:             cert-dcl59-cpp.HeaderFileExtensions
+    value:           ';h;hh;hpp;hxx'
+  - key:             readability-suspicious-call-argument.SuffixDissimilarBelow
+    value:           '25'
+  - key:             performance-unnecessary-copy-initialization.AllowedTypes
+    value:           ''
+  - key:             llvm-header-guard.HeaderFileExtensions
+    value:           ';h;hh;hpp;hxx'
+  - key:             readability-suspicious-call-argument.LevenshteinSimilarAbove
+    value:           '66'
+  - key:             readability-suspicious-call-argument.Levenshtein
+    value:           'true'
+  - key:             readability-suspicious-call-argument.JaroWinkler
+    value:           'true'
+  - key:             readability-suspicious-call-argument.Prefix
+    value:           'true'
+  - key:             readability-simplify-boolean-expr.ChainedConditionalAssignment
+    value:           'false'
+  - key:             cert-oop54-cpp.WarnOnlyIfThisHasSuspiciousField
+    value:           'false'
+  - key:             cert-err09-cpp.CheckThrowTemporaries
+    value:           'true'
+  - key:             cert-dcl51-cpp.Invert
+    value:           'false'
+  - key:             readability-function-size.LineThreshold
+    value:           '4294967295'
+  - key:             modernize-loop-convert.MaxCopySize
+    value:           '16'
+  - key:             readability-suspicious-call-argument.PrefixDissimilarBelow
+    value:           '25'
+  - key:             performance-inefficient-vector-operation.EnableProto
+    value:           'false'
+  - key:             cppcoreguidelines-explicit-virtual-functions.IgnoreDestructors
+    value:           'true'
+  - key:             performance-for-range-copy.AllowedTypes
+    value:           ''
+  - key:             readability-redundant-string-init.StringNames
+    value:           '::std::basic_string_view;::std::basic_string'
+  - key:             readability-magic-numbers.IgnoreBitFieldsWidths
+    value:           'true'
+  - key:             readability-braces-around-statements.ShortStatementLines
+    value:           '0'
+  - key:             readability-suspicious-call-argument.LevenshteinDissimilarBelow
+    value:           '50'
+  - key:             readability-magic-numbers.IgnoredFloatingPointValues
+    value:           '1.0;100.0;'
+  - key:             readability-redundant-declaration.IgnoreMacros
+    value:           'true'
+  - key:             performance-inefficient-string-concatenation.StrictMode
+    value:           'false'
+  - key:             concurrency-mt-unsafe.FunctionSet
+    value:           any
+  - key:             readability-implicit-bool-conversion.AllowPointerConditions
+    value:           'false'
+  - key:             google-readability-braces-around-statements.ShortStatementLines
+    value:           '1'
+  - key:             readability-else-after-return.WarnOnUnfixable
+    value:           'true'
+  - key:             cert-dcl51-cpp.AllowedIdentifiers
+    value:           ''
+  - key:             cert-oop57-cpp.MemCpyNames
+    value:           ''
+  - key:             readability-suspicious-call-argument.SubstringSimilarAbove
+    value:           '50'
+  - key:             readability-suspicious-call-argument.Substring
+    value:           'true'
+  - key:             readability-magic-numbers.IgnoreAllFloatingPointValues
+    value:           'false'
+  - key:             readability-suspicious-call-argument.Abbreviations
+    value:           'arr=array;cnt=count;idx=index;src=source;stmt=statement;cpy=copy;dest=destination;dist=distancedst=distance;ptr=pointer;wdth=width;str=string;ln=line;srv=server;attr=attribute;ref=reference;buf=buffer;col=column;nr=number;vec=vector;len=length;elem=element;val=value;i=index;var=variable;hght=height;cl=client;num=number;pos=position;lst=list;addr=address'
+  - key:             readability-uppercase-literal-suffix.NewSuffixes
+    value:           ''
+  - key:             modernize-loop-convert.MinConfidence
+    value:           reasonable
+  - key:             performance-unnecessary-value-param.AllowedTypes
+    value:           ''
+  - key:             readability-uniqueptr-delete-release.PreferResetCall
+    value:           'false'
+  - key:             cert-oop57-cpp.MemCmpNames
+    value:           ''
+  - key:             google-readability-namespace-comments.SpacesBeforeComments
+    value:           '2'
+  - key:             readability-function-cognitive-complexity.Threshold
+    value:           '25'
+  - key:             cppcoreguidelines-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
+    value:           'true'
+  - key:             cert-err61-cpp.CheckThrowTemporaries
+    value:           'true'
+  - key:             performance-faster-string-find.StringLikeClasses
+    value:           '::std::basic_string;::std::basic_string_view'
+  - key:             readability-function-size.BranchThreshold
+    value:           '4294967295'
+  - key:             readability-implicit-bool-conversion.AllowIntegerConditions
+    value:           'false'
+  - key:             readability-function-size.StatementThreshold
+    value:           '800'
+  - key:             readability-identifier-naming.IgnoreMainLikeFunctions
+    value:           'false'
+  - key:             llvm-qualified-auto.AddConstToQualified
+    value:           'false'
+  - key:             cert-str34-c.CharTypdefsToIgnore
+    value:           ''
+  - key:             google-readability-function-size.StatementThreshold
+    value:           '800'
+  - key:             llvm-else-after-return.WarnOnConditionVariables
+    value:           'false'
+  - key:             cert-msc51-cpp.DisallowedSeedTypes
+    value:           'time_t,std::time_t'
+  - key:             readability-suspicious-call-argument.DiceSimilarAbove
+    value:           '70'
+  - key:             readability-suspicious-call-argument.Dice
+    value:           'true'
+  - key:             readability-suspicious-call-argument.Abbreviation
+    value:           'true'
+  - key:             cert-dcl37-c.Invert
+    value:           'false'
+  - key:             cert-dcl37-c.AggressiveDependentMemberLookup
+    value:           'false'
+  - key:             performance-inefficient-vector-operation.VectorLikeClasses
+    value:           '::std::vector'
+  - key:             readability-magic-numbers.IgnoredIntegerValues
+    value:           '1;2;3;4;'
+  - key:             readability-magic-numbers.IgnorePowersOf2IntegerValues
+    value:           'false'
+  - key:             readability-redundant-member-init.IgnoreBaseInCopyConstructors
+    value:           'false'
+  - key:             readability-suspicious-call-argument.JaroWinklerSimilarAbove
+    value:           '85'
+  - key:             cert-dcl16-c.IgnoreMacros
+    value:           'true'
+  - key:             performance-unnecessary-value-param.IncludeStyle
+    value:           llvm
+  - key:             llvm-else-after-return.WarnOnUnfixable
+    value:           'false'
+  - key:             cert-msc32-c.DisallowedSeedTypes
+    value:           'time_t,std::time_t'
+...
