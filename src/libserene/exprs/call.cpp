@@ -86,7 +86,7 @@ MaybeNode Call::make(SereneContext &ctx, List *list) {
 
     auto *sym = llvm::dyn_cast<Symbol>(first.get());
 
-    if (!sym) {
+    if (sym == nullptr) {
       llvm_unreachable("Couldn't case to Symbol while the type is symbol!");
     }
 

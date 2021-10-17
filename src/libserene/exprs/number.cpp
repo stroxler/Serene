@@ -47,7 +47,7 @@ bool Number::classof(const Expression *e) {
   return e->getType() == ExprType::Number;
 };
 
-int Number::toI64() { return std::stoi(this->value); };
+int Number::toI64() const { return std::stoi(this->value); };
 
 void Number::generateIR(serene::Namespace &ns, mlir::ModuleOp &m) {
   mlir::OpBuilder builder(&ns.getContext().mlirContext);

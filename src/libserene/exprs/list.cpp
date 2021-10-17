@@ -25,10 +25,12 @@
 #include "serene/exprs/fn.h"
 #include "serene/exprs/symbol.h"
 
-#include <iterator>
 #include <llvm/Support/Casting.h>
 #include <llvm/Support/ErrorHandling.h>
 #include <llvm/Support/FormatVariadic.h>
+
+#include <iterator>
+#include <utility>
 
 namespace serene {
 namespace exprs {
@@ -42,14 +44,14 @@ List::List(const reader::LocationRange &loc, Node &e) : Expression(loc) {
 };
 
 List::List(const reader::LocationRange &loc, Ast elems)
-    : Expression(loc), elements(elems){};
+    : Expression(loc), elements(std::move(elems)){};
 
 ExprType List::getType() const { return ExprType::List; };
 
 std::string List::toString() const {
   std::string s{this->elements.empty() ? "-" : ""};
 
-  for (auto &n : this->elements) {
+  for (const auto &n : this->elements) {
     s = llvm::formatv("{0} {1}", s, n->toString());
   }
 
@@ -63,7 +65,7 @@ MaybeNode List::analyze(SereneContext &ctx) {
     if (first->getType() == ExprType::Symbol) {
       auto *sym = llvm::dyn_cast<Symbol>(first);
 
-      if (sym) {
+      if (sym != nullptr) {
         if (sym->name == "def") {
           return Def::make(ctx, this);
         }

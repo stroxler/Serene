@@ -26,17 +26,18 @@
 #include "serene/slir/dialect.h"
 #include "serene/slir/utils.h"
 
-#include <cstdint>
 #include <llvm/Support/Casting.h>
 #include <llvm/Support/FormatVariadic.h>
 #include <mlir/IR/Block.h>
 #include <mlir/IR/BuiltinAttributes.h>
 
+#include <utility>
+
 namespace serene {
 namespace exprs {
 
 Fn::Fn(SereneContext &ctx, reader::LocationRange &loc, List &args, Ast body)
-    : Expression(loc), args(args), body(body) {
+    : Expression(loc), args(args), body(std::move(body)) {
   this->setName(
       llvm::formatv("___fn___{0}", ctx.getCurrentNS().nextFnCounter()));
 };
@@ -57,7 +58,7 @@ MaybeNode Fn::analyze(SereneContext &ctx) {
 
 bool Fn::classof(const Expression *e) { return e->getType() == ExprType::Fn; };
 
-void Fn::setName(std::string n) { this->name = n; };
+void Fn::setName(std::string n) { this->name = std::move(n); };
 
 MaybeNode Fn::make(SereneContext &ctx, List *list) {
   // TODO: Add support for docstring as the 3rd argument (4th element)
@@ -75,7 +76,7 @@ MaybeNode Fn::make(SereneContext &ctx, List *list) {
 
   List *args = llvm::dyn_cast<List>(list->elements[1].get());
 
-  if (!args) {
+  if (args == nullptr) {
     std::string msg =
         llvm::formatv("Arguments of a function has to be a list, got '{0}'",
                       stringifyExprType(list->elements[1]->getType()));
@@ -114,7 +115,7 @@ void Fn::generateIR(serene::Namespace &ns, mlir::ModuleOp &m) {
   for (auto &arg : args) {
     auto *argSym = llvm::dyn_cast<Symbol>(arg.get());
 
-    if (!argSym) {
+    if (argSym == nullptr) {
       m->emitError(llvm::formatv(
           "Arguments of a function have to be symbols. Fn: '{0}'", name));
       return;

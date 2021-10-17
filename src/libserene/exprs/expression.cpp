@@ -24,7 +24,7 @@ namespace serene {
 namespace exprs {
 
 std::string astToString(const Ast *tree) {
-  if (tree->size() == 0) {
+  if (tree->empty()) {
     return "";
   }
 

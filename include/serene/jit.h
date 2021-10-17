@@ -34,8 +34,9 @@
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
 #include <llvm/Support/CodeGen.h>
 #include <llvm/Support/Debug.h>
-#include <memory>
 #include <mlir/Support/LLVM.h>
+
+#include <memory>
 
 #define JIT_LOG(...) \
   DEBUG_WITH_TYPE("JIT", llvm::dbgs() << "[JIT]: " << __VA_ARGS__ << "\n");
@@ -95,8 +96,9 @@ public:
 
   /// Invokes the function with the given name passing it the list of opaque
   /// pointers to the actual arguments.
-  llvm::Error invokePacked(llvm::StringRef name,
-                           llvm::MutableArrayRef<void *> args = llvm::None);
+  llvm::Error
+  invokePacked(llvm::StringRef name,
+               llvm::MutableArrayRef<void *> args = llvm::None) const;
 
   /// Trait that defines how a given type is passed to the JIT code. This
   /// defaults to passing the address but can be specialized.

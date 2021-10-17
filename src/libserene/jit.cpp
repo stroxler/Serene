@@ -40,7 +40,12 @@
 #include <llvm/Support/ToolOutputFile.h>
 #include <mlir/ExecutionEngine/ExecutionEngine.h>
 #include <mlir/Support/FileUtilities.h>
+
 #include <stdexcept>
+
+#define COMMON_ARGS_COUNT 8
+// Just to make the linter happy
+#define I64_BIT_SIZE 64
 
 namespace serene {
 
@@ -64,13 +69,13 @@ static void packFunctionArguments(llvm::Module *module) {
     if (func.isDeclaration()) {
       continue;
     }
-    if (interfaceFunctions.count(&func)) {
+    if (interfaceFunctions.count(&func) != 0) {
       continue;
     }
 
     // Given a function `foo(<...>)`, define the interface function
     // `mlir_foo(i8**)`.
-    auto newType = llvm::FunctionType::get(
+    auto *newType = llvm::FunctionType::get(
         builder.getVoidTy(), builder.getInt8PtrTy()->getPointerTo(),
         /*isVarArg=*/false);
     auto newName = makePackedFunctionName(func.getName());
@@ -81,15 +86,15 @@ static void packFunctionArguments(llvm::Module *module) {
 
     // Extract the arguments from the type-erased argument list and cast them to
     // the proper types.
-    auto bb = llvm::BasicBlock::Create(ctx);
+    auto *bb = llvm::BasicBlock::Create(ctx);
     bb->insertInto(interfaceFunc);
     builder.SetInsertPoint(bb);
     llvm::Value *argList = interfaceFunc->arg_begin();
-    llvm::SmallVector<llvm::Value *, 8> args;
+    llvm::SmallVector<llvm::Value *, COMMON_ARGS_COUNT> args;
     args.reserve(llvm::size(func.args()));
     for (auto &indexedArg : llvm::enumerate(func.args())) {
       llvm::Value *argIndex = llvm::Constant::getIntegerValue(
-          builder.getInt64Ty(), llvm::APInt(64, indexedArg.index()));
+          builder.getInt64Ty(), llvm::APInt(I64_BIT_SIZE, indexedArg.index()));
       llvm::Value *argPtrPtr =
           builder.CreateGEP(builder.getInt8PtrTy(), argList, argIndex);
       llvm::Value *argPtr =
@@ -106,7 +111,8 @@ static void packFunctionArguments(llvm::Module *module) {
     // Assuming the result is one value, potentially of type `void`.
     if (!result->getType()->isVoidTy()) {
       llvm::Value *retIndex = llvm::Constant::getIntegerValue(
-          builder.getInt64Ty(), llvm::APInt(64, llvm::size(func.args())));
+          builder.getInt64Ty(),
+          llvm::APInt(I64_BIT_SIZE, llvm::size(func.args())));
       llvm::Value *retPtrPtr =
           builder.CreateGEP(builder.getInt8PtrTy(), argList, retIndex);
       llvm::Value *retPtr =
@@ -213,10 +219,12 @@ MaybeJIT JIT::make(Namespace &ns,
         });
 
     // Register JIT event listeners if they are enabled.
-    if (jitEngine->gdbListener)
+    if (jitEngine->gdbListener != nullptr) {
       objectLayer->registerJITEventListener(*jitEngine->gdbListener);
-    if (jitEngine->perfListener)
+    }
+    if (jitEngine->perfListener != nullptr) {
       objectLayer->registerJITEventListener(*jitEngine->perfListener);
+    }
 
     // COFF format binaries (Windows) need special handling to deal with
     // exported symbol visibility.
@@ -256,11 +264,15 @@ MaybeJIT JIT::make(Namespace &ns,
   auto compileFunctionCreator = [&](llvm::orc::JITTargetMachineBuilder JTMB)
       -> llvm::Expected<
           std::unique_ptr<llvm::orc::IRCompileLayer::IRCompiler>> {
-    if (jitCodeGenOptLevel)
+    if (jitCodeGenOptLevel) {
       JTMB.setCodeGenOptLevel(jitCodeGenOptLevel.getValue());
+    }
+
     auto TM = JTMB.createTargetMachine();
-    if (!TM)
+    if (!TM) {
       return TM.takeError();
+    }
+
     return std::make_unique<llvm::orc::TMOwningSimpleCompiler>(
         std::move(*TM), jitEngine->cache.get());
   };
@@ -307,17 +319,22 @@ llvm::Expected<void (*)(void **)> JIT::lookup(llvm::StringRef name) const {
   }
 
   auto rawFPtr = expectedSymbol->getAddress();
-  auto fptr    = reinterpret_cast<void (*)(void **)>(rawFPtr);
-  if (!fptr)
+  // NOLINTNEXTLINE(performance-no-int-to-ptr)
+  auto fptr = reinterpret_cast<void (*)(void **)>(rawFPtr);
+
+  if (fptr == nullptr) {
     return make_string_error("looked up function is null");
+  }
+
   return fptr;
 }
 
 llvm::Error JIT::invokePacked(llvm::StringRef name,
-                              llvm::MutableArrayRef<void *> args) {
+                              llvm::MutableArrayRef<void *> args) const {
   auto expectedFPtr = lookup(name);
-  if (!expectedFPtr)
+  if (!expectedFPtr) {
     return expectedFPtr.takeError();
+  }
   auto fptr = *expectedFPtr;
 
   (*fptr)(args.data());

@@ -65,7 +65,7 @@ MaybeNode Def::make(SereneContext &ctx, List *list) {
 
   // Make sure that the first argument is a Symbol
   Symbol *binding = llvm::dyn_cast<Symbol>(list->elements[1].get());
-  if (!binding) {
+  if (binding == nullptr) {
     return makeErrorful<Node>(list->elements[1]->location,
                               &errors::DefExpectSymbol, "");
   }
@@ -93,7 +93,7 @@ MaybeNode Def::make(SereneContext &ctx, List *list) {
 
   if (analyzedValue->getType() == ExprType::Fn) {
     Fn *tmp = llvm::dyn_cast<Fn>(analyzedValue.get());
-    if (!tmp) {
+    if (tmp == nullptr) {
       llvm_unreachable("inconsistent getType for function");
     }
 
@@ -107,9 +107,8 @@ MaybeNode Def::make(SereneContext &ctx, List *list) {
   if (result.succeeded()) {
     return makeSuccessfulNode<Def>(list->location, binding->name,
                                    analyzedValue);
-  } else {
-    llvm_unreachable("Inserting a value in the semantic env failed!");
   }
+  llvm_unreachable("Inserting a value in the semantic env failed!");
 };
 
 void Def::generateIR(serene::Namespace &ns, mlir::ModuleOp &m) {

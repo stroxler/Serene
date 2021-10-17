@@ -51,7 +51,7 @@ struct Number : public Expression {
   void generateIR(serene::Namespace &, mlir::ModuleOp &) override;
 
   // TODO: This is horrible, we need to fix it after the mvp
-  int toI64();
+  int toI64() const;
 
   ~Number() = default;
 

@@ -23,6 +23,7 @@
 #include "serene/exprs/expression.h"
 
 #include <llvm/ADT/Optional.h>
+
 #include <string>
 
 namespace serene {
@@ -51,7 +52,7 @@ public:
 
   size_t count() const;
 
-  Ast from(uint begin);
+  Ast from(uint index);
 
   llvm::Optional<Expression *> at(uint index);
 
@@ -71,7 +72,8 @@ public:
   /// by the for loop.
   std::vector<Node>::iterator end();
 
-  MaybeNode analyze(SereneContext &) override;
+  MaybeNode analyze(SereneContext &ctx) override;
+  // NOLINTNEXTLINE(readability-named-parameter)
   void generateIR(serene::Namespace &, mlir::ModuleOp &) override{};
 
   ~List() = default;
