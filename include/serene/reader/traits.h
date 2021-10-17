@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef READER_TRAITS_H
-#define READER_TRAITS_H
+#ifndef SERENE_READER_TRAITS_H
+#define SERENE_READER_TRAITS_H
 
 #include "serene/reader/location.h"
 #include "serene/traits.h"

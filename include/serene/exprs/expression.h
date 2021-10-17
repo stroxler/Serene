@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef EXPRS_EXPRESSION_H
-#define EXPRS_EXPRESSION_H
+#ifndef SERENE_EXPRS_EXPRESSION_H
+#define SERENE_EXPRS_EXPRESSION_H
 
 #include "serene/context.h"
 #include "serene/errors/error.h"
@@ -25,8 +25,9 @@
 #include "serene/reader/location.h"
 #include "serene/utils.h"
 
-#include <memory>
 #include <mlir/IR/BuiltinOps.h>
+
+#include <memory>
 
 namespace serene {
 

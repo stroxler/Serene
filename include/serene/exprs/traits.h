@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef EXPRS_TRAITS_H
-#define EXPRS_TRAITS_H
+#ifndef SERENE_EXPRS_TRAITS_H
+#define SERENE_EXPRS_TRAITS_H
 
 #include "serene/context.h"
 #include "serene/reader/location.h"

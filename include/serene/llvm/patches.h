@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SERENE_LLVM_PATCHES_H
-#define SERENE_LLVM_PATCHES_H
+#ifndef LLVM_PATCHES_H
+#define LLVM_PATCHES_H
 
 #include <llvm/ADT/DenseMap.h>
 
@@ -34,17 +34,19 @@ struct DenseMapInfo<std::string> {
     return "0TOMBED";
   }
 
-  static unsigned getHashValue(std::string Val) {
+  static unsigned getHashValue(const std::string &Val) {
     assert(Val != getEmptyKey() && "Cannot hash the empty key!");
     assert(Val != getTombstoneKey() && "Cannot hash the tombstone key!");
     return (unsigned)(llvm::hash_value(Val));
   }
 
-  static bool isEqual(std::string LHS, std::string RHS) {
-    if (RHS == getEmptyKey())
+  static bool isEqual(const std::string &LHS, const std::string &RHS) {
+    if (RHS == getEmptyKey()) {
       return LHS == getEmptyKey();
-    if (RHS == getTombstoneKey())
+    }
+    if (RHS == getTombstoneKey()) {
       return LHS == getTombstoneKey();
+    }
     return LHS == RHS;
   }
 };

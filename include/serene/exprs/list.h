@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef EXPRS_LIST_H
-#define EXPRS_LIST_H
+#ifndef SERENE_EXPRS_LIST_H
+#define SERENE_EXPRS_LIST_H
 
 #include "serene/context.h"
 #include "serene/exprs/expression.h"

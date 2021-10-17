@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef EXPRS_NUMBER_H
-#define EXPRS_NUMBER_H
+#ifndef SERENE_EXPRS_NUMBER_H
+#define SERENE_EXPRS_NUMBER_H
 
 #include "serene/context.h"
 #include "serene/exprs/expression.h"
@@ -48,7 +48,7 @@ struct Number : public Expression {
   std::string toString() const override;
 
   MaybeNode analyze(SereneContext &ctx) override;
-  void generateIR(serene::Namespace &, mlir::ModuleOp &) override;
+  void generateIR(serene::Namespace & /*ns*/, mlir::ModuleOp & /*m*/) override;
 
   // TODO: This is horrible, we need to fix it after the mvp
   int toI64() const;

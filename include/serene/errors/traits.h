@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ERRORS_TRAITS_H
-#define ERRORS_TRAITS_H
+#ifndef SERENE_ERRORS_TRAITS_H
+#define SERENE_ERRORS_TRAITS_H
 
 #include "serene/context.h"
 #include "serene/errors/constants.h"

@@ -25,7 +25,7 @@
 
 namespace serene {
 class Namespace;
-}
+} // namespace serene
 
 namespace serene::slir {
 

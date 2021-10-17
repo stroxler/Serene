@@ -15,14 +15,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef SERENE_SLIR_H
-#define SERENE_SLIR_H
+#ifndef SERENE_SLIR_SLIR_H
+#define SERENE_SLIR_SLIR_H
 
 #include "serene/exprs/expression.h"
 
-#include <memory>
 #include <mlir/IR/BuiltinOps.h>
 #include <mlir/IR/MLIRContext.h>
+
+#include <memory>
 
 namespace serene {
 namespace slir {

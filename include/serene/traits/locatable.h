@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TRAITS_LOCATABLE_H
-#define TRAITS_LOCATABLE_H
+#ifndef SERENE_TRAITS_LOCATABLE_H
+#define SERENE_TRAITS_LOCATABLE_H
 
 #endif

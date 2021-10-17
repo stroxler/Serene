@@ -42,7 +42,7 @@ namespace serene {
 
 namespace reader {
 class LocationRange;
-}
+} // namespace reader
 
 namespace exprs {
 class Expression;

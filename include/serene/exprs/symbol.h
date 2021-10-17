@@ -16,13 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef EXPRS_SYMBOL_H
-#define EXPRS_SYMBOL_H
+#ifndef SERENE_EXPRS_SYMBOL_H
+#define SERENE_EXPRS_SYMBOL_H
 
 #include "serene/context.h"
 #include "serene/exprs/expression.h"
 
 #include <llvm/ADT/StringRef.h>
+
 #include <string>
 
 namespace serene {
@@ -44,8 +45,9 @@ public:
   ExprType getType() const override;
   std::string toString() const override;
 
-  MaybeNode analyze(SereneContext &) override;
-  void generateIR(serene::Namespace &, mlir::ModuleOp &) override{};
+  MaybeNode analyze(SereneContext & /*ctx*/) override;
+  void generateIR(serene::Namespace & /*ns*/,
+                  mlir::ModuleOp & /*m*/) override{};
 
   ~Symbol() = default;
 

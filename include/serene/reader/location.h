@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SERENE_LOCATION_H
-#define SERENE_LOCATION_H
+#ifndef SERENE_READER_LOCATION_H
+#define SERENE_READER_LOCATION_H
 
 #include <mlir/IR/Diagnostics.h>
 #include <mlir/IR/Location.h>
@@ -77,7 +77,7 @@ public:
   LocationRange(Location _start, Location _end) : start(_start), end(_end){};
   // LocationRange(const LocationRange &);
 
-  bool isKnownLocation() { return start.knownLocation; };
+  bool isKnownLocation() const { return start.knownLocation; };
 
   static LocationRange UnknownLocation(llvm::StringRef ns) {
     return LocationRange(Location::UnknownLocation(ns));

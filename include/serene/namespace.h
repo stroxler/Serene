@@ -34,17 +34,18 @@
 #include "serene/traits.h"
 #include "serene/utils.h"
 
-#include <atomic>
 #include <llvm/ADT/SmallString.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/ADT/Twine.h>
 #include <llvm/IR/Module.h>
-#include <memory>
 #include <mlir/IR/Builders.h>
 #include <mlir/IR/BuiltinOps.h>
 #include <mlir/IR/OwningOpRef.h>
 #include <mlir/IR/Value.h>
 #include <mlir/Support/LogicalResult.h>
+
+#include <atomic>
+#include <memory>
 #include <string>
 
 #define NAMESPACE_LOG(...) \

@@ -31,8 +31,8 @@
 
  */
 
-#ifndef READER_H
-#define READER_H
+#ifndef SERENE_READER_READER_H
+#define SERENE_READER_READER_H
 
 #include "serene/errors.h"
 #include "serene/exprs/expression.h"
@@ -121,10 +121,10 @@ public:
 
 /// Parses the given `input` string and returns a `Result<ast>`
 /// which may contains an AST or an `llvm::Error`
-Result<exprs::Ast> read(SereneContext &ctx, const llvm::StringRef input,
+Result<exprs::Ast> read(SereneContext &ctx, llvm::StringRef input,
                         llvm::StringRef ns,
                         llvm::Optional<llvm::StringRef> filename);
-Result<exprs::Ast> read(SereneContext &ctx, const llvm::MemoryBufferRef input,
+Result<exprs::Ast> read(SereneContext &ctx, llvm::MemoryBufferRef input,
                         llvm::StringRef ns,
                         llvm::Optional<llvm::StringRef> filename);
 } // namespace serene::reader

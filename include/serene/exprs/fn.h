@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef EXPRS_FN_H
-#define EXPRS_FN_H
+#ifndef SERENE_EXPRS_FN_H
+#define SERENE_EXPRS_FN_H
 
 #include "serene/context.h"
 #include "serene/errors/error.h"
@@ -27,6 +27,7 @@
 
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/Error.h>
+
 #include <memory>
 #include <string>
 
@@ -52,8 +53,8 @@ public:
 
   ExprType getType() const override;
   std::string toString() const override;
-  MaybeNode analyze(SereneContext &) override;
-  void generateIR(serene::Namespace &, mlir::ModuleOp &) override;
+  MaybeNode analyze(SereneContext & /*ctx*/) override;
+  void generateIR(serene::Namespace & /*ns*/, mlir::ModuleOp & /*m*/) override;
 
   static bool classof(const Expression *e);
 

@@ -20,8 +20,10 @@
 #define SERENE_ERRORS_CONSTANTS_H
 
 #include <llvm/Support/FormatVariadic.h>
+
 #include <map>
 #include <string>
+#include <utility>
 
 namespace serene {
 namespace errors {
@@ -50,7 +52,8 @@ struct ErrorVariant {
   std::string longDescription;
 
   ErrorVariant(ErrID id, std::string desc, std::string longDesc)
-      : id(id), description(desc), longDescription(longDesc){};
+      : id(id), description(std::move(desc)),
+        longDescription(std::move(longDesc)){};
 
   std::string getErrId() { return llvm::formatv("E{0:d}", id); };
 };

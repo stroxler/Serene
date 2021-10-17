@@ -15,8 +15,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef SERENE_SLIR_DIALECT_H_
-#define SERENE_SLIR_DIALECT_H_
+#ifndef SERENE_SLIR_DIALECT_H
+#define SERENE_SLIR_DIALECT_H
 
 #include <mlir/IR/BuiltinOps.h>
 #include <mlir/IR/Dialect.h>
@@ -34,4 +34,4 @@
 
 #include "serene/slir/ops.h.inc"
 
-#endif // DIALECT_H_
+#endif // SERENE_SLIR_DIALECT_H

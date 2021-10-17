@@ -22,6 +22,7 @@
 #include "serene/export.h"
 
 #include <llvm/Support/Error.h>
+
 #include <variant>
 
 // Sometimes we need this to make both analyzer happy
@@ -92,33 +93,6 @@ public:
   bool ok() const { return std::holds_alternative<T>(contents); };
 
   operator bool() const { return ok(); }
-
-  const T &getValueOrFail(llvm::StringRef msg, int exitCode = 1) const & {
-    if (ok()) {
-      return getValue();
-    }
-
-    llvm::errs() << msg << "\n";
-    exit(exitCode);
-  }
-
-  T &getValueOrFail(llvm::StringRef msg, int exitCode = 1) & {
-    if (ok()) {
-      return getValue();
-    }
-
-    llvm::errs() << msg << "\n";
-    exit(exitCode);
-  }
-
-  T &&getValueOrFail(llvm::StringRef msg, int exitCode = 1) && {
-    if (ok()) {
-      return std::move(getValue());
-    }
-
-    llvm::errs() << msg << "\n";
-    exit(exitCode);
-  }
 };
 
 } // namespace serene

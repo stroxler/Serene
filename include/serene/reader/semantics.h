@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef READER_SEMANTICS_H
-#define READER_SEMANTICS_H
+#ifndef SERENE_READER_SEMANTICS_H
+#define SERENE_READER_SEMANTICS_H
 
 #include "serene/context.h"
 #include "serene/errors/error.h"
