@@ -37,7 +37,7 @@ using AnalyzeResult = Result<exprs::Ast, std::vector<exprs::ErrorPtr>>;
 ///
 /// \param ctx The semantic analysis context
 /// \param inputAst The raw AST to analyze and possibly rewrite.
-AnalyzeResult analyze(serene::SereneContext &ctx, exprs::Ast &tree);
+AnalyzeResult analyze(serene::SereneContext &ctx, exprs::Ast &inputAst);
 }; // namespace serene::reader
 
 #endif

@@ -36,10 +36,6 @@ std::string Location::toString() const {
   return llvm::formatv("{0}:{1}", line, col);
 };
 
-Location Location::clone() {
-  return Location{ns, filename, c, line, col, knownLocation};
-}
-
 Location Location::clone() const {
   return Location{ns, filename, c, line, col, knownLocation};
 }

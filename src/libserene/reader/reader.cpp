@@ -24,9 +24,6 @@
 #include "serene/exprs/symbol.h"
 #include "serene/namespace.h"
 
-#include <assert.h>
-#include <cctype>
-#include <fstream>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/Error.h>
 #include <llvm/Support/ErrorHandling.h>
@@ -34,10 +31,14 @@
 #include <llvm/Support/FormatVariadic.h>
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/SMLoc.h>
-#include <memory>
 #include <mlir/IR/Diagnostics.h>
 #include <mlir/IR/Location.h>
 #include <mlir/Support/LogicalResult.h>
+
+#include <assert.h>
+#include <cctype>
+#include <fstream>
+#include <memory>
 #include <string>
 
 namespace serene {
@@ -89,9 +90,9 @@ void Reader::advanceByOne() {
 void Reader::advance(bool skipWhitespace) {
   if (skipWhitespace) {
     for (;;) {
-      auto next = currentChar + 1;
+      const auto *next = currentChar + 1;
 
-      if (!isspace(*next)) {
+      if (isspace(*next) == 0) {
         return;
       }
 
@@ -108,8 +109,8 @@ const char *Reader::nextChar(bool skipWhitespace, unsigned count) {
     return currentChar + count;
   }
 
-  auto c = currentChar + 1;
-  while (isspace(*c)) {
+  const auto *c = currentChar + 1;
+  while (isspace(*c) != 0) {
     c++;
   };
 
@@ -148,10 +149,7 @@ bool Reader::isValidForIdentifier(char c) {
     return true;
   }
 
-  if (std::isalnum(c)) {
-    return true;
-  }
-  return false;
+  return std::isalnum(c) != 0;
 }
 
 /// Reads a number,
@@ -162,12 +160,12 @@ exprs::Node Reader::readNumber(bool neg) {
   bool floatNum = false;
   bool empty    = false;
 
-  auto c = nextChar();
+  const auto *c = nextChar();
   advance();
 
   LocationRange loc(getCurrentLocation());
 
-  if (!isdigit(*c)) {
+  if (isdigit(*c) == 0) {
     ctx.diagEngine->emitSyntaxError(loc, errors::InvalidDigitForNumber);
     exit(1);
   }
@@ -177,8 +175,8 @@ exprs::Node Reader::readNumber(bool neg) {
     c     = nextChar(false);
     empty = false;
 
-    if (isdigit(*c) || *c == '.') {
-      if (*c == '.' && floatNum == true) {
+    if ((isdigit(*c) != 0) || *c == '.') {
+      if (*c == '.' && floatNum) {
         loc = LocationRange(getCurrentLocation());
         ctx.diagEngine->emitSyntaxError(loc, errors::TwoFloatPoints);
         exit(1);
@@ -194,7 +192,7 @@ exprs::Node Reader::readNumber(bool neg) {
     break;
   }
 
-  if ((std::isalpha(*c) && !empty) || empty) {
+  if (((std::isalpha(*c) != 0) && !empty) || empty) {
     advance();
     loc.start = getCurrentLocation();
     ctx.diagEngine->emitSyntaxError(loc, errors::InvalidDigitForNumber);
@@ -210,9 +208,10 @@ exprs::Node Reader::readNumber(bool neg) {
 exprs::Node Reader::readSymbol() {
   READER_LOG("Reading a symbol...");
   LocationRange loc;
-  auto c = nextChar();
+  const auto *c = nextChar();
 
-  if (!this->isValidForIdentifier(*c) || isEndOfBuffer(c) || isspace(*c)) {
+  if (!this->isValidForIdentifier(*c) || isEndOfBuffer(c) ||
+      (isspace(*c) != 0)) {
     advance();
     loc = LocationRange(getCurrentLocation());
     std::string msg;
@@ -227,19 +226,19 @@ exprs::Node Reader::readSymbol() {
   }
 
   if (*c == '-') {
-    auto next = nextChar(false, 2);
-    if (isdigit(*next)) {
+    const auto *next = nextChar(false, 2);
+    if (isdigit(*next) != 0) {
       // Swallow the -
       advance();
       return readNumber(true);
     }
   }
 
-  if (isdigit(*c)) {
+  if (isdigit(*c) != 0) {
     return readNumber(false);
   }
 
-  std::string sym("");
+  std::string sym;
   advance();
 
   for (;;) {
@@ -247,7 +246,7 @@ exprs::Node Reader::readSymbol() {
     c = nextChar();
 
     if (!isEndOfBuffer(c) &&
-        ((!(isspace(*c)) && this->isValidForIdentifier(*c)))) {
+        ((((isspace(*c)) == 0) && this->isValidForIdentifier(*c)))) {
       advance();
       continue;
     }
@@ -262,7 +261,7 @@ exprs::Node Reader::readSymbol() {
 exprs::Node Reader::readList() {
   READER_LOG("Reading a list...");
 
-  auto c = nextChar();
+  const auto *c = nextChar();
   advance();
 
   auto list = exprs::makeAndCast<exprs::List>(getCurrentLocation());
@@ -273,7 +272,7 @@ exprs::Node Reader::readList() {
   bool list_terminated = false;
 
   do {
-    auto c = nextChar(true);
+    const auto *c = nextChar(true);
 
     if (isEndOfBuffer(c)) {
       advance(true);
@@ -304,7 +303,7 @@ exprs::Node Reader::readList() {
 
 /// Reads an expression by dispatching to the proper reader function.
 exprs::Node Reader::readExpr() {
-  auto c = nextChar(true);
+  const auto *c = nextChar(true);
 
   READER_LOG("Read char at `readExpr`: " << *c);
 
@@ -330,7 +329,7 @@ exprs::Node Reader::readExpr() {
 Result<exprs::Ast> Reader::read() {
 
   for (size_t current_pos = 0; current_pos < buf.size();) {
-    auto c = nextChar(true);
+    const auto *c = nextChar(true);
 
     if (isEndOfBuffer(c)) {
       break;

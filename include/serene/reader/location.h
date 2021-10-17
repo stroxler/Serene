@@ -21,6 +21,7 @@
 
 #include <mlir/IR/Diagnostics.h>
 #include <mlir/IR/Location.h>
+
 #include <string>
 
 namespace serene {
@@ -56,7 +57,6 @@ struct Location {
       : ns(ns), filename(fname), c(c), line(line), col(col),
         knownLocation(knownLocation){};
 
-  Location clone();
   Location clone() const;
 
   mlir::Location toMLIRLocation(SereneContext &ctx);

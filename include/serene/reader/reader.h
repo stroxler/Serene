@@ -41,15 +41,17 @@
 #include "serene/reader/location.h"
 #include "serene/serene.h"
 
+#include <system_error>
+
 #include <llvm/Support/Debug.h>
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/MemoryBufferRef.h>
 #include <llvm/Support/raw_ostream.h>
+
 #include <memory>
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <system_error>
 #include <vector>
 
 #define READER_LOG(...)                  \
@@ -90,7 +92,7 @@ private:
 
   /// Returns a boolean indicating whether the given input character is valid
   /// for an identifier or not.
-  bool isValidForIdentifier(char c);
+  static bool isValidForIdentifier(char c);
 
   // The property to store the ast tree
   exprs::Ast ast;
@@ -122,8 +124,9 @@ public:
 Result<exprs::Ast> read(SereneContext &ctx, const llvm::StringRef input,
                         llvm::StringRef ns,
                         llvm::Optional<llvm::StringRef> filename);
-Result<exprs::Ast> read(SereneContext &ctx, const llvm::MemoryBufferRef but,
+Result<exprs::Ast> read(SereneContext &ctx, const llvm::MemoryBufferRef input,
                         llvm::StringRef ns,
                         llvm::Optional<llvm::StringRef> filename);
 } // namespace serene::reader
+
 #endif
