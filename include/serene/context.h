@@ -95,7 +95,7 @@ public:
   /// Insert the given `ns` into the context. The Context object is
   /// the owner of all the namespaces. The `ns` will overwrite any
   /// namespace with the same name.
-  void insertNS(std::shared_ptr<Namespace> ns);
+  void insertNS(const std::shared_ptr<Namespace> &ns);
 
   /// Sets the n ame of the current namespace in the context and return
   /// a boolean indicating the status of this operation. The operation
@@ -133,7 +133,7 @@ public:
   CompilationPhase getTargetPhase() { return targetPhase; };
   int getOptimizatioLevel();
 
-  NSPtr readNamespace(std::string name);
+  NSPtr readNamespace(const std::string &name);
   NSPtr readNamespace(std::string name, reader::LocationRange loc);
 
 private:

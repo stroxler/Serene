@@ -24,15 +24,16 @@
 #include "serene/slir/generatable.h"
 
 #include <llvm/Support/FormatVariadic.h>
+#include <utility>
 
 namespace serene {
 
-void SereneContext::insertNS(std::shared_ptr<Namespace> ns) {
+void SereneContext::insertNS(const std::shared_ptr<Namespace> &ns) {
   namespaces[ns->name] = ns;
 };
 
 std::shared_ptr<Namespace> SereneContext::getNS(llvm::StringRef ns_name) {
-  if (namespaces.count(ns_name.str())) {
+  if (namespaces.count(ns_name.str()) != 0) {
     return namespaces[ns_name.str()];
   }
 
@@ -40,7 +41,7 @@ std::shared_ptr<Namespace> SereneContext::getNS(llvm::StringRef ns_name) {
 };
 
 bool SereneContext::setCurrentNS(llvm::StringRef ns_name) {
-  if (namespaces.count(ns_name.str())) {
+  if (namespaces.count(ns_name.str()) != 0) {
     this->current_ns = ns_name;
     return true;
   }
@@ -49,7 +50,7 @@ bool SereneContext::setCurrentNS(llvm::StringRef ns_name) {
 };
 
 Namespace &SereneContext::getCurrentNS() {
-  if (this->current_ns.empty() || !namespaces.count(this->current_ns)) {
+  if (this->current_ns.empty() || (namespaces.count(this->current_ns) == 0)) {
     panic(*this, llvm::formatv("getCurrentNS: Namespace '{0}' does not exist",
                                this->current_ns)
                      .str());
@@ -88,7 +89,7 @@ int SereneContext::getOptimizatioLevel() {
   return 3;
 }
 
-NSPtr SereneContext::readNamespace(std::string name) {
+NSPtr SereneContext::readNamespace(const std::string &name) {
   auto loc = reader::LocationRange::UnknownLocation(name);
 
   return readNamespace(name, loc);
@@ -96,7 +97,7 @@ NSPtr SereneContext::readNamespace(std::string name) {
 
 NSPtr SereneContext::readNamespace(std::string name,
                                    reader::LocationRange loc) {
-  return sourceManager.readNamespace(*this, name, loc);
+  return sourceManager.readNamespace(*this, std::move(name), loc);
 }
 
 std::unique_ptr<SereneContext> makeSereneContext() {
