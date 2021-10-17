@@ -91,7 +91,7 @@ FnOpLowering::matchAndRewrite(serene::slir::FnOp op,
 
   llvm::SmallVector<mlir::Type, 4> arg_types;
 
-  for (auto &arg : args) {
+  for (const auto &arg : args) {
     auto attr = std::get<1>(arg).dyn_cast<mlir::TypeAttr>();
 
     if (!attr) {

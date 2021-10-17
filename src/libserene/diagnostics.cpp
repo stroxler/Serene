@@ -28,6 +28,7 @@
 #include <llvm/Support/FormatVariadic.h>
 #include <llvm/Support/WithColor.h>
 #include <llvm/Support/raw_ostream.h>
+
 #include <memory>
 
 namespace serene {
@@ -57,7 +58,7 @@ void Diagnostic::writeColorByType(llvm::raw_ostream &os, llvm::StringRef str) {
 };
 
 std::string Diagnostic::getPrefix(llvm::StringRef prefix) {
-  if (prefix != "") {
+  if (!prefix.empty()) {
     return prefix.str();
   }
 
@@ -104,8 +105,8 @@ void Diagnostic::print(llvm::raw_ostream &os, llvm::StringRef prefix) {
 
   s << "\n\n";
 
-  auto &srcBuf     = ctx.sourceManager.getBufferInfo(loc.start.ns);
-  const char *line = srcBuf.getPointerForLineNumber(loc.start.line);
+  const auto &srcBuf = ctx.sourceManager.getBufferInfo(loc.start.ns);
+  const char *line   = srcBuf.getPointerForLineNumber(loc.start.line);
 
   while (*line != '\n' && line != srcBuf.buffer->getBufferEnd()) {
     s << *line;
@@ -121,25 +122,25 @@ void Diagnostic::print(llvm::raw_ostream &os, llvm::StringRef prefix) {
   s << '\n';
 
   s << "[";
-  if (err) {
+  if (err != nullptr) {
     writeColorByType(os, err->getErrId());
   }
   s << "] ";
   writeColorByType(os, getPrefix(prefix));
   s << ": ";
 
-  if (err) {
+  if (err != nullptr) {
     s << err->description << '\n';
   }
 
-  if (message != "") {
+  if (!message.empty()) {
     s.changeColor(llvm::raw_ostream::Colors::YELLOW);
     s << "With message";
     s.resetColor();
     s << ": " << message << "\n";
   }
 
-  if (err) {
+  if (err != nullptr) {
     s << "For more information checkout";
     s.changeColor(llvm::raw_ostream::Colors::CYAN);
     s << " `serenec --explain ";
@@ -151,6 +152,7 @@ DiagnosticEngine::DiagnosticEngine(SereneContext &ctx)
     : ctx(ctx), diagEngine(ctx.mlirContext.getDiagEngine()){};
 
 void DiagnosticEngine::print(llvm::raw_ostream &os, Diagnostic &d) {
+  UNUSED(ctx);
   UNUSED(os);
   UNUSED(d);
 };
@@ -165,7 +167,7 @@ Diagnostic DiagnosticEngine::toDiagnostic(reader::LocationRange loc,
 
 void DiagnosticEngine::enqueueError(llvm::StringRef msg) {
   llvm::errs() << llvm::formatv("FIX ME (better emit error): {0}\n", msg);
-  exit(1);
+  terminate(ctx, 1);
 };
 
 void DiagnosticEngine::emitSyntaxError(reader::LocationRange loc,
@@ -174,7 +176,7 @@ void DiagnosticEngine::emitSyntaxError(reader::LocationRange loc,
   Diagnostic diag(ctx, loc, &e, msg);
 
   diag.print(llvm::errs(), "SyntaxError");
-  exit(1);
+  terminate(ctx, 1);
 };
 
 void DiagnosticEngine::panic(llvm::StringRef msg) {
@@ -194,7 +196,7 @@ void DiagnosticEngine::panic(llvm::StringRef msg) {
 
   s << msg << "\n";
   // TODO: Use a proper error code
-  std::exit(1);
+  terminate(ctx, 1);
 };
 
 std::unique_ptr<DiagnosticEngine> makeDiagnosticEngine(SereneContext &ctx) {

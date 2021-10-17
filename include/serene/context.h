@@ -32,10 +32,11 @@
 #include <llvm/ADT/StringRef.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/Support/Host.h>
-#include <memory>
 #include <mlir/Dialect/StandardOps/IR/Ops.h>
 #include <mlir/IR/MLIRContext.h>
 #include <mlir/Pass/PassManager.h>
+
+#include <memory>
 
 namespace serene {
 
@@ -153,6 +154,9 @@ private:
 /// process to store the state
 SERENE_EXPORT std::unique_ptr<SereneContext> makeSereneContext();
 
-}; // namespace serene
+/// Terminates the serene compiler process in a thread safe manner
+SERENE_EXPORT void terminate(SereneContext &ctx, int exitCode);
+
+} // namespace serene
 
 #endif

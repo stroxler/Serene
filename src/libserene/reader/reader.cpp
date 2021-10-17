@@ -167,7 +167,7 @@ exprs::Node Reader::readNumber(bool neg) {
 
   if (isdigit(*c) == 0) {
     ctx.diagEngine->emitSyntaxError(loc, errors::InvalidDigitForNumber);
-    exit(1);
+    terminate(ctx, 1);
   }
 
   for (;;) {
@@ -179,7 +179,7 @@ exprs::Node Reader::readNumber(bool neg) {
       if (*c == '.' && floatNum) {
         loc = LocationRange(getCurrentLocation());
         ctx.diagEngine->emitSyntaxError(loc, errors::TwoFloatPoints);
-        exit(1);
+        terminate(ctx, 1);
       }
 
       if (*c == '.') {
@@ -196,7 +196,7 @@ exprs::Node Reader::readNumber(bool neg) {
     advance();
     loc.start = getCurrentLocation();
     ctx.diagEngine->emitSyntaxError(loc, errors::InvalidDigitForNumber);
-    exit(1);
+    terminate(ctx, 1);
   }
 
   loc.end = getCurrentLocation();
@@ -222,7 +222,7 @@ exprs::Node Reader::readSymbol() {
 
     ctx.diagEngine->emitSyntaxError(loc, errors::InvalidCharacterForSymbol,
                                     msg);
-    exit(1);
+    terminate(ctx, 1);
   }
 
   if (*c == '-') {
@@ -280,7 +280,7 @@ exprs::Node Reader::readList() {
       list->location.end = getCurrentLocation();
       ctx.diagEngine->emitSyntaxError(list->location,
                                       errors::EOFWhileScaningAList);
-      exit(1);
+      terminate(ctx, 1);
     }
 
     switch (*c) {

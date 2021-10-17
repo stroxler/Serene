@@ -24,6 +24,7 @@
 #include "serene/slir/generatable.h"
 
 #include <llvm/Support/FormatVariadic.h>
+
 #include <utility>
 
 namespace serene {
@@ -98,6 +99,15 @@ NSPtr SereneContext::readNamespace(const std::string &name) {
 NSPtr SereneContext::readNamespace(std::string name,
                                    reader::LocationRange loc) {
   return sourceManager.readNamespace(*this, std::move(name), loc);
+}
+
+void terminate(SereneContext &ctx, int exitCode) {
+  UNUSED(ctx);
+  // TODO: Since we are running in a single thread for now using exit is fine
+  // but we need to adjust and change it to a thread safe termination
+  // process later on.
+  // NOLINTNEXTLINE(concurrency-mt-unsafe)
+  std::exit(exitCode);
 }
 
 std::unique_ptr<SereneContext> makeSereneContext() {
