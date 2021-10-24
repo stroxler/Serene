@@ -63,8 +63,7 @@ void Fn::setName(std::string n) { this->name = std::move(n); };
 MaybeNode Fn::make(SereneContext &ctx, List *list) {
   // TODO: Add support for docstring as the 3rd argument (4th element)
   if (list->count() < 2) {
-    return makeErrorful<Node>(list->elements[0]->location,
-                              &errors::FnNoArgsList,
+    return makeErrorful<Node>(list->elements[0]->location, errors::FnNoArgsList,
                               "The argument list is mandatory.");
   }
 
@@ -82,7 +81,7 @@ MaybeNode Fn::make(SereneContext &ctx, List *list) {
                       stringifyExprType(list->elements[1]->getType()));
 
     return makeErrorful<Node>(list->elements[1]->location,
-                              &errors::FnArgsMustBeList, msg);
+                              errors::FnArgsMustBeList, msg);
   }
 
   Ast body;

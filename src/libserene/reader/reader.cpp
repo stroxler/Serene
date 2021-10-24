@@ -19,6 +19,7 @@
 #include "serene/reader/reader.h"
 
 #include "serene/errors/constants.h"
+#include "serene/exprs/expression.h"
 #include "serene/exprs/list.h"
 #include "serene/exprs/number.h"
 #include "serene/exprs/symbol.h"
@@ -154,7 +155,7 @@ bool Reader::isValidForIdentifier(char c) {
 
 /// Reads a number,
 /// \param neg whether to read a negative number or not.
-exprs::Node Reader::readNumber(bool neg) {
+exprs::MaybeNode Reader::readNumber(bool neg) {
   READER_LOG("Reading a number...");
   std::string number(neg ? "-" : "");
   bool floatNum = false;
@@ -166,8 +167,7 @@ exprs::Node Reader::readNumber(bool neg) {
   LocationRange loc(getCurrentLocation());
 
   if (isdigit(*c) == 0) {
-    ctx.diagEngine->emitSyntaxError(loc, errors::InvalidDigitForNumber);
-    terminate(ctx, 1);
+    return exprs::makeErrorNode(loc, errors::InvalidDigitForNumber);
   }
 
   for (;;) {
@@ -205,7 +205,7 @@ exprs::Node Reader::readNumber(bool neg) {
 
 /// Reads a symbol. If the symbol looks like a number
 /// If reads it as number
-exprs::Node Reader::readSymbol() {
+exprs::MaybeNode Reader::readSymbol() {
   READER_LOG("Reading a symbol...");
   LocationRange loc;
   const auto *c = nextChar();
@@ -220,9 +220,7 @@ exprs::Node Reader::readSymbol() {
       msg = "An extra ')' is detected.";
     }
 
-    ctx.diagEngine->emitSyntaxError(loc, errors::InvalidCharacterForSymbol,
-                                    msg);
-    terminate(ctx, 1);
+    return exprs::makeErrorNode(loc, errors::InvalidCharacterForSymbol, msg);
   }
 
   if (*c == '-') {
@@ -254,11 +252,11 @@ exprs::Node Reader::readSymbol() {
   }
 
   loc.end = getCurrentLocation();
-  return exprs::make<exprs::Symbol>(loc, sym);
+  return exprs::makeSuccessfulNode<exprs::Symbol>(loc, sym);
 };
 
 /// Reads a list recursively
-exprs::Node Reader::readList() {
+exprs::MaybeNode Reader::readList() {
   READER_LOG("Reading a list...");
 
   const auto *c = nextChar();
@@ -278,9 +276,7 @@ exprs::Node Reader::readList() {
       advance(true);
       advance();
       list->location.end = getCurrentLocation();
-      ctx.diagEngine->emitSyntaxError(list->location,
-                                      errors::EOFWhileScaningAList);
-      terminate(ctx, 1);
+      return exprs::makeErrorNode(list->location, errors::EOFWhileScaningAList);
     }
 
     switch (*c) {
@@ -293,22 +289,27 @@ exprs::Node Reader::readList() {
 
     default:
       advance(true);
-      list->append(readExpr());
+      auto expr = readExpr();
+      if (!expr) {
+        return expr;
+      }
+
+      list->append(expr.getValue());
     }
 
   } while (!list_terminated);
 
-  return list;
+  return exprs::MaybeNode::success(list);
 };
 
 /// Reads an expression by dispatching to the proper reader function.
-exprs::Node Reader::readExpr() {
+exprs::MaybeNode Reader::readExpr() {
   const auto *c = nextChar(true);
 
   READER_LOG("Read char at `readExpr`: " << *c);
 
   if (isEndOfBuffer(c)) {
-    return nullptr;
+    return exprs::EmptyNode;
   }
 
   switch (*c) {
@@ -326,7 +327,7 @@ exprs::Node Reader::readExpr() {
 /// Reads all the expressions in the reader's buffer as an AST.
 /// Each expression type (from the reader perspective) has a
 /// reader function.
-Result<exprs::Ast> Reader::read() {
+exprs::MaybeAst Reader::read() {
 
   for (size_t current_pos = 0; current_pos < buf.size();) {
     const auto *c = nextChar(true);
@@ -337,29 +338,34 @@ Result<exprs::Ast> Reader::read() {
 
     advance(true);
 
-    auto tmp{readExpr()};
+    auto tmp = readExpr();
 
     if (tmp) {
-      this->ast.push_back(move(tmp));
+      if (tmp.getValue() == nullptr) {
+        break;
+      }
+
+      this->ast.push_back(move(tmp.getValue()));
+
     } else {
-      break;
+      return exprs::MaybeAst::error(tmp.getError());
     }
   }
 
-  return Result<exprs::Ast>::success(std::move(this->ast));
+  return exprs::MaybeAst::success(std::move(this->ast));
 };
 
-Result<exprs::Ast> read(SereneContext &ctx, const llvm::StringRef input,
-                        llvm::StringRef ns,
-                        llvm::Optional<llvm::StringRef> filename) {
+exprs::MaybeAst read(SereneContext &ctx, const llvm::StringRef input,
+                     llvm::StringRef ns,
+                     llvm::Optional<llvm::StringRef> filename) {
   reader::Reader r(ctx, input, ns, filename);
   auto ast = r.read();
   return ast;
 }
 
-Result<exprs::Ast> read(SereneContext &ctx, const llvm::MemoryBufferRef input,
-                        llvm::StringRef ns,
-                        llvm::Optional<llvm::StringRef> filename) {
+exprs::MaybeAst read(SereneContext &ctx, const llvm::MemoryBufferRef input,
+                     llvm::StringRef ns,
+                     llvm::Optional<llvm::StringRef> filename) {
   reader::Reader r(ctx, input, ns, filename);
 
   auto ast = r.read();

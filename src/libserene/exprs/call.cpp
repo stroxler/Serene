@@ -97,7 +97,7 @@ MaybeNode Call::make(SereneContext &ctx, List *list) {
     if (!maybeResult.hasValue()) {
       std::string msg =
           llvm::formatv("Can't resolve the symbol '{0}'", sym->name);
-      return makeErrorful<Node>(sym->location, &errors::CantResolveSymbol, msg);
+      return makeErrorful<Node>(sym->location, errors::CantResolveSymbol, msg);
     }
 
     targetNode = maybeResult.getValue();
@@ -122,7 +122,7 @@ MaybeNode Call::make(SereneContext &ctx, List *list) {
   default: {
     std::string msg = llvm::formatv("Don't know how to call a '{0}'",
                                     stringifyExprType(first->getType()));
-    return makeErrorful<Node>(first->location, &errors::DontKnowHowToCallNode,
+    return makeErrorful<Node>(first->location, errors::DontKnowHowToCallNode,
                               msg);
   }
   };

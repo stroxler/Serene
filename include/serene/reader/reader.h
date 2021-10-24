@@ -27,8 +27,11 @@
  * one char at a time till we reach the end of the input. Please note that
  * when we call the `advance` function to move forward in the buffer, we
  * can't go back. In order to look ahead in the buffer without moving in the
- * buffer we use the `nextChar` method-
-
+ * buffer we use the `nextChar` method.
+ *
+ * We have dedicated methods to read different forms like `list`, `symbol`
+ * `number` and etc. Each of them return a `MaybeNode` that in the success
+ * case contains the node and an `Error` on the failure case.
  */
 
 #ifndef SERENE_READER_READER_H
@@ -97,10 +100,10 @@ private:
   // The property to store the ast tree
   exprs::Ast ast;
 
-  exprs::Node readSymbol();
-  exprs::Node readNumber(bool);
-  exprs::Node readList();
-  exprs::Node readExpr();
+  exprs::MaybeNode readSymbol();
+  exprs::MaybeNode readNumber(bool);
+  exprs::MaybeNode readList();
+  exprs::MaybeNode readExpr();
 
   bool isEndOfBuffer(const char *);
 
@@ -114,19 +117,19 @@ public:
 
   /// Parses the the input and creates a possible AST out of it or errors
   /// otherwise.
-  Result<exprs::Ast> read();
+  exprs::MaybeAst read();
 
   ~Reader();
 };
 
 /// Parses the given `input` string and returns a `Result<ast>`
 /// which may contains an AST or an `llvm::Error`
-Result<exprs::Ast> read(SereneContext &ctx, llvm::StringRef input,
-                        llvm::StringRef ns,
-                        llvm::Optional<llvm::StringRef> filename);
-Result<exprs::Ast> read(SereneContext &ctx, llvm::MemoryBufferRef input,
-                        llvm::StringRef ns,
-                        llvm::Optional<llvm::StringRef> filename);
+exprs::MaybeAst read(SereneContext &ctx, llvm::StringRef input,
+                     llvm::StringRef ns,
+                     llvm::Optional<llvm::StringRef> filename);
+exprs::MaybeAst read(SereneContext &ctx, llvm::MemoryBufferRef input,
+                     llvm::StringRef ns,
+                     llvm::Optional<llvm::StringRef> filename);
 } // namespace serene::reader
 
 #endif

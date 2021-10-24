@@ -123,14 +123,24 @@ Result<Node, ErrorTree> makeSuccessfulNode(Args &&...args) {
 };
 
 /// The hlper function to create an Errorful `Result<T,...>` (`T` would be
-/// either
-///  `Node` or `Ast` most of the time) with just one error creating from passing
-///  any argument to this function to the `serene::errors::Error` constructor.
+/// either `Node` or `Ast` most of the time) with just one error created from
+/// passing any argument to this function to the `serene::errors::Error`
+/// constructor.
 template <typename T, typename... Args>
 Result<T, ErrorTree> makeErrorful(Args &&...args) {
   std::vector<ErrorPtr> v{
       std::move(makeAndCast<errors::Error>(std::forward<Args>(args)...))};
   return Result<T, ErrorTree>::error(v);
+};
+
+/// The hlper function to create an Error node (The failure case of a MaybeNod)
+/// with just one error created from passing any argument to this function to
+/// the `serene::errors::Error` constructor.
+template <typename... Args>
+MaybeNode makeErrorNode(Args &&...args) {
+  std::vector<ErrorPtr> v{
+      std::move(makeAndCast<errors::Error>(std::forward<Args>(args)...))};
+  return MaybeNode::error(v);
 };
 
 /// Convert the given AST to string by calling the `toString` method

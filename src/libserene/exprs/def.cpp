@@ -53,7 +53,7 @@ MaybeNode Def::make(SereneContext &ctx, List *list) {
   if (list->count() != 3) {
     std::string msg = llvm::formatv("Expected 3 got {0}", list->count());
     return makeErrorful<Node>(list->elements[0]->location,
-                              &errors::DefWrongNumberOfArgs, msg);
+                              errors::DefWrongNumberOfArgs, msg);
   }
 
   // Make sure that the list starts with a `def`
@@ -67,7 +67,7 @@ MaybeNode Def::make(SereneContext &ctx, List *list) {
   Symbol *binding = llvm::dyn_cast<Symbol>(list->elements[1].get());
   if (binding == nullptr) {
     return makeErrorful<Node>(list->elements[1]->location,
-                              &errors::DefExpectSymbol, "");
+                              errors::DefExpectSymbol, "");
   }
 
   // Analyze the value

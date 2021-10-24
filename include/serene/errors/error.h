@@ -47,8 +47,11 @@ class Error
   std::string message;
 
 public:
-  Error(reader::LocationRange &loc, ErrorVariant *err, llvm::StringRef msg)
-      : location(loc), variant(err), message(msg){};
+  Error(reader::LocationRange &loc, ErrorVariant &err, llvm::StringRef msg)
+      : location(loc), variant(&err), message(msg){};
+
+  Error(reader::LocationRange &loc, ErrorVariant &err)
+      : location(loc), variant(&err){};
 
   std::string toString() const;
   reader::LocationRange &where();

@@ -48,6 +48,15 @@ namespace serene {
 ///
 /// In order check for a value being errorful or successful checkout the `ok`
 /// method or simply use the value as a conditiona.
+///
+/// This class is setup in a way tha you can us a value of type `T` in places
+/// that the compiler expects a `Result<T>`. So for example:
+///
+/// \code
+/// Result<int> fn() {return 2;}
+/// \endcode
+///
+/// works perfectly.
 template <typename T, typename E = llvm::Error>
 class SERENE_EXPORT Result {
 
@@ -60,6 +69,33 @@ class SERENE_EXPORT Result {
   Result(InPlace i, Content &&c) : contents(i, std::forward<Content>(c)){};
 
 public:
+  constexpr Result(const T &v)
+      : Result(std::in_place_index_t<0>(), std::move(v)){};
+
+  /// Return a pointer to the success case value of the result. It is
+  /// important to check for the success case before calling this function.
+  constexpr const T *getPointer() const { return &getValue(); }
+
+  /// Return a pointer to the success case value of the result. It is
+  /// important to check for the success case before calling this function.
+  T *getPointer() { return &getValue(); }
+
+  /// Return a pointer to the success case value of the result. It is
+  /// important to check for the success case before calling this function.
+  T *operator->() { return getPointer(); }
+
+  /// Return a pointer to the success case value of the result. It is
+  /// important to check for the success case before calling this function.
+  constexpr const T *operator->() const { return getPointer(); }
+
+  /// Dereference the success case and returns the value. It is
+  /// important to check for the success case before calling this function.
+  constexpr const T &operator*() const & { return getValue(); }
+
+  /// Dereference the success case and returns the value. It is
+  /// important to check for the success case before calling this function.
+  T &operator*() & { return getValue(); }
+
   /// Create a succesfull result with the given value of type `T`.
   static Result success(T v) {
     return Result(std::in_place_index_t<0>(), std::move(v));
