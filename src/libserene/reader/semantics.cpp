@@ -27,7 +27,7 @@ AnalyzeResult analyze(serene::SereneContext &ctx, exprs::Ast &inputAst) {
   // TODO: Fetch the current namespace from the JIT engine later and if it is
   // `nil` then the given `ast` has to start with a namespace definition.
 
-  std::vector<exprs::ErrorPtr> errors;
+  errors::ErrorTree errors;
   exprs::Ast ast;
 
   for (auto &element : inputAst) {

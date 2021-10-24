@@ -24,7 +24,7 @@
 #include "serene/exprs/expression.h"
 
 namespace serene::reader {
-using AnalyzeResult = Result<exprs::Ast, std::vector<exprs::ErrorPtr>>;
+using AnalyzeResult = Result<exprs::Ast, std::vector<errors::ErrorPtr>>;
 /// The entry point to the Semantic analysis phase. It calls the `analyze`
 /// method of each node in the given AST and creates a new AST that contains a
 /// more comprehensive set of nodes in a semantically correct AST. If the

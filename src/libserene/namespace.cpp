@@ -34,11 +34,12 @@
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/FormatVariadic.h>
 #include <llvm/Support/raw_ostream.h>
-#include <memory>
 #include <mlir/IR/Builders.h>
 #include <mlir/IR/BuiltinOps.h>
 #include <mlir/IR/Verifier.h>
 #include <mlir/Support/LogicalResult.h>
+
+#include <memory>
 #include <stdexcept>
 #include <string>
 
@@ -61,12 +62,12 @@ void Namespace::enqueueError(llvm::StringRef e) const {
 
 exprs::Ast &Namespace::getTree() { return this->tree; }
 
-mlir::LogicalResult Namespace::expandTree(exprs::Ast &ast) {
+errors::OptionalErrors Namespace::expandTree(exprs::Ast &ast) {
 
   if (ctx.getTargetPhase() == CompilationPhase::Parse) {
     // we just want the raw AST
     this->tree.insert(this->tree.end(), ast.begin(), ast.end());
-    return mlir::success();
+    return llvm::None;
   }
 
   // Run the semantic analyer on the ast and then if everything
@@ -74,13 +75,12 @@ mlir::LogicalResult Namespace::expandTree(exprs::Ast &ast) {
   auto maybeAst = reader::analyze(ctx, ast);
 
   if (!maybeAst) {
-    enqueueError("Semantic analysis failed!");
-    return mlir::failure();
+    return maybeAst.getError();
   }
 
   auto semanticAst = std::move(maybeAst.getValue());
   this->tree.insert(this->tree.end(), semanticAst.begin(), semanticAst.end());
-  return mlir::success();
+  return llvm::None;
 }
 
 uint Namespace::nextFnCounter() { return fn_counter++; };
@@ -154,11 +154,12 @@ MaybeModule Namespace::compileToLLVM() {
 
 Namespace::~Namespace(){};
 
-std::shared_ptr<Namespace>
-makeNamespace(SereneContext &ctx, llvm::StringRef name,
-              llvm::Optional<llvm::StringRef> filename, bool setCurrent) {
+NSPtr makeNamespace(SereneContext &ctx, llvm::StringRef name,
+                    llvm::Optional<llvm::StringRef> filename, bool setCurrent) {
   auto nsPtr = std::make_shared<Namespace>(ctx, name, filename);
+
   ctx.insertNS(nsPtr);
+
   if (setCurrent) {
     if (!ctx.setCurrentNS(nsPtr->name)) {
       throw std::runtime_error("Couldn't set the current NS");

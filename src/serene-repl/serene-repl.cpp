@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "serene/diagnostics.h"
 #include "serene/linenoise.h"
 #include "serene/serene.h"
 
@@ -38,6 +39,7 @@ static std::string banner =
 
 static std::string art = "\n";
 
+// TODO: Change the default value to be OS agnostic
 static cl::opt<std::string>
     historyFile("h", cl::desc("The absolute path to the history file to use."),
                 cl::value_desc("filename"), cl::init("~/.serene-repl.history"));
@@ -67,6 +69,7 @@ int main(int argc, char *argv[]) {
   while (true) {
     // Read line
     std::string line;
+    std::string result;
     std::string prompt = ctx->getCurrentNS().name + "> ";
 
     auto quit = linenoise::Readline(prompt.c_str(), line);
@@ -75,8 +78,15 @@ int main(int argc, char *argv[]) {
       break;
     }
 
-    llvm::outs() << "echo: '" << line << "'"
-                 << "\n";
+    auto maybeAst = serene::read(*ctx, line);
+
+    if (!maybeAst) {
+      serene::throwErrors(*ctx, maybeAst.getError());
+      continue;
+    }
+
+    serene::print(*ctx, maybeAst.getValue(), result);
+    llvm::outs() << result << "\n";
 
     // Add text to history
     linenoise::AddHistory(line.c_str());

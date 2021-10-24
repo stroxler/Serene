@@ -19,7 +19,6 @@
 #ifndef SERENE_ERRORS_TRAITS_H
 #define SERENE_ERRORS_TRAITS_H
 
-#include "serene/context.h"
 #include "serene/errors/constants.h"
 #include "serene/traits.h"
 

@@ -20,13 +20,17 @@
 #define SERENE_DIAGNOSTICS_H
 
 #include "serene/errors/constants.h"
+#include "serene/errors/error.h"
 #include "serene/reader/location.h"
 #include "serene/source_mgr.h"
 
+#include <serene/export.h>
+
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/raw_ostream.h>
-#include <memory>
 #include <mlir/IR/Diagnostics.h>
+
+#include <memory>
 
 namespace serene {
 class SereneContext;
@@ -81,6 +85,9 @@ public:
   void emitSyntaxError(reader::LocationRange loc, errors::ErrorVariant &e,
                        llvm::StringRef msg = "");
 
+  void emit(const errors::ErrorPtr &err);
+  void emit(const errors::ErrorTree &errs);
+
   /// Throw out an error with the given `msg` and terminate the execution
   void panic(llvm::StringRef msg);
 };
@@ -89,9 +96,11 @@ public:
 /// `SereneContext`
 std::unique_ptr<DiagnosticEngine> makeDiagnosticEngine(SereneContext &ctx);
 
-/// Throw out an error with the given `msg` and terminate the execution
-void panic(SereneContext &ctx, llvm::StringRef msg);
+/// Throw out an error with the given `msg` and terminate the execution.
+SERENE_EXPORT void panic(SereneContext &ctx, llvm::StringRef msg);
 
+/// Throw the give `ErrorTree` \p errs and terminate the execution.
+SERENE_EXPORT void throwErrors(SereneContext &ctx, errors::ErrorTree &errs);
 } // namespace serene
 
 #endif

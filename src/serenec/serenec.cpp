@@ -287,12 +287,15 @@ int main(int argc, char *argv[]) {
   }
   }
 
-  auto runLoc = reader::LocationRange::UnknownLocation(inputNS);
-  auto ns     = ctx->sourceManager.readNamespace(*ctx, inputNS, runLoc);
+  auto runLoc  = reader::LocationRange::UnknownLocation(inputNS);
+  auto maybeNS = ctx->sourceManager.readNamespace(*ctx, inputNS, runLoc);
 
-  if (!ns) {
+  if (!maybeNS) {
+    throwErrors(*ctx, maybeNS.getError());
     return (int)std::errc::no_such_file_or_directory;
   }
+
+  auto ns = maybeNS.getValue();
 
   ctx->insertNS(ns);
 
@@ -303,6 +306,7 @@ int main(int argc, char *argv[]) {
     llvm::outs() << exprs::astToString(&ast) << "\n";
     return 0;
   }
+
   case Action::DumpSLIR:
   case Action::DumpMLIR:
   case Action::DumpLIR: {

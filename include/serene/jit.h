@@ -25,6 +25,8 @@
 
 #include "serene/errors.h"
 #include "serene/export.h"
+#include "serene/exprs/expression.h"
+#include "serene/namespace.h"
 #include "serene/slir/generatable.h"
 #include "serene/utils.h"
 
@@ -162,6 +164,9 @@ public:
   void registerSymbols(
       llvm::function_ref<llvm::orc::SymbolMap(llvm::orc::MangleAndInterner)>
           symbolMap);
+
+  std::unique_ptr<exprs::Expression> eval(SereneContext &ctx,
+                                          std::string input);
 };
 } // namespace serene
 

@@ -29,6 +29,7 @@
 #define SERENE_NAMESPACE_H
 
 #include "serene/environment.h"
+#include "serene/errors/error.h"
 #include "serene/export.h"
 #include "serene/slir/generatable.h"
 #include "serene/traits.h"
@@ -98,8 +99,8 @@ public:
 
   /// Expand the current tree of the namespace with the given \p ast by
   /// semantically analazing it first. If the give \p ast in not valid
-  /// it will emit an error.
-  mlir::LogicalResult expandTree(exprs::Ast &ast);
+  /// it will return analysis errors.
+  errors::OptionalErrors expandTree(exprs::Ast &ast);
 
   /// Increase the function counter by one
   uint nextFnCounter();
@@ -127,10 +128,12 @@ public:
 };
 
 using NSPtr = std::shared_ptr<Namespace>;
+
+using MaybeNS = Result<NSPtr, errors::ErrorTree>;
 /// Create a naw namespace with the given `name` and optional `filename` and
 /// return a shared pointer to it in the given Serene context. If the
-/// `setCurrent` argument is set to true, the created NS will become the curret
-/// namespace in the context
+/// `setCurrent` argument is set to true, the created NS will become the
+/// curret namespace in the context
 SERENE_EXPORT NSPtr makeNamespace(SereneContext &ctx, llvm::StringRef name,
                                   llvm::Optional<llvm::StringRef> filename,
                                   bool setCurrent = true);

@@ -28,9 +28,10 @@
 #include <llvm/Support/ErrorOr.h>
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/SourceMgr.h>
-#include <memory>
 #include <mlir/IR/Diagnostics.h>
 #include <mlir/Support/Timing.h>
+
+#include <memory>
 
 #define SMGR_LOG(...)                       \
   DEBUG_WITH_TYPE("sourcemgr", llvm::dbgs() \
@@ -173,15 +174,15 @@ public:
                               reader::LocationRange includeLoc);
 
   /// Lookup for a file containing the namespace definition of with given
-  /// namespace name \p name and throw an error. In case that the file exists,
-  /// use the parser to read the file and create an AST from it. Then create a
-  /// namespace, set the its AST to the AST that we just read from the file and
-  /// return a shared pointer to the namespace.
+  /// namespace name \p name. In case that the file exists, it returns an
+  /// `ErrorTree`. It will use the parser to read the file and create an AST
+  /// from it. Then create a namespace, set the its AST to the AST that we just
+  /// read from the file and return a shared pointer to the namespace.
   ///
   /// \p importLoc is a location in the source code where the give namespace is
   /// imported.
-  NSPtr readNamespace(SereneContext &ctx, std::string name,
-                      reader::LocationRange importLoc);
+  MaybeNS readNamespace(SereneContext &ctx, std::string name,
+                        reader::LocationRange importLoc);
 };
 
 }; // namespace serene

@@ -29,13 +29,14 @@
 
 namespace serene {
 
-void SereneContext::insertNS(const std::shared_ptr<Namespace> &ns) {
-  namespaces[ns->name] = ns;
+void SereneContext::insertNS(NSPtr &ns) {
+  auto nsName        = ns->name;
+  namespaces[nsName] = ns;
 };
 
-std::shared_ptr<Namespace> SereneContext::getNS(llvm::StringRef ns_name) {
+Namespace *SereneContext::getNS(llvm::StringRef ns_name) {
   if (namespaces.count(ns_name.str()) != 0) {
-    return namespaces[ns_name.str()];
+    return namespaces[ns_name.str()].get();
   }
 
   return nullptr;
@@ -90,14 +91,14 @@ int SereneContext::getOptimizatioLevel() {
   return 3;
 }
 
-NSPtr SereneContext::readNamespace(const std::string &name) {
+MaybeNS SereneContext::readNamespace(const std::string &name) {
   auto loc = reader::LocationRange::UnknownLocation(name);
 
   return readNamespace(name, loc);
 };
 
-NSPtr SereneContext::readNamespace(std::string name,
-                                   reader::LocationRange loc) {
+MaybeNS SereneContext::readNamespace(const std::string &name,
+                                     reader::LocationRange loc) {
   return sourceManager.readNamespace(*this, std::move(name), loc);
 }
 

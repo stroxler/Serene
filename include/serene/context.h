@@ -96,7 +96,7 @@ public:
   /// Insert the given `ns` into the context. The Context object is
   /// the owner of all the namespaces. The `ns` will overwrite any
   /// namespace with the same name.
-  void insertNS(const std::shared_ptr<Namespace> &ns);
+  void insertNS(NSPtr &ns);
 
   /// Sets the n ame of the current namespace in the context and return
   /// a boolean indicating the status of this operation. The operation
@@ -107,8 +107,8 @@ public:
   Namespace &getCurrentNS();
 
   /// Lookup the namespace with the give name in the current context and
-  /// return a shared pointer to it or a `nullptr` in it doesn't exist.
-  std::shared_ptr<Namespace> getNS(llvm::StringRef ns_name);
+  /// return a pointer to it or a `nullptr` in it doesn't exist.
+  Namespace *getNS(llvm::StringRef ns_name);
 
   SereneContext()
       : pm(&mlirContext), diagEngine(makeDiagnosticEngine(*this)),
@@ -134,8 +134,8 @@ public:
   CompilationPhase getTargetPhase() { return targetPhase; };
   int getOptimizatioLevel();
 
-  NSPtr readNamespace(const std::string &name);
-  NSPtr readNamespace(std::string name, reader::LocationRange loc);
+  MaybeNS readNamespace(const std::string &name);
+  MaybeNS readNamespace(const std::string &name, reader::LocationRange loc);
 
 private:
   CompilationPhase targetPhase;
@@ -143,7 +143,7 @@ private:
   // The namespace table. Every namespace that needs to be compiled has
   // to register itself with the context and appear on this table.
   // This table acts as a cache as well.
-  std::map<std::string, std::shared_ptr<Namespace>> namespaces;
+  std::map<std::string, NSPtr> namespaces;
 
   // Why string vs pointer? We might rewrite the namespace and
   // holding a pointer means that it might point to the old version

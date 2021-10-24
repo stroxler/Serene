@@ -31,12 +31,13 @@
 #include "serene/reader/semantics.h"
 #include "serene/utils.h"
 
+#include <system_error>
+
 #include <llvm/Support/FormatVariadic.h>
 #include <llvm/Support/Locale.h>
 #include <llvm/Support/MemoryBufferRef.h>
 #include <llvm/Support/Path.h>
 #include <mlir/Support/LogicalResult.h>
-#include <system_error>
 
 namespace serene {
 
@@ -77,8 +78,8 @@ SourceMgr::findFileInLoadPath(const std::string &name,
   return newBufOrErr;
 };
 
-NSPtr SourceMgr::readNamespace(SereneContext &ctx, std::string name,
-                               reader::LocationRange importLoc) {
+MaybeNS SourceMgr::readNamespace(SereneContext &ctx, std::string name,
+                                 reader::LocationRange importLoc) {
   std::string importedFile;
 
   SMGR_LOG("Attempt to load namespace: " + name);
@@ -86,9 +87,9 @@ NSPtr SourceMgr::readNamespace(SereneContext &ctx, std::string name,
 
   if (!newBufOrErr) {
     auto msg = llvm::formatv("Couldn't find namespace '{0}'", name);
-    ctx.diagEngine->emitSyntaxError(importLoc, errors::NSLoadError,
-                                    llvm::StringRef(msg));
-    return nullptr;
+    auto err = errors::makeErrorTree(importLoc, errors::NSLoadError,
+                                     llvm::StringRef(msg));
+    return MaybeNS::error(err);
   }
 
   auto bufferId = AddNewSourceBuffer(std::move(*newBufOrErr), importLoc);
@@ -97,11 +98,9 @@ NSPtr SourceMgr::readNamespace(SereneContext &ctx, std::string name,
 
   if (bufferId == 0) {
     auto msg = llvm::formatv("Couldn't add namespace '{0}'", name);
-    // TODO: enqueue the error here
-    ctx.diagEngine->emitSyntaxError(importLoc, errors::NSAddToSMError,
-                                    llvm::StringRef(msg));
-
-    return nullptr;
+    auto err = errors::makeErrorTree(importLoc, errors::NSAddToSMError,
+                                     llvm::StringRef(msg));
+    return MaybeNS::error(err);
   }
 
   // Since we moved the buffer to be added as the source storage we
@@ -114,21 +113,17 @@ NSPtr SourceMgr::readNamespace(SereneContext &ctx, std::string name,
 
   if (!maybeAst) {
     SMGR_LOG("Couldn't Read namespace: " + name);
-    // The code that is calling this function has to flush the dia engine, so we
-    // don't have to emit an error
-    return nullptr;
+    return MaybeNS::error(maybeAst.getError());
   }
 
   // Create the NS and set the AST
   auto ns =
       makeNamespace(ctx, name, llvm::Optional(llvm::StringRef(importedFile)));
 
-  if (mlir::failed(ns->expandTree(maybeAst.getValue()))) {
+  auto errs = ns->expandTree(maybeAst.getValue());
+  if (errs) {
     SMGR_LOG("Couldn't set the AST for namespace: " + name);
-    // The code that is calling this function has to flush the dia engine, so we
-    // don't have to emit an error
-
-    return nullptr;
+    return MaybeNS::error(errs.getValue());
   }
 
   return ns;

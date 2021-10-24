@@ -20,6 +20,8 @@
 
 #include <llvm/Support/FormatVariadic.h>
 
+#include <memory>
+
 namespace serene {
 namespace errors {
 
@@ -31,7 +33,18 @@ reader::LocationRange &Error::where() { return this->location; };
 
 ErrorVariant *Error::getVariant() { return this->variant; }
 
-std::string Error::getMessage() { return this->message; }
+std::string &Error::getMessage() { return this->message; }
+
+ErrorPtr makeError(reader::LocationRange &loc, ErrorVariant &err,
+                   llvm::StringRef msg) {
+  return std::make_shared<Error>(loc, err, msg);
+};
+
+ErrorTree makeErrorTree(reader::LocationRange &loc, ErrorVariant &err,
+                        llvm::StringRef msg) {
+  std::vector errs{makeError(loc, err, msg)};
+  return errs;
+};
 
 } // namespace errors
 } // namespace serene

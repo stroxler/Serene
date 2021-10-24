@@ -203,8 +203,24 @@ std::unique_ptr<DiagnosticEngine> makeDiagnosticEngine(SereneContext &ctx) {
   return std::make_unique<DiagnosticEngine>(ctx);
 }
 
+void DiagnosticEngine::emit(const errors::ErrorPtr &err) {
+  UNUSED(ctx);
+  // TODO: create a diag and print it
+  llvm::errs() << err->toString() << "\n";
+};
+
+void DiagnosticEngine::emit(const errors::ErrorTree &errs) {
+  for (const auto &e : errs) {
+    emit(e);
+  }
+};
+
 void panic(SereneContext &ctx, llvm::StringRef msg) {
   ctx.diagEngine->panic(msg);
+};
+
+void throwErrors(SereneContext &ctx, errors::ErrorTree &errs) {
+  ctx.diagEngine->emit(errs);
 };
 
 } // namespace serene

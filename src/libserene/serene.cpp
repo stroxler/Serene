@@ -24,6 +24,11 @@
 
 #include "serene/serene.h"
 
+#include "serene/diagnostics.h"
+#include "serene/exprs/expression.h"
+#include "serene/reader/reader.h"
+
+#include <llvm/ADT/None.h>
 #include <llvm/Support/TargetSelect.h>
 
 namespace serene {
@@ -80,5 +85,25 @@ void applySereneCLOptions(SereneContext &ctx) {
   mlir::applyPassManagerCLOptions(ctx.pm);
 #endif
 }
+
+SERENE_EXPORT exprs::MaybeAst read(SereneContext &ctx, std::string &input) {
+  auto &currentNS = ctx.getCurrentNS();
+  auto filename =
+      !currentNS.filename.hasValue()
+          ? llvm::None
+          : llvm::Optional<llvm::StringRef>(currentNS.filename.getValue());
+
+  return reader::read(ctx, input, currentNS.name, filename);
+};
+
+// SERENE_EXPORT exprs::MaybeNode eval(SereneContext &ctx, exprs::Ast input){
+
+// };
+
+SERENE_EXPORT void print(SereneContext &ctx, const exprs::Ast &input,
+                         std::string &result) {
+  UNUSED(ctx);
+  result = exprs::astToString(&input);
+};
 
 } // namespace serene

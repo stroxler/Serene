@@ -28,6 +28,13 @@
 namespace serene {
 namespace errors {
 
+/// This enum represent the expression type and **not** the value type.
+enum class ErrType {
+  Syntax,
+  Semantic,
+  Compile,
+};
+
 enum ErrID {
   E0000 = 0,
   E0001,

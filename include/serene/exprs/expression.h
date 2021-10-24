@@ -37,16 +37,11 @@ namespace exprs {
 
 class Expression;
 
-using Node     = std::shared_ptr<Expression>;
-using ErrorPtr = std::shared_ptr<errors::Error>;
-
-// tree? Yupe, Errors can be stackable which makes a vector of them a tree
-using ErrorTree = std::vector<ErrorPtr>;
-
-using MaybeNode = Result<Node, ErrorTree>;
+using Node      = std::shared_ptr<Expression>;
+using MaybeNode = Result<Node, errors::ErrorTree>;
 
 using Ast      = std::vector<Node>;
-using MaybeAst = Result<Ast, ErrorTree>;
+using MaybeAst = Result<Ast, errors::ErrorTree>;
 
 static auto EmptyNode = MaybeNode::success(nullptr);
 
@@ -118,8 +113,9 @@ std::shared_ptr<T> makeAndCast(Args &&...args) {
 // of a `Result`. It should be useds where every we want to return a `MaybeNode`
 /// successfully
 template <typename T, typename... Args>
-Result<Node, ErrorTree> makeSuccessfulNode(Args &&...args) {
-  return Result<Node, ErrorTree>::success(make<T>(std::forward<Args>(args)...));
+Result<Node, errors::ErrorTree> makeSuccessfulNode(Args &&...args) {
+  return Result<Node, errors::ErrorTree>::success(
+      make<T>(std::forward<Args>(args)...));
 };
 
 /// The hlper function to create an Errorful `Result<T,...>` (`T` would be
@@ -127,10 +123,10 @@ Result<Node, ErrorTree> makeSuccessfulNode(Args &&...args) {
 /// passing any argument to this function to the `serene::errors::Error`
 /// constructor.
 template <typename T, typename... Args>
-Result<T, ErrorTree> makeErrorful(Args &&...args) {
-  std::vector<ErrorPtr> v{
+Result<T, errors::ErrorTree> makeErrorful(Args &&...args) {
+  std::vector<errors::ErrorPtr> v{
       std::move(makeAndCast<errors::Error>(std::forward<Args>(args)...))};
-  return Result<T, ErrorTree>::error(v);
+  return Result<T, errors::ErrorTree>::error(v);
 };
 
 /// The hlper function to create an Error node (The failure case of a MaybeNod)
@@ -138,7 +134,7 @@ Result<T, ErrorTree> makeErrorful(Args &&...args) {
 /// the `serene::errors::Error` constructor.
 template <typename... Args>
 MaybeNode makeErrorNode(Args &&...args) {
-  std::vector<ErrorPtr> v{
+  std::vector<errors::ErrorPtr> v{
       std::move(makeAndCast<errors::Error>(std::forward<Args>(args)...))};
   return MaybeNode::error(v);
 };
