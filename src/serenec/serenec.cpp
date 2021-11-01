@@ -16,12 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "serene/jit.h"
 #include "serene/namespace.h"
 #include "serene/reader/location.h"
 #include "serene/reader/reader.h"
 #include "serene/reader/semantics.h"
 #include "serene/serene.h"
+#include "serene/serene/engine.h"
 #include "serene/slir/generatable.h"
 #include "serene/slir/slir.h"
 
@@ -32,6 +32,7 @@
 #include <llvm/ADT/ArrayRef.h>
 #include <llvm/ADT/SmallString.h>
 #include <llvm/ADT/StringRef.h>
+#include <llvm/ExecutionEngine/Orc/ThreadSafeModule.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/Support/CommandLine.h>
 #include <llvm/Support/FileSystem.h>
@@ -116,12 +117,18 @@ int dumpAsObject(Namespace &ns) {
     return -1;
   }
 
-  auto module = std::move(maybeModule.getValue());
+  auto tsm = maybeModule.getValue();
+  auto tsc = tsm.getContext();
+
+  auto lock = tsc.getLock();
+
+  auto module = tsm.getModuleUnlocked();
   auto &ctx   = ns.getContext();
 
   // TODO: We need to set the triple data layout and everything to that sort in
   // one place. We want them for the JIT as well and also we're kinda
   // duplicating what we're doing in `Namespace#compileToLLVM`.
+
   module->setTargetTriple(ctx.targetTriple);
 
   std::string Error;

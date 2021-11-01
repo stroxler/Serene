@@ -26,12 +26,18 @@
 
 #include "serene/diagnostics.h"
 #include "serene/exprs/expression.h"
+
+// TODO: Remove it
+#include "serene/exprs/number.h"
 #include "serene/reader/reader.h"
 
 #include <llvm/ADT/None.h>
+#include <llvm/Support/Error.h>
 #include <llvm/Support/TargetSelect.h>
+#include <llvm/Support/raw_ostream.h>
 
 namespace serene {
+using exprs::Number;
 
 void initCompiler() {
   llvm::InitializeAllTargetInfos();
@@ -96,9 +102,32 @@ SERENE_EXPORT exprs::MaybeAst read(SereneContext &ctx, std::string &input) {
   return reader::read(ctx, input, currentNS.name, filename);
 };
 
-// SERENE_EXPORT exprs::MaybeNode eval(SereneContext &ctx, exprs::Ast input){
+SERENE_EXPORT exprs::MaybeNode eval(SereneContext &ctx, exprs::Ast &input) {
 
-// };
+  // TODO: Fix the eval function
+  UNUSED(input);
+
+  auto loc = reader::LocationRange::UnknownLocation("nsname");
+  auto err = ctx.jit->addNS("docs.examples.hello_world");
+
+  if (err) {
+    llvm::errs() << err;
+    auto e = errors::makeErrorTree(loc, errors::NSLoadError);
+
+    return exprs::makeErrorNode(loc, errors::NSLoadError);
+  }
+  std::string tmp("docs.examples.hello_world/main");
+  llvm::ExitOnError e;
+  // Get the anonymous expression's JITSymbol.
+  auto sym = e(ctx.jit->lookup(tmp));
+
+  // Get the symbol's address and cast it to the right type (takes no
+  // arguments, returns a double) so we can call it as a native function.
+  auto *f = (int (*)())(intptr_t)sym.getAddress();
+
+  f();
+  return exprs::make<exprs::Number>(loc, "4", false, false);
+};
 
 SERENE_EXPORT void print(SereneContext &ctx, const exprs::Ast &input,
                          std::string &result) {

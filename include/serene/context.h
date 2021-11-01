@@ -22,6 +22,8 @@
 #include "serene/diagnostics.h"
 #include "serene/environment.h"
 #include "serene/export.h"
+#include "serene/jit.h"
+#include "serene/jit/engine.h"
 #include "serene/namespace.h"
 #include "serene/passes.h"
 #include "serene/slir/dialect.h"
@@ -77,12 +79,16 @@ public:
   // order to destroy last. DO NOT change the order or add anything before
   // them
   // --------------------------------------------------------------------------
+
+  // TODO: Remove the llvmContext
   llvm::LLVMContext llvmContext;
   mlir::MLIRContext mlirContext;
 
   mlir::PassManager pm;
 
   std::unique_ptr<DiagnosticEngine> diagEngine;
+
+  std::unique_ptr<serene::jit::SereneJIT> jit;
 
   /// The source manager is responsible for loading namespaces and practically
   /// managing the source code in form of memory buffers.
@@ -136,6 +142,24 @@ public:
 
   MaybeNS readNamespace(const std::string &name);
   MaybeNS readNamespace(const std::string &name, reader::LocationRange loc);
+
+  static std::unique_ptr<llvm::LLVMContext> genLLVMContext() {
+    return std::make_unique<llvm::LLVMContext>();
+  };
+
+  static std::unique_ptr<SereneContext> make() {
+    auto ctx      = std::make_unique<SereneContext>();
+    auto maybeJIT = serene::jit::makeSereneJIT(*ctx);
+
+    if (!maybeJIT) {
+      // TODO: Raise an error here
+      return nullptr;
+    }
+
+    ctx->jit.swap(*maybeJIT);
+
+    return ctx;
+  };
 
 private:
   CompilationPhase targetPhase;

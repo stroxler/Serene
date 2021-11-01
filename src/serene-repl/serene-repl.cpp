@@ -85,6 +85,8 @@ int main(int argc, char *argv[]) {
       continue;
     }
 
+    auto x = serene::eval(*ctx, maybeAst.getValue());
+
     serene::print(*ctx, maybeAst.getValue(), result);
     llvm::outs() << result << "\n";
 

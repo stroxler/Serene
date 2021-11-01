@@ -41,9 +41,12 @@ add_library(serene
   serene.cpp
   context.cpp
   namespace.cpp
-  jit.cpp
   source_mgr.cpp
   diagnostics.cpp
+
+  # jit.cpp
+  jit/engine.cpp
+  jit/layers.cpp
 
   # Reader
   reader/reader.cpp

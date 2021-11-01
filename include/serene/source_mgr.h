@@ -103,7 +103,7 @@ private:
     SrcBuffer &operator=(const SrcBuffer &) = delete;
     ~SrcBuffer();
   };
-  using ErrorOrMemBufPtr = llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>>;
+  using MemBufPtr = std::unique_ptr<llvm::MemoryBuffer>;
 
   /// This is all of the buffers that we are reading from.
   std::vector<SrcBuffer> buffers;
@@ -119,8 +119,8 @@ private:
   // a unique pointer to the memory buffer containing the content or an error.
   // In the success case it will put the path of the file into the \p
   // importedFile.
-  ErrorOrMemBufPtr findFileInLoadPath(const std::string &name,
-                                      std::string &importedFile);
+  MemBufPtr findFileInLoadPath(const std::string &name,
+                               std::string &importedFile);
 
   bool isValidBufferID(unsigned i) const;
 

@@ -59,7 +59,6 @@ MaybeNode Def::make(SereneContext &ctx, List *list) {
   // Make sure that the list starts with a `def`
   Symbol *defSym = llvm::dyn_cast<Symbol>(list->elements[0].get());
 
-  // TODO: Replace this one with a runtime check
   assert((defSym && defSym->name == "def") &&
          "The first element of the list should be a 'def'.");
 
@@ -100,7 +99,6 @@ MaybeNode Def::make(SereneContext &ctx, List *list) {
     tmp->setName(binding->name);
   }
 
-  // auto analayzedValuePtr = analyzedValue;
   auto result = ctx.getCurrentNS().semanticEnv.insert_symbol(binding->name,
                                                              analyzedValue);
 

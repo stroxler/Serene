@@ -38,6 +38,7 @@
 #include <llvm/ADT/SmallString.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/ADT/Twine.h>
+#include <llvm/ExecutionEngine/Orc/ThreadSafeModule.h>
 #include <llvm/IR/Module.h>
 #include <mlir/IR/Builders.h>
 #include <mlir/IR/BuiltinOps.h>
@@ -61,7 +62,7 @@ using Node = std::shared_ptr<Expression>;
 using Ast  = std::vector<Node>;
 } // namespace exprs
 
-using MaybeModule   = llvm::Optional<std::unique_ptr<llvm::Module>>;
+using MaybeModule   = llvm::Optional<llvm::orc::ThreadSafeModule>;
 using MaybeModuleOp = llvm::Optional<mlir::OwningOpRef<mlir::ModuleOp>>;
 
 /// Serene's namespaces are the unit of compilation. Any code that needs to be
