@@ -26,6 +26,7 @@ export CCACHE_SLOPPINESS="pch_defines,time_macros"
 export ASAN_OPTIONS=check_initialization_order=1
 LSAN_OPTIONS=suppressions=$(pwd)/.ignore_sanitize
 export LSAN_OPTIONS
+export LDFLAGS="-fuse-ld=lld"
 
 # The `builder` script is supposed to be run from the
 # root of the source tree
@@ -103,15 +104,11 @@ function clean() {
 }
 
 function run() {
-    pushed_build
     LD_PRELOAD=$(clang -print-file-name=libclang_rt.asan-x86_64.so) "$BUILD_DIR"/src/serenec/serenec "$@"
-    popd_build
 }
 
 function repl() {
-    pushed_build
     LD_PRELOAD=$(clang -print-file-name=libclang_rt.asan-x86_64.so) "$BUILD_DIR"/src/serene-repl/serene-repl "$@"
-    popd_build
 }
 
 function memcheck() {

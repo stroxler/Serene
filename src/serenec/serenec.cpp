@@ -85,7 +85,7 @@ static cl::opt<std::string> outputFile(
 
 static cl::opt<std::string>
     outputDir("b", cl::desc("The absolute path to the build directory"),
-              cl::value_desc("filename"), cl::Required);
+              cl::value_desc("dir"), cl::Required);
 
 static cl::opt<enum Action> emitAction(
     "emit", cl::desc("Select what to dump."), cl::init(Compile),
@@ -159,6 +159,7 @@ int dumpAsObject(Namespace &ns) {
   llvm::raw_fd_ostream dest(destObjFilePath, ec, llvm::sys::fs::OF_None);
 
   if (ec) {
+    llvm::errs() << "Could not open file: " << destObjFilePath;
     llvm::errs() << "Could not open file: " << ec.message();
     return 1;
   }
@@ -189,24 +190,26 @@ int dumpAsObject(Namespace &ns) {
     args.push_back("-o");
     args.push_back(destFile.c_str());
 
-    d.setCheckInputsExist(false);
+    d.setCheckInputsExist(true);
 
     std::unique_ptr<clang::driver::Compilation> compilation;
     compilation.reset(d.BuildCompilation(args));
 
     if (!compilation) {
+      llvm::errs() << "can't create the compilation!\n";
       return 1;
     }
 
     llvm::SmallVector<std::pair<int, const clang::driver::Command *>>
         failCommand;
-    // compilation->ExecuteJobs(compilation->getJobs(), failCommand);
 
     d.ExecuteCompilation(*compilation, failCommand);
+
     if (failCommand.empty()) {
       llvm::outs() << "Done!\n";
     } else {
       llvm::errs() << "Linking failed!\n";
+      failCommand.front().second->Print(llvm::errs(), "\n", false);
     }
   }
 
@@ -228,7 +231,7 @@ int main(int argc, char *argv[]) {
   //       default to the current working dir
   if (outputDir == "-") {
     llvm::errs() << "Error: The build directory is not set. Did you forget to "
-                    "use '-build-dir'?\n";
+                    "use '-b'?\n";
     return 1;
   }
 
