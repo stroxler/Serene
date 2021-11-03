@@ -45,12 +45,6 @@ target_link_libraries(serenec
   LLVMOption
   lldDriver
   lldELF
-  clangDriver
-  clangBasic
-  clangdSupport
-  clangFrontend
-  clangEdit
-  clangLex
   )
 
 target_include_directories(serenec PRIVATE ${PROJECT_BINARY_DIR})

@@ -212,184 +212,146 @@ int dumpAsObject(Namespace &ns) {
         "/usr/lib/gcc/x86_64-pc-linux-gnu/11.2.0/../../../../lib64/crtn.o");
 
     lld::elf::link(args, false, llvm::outs(), llvm::errs());
+  }
+  return 0;
+};
 
-    //   llvm::IntrusiveRefCntPtr<clang::DiagnosticOptions> opts =
-    //       new clang::DiagnosticOptions;
-    //   clang::DiagnosticsEngine diags(
-    //       new clang::DiagnosticIDs, opts,
-    //       new clang::TextDiagnosticPrinter(llvm::errs(), opts.get()));
+int main(int argc, char *argv[]) {
+  initCompiler();
+  registerSereneCLOptions();
 
-    //   clang::driver::Driver d("clang", ctx.targetTriple, diags,
-    //                           "Serene compiler");
-    //   std::vector<const char *> args = {"serenec"};
+  cl::ParseCommandLineOptions(argc, argv, banner);
 
-    //   args.push_back(destObjFilePath.c_str());
-    //   args.push_back("-o");
-    //   args.push_back(destFile.c_str());
+  auto ctx    = makeSereneContext();
+  auto userNS = makeNamespace(*ctx, "user", llvm::None);
 
-    //   d.setCheckInputsExist(true);
+  applySereneCLOptions(*ctx);
 
-    //   std::unique_ptr<clang::driver::Compilation> compilation;
-    //   compilation.reset(d.BuildCompilation(args));
+  // TODO: handle the outputDir by not forcing it. it should be
+  //       default to the current working dir
+  if (outputDir == "-") {
+    llvm::errs() << "Error: The build directory is not set. Did you forget to "
+                    "use '-b'?\n";
+    return 1;
+  }
 
-    //   if (!compilation) {
-    //     llvm::errs() << "can't create the compilation!\n";
-    //     return 1;
-    //   }
+  switch (emitAction) {
 
-    //   llvm::SmallVector<std::pair<int, const clang::driver::Command *>>
-    //       failCommand;
-
-    //   d.ExecuteCompilation(*compilation, failCommand);
-
-    //   if (failCommand.empty()) {
-    //     llvm::outs() << "Done!\n";
-    //   } else {
-    //     llvm::errs() << "Linking failed!\n";
-    //     failCommand.front().second->Print(llvm::errs(), "\n", false);
-    //   }
-    // }
-
-    return 0;
+  case Action::RunJIT: {
+    // TODO: Replace it by a proper jit configuration
+    ctx->setOperationPhase(CompilationPhase::NoOptimization);
+    break;
   };
 
-  int main(int argc, char *argv[]) {
-    initCompiler();
-    registerSereneCLOptions();
+    // Just print out the raw AST
+  case Action::DumpAST: {
+    ctx->setOperationPhase(CompilationPhase::Parse);
+    break;
+  };
 
-    cl::ParseCommandLineOptions(argc, argv, banner);
+  case Action::DumpSemantic: {
+    ctx->setOperationPhase(CompilationPhase::Analysis);
+    break;
+  };
 
-    auto ctx    = makeSereneContext();
-    auto userNS = makeNamespace(*ctx, "user", llvm::None);
+  case Action::DumpSLIR: {
+    ctx->setOperationPhase(CompilationPhase::SLIR);
+    break;
+  }
 
-    applySereneCLOptions(*ctx);
+  case Action::DumpMLIR: {
+    ctx->setOperationPhase(CompilationPhase::MLIR);
+    break;
+  }
 
-    // TODO: handle the outputDir by not forcing it. it should be
-    //       default to the current working dir
-    if (outputDir == "-") {
-      llvm::errs()
-          << "Error: The build directory is not set. Did you forget to "
-             "use '-b'?\n";
-      return 1;
-    }
+  case Action::DumpLIR: {
+    ctx->setOperationPhase(CompilationPhase::LIR);
+    break;
+  }
 
-    switch (emitAction) {
+  case Action::DumpIR: {
+    ctx->setOperationPhase(CompilationPhase::IR);
+    break;
+  }
 
-    case Action::RunJIT: {
-      // TODO: Replace it by a proper jit configuration
-      ctx->setOperationPhase(CompilationPhase::NoOptimization);
-      break;
-    };
+  case Action::CompileToObject: {
+    ctx->setOperationPhase(CompilationPhase::NoOptimization);
+    break;
+  }
 
-      // Just print out the raw AST
-    case Action::DumpAST: {
-      ctx->setOperationPhase(CompilationPhase::Parse);
-      break;
-    };
+  case Action::Compile: {
+    ctx->setOperationPhase(CompilationPhase::NoOptimization);
+    break;
+  }
 
-    case Action::DumpSemantic: {
-      ctx->setOperationPhase(CompilationPhase::Analysis);
-      break;
-    };
+  default: {
+    llvm::errs() << "No action specified. TODO: Print out help here\n";
+    return 1;
+  }
+  }
 
-    case Action::DumpSLIR: {
-      ctx->setOperationPhase(CompilationPhase::SLIR);
-      break;
-    }
+  auto runLoc  = reader::LocationRange::UnknownLocation(inputNS);
+  auto maybeNS = ctx->sourceManager.readNamespace(*ctx, inputNS, runLoc);
 
-    case Action::DumpMLIR: {
-      ctx->setOperationPhase(CompilationPhase::MLIR);
-      break;
-    }
+  if (!maybeNS) {
+    throwErrors(*ctx, maybeNS.getError());
+    return (int)std::errc::no_such_file_or_directory;
+  }
 
-    case Action::DumpLIR: {
-      ctx->setOperationPhase(CompilationPhase::LIR);
-      break;
-    }
+  auto ns = maybeNS.getValue();
 
-    case Action::DumpIR: {
-      ctx->setOperationPhase(CompilationPhase::IR);
-      break;
-    }
+  ctx->insertNS(ns);
 
-    case Action::CompileToObject: {
-      ctx->setOperationPhase(CompilationPhase::NoOptimization);
-      break;
-    }
-
-    case Action::Compile: {
-      ctx->setOperationPhase(CompilationPhase::NoOptimization);
-      break;
-    }
-
-    default: {
-      llvm::errs() << "No action specified. TODO: Print out help here\n";
-      return 1;
-    }
-    }
-
-    auto runLoc  = reader::LocationRange::UnknownLocation(inputNS);
-    auto maybeNS = ctx->sourceManager.readNamespace(*ctx, inputNS, runLoc);
-
-    if (!maybeNS) {
-      throwErrors(*ctx, maybeNS.getError());
-      return (int)std::errc::no_such_file_or_directory;
-    }
-
-    auto ns = maybeNS.getValue();
-
-    ctx->insertNS(ns);
-
-    switch (emitAction) {
-    case Action::DumpAST:
-    case Action::DumpSemantic: {
-      auto ast = ns->getTree();
-      llvm::outs() << exprs::astToString(&ast) << "\n";
-      return 0;
-    }
-
-    case Action::DumpSLIR:
-    case Action::DumpMLIR:
-    case Action::DumpLIR: {
-      ns->dump();
-      break;
-    };
-    case Action::DumpIR: {
-      auto maybeModule = ns->compileToLLVM();
-
-      if (!maybeModule) {
-        llvm::errs() << "Failed to generate the IR.\n";
-        return 1;
-      }
-
-      maybeModule.getValue()->dump();
-      break;
-    };
-
-    case Action::RunJIT: {
-      auto maybeJIT = JIT::make(*ns);
-      if (!maybeJIT) {
-        // TODO: panic in here: "Couldn't creat the JIT!"
-        return -1;
-      }
-      auto jit = std::move(maybeJIT.getValue());
-
-      if (jit->invoke("main")) {
-        llvm::errs() << "Faild to invoke the 'main' function.\n";
-        return 1;
-      }
-      llvm::outs() << "Done!";
-      break;
-    };
-
-    case Action::Compile:
-    case Action::CompileToObject: {
-      return dumpAsObject(*ns);
-    };
-    default: {
-      llvm::errs() << "Action is not supported yet!\n";
-    };
-    }
-
+  switch (emitAction) {
+  case Action::DumpAST:
+  case Action::DumpSemantic: {
+    auto ast = ns->getTree();
+    llvm::outs() << exprs::astToString(&ast) << "\n";
     return 0;
   }
+
+  case Action::DumpSLIR:
+  case Action::DumpMLIR:
+  case Action::DumpLIR: {
+    ns->dump();
+    break;
+  };
+  case Action::DumpIR: {
+    auto maybeModule = ns->compileToLLVM();
+
+    if (!maybeModule) {
+      llvm::errs() << "Failed to generate the IR.\n";
+      return 1;
+    }
+
+    maybeModule.getValue()->dump();
+    break;
+  };
+
+  case Action::RunJIT: {
+    auto maybeJIT = JIT::make(*ns);
+    if (!maybeJIT) {
+      // TODO: panic in here: "Couldn't creat the JIT!"
+      return -1;
+    }
+    auto jit = std::move(maybeJIT.getValue());
+
+    if (jit->invoke("main")) {
+      llvm::errs() << "Faild to invoke the 'main' function.\n";
+      return 1;
+    }
+    llvm::outs() << "Done!";
+    break;
+  };
+
+  case Action::Compile:
+  case Action::CompileToObject: {
+    return dumpAsObject(*ns);
+  };
+  default: {
+    llvm::errs() << "Action is not supported yet!\n";
+  };
+  }
+
+  return 0;
+}
