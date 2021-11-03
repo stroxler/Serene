@@ -43,7 +43,8 @@ target_link_libraries(serenec
 
   LLVMTarget
   LLVMOption
-
+  lldDriver
+  lldELF
   clangDriver
   clangBasic
   clangdSupport

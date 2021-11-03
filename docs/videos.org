@@ -517,6 +517,7 @@ This framework allows for transforming a set of illegal operations to a set of l
 ** Next Step
 *** Compile to object files
 *** Link object files to create an executable
+** End of wiring for static compilers
 ** What is an object file?
 *** Symbols
 - A pair of a name and a value
@@ -558,3 +559,5 @@ and tries to =resolve= *undefined* symbols
   + write the result to a file as an executable
 ** AOT vs JIT
 ** Let's look at some code
+** Resources:
+- [[https://lwn.net/Articles/276782/][20 part linker essay]]

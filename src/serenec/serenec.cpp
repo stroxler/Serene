@@ -25,6 +25,8 @@
 #include "serene/slir/generatable.h"
 #include "serene/slir/slir.h"
 
+#include <lld/Common/Driver.h>
+
 #include <clang/Driver/Compilation.h>
 #include <clang/Driver/Driver.h>
 #include <clang/Frontend/TextDiagnosticPrinter.h>
@@ -176,182 +178,218 @@ int dumpAsObject(Namespace &ns) {
   dest.flush();
 
   if (emitAction == Action::Compile) {
-    llvm::IntrusiveRefCntPtr<clang::DiagnosticOptions> opts =
-        new clang::DiagnosticOptions;
-    clang::DiagnosticsEngine diags(
-        new clang::DiagnosticIDs, opts,
-        new clang::TextDiagnosticPrinter(llvm::errs(), opts.get()));
-
-    clang::driver::Driver d("clang", ctx.targetTriple, diags,
-                            "Serene compiler");
     std::vector<const char *> args = {"serenec"};
+
+    args.push_back("--eh-frame-hdr");
+    args.push_back("-m");
+    args.push_back("elf_x86_64");
+    args.push_back("-dynamic-linker");
+    args.push_back("/lib64/ld-linux-x86-64.so.2");
+    args.push_back(
+        "/usr/lib/gcc/x86_64-pc-linux-gnu/11.2.0/../../../../lib64/crt1.o");
+    args.push_back(
+        "/usr/lib/gcc/x86_64-pc-linux-gnu/11.2.0/../../../../lib64/crti.o");
+    args.push_back("/usr/lib/gcc/x86_64-pc-linux-gnu/11.2.0/crtbegin.o");
+    args.push_back("-L");
+    args.push_back("/usr/lib/gcc/x86_64-pc-linux-gnu/11.2.0/");
+    args.push_back("-L");
+    args.push_back("/usr/lib64/");
 
     args.push_back(destObjFilePath.c_str());
     args.push_back("-o");
     args.push_back(destFile.c_str());
+    args.push_back("-lgcc");
+    args.push_back("--as-needed");
+    args.push_back("-lgcc_s");
+    args.push_back("--no-as-needed");
+    args.push_back("-lc");
+    args.push_back("-lgcc");
+    args.push_back("--as-needed");
+    args.push_back("-lgcc_s");
+    args.push_back("--no-as-needed");
+    args.push_back("/usr/lib/gcc/x86_64-pc-linux-gnu/11.2.0/crtend.o");
+    args.push_back(
+        "/usr/lib/gcc/x86_64-pc-linux-gnu/11.2.0/../../../../lib64/crtn.o");
 
-    d.setCheckInputsExist(true);
+    lld::elf::link(args, false, llvm::outs(), llvm::errs());
 
-    std::unique_ptr<clang::driver::Compilation> compilation;
-    compilation.reset(d.BuildCompilation(args));
+    //   llvm::IntrusiveRefCntPtr<clang::DiagnosticOptions> opts =
+    //       new clang::DiagnosticOptions;
+    //   clang::DiagnosticsEngine diags(
+    //       new clang::DiagnosticIDs, opts,
+    //       new clang::TextDiagnosticPrinter(llvm::errs(), opts.get()));
 
-    if (!compilation) {
-      llvm::errs() << "can't create the compilation!\n";
+    //   clang::driver::Driver d("clang", ctx.targetTriple, diags,
+    //                           "Serene compiler");
+    //   std::vector<const char *> args = {"serenec"};
+
+    //   args.push_back(destObjFilePath.c_str());
+    //   args.push_back("-o");
+    //   args.push_back(destFile.c_str());
+
+    //   d.setCheckInputsExist(true);
+
+    //   std::unique_ptr<clang::driver::Compilation> compilation;
+    //   compilation.reset(d.BuildCompilation(args));
+
+    //   if (!compilation) {
+    //     llvm::errs() << "can't create the compilation!\n";
+    //     return 1;
+    //   }
+
+    //   llvm::SmallVector<std::pair<int, const clang::driver::Command *>>
+    //       failCommand;
+
+    //   d.ExecuteCompilation(*compilation, failCommand);
+
+    //   if (failCommand.empty()) {
+    //     llvm::outs() << "Done!\n";
+    //   } else {
+    //     llvm::errs() << "Linking failed!\n";
+    //     failCommand.front().second->Print(llvm::errs(), "\n", false);
+    //   }
+    // }
+
+    return 0;
+  };
+
+  int main(int argc, char *argv[]) {
+    initCompiler();
+    registerSereneCLOptions();
+
+    cl::ParseCommandLineOptions(argc, argv, banner);
+
+    auto ctx    = makeSereneContext();
+    auto userNS = makeNamespace(*ctx, "user", llvm::None);
+
+    applySereneCLOptions(*ctx);
+
+    // TODO: handle the outputDir by not forcing it. it should be
+    //       default to the current working dir
+    if (outputDir == "-") {
+      llvm::errs()
+          << "Error: The build directory is not set. Did you forget to "
+             "use '-b'?\n";
       return 1;
     }
 
-    llvm::SmallVector<std::pair<int, const clang::driver::Command *>>
-        failCommand;
+    switch (emitAction) {
 
-    d.ExecuteCompilation(*compilation, failCommand);
+    case Action::RunJIT: {
+      // TODO: Replace it by a proper jit configuration
+      ctx->setOperationPhase(CompilationPhase::NoOptimization);
+      break;
+    };
 
-    if (failCommand.empty()) {
-      llvm::outs() << "Done!\n";
-    } else {
-      llvm::errs() << "Linking failed!\n";
-      failCommand.front().second->Print(llvm::errs(), "\n", false);
+      // Just print out the raw AST
+    case Action::DumpAST: {
+      ctx->setOperationPhase(CompilationPhase::Parse);
+      break;
+    };
+
+    case Action::DumpSemantic: {
+      ctx->setOperationPhase(CompilationPhase::Analysis);
+      break;
+    };
+
+    case Action::DumpSLIR: {
+      ctx->setOperationPhase(CompilationPhase::SLIR);
+      break;
     }
-  }
 
-  return 0;
-};
+    case Action::DumpMLIR: {
+      ctx->setOperationPhase(CompilationPhase::MLIR);
+      break;
+    }
 
-int main(int argc, char *argv[]) {
-  initCompiler();
-  registerSereneCLOptions();
+    case Action::DumpLIR: {
+      ctx->setOperationPhase(CompilationPhase::LIR);
+      break;
+    }
 
-  cl::ParseCommandLineOptions(argc, argv, banner);
+    case Action::DumpIR: {
+      ctx->setOperationPhase(CompilationPhase::IR);
+      break;
+    }
 
-  auto ctx    = makeSereneContext();
-  auto userNS = makeNamespace(*ctx, "user", llvm::None);
+    case Action::CompileToObject: {
+      ctx->setOperationPhase(CompilationPhase::NoOptimization);
+      break;
+    }
 
-  applySereneCLOptions(*ctx);
+    case Action::Compile: {
+      ctx->setOperationPhase(CompilationPhase::NoOptimization);
+      break;
+    }
 
-  // TODO: handle the outputDir by not forcing it. it should be
-  //       default to the current working dir
-  if (outputDir == "-") {
-    llvm::errs() << "Error: The build directory is not set. Did you forget to "
-                    "use '-b'?\n";
-    return 1;
-  }
+    default: {
+      llvm::errs() << "No action specified. TODO: Print out help here\n";
+      return 1;
+    }
+    }
 
-  switch (emitAction) {
+    auto runLoc  = reader::LocationRange::UnknownLocation(inputNS);
+    auto maybeNS = ctx->sourceManager.readNamespace(*ctx, inputNS, runLoc);
 
-  case Action::RunJIT: {
-    // TODO: Replace it by a proper jit configuration
-    ctx->setOperationPhase(CompilationPhase::NoOptimization);
-    break;
-  };
+    if (!maybeNS) {
+      throwErrors(*ctx, maybeNS.getError());
+      return (int)std::errc::no_such_file_or_directory;
+    }
 
-    // Just print out the raw AST
-  case Action::DumpAST: {
-    ctx->setOperationPhase(CompilationPhase::Parse);
-    break;
-  };
+    auto ns = maybeNS.getValue();
 
-  case Action::DumpSemantic: {
-    ctx->setOperationPhase(CompilationPhase::Analysis);
-    break;
-  };
+    ctx->insertNS(ns);
 
-  case Action::DumpSLIR: {
-    ctx->setOperationPhase(CompilationPhase::SLIR);
-    break;
-  }
+    switch (emitAction) {
+    case Action::DumpAST:
+    case Action::DumpSemantic: {
+      auto ast = ns->getTree();
+      llvm::outs() << exprs::astToString(&ast) << "\n";
+      return 0;
+    }
 
-  case Action::DumpMLIR: {
-    ctx->setOperationPhase(CompilationPhase::MLIR);
-    break;
-  }
+    case Action::DumpSLIR:
+    case Action::DumpMLIR:
+    case Action::DumpLIR: {
+      ns->dump();
+      break;
+    };
+    case Action::DumpIR: {
+      auto maybeModule = ns->compileToLLVM();
 
-  case Action::DumpLIR: {
-    ctx->setOperationPhase(CompilationPhase::LIR);
-    break;
-  }
+      if (!maybeModule) {
+        llvm::errs() << "Failed to generate the IR.\n";
+        return 1;
+      }
 
-  case Action::DumpIR: {
-    ctx->setOperationPhase(CompilationPhase::IR);
-    break;
-  }
+      maybeModule.getValue()->dump();
+      break;
+    };
 
-  case Action::CompileToObject: {
-    ctx->setOperationPhase(CompilationPhase::NoOptimization);
-    break;
-  }
+    case Action::RunJIT: {
+      auto maybeJIT = JIT::make(*ns);
+      if (!maybeJIT) {
+        // TODO: panic in here: "Couldn't creat the JIT!"
+        return -1;
+      }
+      auto jit = std::move(maybeJIT.getValue());
 
-  case Action::Compile: {
-    ctx->setOperationPhase(CompilationPhase::NoOptimization);
-    break;
-  }
+      if (jit->invoke("main")) {
+        llvm::errs() << "Faild to invoke the 'main' function.\n";
+        return 1;
+      }
+      llvm::outs() << "Done!";
+      break;
+    };
 
-  default: {
-    llvm::errs() << "No action specified. TODO: Print out help here\n";
-    return 1;
-  }
-  }
+    case Action::Compile:
+    case Action::CompileToObject: {
+      return dumpAsObject(*ns);
+    };
+    default: {
+      llvm::errs() << "Action is not supported yet!\n";
+    };
+    }
 
-  auto runLoc  = reader::LocationRange::UnknownLocation(inputNS);
-  auto maybeNS = ctx->sourceManager.readNamespace(*ctx, inputNS, runLoc);
-
-  if (!maybeNS) {
-    throwErrors(*ctx, maybeNS.getError());
-    return (int)std::errc::no_such_file_or_directory;
-  }
-
-  auto ns = maybeNS.getValue();
-
-  ctx->insertNS(ns);
-
-  switch (emitAction) {
-  case Action::DumpAST:
-  case Action::DumpSemantic: {
-    auto ast = ns->getTree();
-    llvm::outs() << exprs::astToString(&ast) << "\n";
     return 0;
   }
-
-  case Action::DumpSLIR:
-  case Action::DumpMLIR:
-  case Action::DumpLIR: {
-    ns->dump();
-    break;
-  };
-  case Action::DumpIR: {
-    auto maybeModule = ns->compileToLLVM();
-
-    if (!maybeModule) {
-      llvm::errs() << "Failed to generate the IR.\n";
-      return 1;
-    }
-
-    maybeModule.getValue()->dump();
-    break;
-  };
-
-  case Action::RunJIT: {
-    auto maybeJIT = JIT::make(*ns);
-    if (!maybeJIT) {
-      // TODO: panic in here: "Couldn't creat the JIT!"
-      return -1;
-    }
-    auto jit = std::move(maybeJIT.getValue());
-
-    if (jit->invoke("main")) {
-      llvm::errs() << "Faild to invoke the 'main' function.\n";
-      return 1;
-    }
-    llvm::outs() << "Done!";
-    break;
-  };
-
-  case Action::Compile:
-  case Action::CompileToObject: {
-    return dumpAsObject(*ns);
-  };
-  default: {
-    llvm::errs() << "Action is not supported yet!\n";
-  };
-  }
-
-  return 0;
-}
