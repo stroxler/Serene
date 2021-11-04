@@ -509,7 +509,8 @@ This framework allows for transforming a set of illegal operations to a set of l
 *** Rewrite Patterns
 *** Type Converter
 ** Full vs Partial Conversion
-* Episode 12 - Target code generation
+* DONE Episode 12 - Target code generation
+CLOSED: [2021-11-04 Thu 00:57]
 ** Updates:
 *** JIT work
 *** Emacs dev mode
@@ -561,3 +562,7 @@ and tries to =resolve= *undefined* symbols
 ** Let's look at some code
 ** Resources:
 - [[https://lwn.net/Articles/276782/][20 part linker essay]]
+* Episode 13 - Source Manager
+** Updates:
+** Forgot to show case the code generation
+I didn't show it in action
