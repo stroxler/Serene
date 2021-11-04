@@ -20,6 +20,9 @@
  * Commentary:
  */
 
+// TODO: Look at the LLJITBuilderState::prepareForConstruction to setup the
+//       object linking layer
+
 #ifndef SERENE_JIT_ENGINE_H
 #define SERENE_JIT_ENGINE_H
 
@@ -35,6 +38,7 @@
 #include <llvm/ExecutionEngine/Orc/RTDyldObjectLinkingLayer.h>
 #include <llvm/ExecutionEngine/SectionMemoryManager.h>
 #include <llvm/IR/DataLayout.h>
+#include <llvm/Support/raw_ostream.h>
 
 #include <memory>
 
@@ -73,6 +77,12 @@ class SereneJIT {
   /// for us
   orc::IRCompileLayer compileLayer;
 
+  // TODO: Enable these two layers when we add the `Platform support`
+  // std::unique_ptr<orc::IRTransformLayer> transformLayer;
+  // std::unique_ptr<orc::IRTransformLayer> initHelperTransformLayer;
+
+  orc::CompileOnDemandLayer compileOnDemandLayer;
+
   /// Transform layaer is responsible for running a pass pipeline on the AST
   /// and generate LLVM IR
   // orc::IRTransformLayer transformLayer;
@@ -93,13 +103,18 @@ public:
   SereneJIT(serene::SereneContext &ctx,
             std::unique_ptr<orc::ExecutionSession> es,
             std::unique_ptr<orc::EPCIndirectionUtils> epciu,
-            orc::JITTargetMachineBuilder jtmb, llvm::DataLayout &&dl);
+            orc::JITTargetMachineBuilder jtmb, llvm::DataLayout &&dl,
+            unsigned numCompileThreads = 0);
 
   ~SereneJIT() {
-    if (auto Err = es->endSession()) {
-      es->reportError(std::move(Err));
+    // if (compileThreads) {
+    //   compileThreads->wait();
+    // }
+
+    if (auto err = es->endSession()) {
+      es->reportError(std::move(err));
     }
-  }
+  };
 
   const llvm::DataLayout &getDataLayout() const { return dl; }
 

@@ -22,12 +22,24 @@
 #include "serene/jit/layers.h"
 #include "serene/utils.h"
 
+#include <llvm/ExecutionEngine/JITSymbol.h>
+
+#include <memory>
+
 namespace serene::jit {
+
+static void handleLazyCallThroughError() {
+  // TODO: Report to the diag engine
+  llvm::errs() << "LazyCallThrough error: Could not find function body";
+  // TODO: terminate ?
+}
 
 SereneJIT::SereneJIT(serene::SereneContext &ctx,
                      std::unique_ptr<orc::ExecutionSession> es,
                      std::unique_ptr<orc::EPCIndirectionUtils> epciu,
-                     orc::JITTargetMachineBuilder jtmb, llvm::DataLayout &&dl)
+                     orc::JITTargetMachineBuilder jtmb, llvm::DataLayout &&dl,
+                     unsigned numCompileThreads)
+
     : es(std::move(es)), epciu(std::move(epciu)), dl(dl),
       mangler(*this->es, this->dl),
       objectLayer(
@@ -36,12 +48,21 @@ SereneJIT::SereneJIT(serene::SereneContext &ctx,
       compileLayer(
           *this->es, objectLayer,
           std::make_unique<orc::ConcurrentIRCompiler>(std::move(jtmb))),
-      nsLayer(ctx, compileLayer, mangler, dl),
+      // TODO: Change compileOnDemandLayer to use an optimization layer
+      //       as the parent
+      compileOnDemandLayer(
+          *this->es, compileLayer, this->epciu->getLazyCallThroughManager(),
+          [this] { return this->epciu->createIndirectStubsManager(); }),
+      nsLayer(ctx, compileOnDemandLayer, mangler, dl),
       mainJD(this->es->createBareJITDylib(ctx.getCurrentNS().name)), ctx(ctx) {
   UNUSED(this->ctx);
   mainJD.addGenerator(
       cantFail(orc::DynamicLibrarySearchGenerator::GetForCurrentProcess(
           dl.getGlobalPrefix())));
+
+  if (numCompileThreads > 0) {
+    compileOnDemandLayer.setCloneToNewContextOnEmit(true);
+  }
 }
 
 llvm::Error SereneJIT::addNS(llvm::StringRef nsname,
@@ -60,6 +81,18 @@ makeSereneJIT(serene::SereneContext &ctx) {
     return epc.takeError();
   }
   auto es = std::make_unique<orc::ExecutionSession>(std::move(*epc));
+  auto epciu =
+      orc::EPCIndirectionUtils::Create(es->getExecutorProcessControl());
+  if (!epciu) {
+    return epciu.takeError();
+  }
+
+  (*epciu)->createLazyCallThroughManager(
+      *es, llvm::pointerToJITTargetAddress(&handleLazyCallThroughError));
+
+  if (auto err = setUpInProcessLCTMReentryViaEPCIU(**epciu)) {
+    return std::move(err);
+  }
 
   orc::JITTargetMachineBuilder jtmb(
       es->getExecutorProcessControl().getTargetTriple());
@@ -69,7 +102,7 @@ makeSereneJIT(serene::SereneContext &ctx) {
     return dl.takeError();
   }
 
-  return std::make_unique<SereneJIT>(ctx, std::move(es), std::move(jtmb),
-                                     std::move(*dl));
+  return std::make_unique<SereneJIT>(ctx, std::move(es), std::move(*epciu),
+                                     std::move(jtmb), std::move(*dl));
 };
 } // namespace serene::jit

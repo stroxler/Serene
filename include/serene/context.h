@@ -99,6 +99,9 @@ public:
 
   std::string targetTriple;
 
+  // TODO: Replace target Triple with this one
+  llvm::Triple triple;
+
   /// Insert the given `ns` into the context. The Context object is
   /// the owner of all the namespaces. The `ns` will overwrite any
   /// namespace with the same name.
