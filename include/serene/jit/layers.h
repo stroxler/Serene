@@ -30,6 +30,9 @@
 #include <llvm/IR/DataLayout.h>
 #include <llvm/Support/Error.h>
 
+#define LAYER_LOG(...) \
+  DEBUG_WITH_TYPE("layer", llvm::dbgs() << "[Layer]: " << __VA_ARGS__ << "\n");
+
 namespace orc = llvm::orc;
 
 namespace serene {
@@ -160,6 +163,7 @@ public:
     // TODO: We need to pass dl to the compilerNS later to aviod recreating
     // the data layout all the time
     UNUSED(dl);
+    LAYER_LOG("Emit namespace");
     baseLayer.emit(std::move(mr), compileNS(ctx, ns));
   }
 

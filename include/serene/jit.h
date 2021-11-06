@@ -40,7 +40,7 @@
 
 #include <memory>
 
-#define JIT_LOG(...) \
+#define JIT2_LOG(...) \
   DEBUG_WITH_TYPE("JIT", llvm::dbgs() << "[JIT]: " << __VA_ARGS__ << "\n");
 
 namespace serene {

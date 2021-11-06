@@ -46,6 +46,9 @@ namespace serene::jit {
 llvm::orc::ThreadSafeModule compileNS(serene::SereneContext &ctx,
                                       serene::Namespace &ns) {
   UNUSED(ctx);
+
+  LAYER_LOG("Compile namespace: " + ns.name);
+
   auto maybeModule = ns.compileToLLVM();
 
   if (!maybeModule) {
@@ -69,6 +72,7 @@ void NSMaterializationUnit::materialize(
 llvm::Error NSLayer::add(orc::ResourceTrackerSP &rt, llvm::StringRef nsname,
                          reader::LocationRange &loc) {
 
+  LAYER_LOG("Add namespace: " + nsname);
   auto maybeNS = ctx.sourceManager.readNamespace(ctx, nsname.str(), loc);
 
   if (!maybeNS) {
@@ -81,6 +85,7 @@ llvm::Error NSLayer::add(orc::ResourceTrackerSP &rt, llvm::StringRef nsname,
 
   auto ns = maybeNS.getValue();
 
+  LAYER_LOG("Add the materialize unit for: " + nsname);
   return rt->getJITDylib().define(
       std::make_unique<NSMaterializationUnit>(ctx, *this, *ns), rt);
 }
@@ -90,9 +95,9 @@ orc::SymbolFlagsMap NSLayer::getInterface(serene::Namespace &ns) {
 
   for (auto &k : ns.semanticEnv) {
     // llvm::JITSymbolFlags::Exported |
-    auto nnn = mangler(ns.name + "/" + k.getFirst());
-    llvm::outs() << "AAAAA \n" << nnn << "\n";
-    Symbols[nnn] = llvm::JITSymbolFlags(llvm::JITSymbolFlags::Callable);
+    auto mangeldSym = mangler(ns.name + "/" + k.getFirst());
+    LAYER_LOG("Mangeld symbol for: " + k.getFirst() + " = " << mangeldSym);
+    Symbols[mangeldSym] = llvm::JITSymbolFlags(llvm::JITSymbolFlags::Callable);
   }
 
   return Symbols;

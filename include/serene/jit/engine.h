@@ -42,6 +42,9 @@
 
 #include <memory>
 
+#define JIT_LOG(...) \
+  DEBUG_WITH_TYPE("jit", llvm::dbgs() << "[JIT]: " << __VA_ARGS__ << "\n");
+
 namespace orc = llvm::orc;
 
 namespace serene {
@@ -81,11 +84,11 @@ class SereneJIT {
   // std::unique_ptr<orc::IRTransformLayer> transformLayer;
   // std::unique_ptr<orc::IRTransformLayer> initHelperTransformLayer;
 
-  orc::CompileOnDemandLayer compileOnDemandLayer;
+  // orc::CompileOnDemandLayer compileOnDemandLayer;
 
   /// Transform layaer is responsible for running a pass pipeline on the AST
   /// and generate LLVM IR
-  // orc::IRTransformLayer transformLayer;
+  orc::IRTransformLayer transformLayer;
 
   /// The AST Layer reads and import the Serene Ast directly to the JIT
   // SereneAstLayer astLayer;
@@ -99,12 +102,36 @@ class SereneJIT {
 
   serene::SereneContext &ctx;
 
+  static llvm::Expected<orc::ThreadSafeModule>
+  optimizeModule(orc::ThreadSafeModule tsm,
+                 const orc::MaterializationResponsibility &r) {
+    // TSM.withModuleDo([](Module &M) {
+    //   // Create a function pass manager.
+    //   auto FPM = std::make_unique<legacy::FunctionPassManager>(&M);
+
+    //   // Add some optimizations.
+    //   FPM->add(createInstructionCombiningPass());
+    //   FPM->add(createReassociatePass());
+    //   FPM->add(createGVNPass());
+    //   FPM->add(createCFGSimplificationPass());
+    //   FPM->doInitialization();
+
+    //   // Run the optimizations over all functions in the module being added
+    //   to
+    //   // the JIT.
+    //   for (auto &F : M)
+    //     FPM->run(F);
+    // });
+    UNUSED(r);
+    llvm::outs() << "optimodule\n";
+    return std::move(tsm);
+  }
+
 public:
   SereneJIT(serene::SereneContext &ctx,
             std::unique_ptr<orc::ExecutionSession> es,
             std::unique_ptr<orc::EPCIndirectionUtils> epciu,
-            orc::JITTargetMachineBuilder jtmb, llvm::DataLayout &&dl,
-            unsigned numCompileThreads = 0);
+            orc::JITTargetMachineBuilder jtmb, llvm::DataLayout &&dl);
 
   ~SereneJIT() {
     // if (compileThreads) {

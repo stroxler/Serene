@@ -37,8 +37,7 @@ static void handleLazyCallThroughError() {
 SereneJIT::SereneJIT(serene::SereneContext &ctx,
                      std::unique_ptr<orc::ExecutionSession> es,
                      std::unique_ptr<orc::EPCIndirectionUtils> epciu,
-                     orc::JITTargetMachineBuilder jtmb, llvm::DataLayout &&dl,
-                     unsigned numCompileThreads)
+                     orc::JITTargetMachineBuilder jtmb, llvm::DataLayout &&dl)
 
     : es(std::move(es)), epciu(std::move(epciu)), dl(dl),
       mangler(*this->es, this->dl),
@@ -48,21 +47,22 @@ SereneJIT::SereneJIT(serene::SereneContext &ctx,
       compileLayer(
           *this->es, objectLayer,
           std::make_unique<orc::ConcurrentIRCompiler>(std::move(jtmb))),
+      transformLayer(*this->es, compileLayer, optimizeModule),
       // TODO: Change compileOnDemandLayer to use an optimization layer
       //       as the parent
-      compileOnDemandLayer(
-          *this->es, compileLayer, this->epciu->getLazyCallThroughManager(),
-          [this] { return this->epciu->createIndirectStubsManager(); }),
-      nsLayer(ctx, compileOnDemandLayer, mangler, dl),
+      // compileOnDemandLayer(
+      //     *this->es, compileLayer, this->epciu->getLazyCallThroughManager(),
+      //     [this] { return this->epciu->createIndirectStubsManager(); }),
+      nsLayer(ctx, transformLayer, mangler, dl),
       mainJD(this->es->createBareJITDylib(ctx.getCurrentNS().name)), ctx(ctx) {
   UNUSED(this->ctx);
   mainJD.addGenerator(
       cantFail(orc::DynamicLibrarySearchGenerator::GetForCurrentProcess(
           dl.getGlobalPrefix())));
 
-  if (numCompileThreads > 0) {
-    compileOnDemandLayer.setCloneToNewContextOnEmit(true);
-  }
+  // if (numCompileThreads > 0) {
+  //   compileOnDemandLayer.setCloneToNewContextOnEmit(true);
+  // }
 }
 
 llvm::Error SereneJIT::addNS(llvm::StringRef nsname,
