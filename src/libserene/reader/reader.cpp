@@ -45,6 +45,64 @@
 namespace serene {
 
 namespace reader {
+// LocationRange::LocationRange(const LocationRange &loc) {
+//   start = loc.start.clone();
+//   end   = loc.end.clone();
+// }
+
+/// Return the string represenation of the location.
+std::string Location::toString() const {
+  return llvm::formatv("{0}:{1}", line, col);
+};
+
+Location Location::clone() const {
+  return Location{ns, filename, c, line, col, knownLocation};
+}
+
+mlir::Location Location::toMLIRLocation(SereneContext &ctx) {
+  // TODO: Create a new Location attribute that is namespace base
+  if (filename.hasValue()) {
+    return mlir::FileLineColLoc::get(&ctx.mlirContext, filename.getValue(),
+                                     line, col);
+  }
+  return mlir::FileLineColLoc::get(&ctx.mlirContext, ns, line, col);
+}
+/// Increase the given location by one and set the line/col value in respect to
+/// the `newline` in place.
+/// \param loc The `Location` data
+/// \param c A pointer to the current char that the location has to point to
+void incLocation(Location &loc, const char *c) {
+  // TODO: Handle the end of line with respect to the OS.
+  // increase the current position in the buffer with respect to the end
+  // of line.
+  auto newline = *c == '\n';
+
+  if (!newline) {
+    loc.col++;
+  } else {
+    loc.line++;
+    loc.col = 0;
+  }
+}
+
+/// decrease the given location by one and set the line/col value in respect to
+/// the `newline` in place.
+/// \param loc The `Location` data
+/// \param c A pointer to the current char that the location has to point to
+void decLocation(Location &loc, const char *c) {
+  // TODO: Handle the end of line with respect to the OS.
+  // increase the current position in the buffer with respect to the end
+  // of line.
+  auto newline = *c == '\n';
+
+  if (newline) {
+    loc.line = loc.line == 0 ? 0 : loc.line - 1;
+
+    // We don't move back the `col` value because we simply don't know it
+  } else {
+    loc.col = loc.col == 0 ? 0 : loc.col - 1;
+  }
+}
 
 Reader::Reader(SereneContext &ctx, llvm::StringRef buffer, llvm::StringRef ns,
                llvm::Optional<llvm::StringRef> filename)

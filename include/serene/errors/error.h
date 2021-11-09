@@ -27,7 +27,7 @@
 #include <llvm/ADT/Optional.h>
 
 namespace serene::reader {
-class LoccationRange;
+class LocationRange;
 } // namespace serene::reader
 
 namespace serene::errors {

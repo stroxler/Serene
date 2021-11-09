@@ -47,7 +47,6 @@ add_library(serene
 
   # Reader
   reader/reader.cpp
-  reader/location.cpp
   reader/semantics.cpp
 
   # Errors
