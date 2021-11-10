@@ -138,7 +138,7 @@ public:
   /// Set the `loadPaths` to the given \p dirs. `loadPaths` is a vector of
   /// directories that Serene will look in order to find a file that constains a
   /// namespace which it is looking for.
-  void setLoadPaths(const std::vector<std::string> &dirs) { loadPaths = dirs; }
+  void setLoadPaths(std::vector<std::string> &dirs) { loadPaths.swap(dirs); }
 
   /// Return a reference to a `SrcBuffer` with the given ID \p i.
   const SrcBuffer &getBufferInfo(unsigned i) const {

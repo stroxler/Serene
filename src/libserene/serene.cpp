@@ -32,6 +32,7 @@
 #include "serene/reader/reader.h"
 
 #include <llvm/ADT/None.h>
+#include <llvm/Support/CommandLine.h>
 #include <llvm/Support/Error.h>
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Support/raw_ostream.h>
@@ -120,7 +121,7 @@ SERENE_EXPORT exprs::MaybeNode eval(SereneContext &ctx, exprs::Ast &input) {
   llvm::ExitOnError e;
   // Get the anonymous expression's JITSymbol.
   auto sym = e(ctx.jit->lookup(tmp));
-
+  llvm::outs() << "eval here\n";
   // Get the symbol's address and cast it to the right type (takes no
   // arguments, returns a double) so we can call it as a native function.
   auto *f = (int (*)())(intptr_t)sym.getAddress();

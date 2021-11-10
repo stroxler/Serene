@@ -38,6 +38,7 @@
 #include <llvm/Support/Locale.h>
 #include <llvm/Support/MemoryBufferRef.h>
 #include <llvm/Support/Path.h>
+#include <llvm/Support/raw_ostream.h>
 #include <mlir/Support/LogicalResult.h>
 
 namespace serene {

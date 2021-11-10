@@ -129,7 +129,7 @@ private:
     UNUSED(jd);
     UNUSED(sym);
     UNUSED(ctx);
-    llvm_unreachable("discard");
+    // TODO: Check the ctx to see whether we need to remove the sym or not
   }
 
   serene::SereneContext &ctx;

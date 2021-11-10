@@ -16,14 +16,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "serene/jit.h"
 #include "serene/namespace.h"
 #include "serene/reader/location.h"
 #include "serene/reader/reader.h"
 #include "serene/reader/semantics.h"
 #include "serene/serene.h"
-#include "serene/serene/engine.h"
 #include "serene/slir/generatable.h"
 #include "serene/slir/slir.h"
+
+#include <lld/Common/Driver.h>
 
 #include <clang/Driver/Compilation.h>
 #include <clang/Driver/Driver.h>
@@ -32,7 +34,6 @@
 #include <llvm/ADT/ArrayRef.h>
 #include <llvm/ADT/SmallString.h>
 #include <llvm/ADT/StringRef.h>
-#include <llvm/ExecutionEngine/Orc/ThreadSafeModule.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/Support/CommandLine.h>
 #include <llvm/Support/FileSystem.h>
@@ -86,7 +87,7 @@ static cl::opt<std::string> outputFile(
 
 static cl::opt<std::string>
     outputDir("b", cl::desc("The absolute path to the build directory"),
-              cl::value_desc("filename"), cl::Required);
+              cl::value_desc("dir"), cl::Required);
 
 static cl::opt<enum Action> emitAction(
     "emit", cl::desc("Select what to dump."), cl::init(Compile),
@@ -108,117 +109,151 @@ static cl::opt<enum Action> emitAction(
 
 );
 
-int dumpAsObject(Namespace &ns) {
-  // TODO: Move the compilation process to the Namespace class
-  auto maybeModule = ns.compileToLLVM();
-  // TODO: Fix this call to raise the wrapped error instead
-  if (!maybeModule) {
-    // TODO: Rais and error: "Faild to generato LLVM IR for namespace"
-    return -1;
-  }
+// int dumpAsObject(Namespace &ns) {
+//   // TODO: Move the compilation process to the Namespace class
+//   auto maybeModule = ns.compileToLLVM();
+//   // TODO: Fix this call to raise the wrapped error instead
+//   if (!maybeModule) {
+//     // TODO: Rais and error: "Faild to generato LLVM IR for namespace"
+//     return -1;
+//   }
 
-  auto tsm = maybeModule.getValue();
-  auto tsc = tsm.getContext();
+//   auto module = std::move(maybeModule.getValue());
+//   auto &ctx   = ns.getContext();
 
-  auto lock = tsc.getLock();
+//   // TODO: We need to set the triple data layout and everything to that sort
+//   in
+//   // one place. We want them for the JIT as well and also we're kinda
+//   // duplicating what we're doing in `Namespace#compileToLLVM`.
+//   module->setTargetTriple(ctx.targetTriple);
 
-  auto module = tsm.getModuleUnlocked();
-  auto &ctx   = ns.getContext();
+//   std::string Error;
+//   const auto *target =
+//       llvm::TargetRegistry::lookupTarget(ctx.targetTriple, Error);
 
-  // TODO: We need to set the triple data layout and everything to that sort in
-  // one place. We want them for the JIT as well and also we're kinda
-  // duplicating what we're doing in `Namespace#compileToLLVM`.
+//   // Print an error and exit if we couldn't find the requested target.
+//   // This generally occurs if we've forgotten to initialise the
+//   // TargetRegistry or we have a bogus target triple.
+//   if (target == nullptr) {
+//     llvm::errs() << Error;
+//     return 1;
+//   }
 
-  module->setTargetTriple(ctx.targetTriple);
+//   const auto *cpu      = "generic";
+//   const auto *features = "";
 
-  std::string Error;
-  const auto *target =
-      llvm::TargetRegistry::lookupTarget(ctx.targetTriple, Error);
+//   llvm::TargetOptions opt;
+//   auto rm = llvm::Optional<llvm::Reloc::Model>();
+//   auto *targetMachinePtr =
+//       target->createTargetMachine(ctx.targetTriple, cpu, features, opt, rm);
+//   auto targetMachine =
+//   std::unique_ptr<llvm::TargetMachine>(targetMachinePtr);
 
-  // Print an error and exit if we couldn't find the requested target.
-  // This generally occurs if we've forgotten to initialise the
-  // TargetRegistry or we have a bogus target triple.
-  if (target == nullptr) {
-    llvm::errs() << Error;
-    return 1;
-  }
+//   module->setDataLayout(targetMachine->createDataLayout());
 
-  const auto *cpu      = "generic";
-  const auto *features = "";
+//   const auto *filename =
+//       strcmp(outputFile.c_str(), "-") == 0 ? "output" : outputFile.c_str();
 
-  llvm::TargetOptions opt;
-  auto rm = llvm::Optional<llvm::Reloc::Model>();
-  auto *targetMachinePtr =
-      target->createTargetMachine(ctx.targetTriple, cpu, features, opt, rm);
-  auto targetMachine = std::unique_ptr<llvm::TargetMachine>(targetMachinePtr);
+//   std::error_code ec;
+//   const auto pathSize(256);
 
-  module->setDataLayout(targetMachine->createDataLayout());
+//   llvm::SmallString<pathSize> destFile(outputDir);
+//   llvm::sys::path::append(destFile, filename);
+//   auto destObjFilePath = llvm::formatv("{0}.o", destFile).str();
+//   llvm::raw_fd_ostream dest(destObjFilePath, ec, llvm::sys::fs::OF_None);
 
-  const auto *filename =
-      strcmp(outputFile.c_str(), "-") == 0 ? "output" : outputFile.c_str();
+//   if (ec) {
+//     llvm::errs() << "Could not open file: " << destObjFilePath;
+//     llvm::errs() << "Could not open file: " << ec.message();
+//     return 1;
+//   }
 
-  std::error_code ec;
-  const auto pathSize(256);
+//   llvm::legacy::PassManager pass;
+//   auto fileType = llvm::CGFT_ObjectFile;
 
-  llvm::SmallString<pathSize> destFile(outputDir);
-  llvm::sys::path::append(destFile, filename);
-  auto destObjFilePath = llvm::formatv("{0}.o", destFile).str();
-  llvm::raw_fd_ostream dest(destObjFilePath, ec, llvm::sys::fs::OF_None);
+//   if (targetMachine->addPassesToEmitFile(pass, dest, nullptr, fileType)) {
+//     llvm::errs() << "TheTargetMachine can't emit a file of this type";
+//     return 1;
+//   }
 
-  if (ec) {
-    llvm::errs() << "Could not open file: " << ec.message();
-    return 1;
-  }
+//   pass.run(*module);
+//   dest.flush();
 
-  llvm::legacy::PassManager pass;
-  auto fileType = llvm::CGFT_ObjectFile;
+//   if (emitAction == Action::Compile) {
+//     std::vector<const char *> args = {"serenec"};
 
-  if (targetMachine->addPassesToEmitFile(pass, dest, nullptr, fileType)) {
-    llvm::errs() << "TheTargetMachine can't emit a file of this type";
-    return 1;
-  }
+//     args.push_back("--eh-frame-hdr");
+//     args.push_back("-m");
+//     args.push_back("elf_x86_64");
+//     args.push_back("-dynamic-linker");
+//     args.push_back("/lib64/ld-linux-x86-64.so.2");
+//     args.push_back(
+//         "/usr/lib/gcc/x86_64-pc-linux-gnu/11.2.0/../../../../lib64/crt1.o");
+//     args.push_back(
+//         "/usr/lib/gcc/x86_64-pc-linux-gnu/11.2.0/../../../../lib64/crti.o");
+//     args.push_back("/usr/lib/gcc/x86_64-pc-linux-gnu/11.2.0/crtbegin.o");
+//     args.push_back("-L");
+//     args.push_back("/usr/lib/gcc/x86_64-pc-linux-gnu/11.2.0/");
+//     args.push_back("-L");
+//     args.push_back("/usr/lib64/");
 
-  pass.run(*module);
-  dest.flush();
+//     args.push_back(destObjFilePath.c_str());
+//     args.push_back("-o");
+//     args.push_back(destFile.c_str());
+//     args.push_back("-lgcc");
+//     args.push_back("--as-needed");
+//     args.push_back("-lgcc_s");
+//     args.push_back("--no-as-needed");
+//     args.push_back("-lc");
+//     args.push_back("-lgcc");
+//     args.push_back("--as-needed");
+//     args.push_back("-lgcc_s");
+//     args.push_back("--no-as-needed");
+//     args.push_back("/usr/lib/gcc/x86_64-pc-linux-gnu/11.2.0/crtend.o");
+//     args.push_back(
+//         "/usr/lib/gcc/x86_64-pc-linux-gnu/11.2.0/../../../../lib64/crtn.o");
 
-  if (emitAction == Action::Compile) {
-    llvm::IntrusiveRefCntPtr<clang::DiagnosticOptions> opts =
-        new clang::DiagnosticOptions;
-    clang::DiagnosticsEngine diags(
-        new clang::DiagnosticIDs, opts,
-        new clang::TextDiagnosticPrinter(llvm::errs(), opts.get()));
+//     lld::elf::link(args, false, llvm::outs(), llvm::errs());
 
-    clang::driver::Driver d("clang", ctx.targetTriple, diags,
-                            "Serene compiler");
-    std::vector<const char *> args = {"serenec"};
+//     //   llvm::IntrusiveRefCntPtr<clang::DiagnosticOptions> opts =
+//     //       new clang::DiagnosticOptions;
+//     //   clang::DiagnosticsEngine diags(
+//     //       new clang::DiagnosticIDs, opts,
+//     //       new clang::TextDiagnosticPrinter(llvm::errs(), opts.get()));
 
-    args.push_back(destObjFilePath.c_str());
-    args.push_back("-o");
-    args.push_back(destFile.c_str());
+//     //   clang::driver::Driver d("clang", ctx.targetTriple, diags,
+//     //                           "Serene compiler");
+//     //   std::vector<const char *> args = {"serenec"};
 
-    d.setCheckInputsExist(false);
+//     //   args.push_back(destObjFilePath.c_str());
+//     //   args.push_back("-o");
+//     //   args.push_back(destFile.c_str());
 
-    std::unique_ptr<clang::driver::Compilation> compilation;
-    compilation.reset(d.BuildCompilation(args));
+//     //   d.setCheckInputsExist(true);
 
-    if (!compilation) {
-      return 1;
-    }
+//     //   std::unique_ptr<clang::driver::Compilation> compilation;
+//     //   compilation.reset(d.BuildCompilation(args));
 
-    llvm::SmallVector<std::pair<int, const clang::driver::Command *>>
-        failCommand;
-    // compilation->ExecuteJobs(compilation->getJobs(), failCommand);
+//     //   if (!compilation) {
+//     //     llvm::errs() << "can't create the compilation!\n";
+//     //     return 1;
+//     //   }
 
-    d.ExecuteCompilation(*compilation, failCommand);
-    if (failCommand.empty()) {
-      llvm::outs() << "Done!\n";
-    } else {
-      llvm::errs() << "Linking failed!\n";
-    }
-  }
+//     //   llvm::SmallVector<std::pair<int, const clang::driver::Command *>>
+//     //       failCommand;
 
-  return 0;
-};
+//     //   d.ExecuteCompilation(*compilation, failCommand);
+
+//     //   if (failCommand.empty()) {
+//     //     llvm::outs() << "Done!\n";
+//     //   } else {
+//     //     llvm::errs() << "Linking failed!\n";
+//     //     failCommand.front().second->Print(llvm::errs(), "\n", false);
+//     //   }
+//     // }
+
+//     return 0;
+//   };
 
 int main(int argc, char *argv[]) {
   initCompiler();
@@ -235,7 +270,7 @@ int main(int argc, char *argv[]) {
   //       default to the current working dir
   if (outputDir == "-") {
     llvm::errs() << "Error: The build directory is not set. Did you forget to "
-                    "use '-build-dir'?\n";
+                    "use '-b'?\n";
     return 1;
   }
 
@@ -328,30 +363,32 @@ int main(int argc, char *argv[]) {
       return 1;
     }
 
-    maybeModule.getValue()->dump();
+    auto tsm = std::move(maybeModule.getValue());
+    tsm.withModuleDo([](auto &m) { m.dump(); });
+
     break;
   };
 
-  case Action::RunJIT: {
-    auto maybeJIT = JIT::make(*ns);
-    if (!maybeJIT) {
-      // TODO: panic in here: "Couldn't creat the JIT!"
-      return -1;
-    }
-    auto jit = std::move(maybeJIT.getValue());
+  // case Action::RunJIT: {
+  //   auto maybeJIT = JIT::make(*ns);
+  //   if (!maybeJIT) {
+  //     // TODO: panic in here: "Couldn't creat the JIT!"
+  //     return -1;
+  //   }
+  //   auto jit = std::move(maybeJIT.getValue());
 
-    if (jit->invoke("main")) {
-      llvm::errs() << "Faild to invoke the 'main' function.\n";
-      return 1;
-    }
-    llvm::outs() << "Done!";
-    break;
-  };
+  //   if (jit->invoke("main")) {
+  //     llvm::errs() << "Faild to invoke the 'main' function.\n";
+  //     return 1;
+  //   }
+  //   llvm::outs() << "Done!";
+  //   break;
+  // };
 
-  case Action::Compile:
-  case Action::CompileToObject: {
-    return dumpAsObject(*ns);
-  };
+  // case Action::Compile:
+  // case Action::CompileToObject: {
+  //   return dumpAsObject(*ns);
+  // };
   default: {
     llvm::errs() << "Action is not supported yet!\n";
   };

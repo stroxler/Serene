@@ -123,7 +123,6 @@ class SereneJIT {
     //     FPM->run(F);
     // });
     UNUSED(r);
-    llvm::outs() << "optimodule\n";
     return std::move(tsm);
   }
 
@@ -160,6 +159,7 @@ public:
                     orc::ResourceTrackerSP rt = nullptr);
 
   llvm::Expected<llvm::JITEvaluatedSymbol> lookup(llvm::StringRef name) {
+    JIT_LOG("Looking up symbol: " + name);
     return es->lookup({&mainJD}, mangler(name.str()));
   }
 };

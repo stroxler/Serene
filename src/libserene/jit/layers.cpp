@@ -95,9 +95,10 @@ orc::SymbolFlagsMap NSLayer::getInterface(serene::Namespace &ns) {
 
   for (auto &k : ns.semanticEnv) {
     // llvm::JITSymbolFlags::Exported |
-    auto mangeldSym = mangler(ns.name + "/" + k.getFirst());
-    LAYER_LOG("Mangeld symbol for: " + k.getFirst() + " = " << mangeldSym);
-    Symbols[mangeldSym] = llvm::JITSymbolFlags(llvm::JITSymbolFlags::Callable);
+    auto mangledSym = mangler(ns.name + "/" + k.getFirst());
+    LAYER_LOG("Mangle symbol for: " + k.getFirst() + " = " << mangledSym);
+    Symbols[mangledSym] = llvm::JITSymbolFlags(llvm::JITSymbolFlags::Callable |
+                                               llvm::JITSymbolFlags::Exported);
   }
 
   return Symbols;

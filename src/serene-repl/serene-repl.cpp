@@ -66,6 +66,10 @@ int main(int argc, char *argv[]) {
   // Load history
   linenoise::LoadHistory(historyFile.c_str());
 
+  // TODO: Read the optimization as an input and as part of the global
+  //       public arguments like -l
+  ctx->setOperationPhase(CompilationPhase::NoOptimization);
+
   while (true) {
     // Read line
     std::string line;
