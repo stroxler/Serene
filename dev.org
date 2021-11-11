@@ -107,14 +107,15 @@ on ADF
 - https://en.wikipedia.org/wiki/Collision_attack
 
 * TODOs
-** Bootstrap*
-*** TODO Use =const= where ever it makes sense
-*** TODO Create different pass pipeline for different compilation phases
+
+** TODO Create a pass to rename functions to include the ns name
+** TODO Use =const= where ever it makes sense
+** TODO Create different pass pipeline for different compilation phases
 So we can use them directly via command line, like -O1 for example
 
-*** TODO Investigate the huge size of serenec
+** TODO Investigate the huge size of serenec
 So far it seems that the static linking and the lack of tree shaking is the issue
-*** DONE Add the support for =ns-paths=                 :serenecli:context:
+** DONE Add the support for =ns-paths=                   :serenecli:context:
 CLOSED: [2021-09-25 Sat 19:22]
 :LOGBOOK:
 - State "DONE"       from "TODO"       [2021-09-25 Sat 19:22]
@@ -128,39 +129,39 @@ in python.
 - [ ] Add the support to *Namespace*.
 - [ ] Add the cli argument to the =bin/serene.cpp=
 
-*** TODO Error handling
+** TODO Error handling
 Create proper error handling for the internal infra
-*** TODO Replace =llvm::outs()= with debug statements
-*** TODO Move the generatable logic out of its files and remove them
-*** TODO Add a CLI option to get any extra pass
-*** TODO Add support for =sourcemgr= for input files
-*** TODO Language Spec                                               :DOCS:
-*** TODO A proper List implementation
-*** TODO Vector implementation
-*** TODO Hashmap implementation
-*** TODO Meta data support
-*** TODO Docstring support                                           :DOCS:
+** TODO Replace =llvm::outs()= with debug statements
+** TODO Move the generatable logic out of its files and remove them
+** TODO Add a CLI option to get any extra pass
+** TODO Add support for =sourcemgr= for input files
+** TODO Language Spec                                                 :DOCS:
+** TODO A proper List implementation
+** TODO Vector implementation
+** TODO Hashmap implementation
+** TODO Meta data support
+** TODO Docstring support                                             :DOCS:
 - [ ] For functions and macros
 - [ ] For namespaces and projects
 - [ ] API to interact with docstrings and helps
-*** TODO FFI interface
-*** TODO nREPL
-*** TODO Emacs mode                                                  :Misc:
-*** TODO Number implementation
-*** TODO String implementation
-*** TODO Enum implementation
-*** TODO Protocol
-*** TODO Struct implementation
-*** TODO Multi arity functions
-*** TODO QuasiQuotation
-*** TODO Linter                                                      :Misc:
-*** TODO Document generator                                     :DOCS:Misc:
-*** TODO Spec like functionality
-*** TODO Laziness implementation
-*** TODO Investigate the Semantic Error tree and tracking
+** TODO FFI interface
+** TODO nREPL
+** TODO Emacs mode                                                    :Misc:
+** TODO Number implementation
+** TODO String implementation
+** TODO Enum implementation
+** TODO Protocol
+** TODO Struct implementation
+** TODO Multi arity functions
+** TODO QuasiQuotation
+** TODO Linter                                                        :Misc:
+** TODO Document generator                                       :DOCS:Misc:
+** TODO Spec like functionality
+** TODO Laziness implementation
+** TODO Investigate the Semantic Error tree and tracking
 Basically we should be able to create an error tree on semantic analysis
 time and trace semantic errors on different layers and intensively.
 Is it a good idea ?
-*** Standard libraries
-**** TODO IO library
-**** TODO Test library
+** Standard libraries
+*** TODO IO library
+*** TODO Test library
