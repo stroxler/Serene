@@ -117,7 +117,7 @@ SERENE_EXPORT exprs::MaybeNode eval(SereneContext &ctx, exprs::Ast &input) {
 
     return exprs::makeErrorNode(loc, errors::NSLoadError);
   }
-  std::string tmp("docs.examples.hello_world/main");
+  std::string tmp("main");
   llvm::ExitOnError e;
   // Get the anonymous expression's JITSymbol.
   auto sym = e(ctx.jit->lookup(tmp));

@@ -19,6 +19,8 @@
 #include "serene/jit/layers.h"
 
 #include "serene/context.h"
+#include "serene/exprs/fn.h"
+#include "serene/exprs/traits.h"
 
 #include <llvm/ExecutionEngine/Orc/ThreadSafeModule.h>
 #include <llvm/Support/Error.h> // for report_fatal_error
@@ -94,11 +96,17 @@ orc::SymbolFlagsMap NSLayer::getInterface(serene::Namespace &ns) {
   orc::SymbolFlagsMap Symbols;
 
   for (auto &k : ns.semanticEnv) {
-    // llvm::JITSymbolFlags::Exported |
-    auto mangledSym = mangler(ns.name + "/" + k.getFirst());
+    auto flags = llvm::JITSymbolFlags::Exported;
+    auto name  = k.getFirst();
+    auto expr  = k.getSecond();
+
+    if (expr->getType() == exprs::ExprType::Fn) {
+      flags = flags | llvm::JITSymbolFlags::Callable;
+    }
+
+    auto mangledSym = mangler(k.getFirst());
     LAYER_LOG("Mangle symbol for: " + k.getFirst() + " = " << mangledSym);
-    Symbols[mangledSym] = llvm::JITSymbolFlags(llvm::JITSymbolFlags::Callable |
-                                               llvm::JITSymbolFlags::Exported);
+    Symbols[mangledSym] = llvm::JITSymbolFlags(flags);
   }
 
   return Symbols;

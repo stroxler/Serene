@@ -70,7 +70,7 @@ private:
                const orc::SymbolStringPtr &sym) override {
     UNUSED(jd);
     UNUSED(sym);
-    llvm_unreachable("Kaleidoscope functions are not overridable");
+    llvm_unreachable("Serene functions are not overridable");
   }
 
   serene::SereneContext &ctx;
