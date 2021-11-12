@@ -99,7 +99,7 @@ MaybeNS SereneContext::readNamespace(const std::string &name) {
 
 MaybeNS SereneContext::readNamespace(const std::string &name,
                                      reader::LocationRange loc) {
-  return sourceManager.readNamespace(*this, std::move(name), loc);
+  return sourceManager.readNamespace(*this, name, loc);
 }
 
 void terminate(SereneContext &ctx, int exitCode) {
@@ -112,7 +112,7 @@ void terminate(SereneContext &ctx, int exitCode) {
 }
 
 std::unique_ptr<SereneContext> makeSereneContext() {
-  return std::make_unique<SereneContext>();
+  return SereneContext::make();
 };
 
 }; // namespace serene

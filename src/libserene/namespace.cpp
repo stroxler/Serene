@@ -146,7 +146,7 @@ MaybeModule Namespace::compileToLLVM() {
 
   if (ctx.getTargetPhase() >= CompilationPhase::IR) {
     mlir::ModuleOp module = maybeModule.getValue().get();
-    return MaybeModule(::serene::slir::compileToLLVMIR(ctx, module));
+    return ::serene::slir::compileToLLVMIR(ctx, module);
   }
 
   return llvm::None;

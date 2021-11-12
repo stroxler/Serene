@@ -1,4 +1,2 @@
-(def main
-  (fn () 4))
-
+(def main (fn () 4))
 (def main1 (fn (v y n) 3))

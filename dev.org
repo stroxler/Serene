@@ -98,7 +98,11 @@ on ADF
 - [[https://www.wilfred.me.uk/blog/2014/09/27/the-definitive-guide-to-syntax-highlighting/][The Definitive Guide To Syntax Highlighting]]
 ** Linker
 - [[https://lwn.net/Articles/276782/][20 part linker essay]]
-
+- [[https://lld.llvm.org/index.html][LLD Usage]]
+** LLVM
+- [[https://blog.yossarian.net/2021/07/19/LLVM-internals-part-1-bitcode-format][LLVM Internals]]
+*** TableGen
+- [[https://llvm.org/docs/TableGen/BackGuide.html#creating-a-new-backend][Create a backend]]
 
 * Considerations
 ** Hashmaps

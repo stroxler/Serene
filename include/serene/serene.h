@@ -65,7 +65,7 @@ SERENE_EXPORT exprs::MaybeAst read(SereneContext &ctx, std::string &input);
 /// In case of an error Serene will throw the error messages vis the diagnostic
 /// engine as well and the error that this function returns will be the
 /// generic error message.
-// SERENE_EXPORT exprs::MaybeNode eval(SereneContext &ctx, exprs::Ast input);
+SERENE_EXPORT exprs::MaybeNode eval(SereneContext &ctx, exprs::Ast &input);
 
 // TODO: Return a Serene String type instead of the std::string
 // TODO: Create an overload to get a stream instead of the result string

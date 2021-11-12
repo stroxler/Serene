@@ -66,6 +66,10 @@ int main(int argc, char *argv[]) {
   // Load history
   linenoise::LoadHistory(historyFile.c_str());
 
+  // TODO: Read the optimization as an input and as part of the global
+  //       public arguments like -l
+  ctx->setOperationPhase(CompilationPhase::NoOptimization);
+
   while (true) {
     // Read line
     std::string line;
@@ -84,6 +88,8 @@ int main(int argc, char *argv[]) {
       serene::throwErrors(*ctx, maybeAst.getError());
       continue;
     }
+
+    auto x = serene::eval(*ctx, maybeAst.getValue());
 
     serene::print(*ctx, maybeAst.getValue(), result);
     llvm::outs() << result << "\n";

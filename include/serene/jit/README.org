@@ -1,0 +1,18 @@
+#+TITLE: Serene JIT
+#+AUTHOR: Sameer Rahmani
+#+STARTUP: logdrawer logdone logreschedule indent content align constSI entitiespretty nolatexpreview
+#+OPTIONS: tex:t
+* SereneJIT
+** Development Notes
+*** Steps to take
+You usually want a custom =MaterializationUnit= for your program representation, and a custom =Layer=. The Layer will have two
+operations: =add= and =emit=. The =add= operation takes an instance of your program representation, builds one of your custom
+=MaterializationUnits= to hold it, then adds it to a =JITDylib=. The =emit= operation takes a =MaterializationResponsibility=
+object and an instance of your program representation and materializes it, usually by compiling it and handing the resulting
+object off to an =ObjectLinkingLayer=.
+
+Your custom =MaterializationUnit= will have two operations: =materialize= and =discard=. The =materialize= function will be
+called for you when any symbol provided by the unit is looked up, and it should just call the =emit= function on your layer,
+passing in the given =MaterializationResponsibility= and the wrapped program representation. The =discard= function will be
+called if some weak symbol provided by your unit is not needed (because the JIT found an overriding definition).
+You can use this to drop your definition early, or just ignore it and let the linker drop the definition later.

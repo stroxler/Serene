@@ -20,6 +20,7 @@
 
 #include "serene/exprs/expression.h"
 
+#include <llvm/ADT/Optional.h>
 #include <mlir/IR/BuiltinOps.h>
 #include <mlir/IR/MLIRContext.h>
 
@@ -27,8 +28,11 @@
 
 namespace serene {
 namespace slir {
-std::unique_ptr<llvm::Module> compileToLLVMIR(serene::SereneContext &ctx,
-                                              mlir::ModuleOp &module);
+// std::unique_ptr<llvm::Module> compileToLLVMIR(serene::SereneContext &ctx,
+//                                               mlir::ModuleOp &module);
+
+llvm::Optional<llvm::orc::ThreadSafeModule>
+compileToLLVMIR(serene::SereneContext &ctx, mlir::ModuleOp &module);
 } // namespace slir
 } // namespace serene
 

@@ -34,8 +34,9 @@ class Environment {
 
   Environment<K, V> *parent;
 
+  using StorageType = llvm::DenseMap<K, V>;
   // The actual bindings storage
-  llvm::DenseMap<K, V> pairs;
+  StorageType pairs;
 
 public:
   Environment() : parent(nullptr) {}
@@ -60,6 +61,17 @@ public:
     pairs.insert(std::pair<K, V>(key, value));
     return mlir::success();
   };
+
+  inline typename StorageType::iterator begin() { return pairs.begin(); }
+
+  inline typename StorageType::iterator end() { return pairs.end(); }
+
+  inline typename StorageType::const_iterator begin() const {
+    return pairs.begin();
+  }
+  inline typename StorageType::const_iterator end() const {
+    return pairs.end();
+  }
 };
 
 } // namespace serene

@@ -33,10 +33,12 @@
 
 #include <system_error>
 
+#include <llvm/Support/Error.h>
 #include <llvm/Support/FormatVariadic.h>
 #include <llvm/Support/Locale.h>
 #include <llvm/Support/MemoryBufferRef.h>
 #include <llvm/Support/Path.h>
+#include <llvm/Support/raw_ostream.h>
 #include <mlir/Support/LogicalResult.h>
 
 namespace serene {
@@ -55,27 +57,30 @@ bool SourceMgr::isValidBufferID(unsigned i) const {
   return i != 0 && i <= buffers.size();
 };
 
-SourceMgr::ErrorOrMemBufPtr
-SourceMgr::findFileInLoadPath(const std::string &name,
-                              std::string &importedFile) {
+SourceMgr::MemBufPtr SourceMgr::findFileInLoadPath(const std::string &name,
+                                                   std::string &importedFile) {
 
   auto path = convertNamespaceToPath(name);
-  // TODO: Fix this to enqueue a proper error instead
-  ErrorOrMemBufPtr newBufOrErr(
-      std::make_error_code(std::errc::no_such_file_or_directory));
 
   // If the file didn't exist directly, see if it's in an include path.
-  for (unsigned i = 0, e = loadPaths.size(); i != e && !newBufOrErr; ++i) {
+  for (unsigned i = 0, e = loadPaths.size(); i != e; ++i) {
 
     // TODO: Ugh, Udgly, fix this using llvm::sys::path functions
     importedFile = loadPaths[i] + llvm::sys::path::get_separator().data() +
                    path + "." + DEFAULT_SUFFIX;
 
     SMGR_LOG("Try to load the ns from: " + importedFile);
-    newBufOrErr = llvm::MemoryBuffer::getFile(importedFile);
+    auto newBufOrErr = llvm::MemoryBuffer::getFile(importedFile);
+
+    if (auto err = newBufOrErr.getError()) {
+      llvm::consumeError(llvm::errorCodeToError(err));
+      continue;
+    }
+
+    return std::move(*newBufOrErr);
   }
 
-  return newBufOrErr;
+  return nullptr;
 };
 
 MaybeNS SourceMgr::readNamespace(SereneContext &ctx, std::string name,
@@ -83,16 +88,16 @@ MaybeNS SourceMgr::readNamespace(SereneContext &ctx, std::string name,
   std::string importedFile;
 
   SMGR_LOG("Attempt to load namespace: " + name);
-  ErrorOrMemBufPtr newBufOrErr(findFileInLoadPath(name, importedFile));
+  MemBufPtr newBufOrErr(findFileInLoadPath(name, importedFile));
 
-  if (!newBufOrErr) {
+  if (newBufOrErr == nullptr) {
     auto msg = llvm::formatv("Couldn't find namespace '{0}'", name);
     auto err = errors::makeErrorTree(importLoc, errors::NSLoadError,
                                      llvm::StringRef(msg));
     return MaybeNS::error(err);
   }
 
-  auto bufferId = AddNewSourceBuffer(std::move(*newBufOrErr), importLoc);
+  auto bufferId = AddNewSourceBuffer(std::move(newBufOrErr), importLoc);
 
   UNUSED(nsTable.insert_or_assign(name, bufferId));
 
