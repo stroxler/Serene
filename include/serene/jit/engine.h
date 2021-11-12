@@ -102,6 +102,9 @@ class SereneJIT {
 
   serene::SereneContext &ctx;
 
+  /// The name of the NS which we are in it at the moment.
+  std::string inNS;
+
   static llvm::Expected<orc::ThreadSafeModule>
   optimizeModule(orc::ThreadSafeModule tsm,
                  const orc::MaterializationResponsibility &r) {

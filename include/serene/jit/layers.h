@@ -79,13 +79,14 @@ private:
 };
 
 // class SereneAstLayer {
-//   serene::SereneContexe &ctx;
+//   SereneContext &ctx;
 //   orc::IRLayer &baseLayer;
 //   orc::MangleAndInterner &mangler;
+
 //   const llvm::DataLayout &dl;
 
 // public:
-//   SereneAstLayer(serene::SereneContexe &ctx, orc::IRLayer &baseLayer,
+//   SereneAstLayer(SereneContext &ctx, orc::IRLayer &baseLayer,
 //                  orc::MangleAndInterner &mangler, const llvm::DataLayout &dl)
 //       : ctx(ctx), baseLayer(baseLayer), mangler(mangler), dl(dl){};
 
