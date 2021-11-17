@@ -71,7 +71,7 @@ SemanticEnv &Namespace::createEnv(SemanticEnv *parent) {
 };
 
 SemanticEnv &Namespace::getRootEnv() {
-  assert(environments.empty() && "Root env is not created!");
+  assert(!environments.empty() && "Root env is not created!");
 
   return *environments.front();
 };
