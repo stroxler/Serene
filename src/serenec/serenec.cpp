@@ -20,7 +20,7 @@
 #include "serene/namespace.h"
 #include "serene/reader/location.h"
 #include "serene/reader/reader.h"
-#include "serene/reader/semantics.h"
+#include "serene/semantics.h"
 #include "serene/serene.h"
 #include "serene/slir/generatable.h"
 #include "serene/slir/slir.h"

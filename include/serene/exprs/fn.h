@@ -53,8 +53,8 @@ public:
 
   ExprType getType() const override;
   std::string toString() const override;
-  MaybeNode analyze(SereneContext & /*ctx*/) override;
-  void generateIR(serene::Namespace & /*ns*/, mlir::ModuleOp & /*m*/) override;
+  MaybeNode analyze(semantics::AnalysisState &state) override;
+  void generateIR(serene::Namespace &ns, mlir::ModuleOp &m) override;
 
   static bool classof(const Expression *e);
 
@@ -63,9 +63,9 @@ public:
   /// of a function, for exmaple: `(fn (args1 arg2) body)`.This function
   /// is supposed to be used in the semantic analysis phase.
   ///
-  /// \param ctx The semantic analysis context object.
+  /// \param state is the semantic analysis state to use.
   /// \param list the list containing the `fn` form
-  static MaybeNode make(SereneContext &ctx, List *list);
+  static MaybeNode make(semantics::AnalysisState &state, List *list);
 
   void setName(std::string);
   ~Fn() = default;

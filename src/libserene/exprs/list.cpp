@@ -58,7 +58,8 @@ std::string List::toString() const {
   return llvm::formatv("<List {0}>", s);
 };
 
-MaybeNode List::analyze(SereneContext &ctx) {
+MaybeNode List::analyze(semantics::AnalysisState &state) {
+
   if (!elements.empty()) {
     auto *first = elements[0].get();
 
@@ -67,16 +68,16 @@ MaybeNode List::analyze(SereneContext &ctx) {
 
       if (sym != nullptr) {
         if (sym->name == "def") {
-          return Def::make(ctx, this);
+          return Def::make(state, this);
         }
 
         if (sym->name == "fn") {
-          return Fn::make(ctx, this);
+          return Fn::make(state, this);
         }
       }
     }
 
-    return Call::make(ctx, this);
+    return Call::make(state, this);
   }
 
   return EmptyNode;

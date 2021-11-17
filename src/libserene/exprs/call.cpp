@@ -23,7 +23,7 @@
 #include "serene/exprs/expression.h"
 #include "serene/exprs/list.h"
 #include "serene/exprs/symbol.h"
-#include "serene/reader/semantics.h"
+#include "serene/namespace.h"
 #include "serene/utils.h"
 
 #include <llvm/Support/Casting.h>
@@ -40,8 +40,9 @@ std::string Call::toString() const {
                        astToString(&this->params));
 }
 
-MaybeNode Call::analyze(SereneContext &ctx) {
-  UNUSED(ctx);
+MaybeNode Call::analyze(semantics::AnalysisState &state) {
+  UNUSED(state);
+
   return EmptyNode;
 };
 
@@ -49,12 +50,13 @@ bool Call::classof(const Expression *e) {
   return e->getType() == ExprType::Call;
 };
 
-MaybeNode Call::make(SereneContext &ctx, List *list) {
+MaybeNode Call::make(semantics::AnalysisState &state, List *list) {
+
   // TODO: replace this with a runtime check
   assert((list->count() != 0) && "Empty call? Seriously ?");
 
   // Let's find out what is the first element of the list
-  auto maybeFirst = list->elements[0]->analyze(ctx);
+  auto maybeFirst = list->elements[0]->analyze(state);
 
   if (!maybeFirst) {
     // There's something wrong with the first element. Return the error
@@ -90,9 +92,7 @@ MaybeNode Call::make(SereneContext &ctx, List *list) {
       llvm_unreachable("Couldn't case to Symbol while the type is symbol!");
     }
 
-    // TODO: Lookup the symbol in the namespace via a method that looks
-    //       into the current environment.
-    auto maybeResult = ctx.getCurrentNS().semanticEnv.lookup(sym->name);
+    auto maybeResult = state.env.lookup(sym->name);
 
     if (!maybeResult.hasValue()) {
       std::string msg =
@@ -100,7 +100,7 @@ MaybeNode Call::make(SereneContext &ctx, List *list) {
       return makeErrorful<Node>(sym->location, errors::CantResolveSymbol, msg);
     }
 
-    targetNode = maybeResult.getValue();
+    targetNode = std::move(maybeResult.getValue());
     break;
   }
 
@@ -127,7 +127,7 @@ MaybeNode Call::make(SereneContext &ctx, List *list) {
   }
   };
 
-  auto analyzedParams = reader::analyze(ctx, rawParams);
+  auto analyzedParams = semantics::analyze(state, rawParams);
 
   if (!analyzedParams) {
     return MaybeNode::error(analyzedParams.getError());

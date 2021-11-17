@@ -49,8 +49,9 @@ public:
 
   ExprType getType() const override;
   std::string toString() const override;
-  MaybeNode analyze(SereneContext & /*ctx*/) override;
-  void generateIR(serene::Namespace & /*ns*/, mlir::ModuleOp & /*m*/) override;
+
+  MaybeNode analyze(semantics::AnalysisState &state) override;
+  void generateIR(serene::Namespace &ns, mlir::ModuleOp &m) override;
 
   static bool classof(const Expression *e);
 
@@ -58,9 +59,9 @@ public:
   /// correct `def` form like `(def blah value)`. This function
   /// is supposed to be used in the semantic analysis phase.
   ///
-  /// \param ctx The semantic analysis context object.
+  /// \param state is the semantic analysis state to use in creation time.
   /// \param list the list containing the `def` form
-  static MaybeNode make(SereneContext &ctx, List *list);
+  static MaybeNode make(semantics::AnalysisState &state, List *list);
 
   ~Def() = default;
 };

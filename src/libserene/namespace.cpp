@@ -28,7 +28,7 @@
 #include "serene/errors/constants.h"
 #include "serene/exprs/expression.h"
 #include "serene/llvm/IR/Value.h"
-#include "serene/reader/semantics.h"
+#include "serene/semantics.h"
 #include "serene/slir/slir.h"
 
 #include <llvm/ADT/StringRef.h>
@@ -54,32 +54,62 @@ Namespace::Namespace(SereneContext &ctx, llvm::StringRef ns_name,
   if (filename.hasValue()) {
     this->filename.emplace(filename.getValue().str());
   }
+
+  // Create the root environment
+  createEnv(nullptr);
 };
 
 void Namespace::enqueueError(llvm::StringRef e) const {
   ctx.diagEngine->enqueueError(e);
 }
 
+SemanticEnv &Namespace::createEnv(SemanticEnv *parent) {
+  auto env = std::make_unique<SemanticEnv>(parent);
+  environments.push_back(std::move(env));
+
+  return *environments.back();
+};
+
+SemanticEnv &Namespace::getRootEnv() {
+  assert(environments.empty() && "Root env is not created!");
+
+  return *environments.front();
+};
+
+mlir::LogicalResult Namespace::define(std::string &name, exprs::Node &node) {
+  auto &rootEnv = getRootEnv();
+
+  if (failed(rootEnv.insert_symbol(name, node))) {
+    return mlir::failure();
+  }
+
+  symbolList.push_back(name);
+  return mlir::success();
+}
+
 exprs::Ast &Namespace::getTree() { return this->tree; }
+errors::OptionalErrors Namespace::addTree(exprs::Ast &ast) {
 
-errors::OptionalErrors Namespace::expandTree(exprs::Ast &ast) {
-
+  // TODO: Remove the parse phase
   if (ctx.getTargetPhase() == CompilationPhase::Parse) {
     // we just want the raw AST
     this->tree.insert(this->tree.end(), ast.begin(), ast.end());
     return llvm::None;
   }
+  auto &rootEnv = getRootEnv();
 
+  auto state = semantics::makeAnalysisState(*this, rootEnv);
   // Run the semantic analyer on the ast and then if everything
-  // is ok expand the currnt tree by the semantically correct ast.
-  auto maybeAst = reader::analyze(ctx, ast);
+  // is ok add the form to the tree and forms
+  auto maybeForm = semantics::analyze(*state, ast);
 
-  if (!maybeAst) {
-    return maybeAst.getError();
+  if (!maybeForm) {
+    return maybeForm.getError();
   }
 
-  auto semanticAst = std::move(maybeAst.getValue());
+  auto semanticAst = std::move(maybeForm.getValue());
   this->tree.insert(this->tree.end(), semanticAst.begin(), semanticAst.end());
+
   return llvm::None;
 }
 

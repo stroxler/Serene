@@ -50,9 +50,11 @@ public:
 
   ExprType getType() const override;
   std::string toString() const override;
-  MaybeNode analyze(SereneContext & /*ctx*/) override;
-  void generateIR(serene::Namespace & /*ns*/,
-                  mlir::ModuleOp & /*m*/) override{};
+  MaybeNode analyze(semantics::AnalysisState &state) override;
+  void generateIR(serene::Namespace &ns, mlir::ModuleOp &m) override {
+    UNUSED(ns);
+    UNUSED(m);
+  };
 
   static bool classof(const Expression *e);
 
@@ -61,9 +63,9 @@ public:
   /// is supposed to be used in the semantic analysis phase.
   ///
   /// \param ctx The semantic analysis context object.
+  /// \param env The environment that this node exists in.
   /// \param list the list in question.
-
-  static MaybeNode make(SereneContext &ctx, List *list);
+  static MaybeNode make(semantics::AnalysisState &state, List *list);
 
   ~Call() = default;
 };

@@ -22,7 +22,9 @@
 #include "serene/context.h"
 #include "serene/errors/error.h"
 #include "serene/exprs/traits.h"
+#include "serene/namespace.h"
 #include "serene/reader/location.h"
+#include "serene/semantics.h"
 #include "serene/utils.h"
 
 #include <mlir/IR/BuiltinOps.h>
@@ -69,8 +71,8 @@ public:
   /// another node. For example to change from a List containing `(def a b)`
   /// to a `Def` node that represents defining a new binding.
   ///
-  /// \param ctx is the context object of the semantic analyzer.
-  virtual MaybeNode analyze(SereneContext &ctx) = 0;
+  /// \param state is the analysis state object of the semantic analyzer.
+  virtual MaybeNode analyze(semantics::AnalysisState &state) = 0;
 
   /// Genenates the correspondig SLIR of the expressoin and attach it to the
   /// given module.

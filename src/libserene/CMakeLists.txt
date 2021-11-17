@@ -43,6 +43,7 @@ add_library(serene
   namespace.cpp
   source_mgr.cpp
   diagnostics.cpp
+  semantics.cpp
 
   # jit.cpp
   jit/engine.cpp
@@ -50,7 +51,6 @@ add_library(serene
 
   # Reader
   reader/reader.cpp
-  reader/semantics.cpp
 
   # Errors
   errors/error.cpp

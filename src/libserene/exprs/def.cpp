@@ -39,8 +39,9 @@ std::string Def::toString() const {
                        this->value->toString());
 }
 
-MaybeNode Def::analyze(SereneContext &ctx) {
-  UNUSED(ctx);
+MaybeNode Def::analyze(semantics::AnalysisState &state) {
+  UNUSED(state);
+
   return EmptyNode;
 };
 
@@ -48,7 +49,7 @@ bool Def::classof(const Expression *e) {
   return e->getType() == ExprType::Def;
 };
 
-MaybeNode Def::make(SereneContext &ctx, List *list) {
+MaybeNode Def::make(semantics::AnalysisState &state, List *list) {
   // TODO: Add support for docstring as the 3rd argument (4th element)
   if (list->count() != 3) {
     std::string msg = llvm::formatv("Expected 3 got {0}", list->count());
@@ -70,7 +71,7 @@ MaybeNode Def::make(SereneContext &ctx, List *list) {
   }
 
   // Analyze the value
-  MaybeNode value = list->elements[2]->analyze(ctx);
+  MaybeNode value = list->elements[2]->analyze(state);
   Node analyzedValue;
 
   // TODO: To refactor this logic into a generic function
@@ -99,8 +100,7 @@ MaybeNode Def::make(SereneContext &ctx, List *list) {
     tmp->setName(binding->name);
   }
 
-  auto result = ctx.getCurrentNS().semanticEnv.insert_symbol(binding->name,
-                                                             analyzedValue);
+  auto result = state.ns.define(binding->name, analyzedValue);
 
   if (result.succeeded()) {
     return makeSuccessfulNode<Def>(list->location, binding->name,

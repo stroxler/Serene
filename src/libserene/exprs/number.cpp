@@ -38,8 +38,9 @@ std::string Number::toString() const {
   return llvm::formatv("<Number {0}>", value);
 }
 
-MaybeNode Number::analyze(SereneContext &ctx) {
-  UNUSED(ctx);
+MaybeNode Number::analyze(semantics::AnalysisState &state) {
+  UNUSED(state);
+
   return EmptyNode;
 };
 

@@ -22,7 +22,6 @@
 #include "serene/exprs/expression.h"
 #include "serene/exprs/list.h"
 #include "serene/exprs/symbol.h"
-#include "serene/reader/semantics.h"
 #include "serene/slir/dialect.h"
 #include "serene/slir/utils.h"
 
@@ -51,8 +50,9 @@ std::string Fn::toString() const {
                        this->body.empty() ? "<>" : astToString(&this->body));
 }
 
-MaybeNode Fn::analyze(SereneContext &ctx) {
-  UNUSED(ctx);
+MaybeNode Fn::analyze(semantics::AnalysisState &state) {
+  UNUSED(state);
+
   return EmptyNode;
 };
 
@@ -60,7 +60,10 @@ bool Fn::classof(const Expression *e) { return e->getType() == ExprType::Fn; };
 
 void Fn::setName(std::string n) { this->name = std::move(n); };
 
-MaybeNode Fn::make(SereneContext &ctx, List *list) {
+MaybeNode Fn::make(semantics::AnalysisState &state, List *list) {
+
+  auto &ctx = state.ns.getContext();
+
   // TODO: Add support for docstring as the 3rd argument (4th element)
   if (list->count() < 2) {
     return makeErrorful<Node>(list->elements[0]->location, errors::FnNoArgsList,
@@ -89,8 +92,12 @@ MaybeNode Fn::make(SereneContext &ctx, List *list) {
   // If there is a body for this function analyze the body and set
   // the retuned ast as the final body
   if (list->count() > 2) {
-    body          = std::vector<Node>(list->begin() + 2, list->end());
-    auto maybeAst = reader::analyze(ctx, body);
+    body = std::vector<Node>(list->begin() + 2, list->end());
+
+    // TODO: call state.moveToNewEnv to create a new env and set the
+    //       arguments into the new env.
+
+    auto maybeAst = semantics::analyze(state, body);
 
     if (!maybeAst) {
       return MaybeNode::error(std::move(maybeAst.getError()));

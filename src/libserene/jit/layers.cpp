@@ -95,7 +95,7 @@ llvm::Error NSLayer::add(orc::ResourceTrackerSP &rt, llvm::StringRef nsname,
 orc::SymbolFlagsMap NSLayer::getInterface(serene::Namespace &ns) {
   orc::SymbolFlagsMap Symbols;
 
-  for (auto &k : ns.semanticEnv) {
+  for (auto &k : ns.getRootEnv()) {
     auto flags = llvm::JITSymbolFlags::Exported;
     auto name  = k.getFirst();
     auto expr  = k.getSecond();

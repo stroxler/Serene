@@ -16,22 +16,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "serene/reader/semantics.h"
+#include "serene/semantics.h"
 
 #include "serene/context.h"
 #include "serene/exprs/expression.h"
+#include "serene/namespace.h"
 
-namespace serene::reader {
+namespace serene::semantics {
 
-AnalyzeResult analyze(serene::SereneContext &ctx, exprs::Ast &inputAst) {
-  // TODO: Fetch the current namespace from the JIT engine later and if it is
-  // `nil` then the given `ast` has to start with a namespace definition.
+std::unique_ptr<AnalysisState> AnalysisState::moveToNewEnv() {
+  auto &newEnv = ns.createEnv(&env);
+  return makeAnalysisState(ns, newEnv);
+};
 
+AnalyzeResult analyze(AnalysisState &state, exprs::Ast &forms) {
   errors::ErrorTree errors;
   exprs::Ast ast;
 
-  for (auto &element : inputAst) {
-    auto maybeNode = element->analyze(ctx);
+  for (auto &element : forms) {
+    auto maybeNode = element->analyze(state);
 
     // Is it a `success` result
     if (maybeNode) {
@@ -61,4 +64,4 @@ AnalyzeResult analyze(serene::SereneContext &ctx, exprs::Ast &inputAst) {
 
   return AnalyzeResult::error(std::move(errors));
 };
-}; // namespace serene::reader
+}; // namespace serene::semantics

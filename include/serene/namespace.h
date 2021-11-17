@@ -23,6 +23,8 @@
  * - A namespace may or may not be assiciated with a file
  * - The internal AST of a namespace is an evergrowing tree which may expand at
  *   any given time. For example via iteration of a REPL
+ * - `environments` vector is the owner of all the semantic envs
+ * - The first env in the `environments` is the root env.
  */
 
 #ifndef SERENE_NAMESPACE_H
@@ -62,8 +64,13 @@ using Node = std::shared_ptr<Expression>;
 using Ast  = std::vector<Node>;
 } // namespace exprs
 
-using MaybeModule   = llvm::Optional<llvm::orc::ThreadSafeModule>;
-using MaybeModuleOp = llvm::Optional<mlir::OwningOpRef<mlir::ModuleOp>>;
+using MaybeModule          = llvm::Optional<llvm::orc::ThreadSafeModule>;
+using MaybeModuleOp        = llvm::Optional<mlir::OwningOpRef<mlir::ModuleOp>>;
+using SemanticEnv          = Environment<std::string, exprs::Node>;
+using SemanticEnvPtr       = std::unique_ptr<SemanticEnv>;
+using SemanticEnvironments = std::vector<SemanticEnvPtr>;
+using Form                 = std::pair<SemanticEnv, exprs::Ast>;
+using Forms                = std::vector<Form>;
 
 /// Serene's namespaces are the unit of compilation. Any code that needs to be
 /// compiled has to be in a namespace. The official way to create a new
@@ -81,27 +88,41 @@ private:
   /// to pass the semantic analyzer.
   exprs::Ast tree;
 
+  SemanticEnvironments environments;
+
+  std::vector<llvm::StringRef> symbolList;
+
 public:
   std::string name;
   llvm::Optional<std::string> filename;
 
-  /// The root environment of the namespace on the semantic analysis phase.
-  /// Which is a mapping from names to AST nodes ( no evaluation ).
-  Environment<std::string, exprs::Node> semanticEnv;
-
-  /// Th root environmanet to store the MLIR value during the IR generation
-  /// phase.
-  Environment<llvm::StringRef, mlir::Value> symbolTable;
-
   Namespace(SereneContext &ctx, llvm::StringRef ns_name,
             llvm::Optional<llvm::StringRef> filename);
 
-  exprs::Ast &getTree();
+  /// Create a new environment with the give \p parent as the parent,
+  /// push the environment to the internal environment storage and
+  /// return a reference to it. The namespace itself is the owner of
+  /// environments.
+  SemanticEnv &createEnv(SemanticEnv *parent);
 
-  /// Expand the current tree of the namespace with the given \p ast by
-  /// semantically analazing it first. If the give \p ast in not valid
-  /// it will return analysis errors.
-  errors::OptionalErrors expandTree(exprs::Ast &ast);
+  /// Return a referenece to the top level (root) environment of ns.
+  SemanticEnv &getRootEnv();
+
+  /// Define a new binding in the root environment with the given \p name
+  /// and the given \p node. Defining a new binding with a name that
+  /// already exists in legal and will overwrite the previous binding and
+  /// the given name will point to a new value from now on.
+  mlir::LogicalResult define(std::string &name, exprs::Node &node);
+
+  /// Add the given \p ast to the namespace and return any possible error.
+  /// The given \p ast will be added to a vector of ASTs that the namespace
+  /// have. In a normal compilation a Namespace will have a vector of ASTs
+  /// with only one element, but in a REPL like environment it might have
+  /// many elements.
+  ///
+  /// This function runs the semantic analyzer on the \p ast as well.
+  errors::OptionalErrors addTree(exprs::Ast &ast);
+  exprs::Ast &getTree();
 
   /// Increase the function counter by one
   uint nextFnCounter();

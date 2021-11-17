@@ -32,8 +32,9 @@ std::string Symbol::toString() const {
   return llvm::formatv("<Symbol {0}>", this->name);
 }
 
-MaybeNode Symbol::analyze(SereneContext &ctx) {
-  UNUSED(ctx);
+MaybeNode Symbol::analyze(semantics::AnalysisState &state) {
+  UNUSED(state);
+
   return EmptyNode;
 };
 

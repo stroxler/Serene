@@ -21,6 +21,7 @@
 
 #include "serene/context.h"
 #include "serene/exprs/expression.h"
+#include "serene/namespace.h"
 
 #include <llvm/ADT/StringRef.h>
 
@@ -45,9 +46,11 @@ public:
   ExprType getType() const override;
   std::string toString() const override;
 
-  MaybeNode analyze(SereneContext & /*ctx*/) override;
-  void generateIR(serene::Namespace & /*ns*/,
-                  mlir::ModuleOp & /*m*/) override{};
+  MaybeNode analyze(semantics::AnalysisState &state) override;
+  void generateIR(serene::Namespace &ns, mlir::ModuleOp &m) override {
+    UNUSED(ns);
+    UNUSED(m);
+  };
 
   ~Symbol() = default;
 

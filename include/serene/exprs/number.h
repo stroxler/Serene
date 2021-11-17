@@ -47,8 +47,8 @@ struct Number : public Expression {
   ExprType getType() const override;
   std::string toString() const override;
 
-  MaybeNode analyze(SereneContext &ctx) override;
-  void generateIR(serene::Namespace & /*ns*/, mlir::ModuleOp & /*m*/) override;
+  MaybeNode analyze(semantics::AnalysisState &state) override;
+  void generateIR(serene::Namespace &ns, mlir::ModuleOp &m) override;
 
   // TODO: This is horrible, we need to fix it after the mvp
   int toI64() const;

@@ -72,7 +72,7 @@ public:
   /// by the for loop.
   std::vector<Node>::iterator end();
 
-  MaybeNode analyze(SereneContext &ctx) override;
+  MaybeNode analyze(semantics::AnalysisState &state) override;
   // NOLINTNEXTLINE(readability-named-parameter)
   void generateIR(serene::Namespace &, mlir::ModuleOp &) override{};
 

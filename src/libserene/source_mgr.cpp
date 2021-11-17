@@ -28,7 +28,6 @@
 #include "serene/namespace.h"
 #include "serene/reader/location.h"
 #include "serene/reader/reader.h"
-#include "serene/reader/semantics.h"
 #include "serene/utils.h"
 
 #include <system_error>
@@ -125,7 +124,7 @@ MaybeNS SourceMgr::readNamespace(SereneContext &ctx, std::string name,
   auto ns =
       makeNamespace(ctx, name, llvm::Optional(llvm::StringRef(importedFile)));
 
-  auto errs = ns->expandTree(maybeAst.getValue());
+  auto errs = ns->addTree(maybeAst.getValue());
   if (errs) {
     SMGR_LOG("Couldn't set the AST for namespace: " + name);
     return MaybeNS::error(errs.getValue());
