@@ -109,6 +109,13 @@ on ADF
 *** DOS attack
 - https://www.anchor.com.au/blog/2012/12/how-to-explain-hash-dos-to-your-parents-by-using-cats/
 - https://en.wikipedia.org/wiki/Collision_attack
+* Ideas
+** Destructure types
+Imagine a type that is a subset of a Coll, and when we
+pass a Coll to its type constructor in destructs the input and
+construct the type base on the data that it needs only and
+leave the rest untouched
+
 
 * TODOs
 
