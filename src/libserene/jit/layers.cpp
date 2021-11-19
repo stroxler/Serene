@@ -25,30 +25,79 @@
 #include <llvm/ExecutionEngine/Orc/ThreadSafeModule.h>
 #include <llvm/Support/Error.h> // for report_fatal_error
 
+#include <algorithm>
+
 namespace serene::jit {
 
-// llvm::orc::ThreadSafeModule compileAst(serene::SereneContext &ctx,
-//                                        exprs::Ast &ast){
+llvm::orc::ThreadSafeModule compileAst(Namespace &ns, exprs::Ast &ast) {
 
-// };
+  assert(ns.getTree().size() < ast.size() && "Did you add the ast to the NS?");
 
-// SerenAstMaterializationUnit::SerenAstMaterializationUnit(
-//     serene::SereneContext &ctx, SereneAstLayer &l, exprs::Ast &ast)
-//     : MaterializationUnit(l.getInterface(ast), nullptr), ctx(ctx),
-//     astLayer(l),
-//       ast(ast){};
+  LAYER_LOG("Compile in context of namespace: " + ns.name);
+  unsigned offset = ns.getTree().size() - ast.size();
 
-// void SerenAstMaterializationUnit::materialize(
-//     std::unique_ptr<orc::MaterializationResponsibility> r) {
-//   astLayer.emit(std::move(r), ast);
-// }
+  auto maybeModule = ns.compileToLLVMFromOffset(offset);
+
+  if (!maybeModule) {
+    // TODO: Handle failure
+    llvm::report_fatal_error("Couldn't compile lazily JIT'd function");
+  }
+
+  return std::move(maybeModule.getValue());
+};
+
+AstMaterializationUnit::AstMaterializationUnit(Namespace &ns, AstLayer &l,
+                                               exprs::Ast &ast)
+    : MaterializationUnit(l.getInterface(ns, ast), nullptr), ns(ns),
+      astLayer(l), ast(ast){};
+
+void AstMaterializationUnit::materialize(
+    std::unique_ptr<orc::MaterializationResponsibility> r) {
+  astLayer.emit(std::move(r), ns, ast);
+}
+
+orc::SymbolFlagsMap AstLayer::getInterface(Namespace &ns, exprs::Ast &e) {
+  orc::SymbolFlagsMap Symbols;
+  auto symList   = ns.getSymList();
+  unsigned index = symList.size();
+
+  // This probably will change symList
+  auto err = ns.addTree(e);
+
+  if (err) {
+    // TODO: Fix this by a call to diag engine or return the err
+    llvm::outs() << "Fixme: semantic err\n";
+    return Symbols;
+  }
+
+  auto &env            = ns.getRootEnv();
+  auto populateTableFn = [&env, this, &Symbols](auto name) {
+    auto flags     = llvm::JITSymbolFlags::Exported;
+    auto maybeExpr = env.lookup(name.str());
+
+    if (!maybeExpr) {
+      LAYER_LOG("Skiping '" + name + "' symbol");
+      return;
+    }
+
+    auto expr = maybeExpr.getValue();
+
+    if (expr->getType() == exprs::ExprType::Fn) {
+      flags = flags | llvm::JITSymbolFlags::Callable;
+    }
+
+    auto mangledSym = this->mangler(name);
+    LAYER_LOG("Mangle symbol for: " + name + " = " << mangledSym);
+    Symbols[mangledSym] = llvm::JITSymbolFlags(flags);
+  };
+
+  std::for_each(symList.begin() + index, symList.end(), populateTableFn);
+  return Symbols;
+}
 
 /// NS Layer ==================================================================
 
-llvm::orc::ThreadSafeModule compileNS(serene::SereneContext &ctx,
-                                      serene::Namespace &ns) {
-  UNUSED(ctx);
-
+llvm::orc::ThreadSafeModule compileNS(Namespace &ns) {
   LAYER_LOG("Compile namespace: " + ns.name);
 
   auto maybeModule = ns.compileToLLVM();
@@ -61,10 +110,8 @@ llvm::orc::ThreadSafeModule compileNS(serene::SereneContext &ctx,
   return std::move(maybeModule.getValue());
 };
 
-NSMaterializationUnit::NSMaterializationUnit(SereneContext &ctx, NSLayer &l,
-                                             serene::Namespace &ns)
-    : MaterializationUnit(l.getInterface(ns), nullptr), ctx(ctx), nsLayer(l),
-      ns(ns){};
+NSMaterializationUnit::NSMaterializationUnit(NSLayer &l, Namespace &ns)
+    : MaterializationUnit(l.getInterface(ns), nullptr), nsLayer(l), ns(ns){};
 
 void NSMaterializationUnit::materialize(
     std::unique_ptr<orc::MaterializationResponsibility> r) {
@@ -89,7 +136,7 @@ llvm::Error NSLayer::add(orc::ResourceTrackerSP &rt, llvm::StringRef nsname,
 
   LAYER_LOG("Add the materialize unit for: " + nsname);
   return rt->getJITDylib().define(
-      std::make_unique<NSMaterializationUnit>(ctx, *this, *ns), rt);
+      std::make_unique<NSMaterializationUnit>(*this, *ns), rt);
 }
 
 orc::SymbolFlagsMap NSLayer::getInterface(serene::Namespace &ns) {
@@ -104,8 +151,8 @@ orc::SymbolFlagsMap NSLayer::getInterface(serene::Namespace &ns) {
       flags = flags | llvm::JITSymbolFlags::Callable;
     }
 
-    auto mangledSym = mangler(k.getFirst());
-    LAYER_LOG("Mangle symbol for: " + k.getFirst() + " = " << mangledSym);
+    auto mangledSym = mangler(name);
+    LAYER_LOG("Mangle symbol for: " + name + " = " << mangledSym);
     Symbols[mangledSym] = llvm::JITSymbolFlags(flags);
   }
 

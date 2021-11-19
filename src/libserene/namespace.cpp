@@ -117,18 +117,21 @@ uint Namespace::nextFnCounter() { return fn_counter++; };
 
 SereneContext &Namespace::getContext() { return this->ctx; };
 
-MaybeModuleOp Namespace::generate() {
+MaybeModuleOp Namespace::generate(unsigned offset) {
   mlir::OpBuilder builder(&ctx.mlirContext);
   // TODO: Fix the unknown location by pointing to the `ns` form
   auto module = mlir::ModuleOp::create(builder.getUnknownLoc(),
                                        llvm::Optional<llvm::StringRef>(name));
 
+  auto treeSize = getTree().size();
+
   // Walk the AST and call the `generateIR` function of each node.
   // Since nodes will have access to the a reference of the
   // namespace they can use the builder and keep adding more
   // operations to the module via the builder
-  for (auto &x : getTree()) {
-    x->generateIR(*this, module);
+  for (unsigned i = offset; i < treeSize; ++i) {
+    auto &node = getTree()[i];
+    node->generateIR(*this, module);
   }
 
   if (mlir::failed(mlir::verify(module))) {
@@ -168,6 +171,22 @@ void Namespace::dump() {
 
 MaybeModule Namespace::compileToLLVM() {
   auto maybeModule = generate();
+
+  if (!maybeModule) {
+    NAMESPACE_LOG("IR generation failed for '" << name << "'");
+    return llvm::None;
+  }
+
+  if (ctx.getTargetPhase() >= CompilationPhase::IR) {
+    mlir::ModuleOp module = maybeModule.getValue().get();
+    return ::serene::slir::compileToLLVMIR(ctx, module);
+  }
+
+  return llvm::None;
+};
+
+MaybeModule Namespace::compileToLLVMFromOffset(unsigned offset) {
+  auto maybeModule = generate(offset);
 
   if (!maybeModule) {
     NAMESPACE_LOG("IR generation failed for '" << name << "'");

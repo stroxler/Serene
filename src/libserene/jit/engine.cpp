@@ -34,7 +34,7 @@ static void handleLazyCallThroughError() {
   // TODO: terminate ?
 }
 
-SereneJIT::SereneJIT(serene::SereneContext &ctx,
+SereneJIT::SereneJIT(Namespace &entryNS,
                      std::unique_ptr<orc::ExecutionSession> es,
                      std::unique_ptr<orc::EPCIndirectionUtils> epciu,
                      orc::JITTargetMachineBuilder jtmb, llvm::DataLayout &&dl)
@@ -48,13 +48,10 @@ SereneJIT::SereneJIT(serene::SereneContext &ctx,
           *this->es, objectLayer,
           std::make_unique<orc::ConcurrentIRCompiler>(std::move(jtmb))),
       transformLayer(*this->es, compileLayer, optimizeModule),
-      // TODO: Change compileOnDemandLayer to use an optimization layer
-      //       as the parent
-      // compileOnDemandLayer(
-      //     *this->es, compileLayer, this->epciu->getLazyCallThroughManager(),
-      //     [this] { return this->epciu->createIndirectStubsManager(); }),
-      nsLayer(ctx, transformLayer, mangler, dl),
-      mainJD(this->es->createBareJITDylib(ctx.getCurrentNS().name)), ctx(ctx) {
+      astLayer(transformLayer, mangler),
+      nsLayer(entryNS.getContext(), transformLayer, mangler, dl),
+      mainJD(this->es->createBareJITDylib(entryNS.name)),
+      ctx(entryNS.getContext()), currentNS(entryNS) {
   UNUSED(this->ctx);
   mainJD.addGenerator(
       cantFail(orc::DynamicLibrarySearchGenerator::GetForCurrentProcess(
@@ -74,8 +71,15 @@ llvm::Error SereneJIT::addNS(llvm::StringRef nsname,
   return nsLayer.add(rt, nsname);
 };
 
-llvm::Expected<std::unique_ptr<SereneJIT>>
-makeSereneJIT(serene::SereneContext &ctx) {
+llvm::Error SereneJIT::addAst(exprs::Ast &ast, orc::ResourceTrackerSP rt) {
+  if (!rt) {
+    rt = mainJD.getDefaultResourceTracker();
+  }
+
+  return astLayer.add(rt, getCurrentNS(), ast);
+};
+
+llvm::Expected<std::unique_ptr<SereneJIT>> makeSereneJIT(Namespace &ns) {
   auto epc = orc::SelfExecutorProcessControl::Create();
   if (!epc) {
     return epc.takeError();
@@ -102,7 +106,7 @@ makeSereneJIT(serene::SereneContext &ctx) {
     return dl.takeError();
   }
 
-  return std::make_unique<SereneJIT>(ctx, std::move(es), std::move(*epciu),
+  return std::make_unique<SereneJIT>(ns, std::move(es), std::move(*epciu),
                                      std::move(jtmb), std::move(*dl));
 };
 } // namespace serene::jit

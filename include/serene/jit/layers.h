@@ -19,6 +19,7 @@
 #ifndef SERENE_JIT_LAYERS_H
 #define SERENE_JIT_LAYERS_H
 
+#include "serene/namespace.h"
 #include "serene/reader/location.h"
 #include "serene/utils.h"
 
@@ -47,16 +48,14 @@ using Ast  = std::vector<Node>;
 
 namespace jit {
 
-class SereneAstLayer;
+class AstLayer;
 
 /// This will compile the ast to llvm ir.
-llvm::orc::ThreadSafeModule compileAst(serene::SereneContext &ctx,
-                                       exprs::Ast &ast);
+llvm::orc::ThreadSafeModule compileAst(Namespace &ns, exprs::Ast &ast);
 
-class SerenAstMaterializationUnit : public orc::MaterializationUnit {
+class AstMaterializationUnit : public orc::MaterializationUnit {
 public:
-  SerenAstMaterializationUnit(SereneContext &ctx, SereneAstLayer &l,
-                              exprs::Ast &ast);
+  AstMaterializationUnit(Namespace &ns, AstLayer &l, exprs::Ast &ast);
 
   llvm::StringRef getName() const override {
     return "SereneAstMaterializationUnit";
@@ -73,51 +72,42 @@ private:
     llvm_unreachable("Serene functions are not overridable");
   }
 
-  serene::SereneContext &ctx;
-  SereneAstLayer &astLayer;
+  Namespace &ns;
+  AstLayer &astLayer;
   exprs::Ast &ast;
 };
 
-// class SereneAstLayer {
-//   SereneContext &ctx;
-//   orc::IRLayer &baseLayer;
-//   orc::MangleAndInterner &mangler;
+class AstLayer {
+  orc::IRLayer &baseLayer;
+  orc::MangleAndInterner &mangler;
 
-//   const llvm::DataLayout &dl;
+public:
+  AstLayer(orc::IRLayer &baseLayer, orc::MangleAndInterner &mangler)
+      : baseLayer(baseLayer), mangler(mangler){};
 
-// public:
-//   SereneAstLayer(SereneContext &ctx, orc::IRLayer &baseLayer,
-//                  orc::MangleAndInterner &mangler, const llvm::DataLayout &dl)
-//       : ctx(ctx), baseLayer(baseLayer), mangler(mangler), dl(dl){};
+  llvm::Error add(orc::ResourceTrackerSP &rt, Namespace &ns, exprs::Ast &ast) {
+    return rt->getJITDylib().define(
+        std::make_unique<AstMaterializationUnit>(ns, *this, ast), rt);
+  }
 
-//   llvm::Error add(orc::ResourceTrackerSP &rt, exprs::Ast &ast) {
-//     return rt->getJITDylib().define(
-//         std::make_unique<SerenAstMaterializationUnit>(ctx, *this, ast), rt);
-//   }
+  void emit(std::unique_ptr<orc::MaterializationResponsibility> mr,
+            Namespace &ns, exprs::Ast &e) {
 
-//   void emit(std::unique_ptr<orc::MaterializationResponsibility> mr,
-//             exprs::Ast &e) {
-//     baseLayer.emit(std::move(mr), compileAst(ctx, e));
-//   }
+    baseLayer.emit(std::move(mr), compileAst(ns, e));
+  }
 
-//   orc::SymbolFlagsMap getInterface(exprs::Ast &e) {
-//     orc::SymbolFlagsMap Symbols;
-//     Symbols[mangler(e.getName())] = llvm::JITSymbolFlags(
-//         llvm::JITSymbolFlags::Exported | llvm::JITSymbolFlags::Callable);
-//     return Symbols;
-//   }
-// };
+  orc::SymbolFlagsMap getInterface(Namespace &ns, exprs::Ast &e);
+};
 
 /// NS Layer ==================================================================
 class NSLayer;
 
 /// This will compile the NS to llvm ir.
-llvm::orc::ThreadSafeModule compileNS(serene::SereneContext &ctx,
-                                      serene::Namespace &ns);
+llvm::orc::ThreadSafeModule compileNS(Namespace &ns);
 
 class NSMaterializationUnit : public orc::MaterializationUnit {
 public:
-  NSMaterializationUnit(SereneContext &ctx, NSLayer &l, serene::Namespace &ns);
+  NSMaterializationUnit(NSLayer &l, Namespace &ns);
 
   llvm::StringRef getName() const override { return "NSMaterializationUnit"; }
 
@@ -129,13 +119,12 @@ private:
                const orc::SymbolStringPtr &sym) override {
     UNUSED(jd);
     UNUSED(sym);
-    UNUSED(ctx);
+    llvm_unreachable("Serene functions are not overridable");
     // TODO: Check the ctx to see whether we need to remove the sym or not
   }
 
-  serene::SereneContext &ctx;
   NSLayer &nsLayer;
-  serene::Namespace &ns;
+  Namespace &ns;
 };
 
 /// NS Layer is responsible for adding namespaces to the JIT
@@ -146,7 +135,7 @@ class NSLayer {
   const llvm::DataLayout &dl;
 
 public:
-  NSLayer(serene::SereneContext &ctx, orc::IRLayer &baseLayer,
+  NSLayer(SereneContext &ctx, orc::IRLayer &baseLayer,
           orc::MangleAndInterner &mangler, const llvm::DataLayout &dl)
       : ctx(ctx), baseLayer(baseLayer), mangler(mangler), dl(dl){};
 
@@ -165,7 +154,7 @@ public:
     // the data layout all the time
     UNUSED(dl);
     LAYER_LOG("Emit namespace");
-    baseLayer.emit(std::move(mr), compileNS(ctx, ns));
+    baseLayer.emit(std::move(mr), compileNS(ns));
   }
 
   orc::SymbolFlagsMap getInterface(serene::Namespace &ns);

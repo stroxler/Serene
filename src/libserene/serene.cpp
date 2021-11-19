@@ -127,6 +127,14 @@ SERENE_EXPORT exprs::MaybeNode eval(SereneContext &ctx, exprs::Ast &input) {
   auto *f = (int (*)())(intptr_t)sym.getAddress();
 
   f();
+
+  err = ctx.jit->addAst(input);
+  if (err) {
+    llvm::errs() << err;
+    auto e = errors::makeErrorTree(loc, errors::NSLoadError);
+
+    return exprs::makeErrorNode(loc, errors::NSLoadError);
+  }
   return exprs::make<exprs::Number>(loc, "4", false, false);
 };
 

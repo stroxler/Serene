@@ -22,7 +22,6 @@
 #include "serene/diagnostics.h"
 #include "serene/environment.h"
 #include "serene/export.h"
-#include "serene/jit.h"
 #include "serene/jit/engine.h"
 #include "serene/namespace.h"
 #include "serene/passes.h"
@@ -39,6 +38,8 @@
 #include <mlir/Pass/PassManager.h>
 
 #include <memory>
+
+#define DEFAULT_NS_NAME "serene.user"
 
 namespace serene {
 
@@ -127,8 +128,9 @@ public:
 
     // We need to create one empty namespace, so that the JIT can
     // start it's operation.
-    auto ns = makeNamespace(*this, "serene.user", llvm::None);
+    auto ns = makeNamespace(*this, DEFAULT_NS_NAME, llvm::None);
 
+    insertNS(ns);
     // TODO: Get the crash report path dynamically from the cli
     // pm.enableCrashReproducerGeneration("/home/lxsameer/mlir.mlir");
 
@@ -151,8 +153,12 @@ public:
   };
 
   static std::unique_ptr<SereneContext> make() {
-    auto ctx      = std::make_unique<SereneContext>();
-    auto maybeJIT = serene::jit::makeSereneJIT(*ctx);
+    auto ctx = std::make_unique<SereneContext>();
+    auto *ns = ctx->getNS(DEFAULT_NS_NAME);
+
+    assert(ns != nullptr && "Default ns doesn't exit!");
+
+    auto maybeJIT = serene::jit::makeSereneJIT(*ns);
 
     if (!maybeJIT) {
       // TODO: Raise an error here

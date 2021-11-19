@@ -52,8 +52,7 @@ int main(int argc, char *argv[]) {
 
   llvm::outs() << banner << art;
 
-  auto ctx    = makeSereneContext();
-  auto userNS = makeNamespace(*ctx, "user", llvm::None);
+  auto ctx = makeSereneContext();
 
   applySereneCLOptions(*ctx);
 
@@ -74,7 +73,7 @@ int main(int argc, char *argv[]) {
     // Read line
     std::string line;
     std::string result;
-    std::string prompt = ctx->getCurrentNS().name + "> ";
+    std::string prompt = ctx->jit->getCurrentNS().name + "> ";
 
     auto quit = linenoise::Readline(prompt.c_str(), line);
 

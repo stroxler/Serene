@@ -124,6 +124,8 @@ public:
   errors::OptionalErrors addTree(exprs::Ast &ast);
   exprs::Ast &getTree();
 
+  const std::vector<llvm::StringRef> &getSymList() { return symbolList; };
+
   /// Increase the function counter by one
   uint nextFnCounter();
 
@@ -132,11 +134,15 @@ public:
   // TODO: Fix the return type and use a `llvm::Optional` instead
   /// Generate and return a MLIR ModuleOp tha contains the IR of the namespace
   /// with respect to the compilation phase
-  MaybeModuleOp generate();
+  MaybeModuleOp generate(unsigned offset = 0);
 
   /// Compile the namespace to a llvm module. It will call the
   /// `generate` method of the namespace to generate the IR.
   MaybeModule compileToLLVM();
+
+  /// Compile the given namespace from the given \p offset of AST till the end
+  /// of the trees.
+  MaybeModule compileToLLVMFromOffset(unsigned offset);
 
   /// Run all the passes specified in the context on the given MLIR ModuleOp.
   mlir::LogicalResult runPasses(mlir::ModuleOp &m);

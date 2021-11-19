@@ -90,8 +90,8 @@ class SereneJIT {
   /// and generate LLVM IR
   orc::IRTransformLayer transformLayer;
 
-  /// The AST Layer reads and import the Serene Ast directly to the JIT
-  // SereneAstLayer astLayer;
+  // The AST Layer reads and import the Serene Ast directly to the JIT
+  AstLayer astLayer;
 
   /// NS layer is responsible for adding namespace to the JIT by name.
   /// It will import the entire namespace.
@@ -129,9 +129,10 @@ class SereneJIT {
     return std::move(tsm);
   }
 
+  Namespace &currentNS;
+
 public:
-  SereneJIT(serene::SereneContext &ctx,
-            std::unique_ptr<orc::ExecutionSession> es,
+  SereneJIT(Namespace &entryNS, std::unique_ptr<orc::ExecutionSession> es,
             std::unique_ptr<orc::EPCIndirectionUtils> epciu,
             orc::JITTargetMachineBuilder jtmb, llvm::DataLayout &&dl);
 
@@ -144,6 +145,8 @@ public:
       es->reportError(std::move(err));
     }
   };
+
+  Namespace &getCurrentNS() { return currentNS; }
 
   const llvm::DataLayout &getDataLayout() const { return dl; }
 
@@ -161,14 +164,15 @@ public:
   llvm::Error addNS(llvm::StringRef nsname,
                     orc::ResourceTrackerSP rt = nullptr);
 
+  llvm::Error addAst(exprs::Ast &ast, orc::ResourceTrackerSP rt = nullptr);
+
   llvm::Expected<llvm::JITEvaluatedSymbol> lookup(llvm::StringRef name) {
     JIT_LOG("Looking up symbol: " + name);
     return es->lookup({&mainJD}, mangler(name.str()));
   }
 };
 
-llvm::Expected<std::unique_ptr<SereneJIT>>
-makeSereneJIT(serene::SereneContext &ctx);
+llvm::Expected<std::unique_ptr<SereneJIT>> makeSereneJIT(Namespace &ns);
 
 }; // namespace jit
 }; // namespace serene
