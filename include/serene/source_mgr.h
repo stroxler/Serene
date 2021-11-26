@@ -42,7 +42,7 @@ class SereneContext;
 
 /// This class is quite similar to the `llvm::SourceMgr` in functionality. We
 /// even borrowed some of the code from the original implementation but removed
-/// a lot of code that ar irrelevant to us.
+/// a lot of code that were irrelevant to us.
 ///
 /// SouceMgr is responsible for finding a namespace in the `loadPaths` and read
 /// the content of the `.srn` (or any of the `DEFAULT_SUFFIX`) into a
@@ -80,7 +80,7 @@ private:
     /// dynamically based on the size of Buffer.
     mutable void *offsetCache = nullptr;
 
-    /// Look up a given \p Ptr in in the buffer, determining which line it came
+    /// Look up a given \p ptr in in the buffer, determining which line it came
     /// from.
     unsigned getLineNumber(const char *ptr) const;
     template <typename T>

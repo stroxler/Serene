@@ -563,6 +563,24 @@ and tries to =resolve= *undefined* symbols
 ** Resources:
 - [[https://lwn.net/Articles/276782/][20 part linker essay]]
 * Episode 13 - Source Manager
+** LLVM Meetup 2021
+*** Tons of amazing talks
+*** The community is expanding
+- A screencast on how to get started with a FOSS project
+
 ** Updates:
+- Still JIT
+- We're going to start the JIT discussion from next EP
+
 ** Forgot to show case the code generation
 I didn't show it in action
+
+** What is a source manager
+- It owns and manages are the source buffers
+- All of our interactions with source files will happen though Source manager
+  - Including reading files
+  - Loading namespaces
+  - Including namespaces
+  - ...
+
+- LLVM provides a =SourceMgr= class that we're not using it
