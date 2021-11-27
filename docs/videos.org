@@ -562,11 +562,9 @@ and tries to =resolve= *undefined* symbols
 ** Let's look at some code
 ** Resources:
 - [[https://lwn.net/Articles/276782/][20 part linker essay]]
-* Episode 13 - Source Manager
-** LLVM Meetup 2021
-*** Tons of amazing talks
-*** The community is expanding
-- A screencast on how to get started with a FOSS project
+* Episode 13 - Source Managers
+** FAQ:
+- What tools are you using?
 
 ** Updates:
 - Still JIT
