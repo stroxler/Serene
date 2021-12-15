@@ -18,6 +18,11 @@ Setup the githook and install dependencies using the following commands:
     - CCache (If you want faster builds specially with the LLVM)
 
 ** LLVM Installation
+
+  *Important Note*: We're trying to keep Serene up to date with the LLVM release cycle till we get
+  to our first release. So we use the development version of the LLVM. Currently we are using
+  =aff028f7d8322c625422febd3d8b9794746cdc5b= commit as our reference.
+
   MLIR is a part of the [[https://llvm.org][LLVM]] project and in order to build it we need to build the LLVM itself as well.
   Here is a quick guide to build the latest version of the LLVM and MLIR.
 

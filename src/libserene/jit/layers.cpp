@@ -48,15 +48,16 @@ llvm::orc::ThreadSafeModule compileAst(Namespace &ns, exprs::Ast &ast) {
 
 AstMaterializationUnit::AstMaterializationUnit(Namespace &ns, AstLayer &l,
                                                exprs::Ast &ast)
-    : MaterializationUnit(l.getInterface(ns, ast), nullptr), ns(ns),
-      astLayer(l), ast(ast){};
+    : orc::MaterializationUnit(l.getInterface(ns, ast)), ns(ns), astLayer(l),
+      ast(ast){};
 
 void AstMaterializationUnit::materialize(
     std::unique_ptr<orc::MaterializationResponsibility> r) {
   astLayer.emit(std::move(r), ns, ast);
 }
 
-orc::SymbolFlagsMap AstLayer::getInterface(Namespace &ns, exprs::Ast &e) {
+orc::MaterializationUnit::Interface AstLayer::getInterface(Namespace &ns,
+                                                           exprs::Ast &e) {
   orc::SymbolFlagsMap Symbols;
   auto symList   = ns.getSymList();
   unsigned index = symList.size();
@@ -67,7 +68,7 @@ orc::SymbolFlagsMap AstLayer::getInterface(Namespace &ns, exprs::Ast &e) {
   if (err) {
     // TODO: Fix this by a call to diag engine or return the err
     llvm::outs() << "Fixme: semantic err\n";
-    return Symbols;
+    return orc::MaterializationUnit::Interface(std::move(Symbols), nullptr);
   }
 
   auto &env            = ns.getRootEnv();
@@ -92,7 +93,7 @@ orc::SymbolFlagsMap AstLayer::getInterface(Namespace &ns, exprs::Ast &e) {
   };
 
   std::for_each(symList.begin() + index, symList.end(), populateTableFn);
-  return Symbols;
+  return orc::MaterializationUnit::Interface(std::move(Symbols), nullptr);
 }
 
 /// NS Layer ==================================================================
@@ -111,7 +112,7 @@ llvm::orc::ThreadSafeModule compileNS(Namespace &ns) {
 };
 
 NSMaterializationUnit::NSMaterializationUnit(NSLayer &l, Namespace &ns)
-    : MaterializationUnit(l.getInterface(ns), nullptr), nsLayer(l), ns(ns){};
+    : MaterializationUnit(l.getInterface(ns)), nsLayer(l), ns(ns){};
 
 void NSMaterializationUnit::materialize(
     std::unique_ptr<orc::MaterializationResponsibility> r) {
@@ -139,7 +140,8 @@ llvm::Error NSLayer::add(orc::ResourceTrackerSP &rt, llvm::StringRef nsname,
       std::make_unique<NSMaterializationUnit>(*this, *ns), rt);
 }
 
-orc::SymbolFlagsMap NSLayer::getInterface(serene::Namespace &ns) {
+orc::MaterializationUnit::Interface
+NSLayer::getInterface(serene::Namespace &ns) {
   orc::SymbolFlagsMap Symbols;
 
   for (auto &k : ns.getRootEnv()) {
@@ -156,7 +158,7 @@ orc::SymbolFlagsMap NSLayer::getInterface(serene::Namespace &ns) {
     Symbols[mangledSym] = llvm::JITSymbolFlags(flags);
   }
 
-  return Symbols;
+  return orc::MaterializationUnit::Interface(std::move(Symbols), nullptr);
 }
 
 } // namespace serene::jit

@@ -56,11 +56,13 @@ ValueOpLowering::matchAndRewrite(serene::slir::ValueOp op,
   auto *entryBlock = fn.addEntryBlock();
   rewriter.setInsertionPointToStart(entryBlock);
 
-  // Since we only support i64 at the moment we use ConstantIntOp
-  auto retVal = rewriter
-                    .create<mlir::ConstantIntOp>(loc, (int64_t)value,
-                                                 rewriter.getI64Type())
-                    .getResult();
+  // Since we only support i64 at the moment we use ConstantOp
+  auto retVal =
+      rewriter
+          .create<mlir::ConstantOp>(
+              loc, mlir::IntegerAttr::get(rewriter.getI64Type(), value),
+              rewriter.getI64Type())
+          .getResult();
 
   UNUSED(rewriter.create<mlir::ReturnOp>(loc, retVal));
 
@@ -92,7 +94,7 @@ FnOpLowering::matchAndRewrite(serene::slir::FnOp op,
   llvm::SmallVector<mlir::Type, 4> arg_types;
 
   for (const auto &arg : args) {
-    auto attr = std::get<1>(arg).dyn_cast<mlir::TypeAttr>();
+    auto attr = arg.getValue().dyn_cast<mlir::TypeAttr>();
 
     if (!attr) {
       op.emitError("It's not a type attr");
@@ -108,10 +110,11 @@ FnOpLowering::matchAndRewrite(serene::slir::FnOp op,
 
   rewriter.setInsertionPointToStart(entryBlock);
 
-  auto retVal =
-      rewriter
-          .create<mlir::ConstantIntOp>(loc, (int64_t)3, rewriter.getI64Type())
-          .getResult();
+  auto retVal = rewriter
+                    .create<mlir::ConstantOp>(
+                        loc, mlir::IntegerAttr::get(rewriter.getI64Type(), 3),
+                        rewriter.getI64Type())
+                    .getResult();
 
   rewriter.create<mlir::ReturnOp>(loc, retVal);
 

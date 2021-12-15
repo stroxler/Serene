@@ -95,8 +95,8 @@ public:
 
     baseLayer.emit(std::move(mr), compileAst(ns, e));
   }
-
-  orc::SymbolFlagsMap getInterface(Namespace &ns, exprs::Ast &e);
+  orc::MaterializationUnit::Interface getInterface(Namespace &ns,
+                                                   exprs::Ast &e);
 };
 
 /// NS Layer ==================================================================
@@ -157,7 +157,7 @@ public:
     baseLayer.emit(std::move(mr), compileNS(ns));
   }
 
-  orc::SymbolFlagsMap getInterface(serene::Namespace &ns);
+  orc::MaterializationUnit::Interface getInterface(serene::Namespace &ns);
 };
 } // namespace jit
 } // namespace serene

@@ -20,6 +20,7 @@
 #define LLVM_PATCHES_H
 
 #include <llvm/ADT/DenseMap.h>
+#include <llvm/ADT/Hashing.h>
 
 namespace llvm {
 
