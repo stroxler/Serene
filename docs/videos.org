@@ -5,21 +5,21 @@
 
 * DONE Episode 1 - Introduction
 ** What is it all about?
-  - Create a programming lang
-  - Guide for contributors
-  - A LLVM/MLIR guide
+- Create a programming lang
+- Guide for contributors
+- A LLVM/MLIR guide
 ** The Plan
-  - Git branches
-  - No live coding
-  - Feel free to contribute
+- Git branches
+- No live coding
+- Feel free to contribute
 ** Serene and a bit of history
-  - Other Implementations
-  - Requirements
-    - C++ 14
-    - CMake
-  - Repository: https://devheroes.codes/Serene
-  - Website: lxsameer.com
-    Email: lxsameer@gnu.org
+- Other Implementations
+- Requirements
+  - C++ 14
+  - CMake
+- Repository: https://devheroes.codes/Serene
+- Website: lxsameer.com
+  Email: lxsameer@gnu.org
 * DONE Episode 2 - Basic Setup
 CLOSED: [2021-07-10 Sat 09:04]
 ** Installing Requirements
@@ -230,41 +230,41 @@ the following code blocks. Both of those are distributed with the LLVM.
 
 *** General syntax
 #+BEGIN_SRC mlir
-   %result:2 = "somedialect.blah"(%x#2) { some.attribute = true, other_attribute = 3 }
-               : (!somedialect<"example_type">) -> (!somedialect<"foo_s">, i8)
-                  loc(callsite("main" at "main.srn":10:8))
+  %result:2 = "somedialect.blah"(%x#2) { some.attribute = true, other_attribute = 3 }
+  : (!somedialect<"example_type">) -> (!somedialect<"foo_s">, i8)
+  loc(callsite("main" at "main.srn":10:8))
 #+END_SRC
 
 *** Blocks and Regions
 #+BEGIN_SRC mlir
   func @simple(i64, i1) -> i64 {
   ^bb0(%a: i64, %cond: i1): // Code dominated by ^bb0 may refer to %a
-    cond_br %cond, ^bb1, ^bb2
+  cond_br %cond, ^bb1, ^bb2
 
   ^bb1:
-    br ^bb3(%a: i64)    // Branch passes %a as the argument
+  br ^bb3(%a: i64)    // Branch passes %a as the argument
 
   ^bb2:
-    %b = addi %a, %a : i64
-    br ^bb3(%b: i64)    // Branch passes %b as the argument
+  %b = addi %a, %a : i64
+  br ^bb3(%b: i64)    // Branch passes %b as the argument
 
   // ^bb3 receives an argument, named %c, from predecessors
   // and passes it on to bb4 along with %a. %a is referenced
   // directly from its defining operation and is not passed through
   // an argument of ^bb3.
   ^bb3(%c: i64):
-    //br ^bb4(%c, %a : i64, i64)
-    "serene.ifop"(%c) ({ // if %a is in-scope in the containing region...
-         // then %a is in-scope here too.
-          %new_value = "another_op"(%c) : (i64) -> (i64)
+  //br ^bb4(%c, %a : i64, i64)
+  "serene.ifop"(%c) ({ // if %a is in-scope in the containing region...
+  // then %a is in-scope here too.
+  %new_value = "another_op"(%c) : (i64) -> (i64)
 
-          ^someblock(%new_value):
-            %x = "some_other_op"() {value = 4 : i64} : () -> i64
+  ^someblock(%new_value):
+  %x = "some_other_op"() {value = 4 : i64} : () -> i64
 
-    }) : (i64) -> (i64)
+  }) : (i64) -> (i64)
   ^bb4(%d : i64, %e : i64):
-    %0 = addi %d, %e : i64
-    return %0 : i64   // Return is also a terminator.
+  %0 = addi %d, %e : i64
+  return %0 : i64   // Return is also a terminator.
   }
 #+END_SRC
 
@@ -277,15 +277,15 @@ Command line arguments to emir =slir=
 Output:
 #+BEGIN_SRC mlir
   module @user  {
-    %0 = "serene.fn"() ( {
-      %2 = "serene.value"() {value = 0 : i64} : () -> i64
-      return %2 : i64
-    }) {args = {}, name = "main", sym_visibility = "public"} : () -> i64
+  %0 = "serene.fn"() ( {
+  %2 = "serene.value"() {value = 0 : i64} : () -> i64
+  return %2 : i64
+  }) {args = {}, name = "main", sym_visibility = "public"} : () -> i64
 
-    %1 = "serene.fn"() ( {
-      %2 = "serene.value"() {value = 0 : i64} : () -> i64
-      return %2 : i64
-    }) {args = {n = i64, v = i64, y = i64}, name = "main1", sym_visibility = "public"} : () -> i64
+  %1 = "serene.fn"() ( {
+  %2 = "serene.value"() {value = 0 : i64} : () -> i64
+  return %2 : i64
+  }) {args = {n = i64, v = i64, y = i64}, name = "main1", sym_visibility = "public"} : () -> i64
   }
 #+END_SRC
 
@@ -298,16 +298,16 @@ Command line arguments to emir =mlir=
 
 Output:
 #+BEGIN_SRC mlir
-module @user  {
+  module @user  {
   func @main() -> i64 {
-    %c3_i64 = constant 3 : i64
-    return %c3_i64 : i64
+  %c3_i64 = constant 3 : i64
+  return %c3_i64 : i64
   }
   func @main1(%arg0: i64, %arg1: i64, %arg2: i64) -> i64 {
-    %c3_i64 = constant 3 : i64
-    return %c3_i64 : i64
+  %c3_i64 = constant 3 : i64
+  return %c3_i64 : i64
   }
-}
+  }
 #+END_SRC
 
 *** LIR
@@ -318,16 +318,16 @@ Command line arguments to emir =lir=
 
 Output:
 #+BEGIN_SRC mlir
-module @user  {
+  module @user  {
   llvm.func @main() -> i64 {
-    %0 = llvm.mlir.constant(3 : i64) : i64
-    llvm.return %0 : i64
+  %0 = llvm.mlir.constant(3 : i64) : i64
+  llvm.return %0 : i64
   }
   llvm.func @main1(%arg0: i64, %arg1: i64, %arg2: i64) -> i64 {
-    %0 = llvm.mlir.constant(3 : i64) : i64
-    llvm.return %0 : i64
+  %0 = llvm.mlir.constant(3 : i64) : i64
+  llvm.return %0 : i64
   }
-}
+  }
 #+END_SRC
 
 *** LLVMIR
@@ -338,36 +338,36 @@ Command line arguments to emir =llvmir=
 
 Output:
 #+BEGIN_SRC llvm
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-unknown-linux-gnu"
+  target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+  target triple = "x86_64-unknown-linux-gnu"
 
-declare i8* @malloc(i64 %0)
+  declare i8* @malloc(i64 %0)
 
-declare void @free(i8* %0)
+  declare void @free(i8* %0)
 
-define i64 @main() !dbg !3 {
+  define i64 @main() !dbg !3 {
   ret i64 3, !dbg !7
-}
+  }
 
-define i64 @main1(i64 %0, i64 %1, i64 %2) !dbg !9 {
+  define i64 @main1(i64 %0, i64 %1, i64 %2) !dbg !9 {
   ret i64 3, !dbg !10
-}
+  }
 
-!llvm.dbg.cu = !{!0}
-!llvm.module.flags = !{!2}
+  !llvm.dbg.cu = !{!0}
+  !llvm.module.flags = !{!2}
 
-!0 = distinct !DICompileUnit(language: DW_LANG_C, file: !1, producer: "mlir", isOptimized: true, runtimeVersion: 0, emissionKind: FullDebug)
-!1 = !DIFile(filename: "LLVMDialectModule", directory: "/")
-!2 = !{i32 2, !"Debug Info Version", i32 3}
-!3 = distinct !DISubprogram(name: "main", linkageName: "main", scope: null, file: !4, type: !5, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !6)
-!4 = !DIFile(filename: "REPL", directory: "/home/lxsameer/src/serene/serene/build")
-!5 = !DISubroutineType(types: !6)
-!6 = !{}
-!7 = !DILocation(line: 0, column: 10, scope: !8)
-!8 = !DILexicalBlockFile(scope: !3, file: !4, discriminator: 0)
-!9 = distinct !DISubprogram(name: "main1", linkageName: "main1", scope: null, file: !4, line: 1, type: !5, scopeLine: 1, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !6)
-!10 = !DILocation(line: 1, column: 11, scope: !11)
-!11 = !DILexicalBlockFile(scope: !9, file: !4, discriminator: 0)
+  !0 = distinct !DICompileUnit(language: DW_LANG_C, file: !1, producer: "mlir", isOptimized: true, runtimeVersion: 0, emissionKind: FullDebug)
+  !1 = !DIFile(filename: "LLVMDialectModule", directory: "/")
+  !2 = !{i32 2, !"Debug Info Version", i32 3}
+  !3 = distinct !DISubprogram(name: "main", linkageName: "main", scope: null, file: !4, type: !5, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !6)
+  !4 = !DIFile(filename: "REPL", directory: "/home/lxsameer/src/serene/serene/build")
+  !5 = !DISubroutineType(types: !6)
+  !6 = !{}
+  !7 = !DILocation(line: 0, column: 10, scope: !8)
+  !8 = !DILexicalBlockFile(scope: !3, file: !4, discriminator: 0)
+  !9 = distinct !DISubprogram(name: "main1", linkageName: "main1", scope: null, file: !4, line: 1, type: !5, scopeLine: 1, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !6)
+  !10 = !DILocation(line: 1, column: 11, scope: !11)
+  !11 = !DILexicalBlockFile(scope: !9, file: !4, discriminator: 0)
 #+END_SRC
 
 ** Resources
@@ -562,7 +562,8 @@ and tries to =resolve= *undefined* symbols
 ** Let's look at some code
 ** Resources:
 - [[https://lwn.net/Articles/276782/][20 part linker essay]]
-* Episode 13 - Source Managers
+* DONE Episode 13 - Source Managers
+CLOSED: [2021-12-18 Sat 11:17]
 ** FAQ:
 - What tools are you using?
 
@@ -582,3 +583,134 @@ I didn't show it in action
   - ...
 
 - LLVM provides a =SourceMgr= class that we're not using it
+* Episode 14 - JIT Basics
+** Updates:
+- Lost my data :_(
+- Fixed some compatibility issues
+- New video series on *How to build an editor with Emacs Lisp*
+
+** What is Just In Time Compilation?
+- Compiling at "runtime" (air quote)
+  Or it might be better to say, "on demand compilation"
+- Usually in interpreters and Runtimes
+
+#+NAME: ep-14-jit-1
+#+BEGIN_SRC graphviz-dot :file /tmp/jit.svg :cmdline -Kdot -Tsvg
+  digraph {
+    graph [bgcolor=transparent]
+    node [color=gray80 shape="box"]
+    edge [color=gray80]
+    rankdir = "LR"
+
+    a[label="Some kind of input code"]
+    b[label="JIT"]
+    c[label="Some sort of target code"]
+    d[label="Execute the result"]
+    a -> b -> c -> d
+  }
+#+END_SRC
+
+#+RESULTS: ep-14-jit-1
+[[file:/tmp/jit.svg]]
+
+
+
+#+NAME: ep-14-jit-2
+#+BEGIN_SRC graphviz-dot :file /tmp/jit-2.svg :cmdline -Kdot -Tsvg
+
+  digraph G {
+        graph [bgcolor=transparent]
+        node [color=gray80 shape="box"]
+        edge [color=gray80]
+        rankdir = "LR"
+
+        a[label="Source code"]
+        b[label="Parser"]
+        c[label="Semantic Analyzer"]
+        d[label="IR Generator"]
+        e[label="Pass Manager"]
+        f[label="Object Layer"]
+        g[label="Native Code"]
+        z[label="Preload Core libs"]
+        a -> b
+        b -> c {label="AST"}
+        c -> d
+        z -> f
+        subgraph cluster0 {
+            color=lightgrey;
+            d -> e -> f
+            label = "JIT Engine";
+        }
+        f -> g
+        g -> Store
+        g -> Execute
+  }
+#+END_SRC
+
+#+RESULTS: ep-14-jit-2
+[[file:/tmp/jit-2.svg]]
+
+
+- Trade off
+  Compilation speed vs Execution speed
+*** JIT vs Typical interpreters
+
+** Why to use JIT?
+- Make the interpreter to run "faster" (air quote again)
+- Speed up the compilation
+  Avoid generating the target code and generate some byte-code instead
+  and then use a JIT in runtime to execute the byte-code.
+- Use runtime data to find optimization opportunities.
+- Support more archs
+- And many other reasons
+** How we're going to use a JIT?
+- We need a JIT engine to implement Lisp Macros
+- Compile time vs Runtime
+  + Abstraction
+- A JIT engine to just compile Serene code
+- Our compiler will be a fancy JIT engine
+
+#+NAME: ep-14-jit-3
+#+BEGIN_SRC graphviz-dot :file /tmp/jit-3.svg :cmdline -Kdot -Tsvg
+  digraph {
+    graph [bgcolor=transparent]
+    node [color=gray80 shape="box"]
+    edge [color=gray80]
+    rankdir = "LR"
+
+    a[label="Serene AST"]
+    b[label="For every node"]
+    c[label="is it a macro call?" shapp="diamond"]
+    d[label="Add it to JIT"]
+    e[label="Expand it (call it)"]
+    f[label="Generate target code"]
+    a -> b
+
+
+    subgraph cluster0 {
+        color=lightgrey;
+        b -> c
+        c -> d [label="NO"]
+        c -> e [label="YES"]
+        e -> b
+        d -> f
+        label = "JIT Engine";
+    }
+
+    f -> Store
+    f -> Execute
+  }
+#+END_SRC
+
+#+RESULTS: ep-14-jit-3
+[[file:/tmp/jit-3.svg]]
+
+
+** LLVM/MLIR and JIT
+- 3 different approaches
+- MLIR's JIT
+- LLVM JITs
+  + MCJIT (Deprecated)
+  + LLJIT (Based on ORCv2)
+  + LazyLLJIT (Based on LLJIT)
+- Use LLVM's ORCv2 directly to create an engine

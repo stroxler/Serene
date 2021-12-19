@@ -103,7 +103,8 @@ on ADF
 - [[https://blog.yossarian.net/2021/07/19/LLVM-internals-part-1-bitcode-format][LLVM Internals]]
 *** TableGen
 - [[https://llvm.org/docs/TableGen/BackGuide.html#creating-a-new-backend][Create a backend]]
-
+** Useful courses
+-  https://www.cs.cornell.edu/courses/cs6120/2020fa/lesson/
 * Considerations
 ** Hashmaps
 *** DOS attack
