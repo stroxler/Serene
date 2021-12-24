@@ -39,12 +39,12 @@ target_link_libraries(serenec
   PRIVATE
 
   Serene::lib
-  MLIRPass
+  #MLIRPass
 
-  LLVMTarget
-  LLVMOption
-  lldDriver
-  lldELF
+  #LLVMTarget
+  #LLVMOption
+  #lldDriver
+  #lldELF
   )
 
 target_include_directories(serenec PRIVATE ${PROJECT_BINARY_DIR})

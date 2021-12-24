@@ -21,6 +21,7 @@
 #include "serene/utils.h"
 
 #include <llvm/Support/Casting.h>
+#include <mlir/Dialect/Arithmetic/IR/Arithmetic.h>
 #include <mlir/Dialect/LLVMIR/LLVMDialect.h>
 #include <mlir/Dialect/MemRef/IR/MemRef.h>
 #include <mlir/Dialect/StandardOps/IR/Ops.h>
@@ -29,6 +30,8 @@
 #include <mlir/IR/BuiltinOps.h>
 #include <mlir/Pass/Pass.h>
 #include <mlir/Transforms/DialectConversion.h>
+
+#include <cstdint>
 
 namespace serene::passes {
 
@@ -57,12 +60,10 @@ ValueOpLowering::matchAndRewrite(serene::slir::ValueOp op,
   rewriter.setInsertionPointToStart(entryBlock);
 
   // Since we only support i64 at the moment we use ConstantOp
-  auto retVal =
-      rewriter
-          .create<mlir::ConstantOp>(
-              loc, mlir::IntegerAttr::get(rewriter.getI64Type(), value),
-              rewriter.getI64Type())
-          .getResult();
+  auto retVal = rewriter
+                    .create<mlir::arith::ConstantIntOp>(loc, (int64_t)value,
+                                                        rewriter.getI64Type())
+                    .getResult();
 
   UNUSED(rewriter.create<mlir::ReturnOp>(loc, retVal));
 
@@ -111,9 +112,8 @@ FnOpLowering::matchAndRewrite(serene::slir::FnOp op,
   rewriter.setInsertionPointToStart(entryBlock);
 
   auto retVal = rewriter
-                    .create<mlir::ConstantOp>(
-                        loc, mlir::IntegerAttr::get(rewriter.getI64Type(), 3),
-                        rewriter.getI64Type())
+                    .create<mlir::arith::ConstantIntOp>(loc, (int64_t)3,
+                                                        rewriter.getI64Type())
                     .getResult();
 
   rewriter.create<mlir::ReturnOp>(loc, retVal);
@@ -142,7 +142,7 @@ struct SLIRToMLIRPass
 // dialects do we want to lower to
 void SLIRToMLIRPass::getDependentDialects(
     mlir::DialectRegistry &registry) const {
-  registry.insert<mlir::StandardOpsDialect>();
+  registry.insert<mlir::StandardOpsDialect, mlir::arith::ArithmeticDialect>();
 };
 
 /// Return the current function being transformed.
@@ -161,6 +161,7 @@ void SLIRToMLIRPass::runOnModule() {
   // We define the specific operations, or dialects, that are legal targets for
   // this lowering. In our case, we are lowering to the `Standard` dialects.
   target.addLegalDialect<mlir::StandardOpsDialect>();
+  target.addLegalDialect<mlir::arith::ArithmeticDialect>();
 
   // We also define the SLIR dialect as Illegal so that the conversion will fail
   // if any of these operations are *not* converted.

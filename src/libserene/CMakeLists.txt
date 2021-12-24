@@ -168,6 +168,7 @@ target_link_libraries(serene PRIVATE
   LLVMOrcJIT
   MLIRLLVMToLLVMIRTranslation
 
-  LLVMX86AsmParser
+  #LLVMTarget
+  #LLVMX86AsmParser
 
   ${llvm_libs})

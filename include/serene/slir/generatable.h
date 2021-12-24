@@ -33,6 +33,7 @@
 #include <mlir/Support/LogicalResult.h>
 #include <mlir/Target/LLVMIR/Dialect/LLVMIR/LLVMToLLVMIRTranslation.h>
 #include <mlir/Target/LLVMIR/ModuleTranslation.h>
+
 #include <stdexcept>
 #include <utility>
 
@@ -93,7 +94,7 @@ std::unique_ptr<llvm::Module> toLLVMIR(Generatable<T> &t) {
 
   // Initialize LLVM targets.
   llvm::InitializeNativeTarget();
-  llvm::InitializeNativeTargetAsmPrinter();
+  // llvm::InitializeNativeTargetAsmPrinter();
 
   // TODO: replace this call with our own version of setupTargetTriple
   mlir::ExecutionEngine::setupTargetTriple(llvmModule.get());
