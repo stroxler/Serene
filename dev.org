@@ -68,6 +68,8 @@ Then here is the list or parsers that we have considered
 - [[https://www.hboehm.info/gc/][Boehm GC]]
 ** JIT
 - [[https://asmjit.com/][Machine code generator for C++]]
+- https://www.youtube.com/watch?v=hILdR8XRvdQ&t=1511s
+
 ** Optimizations
 - [[https://sunfishcode.github.io/blog/2018/10/22/Canonicalization.html][Canonicalization]]
 
@@ -116,6 +118,10 @@ Imagine a type that is a subset of a Coll, and when we
 pass a Coll to its type constructor in destructs the input and
 construct the type base on the data that it needs only and
 leave the rest untouched
+** Hot function optimization
+it would be nice for the JIT to add instrumentation to the compiled
+functions and detect hot functions similar to how javascript jits do it
+and recompile those functions with more optimization passes
 
 
 * TODOs

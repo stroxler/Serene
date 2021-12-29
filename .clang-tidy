@@ -1,6 +1,6 @@
 ---
-Checks:          'clang-diagnostic-*,clang-analyzer-*,-*,clang-analyzer-*,cert-*,-cert-err58-cpp,concurrency-*,llvm-*,performance-*,-readability-identifier-length*,readability-*'
-WarningsAsErrors: 'clang-diagnostic-*,clang-analyzer-*,-*,clang-analyzer-*,cert-*,-cert-err58-cpp,concurrency-*,llvm-*,performance-*,readability-*'
+Checks:          '-*,clang-diagnostic-*,clang-analyzer-*,cert-*,-cert-err58-cpp,concurrency-*,llvm-*,performance-*,readability-*,-readability-identifier-length*'
+WarningsAsErrors: '-*,clang-diagnostic-*,clang-analyzer-*,cert-*,-cert-err58-cpp,concurrency-*,llvm-*,performance-*,readability-*,-readability-identifier-length*'
 HeaderFilterRegex: ''
 AnalyzeTemporaryDtors: false
 FormatStyle:     file
