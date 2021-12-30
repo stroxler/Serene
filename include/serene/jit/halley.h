@@ -18,16 +18,14 @@
 
 /**
  * Commentary:
+ * The code is based on the MLIR's JIT and named after Edmond Halley.
  */
 
-#ifndef SERENE_JIT_H
-#define SERENE_JIT_H
+#ifndef SERENE_JIT_HALLEY_H
+#define SERENE_JIT_HALLEY_H
 
 #include "serene/errors.h"
 #include "serene/export.h"
-#include "serene/exprs/expression.h"
-#include "serene/namespace.h"
-#include "serene/slir/generatable.h"
 #include "serene/utils.h"
 
 #include <llvm/ADT/StringRef.h>
@@ -40,13 +38,19 @@
 
 #include <memory>
 
-#define JIT2_LOG(...) \
-  DEBUG_WITH_TYPE("JIT", llvm::dbgs() << "[JIT]: " << __VA_ARGS__ << "\n");
+#define HALLEY_LOG(...)                  \
+  DEBUG_WITH_TYPE("halley", llvm::dbgs() \
+                                << "[HALLEY]: " << __VA_ARGS__ << "\n");
 
 namespace serene {
-class SERENE_EXPORT JIT;
 
-using MaybeJIT = llvm::Optional<std::unique_ptr<JIT>>;
+class SereneContext;
+class Namespace;
+
+namespace jit {
+class Halley;
+
+using MaybeJIT = llvm::Expected<std::unique_ptr<Halley>>;
 
 /// A simple object cache following Lang's LLJITWithObjectCache example and
 /// MLIR's SimpelObjectCache.
@@ -67,12 +71,8 @@ private:
   llvm::StringMap<std::unique_ptr<llvm::MemoryBuffer>> cachedObjects;
 };
 
-class JIT {
-  // TODO: Should the JIT own the context ???
-  Namespace &ns;
-
+class SERENE_EXPORT Halley {
   std::unique_ptr<llvm::orc::LLJIT> engine;
-
   std::unique_ptr<ObjectCache> cache;
 
   /// GDB notification listener.
@@ -81,16 +81,19 @@ class JIT {
   /// Perf notification listener.
   llvm::JITEventListener *perfListener;
 
-public:
-  JIT(Namespace &ns, bool enableObjectCache = true,
-      bool enableGDBNotificationListener  = true,
-      bool enablePerfNotificationListener = true);
+  llvm::orc::JITTargetMachineBuilder jtmb;
+  llvm::DataLayout &dl;
+  SereneContext &ctx;
 
-  static MaybeJIT
-  make(Namespace &ns, mlir::ArrayRef<llvm::StringRef> sharedLibPaths = {},
-       mlir::Optional<llvm::CodeGenOpt::Level> jitCodeGenOptLevel = llvm::None,
-       bool enableObjectCache = true, bool enableGDBNotificationListener = true,
-       bool enablePerfNotificationListener = true);
+  std::shared_ptr<Namespace> activeNS;
+
+public:
+  Halley(serene::SereneContext &ctx, llvm::orc::JITTargetMachineBuilder &&jtmb,
+         llvm::DataLayout &&dl);
+
+  // TODO: Read the sharedLibPaths via context
+  static MaybeJIT make(serene::SereneContext &ctx,
+                       llvm::orc::JITTargetMachineBuilder &&jtmb);
 
   /// Looks up a packed-argument function with the given name and returns a
   /// pointer to it.  Propagates errors in case of failure.
@@ -165,9 +168,17 @@ public:
       llvm::function_ref<llvm::orc::SymbolMap(llvm::orc::MangleAndInterner)>
           symbolMap);
 
-  std::unique_ptr<exprs::Expression> eval(SereneContext &ctx,
-                                          std::string input);
+  llvm::Optional<errors::ErrorTree> addNS(Namespace &ns,
+                                          reader::LocationRange &loc);
+  llvm::Optional<errors::ErrorTree> addNS(llvm::StringRef nsname,
+                                          reader::LocationRange &loc);
+
+  Namespace &getActiveNS();
 };
+
+llvm::Expected<std::unique_ptr<Halley>> makeHalleyJIT(SereneContext &ctx);
+
+} // namespace jit
 } // namespace serene
 
 #endif

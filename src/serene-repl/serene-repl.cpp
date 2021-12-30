@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
     // Read line
     std::string line;
     std::string result;
-    std::string prompt = ctx->jit->getCurrentNS().name + "> ";
+    std::string prompt = ctx->jit->getActiveNS().name + "> ";
 
     auto quit = linenoise::Readline(prompt.c_str(), line);
 

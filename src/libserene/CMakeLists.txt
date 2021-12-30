@@ -48,6 +48,7 @@ add_library(serene
   # jit.cpp
   jit/engine.cpp
   jit/layers.cpp
+  jit/halley.cpp
 
   # Reader
   reader/reader.cpp

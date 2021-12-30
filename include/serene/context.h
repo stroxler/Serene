@@ -22,7 +22,7 @@
 #include "serene/diagnostics.h"
 #include "serene/environment.h"
 #include "serene/export.h"
-#include "serene/jit/engine.h"
+#include "serene/jit/halley.h"
 #include "serene/namespace.h"
 #include "serene/passes.h"
 #include "serene/slir/dialect.h"
@@ -31,6 +31,7 @@
 #include <llvm/ADT/None.h>
 #include <llvm/ADT/Optional.h>
 #include <llvm/ADT/StringRef.h>
+#include <llvm/ADT/Triple.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/Support/Host.h>
 #include <mlir/Dialect/StandardOps/IR/Ops.h>
@@ -68,7 +69,10 @@ enum class CompilationPhase {
 class SERENE_EXPORT SereneContext {
   struct Options {
     /// Whether to use colors for the output or not
-    bool withColors = true;
+    bool withColors                        = true;
+    bool JITenableObjectCache              = true;
+    bool JITenableGDBNotificationListener  = true;
+    bool JITenablePerfNotificationListener = true;
 
     Options() = default;
   };
@@ -89,7 +93,7 @@ public:
 
   std::unique_ptr<DiagnosticEngine> diagEngine;
 
-  std::unique_ptr<serene::jit::SereneJIT> jit;
+  std::unique_ptr<serene::jit::Halley> jit;
 
   /// The source manager is responsible for loading namespaces and practically
   /// managing the source code in form of memory buffers.
@@ -119,6 +123,11 @@ public:
   /// Lookup the namespace with the give name in the current context and
   /// return a pointer to it or a `nullptr` in it doesn't exist.
   Namespace *getNS(llvm::StringRef ns_name);
+
+  /// Lookup and return a shared pointer to the given \p ns_name. This
+  /// method should be used only if you need to own the namespace as well
+  /// and want to keep it long term (like the JIT).
+  NSPtr getSharedPtrToNS(llvm::StringRef ns_name);
 
   SereneContext()
       : pm(&mlirContext), diagEngine(makeDiagnosticEngine(*this)),
@@ -158,7 +167,7 @@ public:
 
     assert(ns != nullptr && "Default ns doesn't exit!");
 
-    auto maybeJIT = serene::jit::makeSereneJIT(*ns);
+    auto maybeJIT = serene::jit::makeHalleyJIT(*ctx);
 
     if (!maybeJIT) {
       // TODO: Raise an error here
@@ -169,6 +178,8 @@ public:
 
     return ctx;
   };
+
+  llvm::Triple getTargetTriple() const { return llvm::Triple(targetTriple); };
 
 private:
   CompilationPhase targetPhase;

@@ -22,8 +22,6 @@
 #include "serene/jit/layers.h"
 #include "serene/utils.h"
 
-#include <llvm/ExecutionEngine/JITSymbol.h>
-
 #include <memory>
 
 namespace serene::jit {

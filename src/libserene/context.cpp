@@ -61,6 +61,14 @@ Namespace &SereneContext::getCurrentNS() {
   return *namespaces[this->current_ns];
 };
 
+NSPtr SereneContext::getSharedPtrToNS(llvm::StringRef ns_name) {
+  if (namespaces.count(ns_name.str()) == 0) {
+    return nullptr;
+  }
+
+  return namespaces[ns_name.str()];
+};
+
 void SereneContext::setOperationPhase(CompilationPhase phase) {
   this->targetPhase = phase;
 

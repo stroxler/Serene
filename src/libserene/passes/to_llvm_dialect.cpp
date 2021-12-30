@@ -19,8 +19,8 @@
 #include "serene/passes.h"
 #include "serene/slir/dialect.h"
 
-#include <memory>
 #include <mlir/Conversion/AffineToStandard/AffineToStandard.h>
+#include <mlir/Conversion/ArithmeticToLLVM/ArithmeticToLLVM.h>
 #include <mlir/Conversion/LLVMCommon/ConversionTarget.h>
 #include <mlir/Conversion/LLVMCommon/TypeConverter.h>
 #include <mlir/Conversion/SCFToStandard/SCFToStandard.h>
@@ -31,6 +31,8 @@
 #include <mlir/IR/BuiltinOps.h>
 #include <mlir/Pass/Pass.h>
 #include <mlir/Transforms/DialectConversion.h>
+
+#include <memory>
 
 namespace serene::passes {
 struct SLIRToLLVMDialect
@@ -68,7 +70,8 @@ void SLIRToLLVMDialect::runOnOperation() {
   mlir::RewritePatternSet patterns(&getContext());
 
   populateStdToLLVMConversionPatterns(typeConverter, patterns);
-
+  mlir::arith::populateArithmeticToLLVMConversionPatterns(typeConverter,
+                                                          patterns);
   // patterns.add<PrintOpLowering>(&getContext());
 
   // We want to completely lower to LLVM, so we use a `FullConversion`. This

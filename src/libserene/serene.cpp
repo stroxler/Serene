@@ -109,32 +109,30 @@ SERENE_EXPORT exprs::MaybeNode eval(SereneContext &ctx, exprs::Ast &input) {
   UNUSED(input);
 
   auto loc = reader::LocationRange::UnknownLocation("nsname");
-  auto err = ctx.jit->addNS("docs.examples.hello_world");
+  auto err = ctx.jit->addNS("docs.examples.hello_world", loc);
 
   if (err) {
-    llvm::errs() << err;
-    auto e = errors::makeErrorTree(loc, errors::NSLoadError);
-
-    return exprs::makeErrorNode(loc, errors::NSLoadError);
+    auto es        = err.getValue();
+    auto nsloadErr = errors::makeError(loc, errors::NSLoadError);
+    es.push_back(nsloadErr);
+    return exprs::MaybeNode::error(es);
   }
+
   std::string tmp("main");
   llvm::ExitOnError e;
   // Get the anonymous expression's JITSymbol.
   auto sym = e(ctx.jit->lookup(tmp));
   llvm::outs() << "eval here\n";
-  // Get the symbol's address and cast it to the right type (takes no
-  // arguments, returns a double) so we can call it as a native function.
-  auto *f = (int (*)())(intptr_t)sym.getAddress();
 
-  f();
+  sym((void **)3);
 
-  err = ctx.jit->addAst(input);
-  if (err) {
-    llvm::errs() << err;
-    auto e = errors::makeErrorTree(loc, errors::NSLoadError);
+  // err = ctx.jit->addAst(input);
+  // if (err) {
+  //   llvm::errs() << err;
+  //   auto e = errors::makeErrorTree(loc, errors::NSLoadError);
 
-    return exprs::makeErrorNode(loc, errors::NSLoadError);
-  }
+  //   return exprs::makeErrorNode(loc, errors::NSLoadError);
+  // }
   return exprs::make<exprs::Number>(loc, "4", false, false);
 };
 

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "serene/jit.h"
+#include "serene/jit/halley.h"
 #include "serene/namespace.h"
 #include "serene/reader/location.h"
 #include "serene/reader/reader.h"

@@ -50,6 +50,7 @@ enum ErrID {
   E0011,
   E0012,
   E0013,
+  E0014,
 };
 
 struct ErrorVariant {
@@ -106,6 +107,8 @@ static ErrorVariant
 static ErrorVariant
     InvalidCharacterForSymbol(E0013, "Invalid character for a symbol", "");
 
+static ErrorVariant CompilationError(E0014, "Compilation error!", "");
+
 static std::map<ErrID, ErrorVariant *> ErrDesc = {
     {E0000, &UnknownError},          {E0001, &DefExpectSymbol},
     {E0002, &DefWrongNumberOfArgs},  {E0003, &FnNoArgsList},
@@ -113,7 +116,8 @@ static std::map<ErrID, ErrorVariant *> ErrDesc = {
     {E0006, &DontKnowHowToCallNode}, {E0007, &PassFailureError},
     {E0008, &NSLoadError},           {E0009, &NSAddToSMError},
     {E0010, &EOFWhileScaningAList},  {E0011, &InvalidDigitForNumber},
-    {E0012, &TwoFloatPoints},        {E0013, &InvalidCharacterForSymbol}};
+    {E0012, &TwoFloatPoints},        {E0013, &InvalidCharacterForSymbol},
+    {E0014, &CompilationError}};
 
 } // namespace errors
 } // namespace serene
