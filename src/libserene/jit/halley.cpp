@@ -28,6 +28,7 @@
 #include "serene/jit/halley.h"
 
 #include "serene/context.h"
+#include "serene/diagnostics.h"
 #include "serene/errors/constants.h"
 #include "serene/errors/error.h"
 #include "serene/namespace.h"
@@ -44,12 +45,13 @@
 #include <llvm/ExecutionEngine/SectionMemoryManager.h>
 #include <llvm/IR/Module.h>
 #include <llvm/Support/ErrorHandling.h>
-#include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/ToolOutputFile.h>
 #include <mlir/ExecutionEngine/ExecutionEngine.h>
 #include <mlir/Support/FileUtilities.h>
 
+#include <memory>
 #include <stdexcept>
+#include <vector>
 
 #define COMMON_ARGS_COUNT 8
 // Just to make the linter happy
@@ -70,73 +72,70 @@ static std::string makePackedFunctionName(llvm::StringRef name) {
   return "_serene_" + name.str();
 }
 
-// static void packFunctionArguments(llvm::Module *module) {
-//   auto &ctx = module->getContext();
-//   llvm::IRBuilder<> builder(ctx);
-//   llvm::DenseSet<llvm::Function *> interfaceFunctions;
-//   for (auto &func : module->getFunctionList()) {
-//     if (func.isDeclaration()) {
-//       continue;
-//     }
-//     if (interfaceFunctions.count(&func) != 0) {
-//       continue;
-//     }
+static void packFunctionArguments(llvm::Module *module) {
+  auto &ctx = module->getContext();
+  llvm::IRBuilder<> builder(ctx);
+  llvm::DenseSet<llvm::Function *> interfaceFunctions;
+  for (auto &func : module->getFunctionList()) {
+    if (func.isDeclaration()) {
+      continue;
+    }
+    if (interfaceFunctions.count(&func) != 0) {
+      continue;
+    }
 
-//     // Given a function `foo(<...>)`, define the interface function
-//     // `serene_foo(i8**)`.
-//     auto *newType = llvm::FunctionType::get(
-//         builder.getVoidTy(), builder.getInt8PtrTy()->getPointerTo(),
-//         /*isVarArg=*/false);
-//     auto newName = makePackedFunctionName(func.getName());
-//     auto funcCst = module->getOrInsertFunction(newName, newType);
-//     llvm::Function *interfaceFunc =
-//         llvm::cast<llvm::Function>(funcCst.getCallee());
-//     interfaceFunctions.insert(interfaceFunc);
+    // Given a function `foo(<...>)`, define the interface function
+    // `serene_foo(i8**)`.
+    auto *newType = llvm::FunctionType::get(
+        builder.getVoidTy(), builder.getInt8PtrTy()->getPointerTo(),
+        /*isVarArg=*/false);
+    auto newName = makePackedFunctionName(func.getName());
+    auto funcCst = module->getOrInsertFunction(newName, newType);
+    llvm::Function *interfaceFunc =
+        llvm::cast<llvm::Function>(funcCst.getCallee());
+    interfaceFunctions.insert(interfaceFunc);
 
-//     // Extract the arguments from the type-erased argument list and cast them
-//     to
-//     // the proper types.
-//     auto *bb = llvm::BasicBlock::Create(ctx);
-//     bb->insertInto(interfaceFunc);
-//     builder.SetInsertPoint(bb);
-//     llvm::Value *argList = interfaceFunc->arg_begin();
-//     llvm::SmallVector<llvm::Value *, COMMON_ARGS_COUNT> args;
-//     args.reserve(llvm::size(func.args()));
-//     for (auto &indexedArg : llvm::enumerate(func.args())) {
-//       llvm::Value *argIndex = llvm::Constant::getIntegerValue(
-//           builder.getInt64Ty(), llvm::APInt(I64_BIT_SIZE,
-//           indexedArg.index()));
-//       llvm::Value *argPtrPtr =
-//           builder.CreateGEP(builder.getInt8PtrTy(), argList, argIndex);
-//       llvm::Value *argPtr =
-//           builder.CreateLoad(builder.getInt8PtrTy(), argPtrPtr);
-//       llvm::Type *argTy = indexedArg.value().getType();
-//       argPtr            = builder.CreateBitCast(argPtr,
-//       argTy->getPointerTo()); llvm::Value *arg  = builder.CreateLoad(argTy,
-//       argPtr); args.push_back(arg);
-//     }
+    // Extract the arguments from the type-erased argument list and cast them to
+    // the proper types.
+    auto *bb = llvm::BasicBlock::Create(ctx);
+    bb->insertInto(interfaceFunc);
+    builder.SetInsertPoint(bb);
+    llvm::Value *argList = interfaceFunc->arg_begin();
+    llvm::SmallVector<llvm::Value *, COMMON_ARGS_COUNT> args;
+    args.reserve(llvm::size(func.args()));
+    for (const auto &indexedArg : llvm::enumerate(func.args())) {
+      llvm::Value *argIndex = llvm::Constant::getIntegerValue(
+          builder.getInt64Ty(), llvm::APInt(I64_BIT_SIZE, indexedArg.index()));
+      llvm::Value *argPtrPtr =
+          builder.CreateGEP(builder.getInt8PtrTy(), argList, argIndex);
+      llvm::Value *argPtr =
+          builder.CreateLoad(builder.getInt8PtrTy(), argPtrPtr);
+      llvm::Type *argTy = indexedArg.value().getType();
+      argPtr            = builder.CreateBitCast(argPtr, argTy->getPointerTo());
+      llvm::Value *arg  = builder.CreateLoad(argTy, argPtr);
+      args.push_back(arg);
+    }
 
-//     // Call the implementation function with the extracted arguments.
-//     llvm::Value *result = builder.CreateCall(&func, args);
+    // Call the implementation function with the extracted arguments.
+    llvm::Value *result = builder.CreateCall(&func, args);
 
-//     // Assuming the result is one value, potentially of type `void`.
-//     if (!result->getType()->isVoidTy()) {
-//       llvm::Value *retIndex = llvm::Constant::getIntegerValue(
-//           builder.getInt64Ty(),
-//           llvm::APInt(I64_BIT_SIZE, llvm::size(func.args())));
-//       llvm::Value *retPtrPtr =
-//           builder.CreateGEP(builder.getInt8PtrTy(), argList, retIndex);
-//       llvm::Value *retPtr =
-//           builder.CreateLoad(builder.getInt8PtrTy(), retPtrPtr);
-//       retPtr = builder.CreateBitCast(retPtr,
-//       result->getType()->getPointerTo()); builder.CreateStore(result,
-//       retPtr);
-//     }
+    // Assuming the result is one value, potentially of type `void`.
+    if (!result->getType()->isVoidTy()) {
+      llvm::Value *retIndex = llvm::Constant::getIntegerValue(
+          builder.getInt64Ty(),
+          llvm::APInt(I64_BIT_SIZE, llvm::size(func.args())));
+      llvm::Value *retPtrPtr =
+          builder.CreateGEP(builder.getInt8PtrTy(), argList, retIndex);
+      llvm::Value *retPtr =
+          builder.CreateLoad(builder.getInt8PtrTy(), retPtrPtr);
+      retPtr = builder.CreateBitCast(retPtr, result->getType()->getPointerTo());
+      builder.CreateStore(result, retPtr);
+    }
 
-//     // The interface function returns void.
-//     builder.CreateRetVoid();
-//   }
-// };
+    // The interface function returns void.
+    builder.CreateRetVoid();
+  }
+};
 
 void ObjectCache::notifyObjectCompiled(const llvm::Module *m,
                                        llvm::MemoryBufferRef objBuffer) {
@@ -194,13 +193,13 @@ Halley::Halley(serene::SereneContext &ctx,
 
 llvm::Expected<void (*)(void **)> Halley::lookup(llvm::StringRef name) const {
   auto expectedSymbol = engine->lookup(makePackedFunctionName(name));
-
-  // JIT lookup may return an Error referring to strings stored internally by
-  // the JIT. If the Error outlives the ExecutionEngine, it would want have a
-  // dangling reference, which is currently caught by an assertion inside JIT
-  // thanks to hand-rolled reference counting. Rewrap the error message into a
-  // string before returning. Alternatively, ORC JIT should consider copying
-  // the string into the error message.
+  // auto expectedSymbol = engine->lookup(name);
+  //  JIT lookup may return an Error referring to strings stored internally by
+  //  the JIT. If the Error outlives the ExecutionEngine, it would want have a
+  //  dangling reference, which is currently caught by an assertion inside JIT
+  //  thanks to hand-rolled reference counting. Rewrap the error message into a
+  //  string before returning. Alternatively, ORC JIT should consider copying
+  //  the string into the error message.
   if (!expectedSymbol) {
     std::string errorMessage;
     llvm::raw_string_ostream os(errorMessage);
@@ -218,6 +217,19 @@ llvm::Expected<void (*)(void **)> Halley::lookup(llvm::StringRef name) const {
   }
 
   return fptr;
+}
+
+void createObjectFile(SereneContext &ctx, llvm::StringRef name,
+                      llvm::MemoryBufferRef objBuffer) {
+  std::string errorMessage;
+  auto file = mlir::openOutputFile(name, &errorMessage);
+  if (!file) {
+
+    panic(ctx, errorMessage);
+  }
+
+  file->os() << objBuffer.getBuffer();
+  file->keep();
 }
 
 llvm::Error Halley::invokePacked(llvm::StringRef name,
@@ -252,11 +264,11 @@ llvm::Optional<errors::ErrorTree> Halley::addNS(Namespace &ns,
   }
 
   auto tsm = std::move(maybeModule.getValue());
-  // tsm.withModuleDo([](llvm::Module &m) { packFunctionArguments(&m); });
+  tsm.withModuleDo([](llvm::Module &m) { packFunctionArguments(&m); });
 
   // TODO: Make sure that the data layout of the module is the same as the
   // engine
-
+  llvm::outs() << "aaaaa\n";
   cantFail(engine->addIRModule(std::move(tsm)));
   return llvm::None;
 };
@@ -277,6 +289,10 @@ llvm::Optional<errors::ErrorTree> Halley::addNS(llvm::StringRef nsname,
     return err.getValue();
   }
   return llvm::None;
+};
+
+void Halley::dumpToObjectFile(llvm::StringRef filename) {
+  cache->dumpToObjectFile(filename);
 };
 
 MaybeJIT Halley::make(SereneContext &serene_ctx,
@@ -375,7 +391,6 @@ MaybeJIT Halley::make(SereneContext &serene_ctx,
         std::move(*targetMachine), jitEngine->cache.get());
   };
 
-  // Create the LLJIT by calling the LLJITBuilder with 2 callbacks.
   auto jit =
       cantFail(llvm::orc::LLJITBuilder()
                    .setCompileFunctionCreator(compileFunctionCreator)

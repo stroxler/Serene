@@ -30,6 +30,7 @@
 // TODO: Remove it
 #include "serene/exprs/number.h"
 #include "serene/reader/reader.h"
+#include "serene/utils.h"
 
 #include <llvm/ADT/None.h>
 #include <llvm/Support/CommandLine.h>
@@ -123,8 +124,10 @@ SERENE_EXPORT exprs::MaybeNode eval(SereneContext &ctx, exprs::Ast &input) {
   // Get the anonymous expression's JITSymbol.
   auto sym = e(ctx.jit->lookup(tmp));
   llvm::outs() << "eval here\n";
+  // ctx.jit->dumpToObjectFile("/home/lxsameer/.tmp/");
 
-  sym((void **)3);
+  UNUSED(sym);
+  // sym((void **)3);
 
   // err = ctx.jit->addAst(input);
   // if (err) {

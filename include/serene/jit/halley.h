@@ -34,6 +34,7 @@
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
 #include <llvm/Support/CodeGen.h>
 #include <llvm/Support/Debug.h>
+#include <llvm/Support/SmallVectorMemoryBuffer.h>
 #include <mlir/Support/LLVM.h>
 
 #include <memory>
@@ -160,7 +161,6 @@ public:
     return invokePacked(adapterName, argsArray);
   };
 
-  /// Dump object code to output file `filename`.
   void dumpToObjectFile(llvm::StringRef filename);
 
   /// Register symbols with this ExecutionEngine.
