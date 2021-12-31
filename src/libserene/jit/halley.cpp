@@ -268,7 +268,6 @@ llvm::Optional<errors::ErrorTree> Halley::addNS(Namespace &ns,
 
   // TODO: Make sure that the data layout of the module is the same as the
   // engine
-  llvm::outs() << "aaaaa\n";
   cantFail(engine->addIRModule(std::move(tsm)));
   return llvm::None;
 };
