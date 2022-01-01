@@ -28,6 +28,7 @@
 #include "serene/slir/dialect.h"
 #include "serene/source_mgr.h"
 
+#include <llvm/ADT/DenseMap.h>
 #include <llvm/ADT/None.h>
 #include <llvm/ADT/Optional.h>
 #include <llvm/ADT/StringRef.h>
@@ -154,8 +155,20 @@ public:
   CompilationPhase getTargetPhase() { return targetPhase; };
   int getOptimizatioLevel();
 
+  /// Read a namespace with the given \p name and returne a share pointer
+  /// to the name or an Error tree.
+  ///
+  /// It just `read` the namespace by parsing it and running the semantic
+  /// analyzer on it.
   MaybeNS readNamespace(const std::string &name);
   MaybeNS readNamespace(const std::string &name, reader::LocationRange loc);
+
+  /// Reads and add the namespace with the given \p name to the context. The
+  /// namespace will be added to the context and the JIT engine as well.
+  ///
+  /// It will \r a shared pointer to the namespace or an error tree.
+  MaybeNS importNamespace(const std::string &name);
+  MaybeNS importNamespace(const std::string &name, reader::LocationRange loc);
 
   static std::unique_ptr<llvm::LLVMContext> genLLVMContext() {
     return std::make_unique<llvm::LLVMContext>();
@@ -181,9 +194,25 @@ public:
 
   llvm::Triple getTargetTriple() const { return llvm::Triple(targetTriple); };
 
+  // JIT JITDylib related functions ---
+
+  // TODO: For Dylib related functions, make sure that the namespace in questoin
+  //       is aleady registered in the context
+
+  /// Return a pointer to the most registered JITDylib of the given \p ns
+  ////name
+  llvm::orc::JITDylib *getLatestJITDylib(Namespace &ns);
+
+  /// Register the given pointer to a `JITDylib` \p l, with the give \p ns.
+  void pushJITDylib(Namespace &ns, llvm::orc::JITDylib *l);
+
+  /// Returns the number of registered `JITDylib` for the given \p ns.
+  size_t getNumberOfJITDylibs(Namespace &ns);
+
 private:
   CompilationPhase targetPhase;
 
+  // TODO: Change it to a LLVM::StringMap
   // The namespace table. Every namespace that needs to be compiled has
   // to register itself with the context and appear on this table.
   // This table acts as a cache as well.
@@ -192,6 +221,11 @@ private:
   // Why string vs pointer? We might rewrite the namespace and
   // holding a pointer means that it might point to the old version
   std::string current_ns;
+
+  /// A vector of pointers to all the jitDylibs for namespaces. Usually
+  /// There will be only one pre NS but in case of forceful reloads of a
+  /// namespace there will be more.
+  llvm::StringMap<llvm::SmallVector<llvm::orc::JITDylib *, 1>> jitDylibs;
 };
 
 /// Creates a new context object. Contexts are used through out the compilation

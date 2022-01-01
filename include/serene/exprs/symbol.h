@@ -37,11 +37,28 @@ class Symbol : public Expression {
 
 public:
   std::string name;
+  std::string nsName;
 
-  Symbol(reader::LocationRange &loc, llvm::StringRef name)
-      : Expression(loc), name(name){};
+  Symbol(reader::LocationRange &loc, llvm::StringRef name,
+         llvm::StringRef currentNS)
+      : Expression(loc) {
+    // IMPORTANT NOTE: the `name` and `currentNS` should be valid string and
+    //                 already validated.
+    auto partDelimiter = name.find('/');
+    if (partDelimiter == std::string::npos) {
+      nsName     = currentNS;
+      this->name = name;
 
-  Symbol(Symbol &s) : Expression(s.location) { this->name = s.name; }
+    } else {
+      this->name = name.substr(partDelimiter + 1, name.size());
+      nsName     = name.substr(0, partDelimiter);
+    }
+  };
+
+  Symbol(Symbol &s) : Expression(s.location) {
+    this->name   = s.name;
+    this->nsName = s.nsName;
+  }
 
   ExprType getType() const override;
   std::string toString() const override;

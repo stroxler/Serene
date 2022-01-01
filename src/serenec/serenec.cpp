@@ -330,7 +330,7 @@ int main(int argc, char *argv[]) {
   }
 
   auto runLoc  = reader::LocationRange::UnknownLocation(inputNS);
-  auto maybeNS = ctx->sourceManager.readNamespace(*ctx, inputNS, runLoc);
+  auto maybeNS = ctx->importNamespace(inputNS, runLoc);
 
   if (!maybeNS) {
     throwErrors(*ctx, maybeNS.getError());
@@ -338,8 +338,6 @@ int main(int argc, char *argv[]) {
   }
 
   auto ns = maybeNS.getValue();
-
-  ctx->insertNS(ns);
 
   switch (emitAction) {
   case Action::DumpAST:

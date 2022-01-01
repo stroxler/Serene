@@ -107,8 +107,58 @@ MaybeNS SereneContext::readNamespace(const std::string &name) {
 
 MaybeNS SereneContext::readNamespace(const std::string &name,
                                      reader::LocationRange loc) {
+
   return sourceManager.readNamespace(*this, name, loc);
 }
+
+MaybeNS SereneContext::importNamespace(const std::string &name) {
+  auto loc = reader::LocationRange::UnknownLocation(name);
+  return importNamespace(name, loc);
+}
+
+MaybeNS SereneContext::importNamespace(const std::string &name,
+                                       reader::LocationRange loc) {
+  auto maybeNS = readNamespace(name, loc);
+
+  if (maybeNS) {
+    auto &ns = maybeNS.getValue();
+    auto err = jit->addNS(*ns, loc);
+    if (err) {
+      return MaybeNS::error(err.getValue());
+    }
+    insertNS(ns);
+  }
+
+  return maybeNS;
+}
+
+llvm::orc::JITDylib *SereneContext::getLatestJITDylib(Namespace &ns) {
+  if (jitDylibs.count(ns.name) == 0) {
+    return nullptr;
+  }
+
+  auto vec = jitDylibs[ns.name];
+  return vec.empty() ? nullptr : vec.back();
+};
+
+void SereneContext::pushJITDylib(Namespace &ns, llvm::orc::JITDylib *l) {
+  if (jitDylibs.count(ns.name) == 0) {
+    llvm::SmallVector<llvm::orc::JITDylib *, 1> vec{l};
+    jitDylibs[ns.name] = vec;
+    return;
+  }
+  auto vec = jitDylibs[ns.name];
+  vec.push_back(l);
+  jitDylibs[ns.name] = vec;
+}
+
+size_t SereneContext::getNumberOfJITDylibs(Namespace &ns) {
+  if (jitDylibs.count(ns.name) == 0) {
+    return 0;
+  }
+  auto vec = jitDylibs[ns.name];
+  return vec.size();
+};
 
 void terminate(SereneContext &ctx, int exitCode) {
   UNUSED(ctx);

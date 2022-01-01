@@ -309,8 +309,12 @@ exprs::MaybeNode Reader::readSymbol() {
     break;
   }
 
+  // TODO: Make sure that the symbol has 0 or 1 '/'.
+
+  // TODO: Make sure that `/` is not at the start or at the end of the symbol
+
   loc.end = getCurrentLocation();
-  return exprs::makeSuccessfulNode<exprs::Symbol>(loc, sym);
+  return exprs::makeSuccessfulNode<exprs::Symbol>(loc, sym, this->ns);
 };
 
 /// Reads a list recursively

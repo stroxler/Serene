@@ -29,7 +29,7 @@ namespace exprs {
 ExprType Symbol::getType() const { return ExprType::Symbol; };
 
 std::string Symbol::toString() const {
-  return llvm::formatv("<Symbol {0}>", this->name);
+  return llvm::formatv("<Symbol {0}/{1}>", nsName, name);
 }
 
 MaybeNode Symbol::analyze(semantics::AnalysisState &state) {

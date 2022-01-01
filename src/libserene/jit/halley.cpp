@@ -31,12 +31,15 @@
 #include "serene/diagnostics.h"
 #include "serene/errors/constants.h"
 #include "serene/errors/error.h"
+#include "serene/exprs/symbol.h"
 #include "serene/namespace.h"
 #include "serene/utils.h"
 
+#include <llvm-c/Types.h>
 #include <llvm/ADT/None.h>
 #include <llvm/ADT/Optional.h>
 #include <llvm/ExecutionEngine/Orc/CompileUtils.h>
+#include <llvm/ExecutionEngine/Orc/Core.h>
 #include <llvm/ExecutionEngine/Orc/ExecutionUtils.h>
 #include <llvm/ExecutionEngine/Orc/IRCompileLayer.h>
 #include <llvm/ExecutionEngine/Orc/IRTransformLayer.h>
@@ -45,7 +48,10 @@
 #include <llvm/ExecutionEngine/SectionMemoryManager.h>
 #include <llvm/IR/Module.h>
 #include <llvm/Support/ErrorHandling.h>
+#include <llvm/Support/FormatVariadic.h>
+#include <llvm/Support/FormatVariadicDetails.h>
 #include <llvm/Support/ToolOutputFile.h>
+#include <llvm/Support/raw_ostream.h>
 #include <mlir/ExecutionEngine/ExecutionEngine.h>
 #include <mlir/Support/FileUtilities.h>
 
@@ -63,10 +69,10 @@ namespace jit {
 // TODO: Remove this function and replace it by our own version of
 //       error handler
 /// Wrap a string into an llvm::StringError.
-static llvm::Error make_string_error(const llvm::Twine &message) {
-  return llvm::make_error<llvm::StringError>(message.str(),
-                                             llvm::inconvertibleErrorCode());
-}
+// static llvm::Error make_string_error(const llvm::Twine &message) {
+//   return llvm::make_error<llvm::StringError>(message.str(),
+//                                              llvm::inconvertibleErrorCode());
+// }
 
 static std::string makePackedFunctionName(llvm::StringRef name) {
   return "_serene_" + name.str();
@@ -191,8 +197,17 @@ Halley::Halley(serene::SereneContext &ctx,
   assert(activeNS != nullptr && "Active NS is null!!!");
 };
 
-llvm::Expected<void (*)(void **)> Halley::lookup(llvm::StringRef name) const {
-  auto expectedSymbol = engine->lookup(makePackedFunctionName(name));
+MaybeJITPtr Halley::lookup(exprs::Symbol &sym) const {
+  auto *dylib = engine->getJITDylibByName(sym.nsName);
+
+  if (dylib == nullptr) {
+    return MaybeJITPtr::error(
+        errors::makeErrorTree(sym.location, errors::CantResolveSymbol,
+                              "Don't know about namespace: " + sym.nsName));
+  }
+
+  auto expectedSymbol =
+      engine->lookup(*dylib, makePackedFunctionName(sym.name));
   // auto expectedSymbol = engine->lookup(name);
   //  JIT lookup may return an Error referring to strings stored internally by
   //  the JIT. If the Error outlives the ExecutionEngine, it would want have a
@@ -205,7 +220,8 @@ llvm::Expected<void (*)(void **)> Halley::lookup(llvm::StringRef name) const {
     llvm::raw_string_ostream os(errorMessage);
     llvm::handleAllErrors(expectedSymbol.takeError(),
                           [&os](llvm::ErrorInfoBase &ei) { ei.log(os); });
-    return make_string_error(os.str());
+    return MaybeJITPtr::error(errors::makeErrorTree(
+        sym.location, errors::CantResolveSymbol, os.str()));
   }
 
   auto rawFPtr = expectedSymbol->getAddress();
@@ -213,11 +229,12 @@ llvm::Expected<void (*)(void **)> Halley::lookup(llvm::StringRef name) const {
   auto fptr = reinterpret_cast<void (*)(void **)>(rawFPtr);
 
   if (fptr == nullptr) {
-    return make_string_error("looked up function is null");
+    return MaybeJITPtr::error(errors::makeErrorTree(
+        sym.location, errors::CantResolveSymbol, "Lookup function is null!"));
   }
 
   return fptr;
-}
+};
 
 void createObjectFile(SereneContext &ctx, llvm::StringRef name,
                       llvm::MemoryBufferRef objBuffer) {
@@ -232,18 +249,18 @@ void createObjectFile(SereneContext &ctx, llvm::StringRef name,
   file->keep();
 }
 
-llvm::Error Halley::invokePacked(llvm::StringRef name,
-                                 llvm::MutableArrayRef<void *> args) const {
-  auto expectedFPtr = lookup(name);
-  if (!expectedFPtr) {
-    return expectedFPtr.takeError();
-  }
-  auto fptr = *expectedFPtr;
+// llvm::Error Halley::invokePacked(llvm::StringRef name,
+//                                  llvm::MutableArrayRef<void *> args) const {
+//   auto expectedFPtr = lookup(name);
+//   if (!expectedFPtr) {
+//     return expectedFPtr.takeError();
+//   }
+//   auto fptr = *expectedFPtr;
 
-  (*fptr)(args.data());
+//   (*fptr)(args.data());
 
-  return llvm::Error::success();
-}
+//   return llvm::Error::success();
+// }
 
 void Halley::registerSymbols(
     llvm::function_ref<llvm::orc::SymbolMap(llvm::orc::MangleAndInterner)>
@@ -256,6 +273,24 @@ void Halley::registerSymbols(
 
 llvm::Optional<errors::ErrorTree> Halley::addNS(Namespace &ns,
                                                 reader::LocationRange &loc) {
+
+  llvm::outs() << llvm::formatv("{0}#{1}", ns.name,
+                                ctx.getNumberOfJITDylibs(ns) + 1)
+               << "\n";
+  auto newDylib = engine->createJITDylib(
+      llvm::formatv("{0}#{1}", ns.name, ctx.getNumberOfJITDylibs(ns) + 1));
+
+  if (!newDylib) {
+    return errors::makeErrorTree(loc, errors::CompilationError,
+                                 "Filed to create dylib for " + ns.name);
+  }
+
+  ctx.pushJITDylib(ns, &(*newDylib));
+
+  llvm::outs() << llvm::formatv("{0}#{1}", ns.name,
+                                ctx.getNumberOfJITDylibs(ns) + 1)
+               << "\n";
+
   // TODO: Fix compileToLLVM to return proper errors
   auto maybeModule = ns.compileToLLVM();
 
@@ -268,25 +303,7 @@ llvm::Optional<errors::ErrorTree> Halley::addNS(Namespace &ns,
 
   // TODO: Make sure that the data layout of the module is the same as the
   // engine
-  cantFail(engine->addIRModule(std::move(tsm)));
-  return llvm::None;
-};
-
-llvm::Optional<errors::ErrorTree> Halley::addNS(llvm::StringRef nsname,
-                                                reader::LocationRange &loc) {
-  auto maybeNS = ctx.sourceManager.readNamespace(ctx, nsname.str(), loc);
-
-  if (!maybeNS) {
-    // TODO: Fix this by making Serene errors compatible with llvm::Error
-    auto err = maybeNS.getError();
-    return err;
-  }
-  auto &ns = maybeNS.getValue();
-  auto err = addNS(*ns, loc);
-
-  if (err) {
-    return err.getValue();
-  }
+  cantFail(engine->addIRModule(*newDylib, std::move(tsm)));
   return llvm::None;
 };
 

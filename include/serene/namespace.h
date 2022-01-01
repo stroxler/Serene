@@ -27,6 +27,9 @@
  * - The first env in the `environments` is the root env.
  */
 
+// TODO: Add a mechanism to figure out whether a namespace has changed or not
+//       either on memory or disk
+
 #ifndef SERENE_NAMESPACE_H
 #define SERENE_NAMESPACE_H
 
@@ -38,8 +41,10 @@
 #include "serene/utils.h"
 
 #include <llvm/ADT/SmallString.h>
+#include <llvm/ADT/SmallVector.h>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/ADT/Twine.h>
+#include <llvm/ExecutionEngine/Orc/Core.h>
 #include <llvm/ExecutionEngine/Orc/ThreadSafeModule.h>
 #include <llvm/IR/Module.h>
 #include <mlir/IR/Builders.h>
@@ -49,6 +54,7 @@
 #include <mlir/Support/LogicalResult.h>
 
 #include <atomic>
+#include <cstddef>
 #include <memory>
 #include <string>
 

@@ -24,6 +24,8 @@
 #include "serene/reader/traits.h"
 #include "serene/traits.h"
 
+#include <serene/export.h>
+
 #include <llvm/ADT/Optional.h>
 
 namespace serene::reader {
@@ -42,7 +44,7 @@ using OptionalErrors = llvm::Optional<ErrorTree>;
 /// This data structure represent the Lisp error. This type of expression
 /// doesn't show up in the AST but the compiler might rewrite the AST
 /// to contains error expressions
-class Error
+class SERENE_EXPORT Error
     : public WithTrait<Error, IError, reader::ILocatable, serene::IDebuggable> {
   reader::LocationRange location;
   ErrorVariant *variant;

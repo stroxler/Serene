@@ -25,6 +25,7 @@
 #define SERENE_JIT_HALLEY_H
 
 #include "serene/errors.h"
+#include "serene/errors/error.h"
 #include "serene/export.h"
 #include "serene/utils.h"
 
@@ -48,11 +49,15 @@ namespace serene {
 class SereneContext;
 class Namespace;
 
+namespace exprs {
+class Symbol;
+}
+
 namespace jit {
 class Halley;
 
-using MaybeJIT = llvm::Expected<std::unique_ptr<Halley>>;
-
+using MaybeJIT    = llvm::Expected<std::unique_ptr<Halley>>;
+using MaybeJITPtr = serene::Result<void (*)(void **), errors::ErrorTree>;
 /// A simple object cache following Lang's LLJITWithObjectCache example and
 /// MLIR's SimpelObjectCache.
 class ObjectCache : public llvm::ObjectCache {
@@ -98,13 +103,14 @@ public:
 
   /// Looks up a packed-argument function with the given name and returns a
   /// pointer to it.  Propagates errors in case of failure.
-  llvm::Expected<void (*)(void **)> lookup(llvm::StringRef name) const;
+  // llvm::Expected<void (*)(void **)> lookup(llvm::StringRef name) const;
+  MaybeJITPtr lookup(exprs::Symbol &sym) const;
 
   /// Invokes the function with the given name passing it the list of opaque
   /// pointers to the actual arguments.
-  llvm::Error
-  invokePacked(llvm::StringRef name,
-               llvm::MutableArrayRef<void *> args = llvm::None) const;
+  // llvm::Error
+  // invokePacked(llvm::StringRef name,
+  //              llvm::MutableArrayRef<void *> args = llvm::None) const;
 
   /// Trait that defines how a given type is passed to the JIT code. This
   /// defaults to passing the address but can be specialized.
@@ -149,17 +155,18 @@ public:
   ///     int32_t result = 0;
   ///     llvm::Error error = jit->invoke("foo", 42,
   ///                                     result(result));
-  template <typename... Args>
-  llvm::Error invoke(llvm::StringRef funcName, Args... args) {
-    const std::string adapterName = std::string("") + funcName.str();
-    llvm::SmallVector<void *> argsArray;
-    // Pack every arguments in an array of pointers. Delegate the packing to a
-    // trait so that it can be overridden per argument type.
-    // TODO: replace with a fold expression when migrating to C++17.
-    int dummy[] = {0, ((void)Argument<Args>::pack(argsArray, args), 0)...};
-    (void)dummy;
-    return invokePacked(adapterName, argsArray);
-  };
+  // template <typename... Args>
+  // llvm::Error invoke(llvm::StringRef funcName, Args... args) {
+  //   const std::string adapterName = std::string("") + funcName.str();
+  //   llvm::SmallVector<void *> argsArray;
+  //   // Pack every arguments in an array of pointers. Delegate the packing to
+  //   a
+  //   // trait so that it can be overridden per argument type.
+  //   // TODO: replace with a fold expression when migrating to C++17.
+  //   int dummy[] = {0, ((void)Argument<Args>::pack(argsArray, args), 0)...};
+  //   (void)dummy;
+  //   return invokePacked(adapterName, argsArray);
+  // };
 
   void dumpToObjectFile(llvm::StringRef filename);
 
@@ -169,8 +176,6 @@ public:
           symbolMap);
 
   llvm::Optional<errors::ErrorTree> addNS(Namespace &ns,
-                                          reader::LocationRange &loc);
-  llvm::Optional<errors::ErrorTree> addNS(llvm::StringRef nsname,
                                           reader::LocationRange &loc);
 
   Namespace &getActiveNS();

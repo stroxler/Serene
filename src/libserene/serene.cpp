@@ -25,14 +25,17 @@
 #include "serene/serene.h"
 
 #include "serene/diagnostics.h"
+#include "serene/errors/constants.h"
 #include "serene/exprs/expression.h"
 
 // TODO: Remove it
 #include "serene/exprs/number.h"
+#include "serene/jit/halley.h"
 #include "serene/reader/reader.h"
 #include "serene/utils.h"
 
 #include <llvm/ADT/None.h>
+#include <llvm/Support/Casting.h>
 #include <llvm/Support/CommandLine.h>
 #include <llvm/Support/Error.h>
 #include <llvm/Support/TargetSelect.h>
@@ -110,23 +113,33 @@ SERENE_EXPORT exprs::MaybeNode eval(SereneContext &ctx, exprs::Ast &input) {
   UNUSED(input);
 
   auto loc = reader::LocationRange::UnknownLocation("nsname");
-  auto err = ctx.jit->addNS("docs.examples.hello_world", loc);
 
-  if (err) {
-    auto es        = err.getValue();
+  auto ns = ctx.importNamespace("docs.examples.hello_world", loc);
+
+  if (!ns) {
+    auto es        = ns.getError();
     auto nsloadErr = errors::makeError(loc, errors::NSLoadError);
     es.push_back(nsloadErr);
     return exprs::MaybeNode::error(es);
   }
 
-  std::string tmp("main");
-  llvm::ExitOnError e;
-  // Get the anonymous expression's JITSymbol.
-  auto sym = e(ctx.jit->lookup(tmp));
-  llvm::outs() << "eval here\n";
-  // ctx.jit->dumpToObjectFile("/home/lxsameer/.tmp/");
+  auto e    = input[0];
+  auto *sym = llvm::dyn_cast<exprs::Symbol>(e.get());
 
-  UNUSED(sym);
+  if (sym == nullptr) {
+    return exprs::makeErrorNode(e->location, errors::UnknownError, "only sym");
+  }
+
+  llvm::outs() << "Read: " << sym->toString() << "\n";
+
+  // Get the anonymous expression's JITSymbol.
+  auto symptr = ctx.jit->lookup(*sym);
+  if (!symptr) {
+    return exprs::MaybeNode::error(symptr.getError());
+  }
+
+  llvm::outs() << "eval here\n";
+
   // sym((void **)3);
 
   // err = ctx.jit->addAst(input);

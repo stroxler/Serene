@@ -90,6 +90,13 @@ int main(int argc, char *argv[]) {
 
     auto x = serene::eval(*ctx, maybeAst.getValue());
 
+    if (!x.ok()) {
+      auto errs = x.getError();
+      for (auto &err : errs) {
+        llvm::errs() << err->getMessage() << "\n";
+      }
+      continue;
+    }
     serene::print(*ctx, maybeAst.getValue(), result);
     llvm::outs() << result << "\n";
 

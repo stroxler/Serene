@@ -123,7 +123,7 @@ llvm::Error NSLayer::add(orc::ResourceTrackerSP &rt, llvm::StringRef nsname,
                          reader::LocationRange &loc) {
 
   LAYER_LOG("Add namespace: " + nsname);
-  auto maybeNS = ctx.sourceManager.readNamespace(ctx, nsname.str(), loc);
+  auto maybeNS = ctx.readNamespace(nsname.str(), loc);
 
   if (!maybeNS) {
     // TODO: Fix this by making Serene errors compatible with llvm::Error
