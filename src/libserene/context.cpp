@@ -34,39 +34,31 @@ void SereneContext::insertNS(NSPtr &ns) {
   namespaces[nsName] = ns;
 };
 
-Namespace *SereneContext::getNS(llvm::StringRef ns_name) {
-  if (namespaces.count(ns_name.str()) != 0) {
-    return namespaces[ns_name.str()].get();
+Namespace *SereneContext::getNS(llvm::StringRef nsName) {
+  if (namespaces.count(nsName.str()) != 0) {
+    return namespaces[nsName.str()].get();
   }
 
   return nullptr;
 };
 
-bool SereneContext::setCurrentNS(llvm::StringRef ns_name) {
-  if (namespaces.count(ns_name.str()) != 0) {
-    this->current_ns = ns_name;
-    return true;
-  }
-
-  return false;
-};
-
 Namespace &SereneContext::getCurrentNS() {
-  if (this->current_ns.empty() || (namespaces.count(this->current_ns) == 0)) {
+  llvm::outs() << this->currentNS << "\n";
+  if (this->currentNS.empty() || (namespaces.count(this->currentNS) == 0)) {
     panic(*this, llvm::formatv("getCurrentNS: Namespace '{0}' does not exist",
-                               this->current_ns)
+                               this->currentNS)
                      .str());
   }
 
-  return *namespaces[this->current_ns];
+  return *namespaces[this->currentNS];
 };
 
-NSPtr SereneContext::getSharedPtrToNS(llvm::StringRef ns_name) {
-  if (namespaces.count(ns_name.str()) == 0) {
+NSPtr SereneContext::getSharedPtrToNS(llvm::StringRef nsName) {
+  if (namespaces.count(nsName.str()) == 0) {
     return nullptr;
   }
 
-  return namespaces[ns_name.str()];
+  return namespaces[nsName.str()];
 };
 
 void SereneContext::setOperationPhase(CompilationPhase phase) {
@@ -99,6 +91,17 @@ int SereneContext::getOptimizatioLevel() {
   return 3;
 }
 
+NSPtr SereneContext::makeNamespace(llvm::StringRef name,
+                                   llvm::Optional<llvm::StringRef> filename) {
+  auto ns = Namespace::make(*this, name, filename);
+
+  if (ns != nullptr) {
+    insertNS(ns);
+  }
+
+  return ns;
+};
+
 MaybeNS SereneContext::readNamespace(const std::string &name) {
   auto loc = reader::LocationRange::UnknownLocation(name);
 
@@ -108,7 +111,9 @@ MaybeNS SereneContext::readNamespace(const std::string &name) {
 MaybeNS SereneContext::readNamespace(const std::string &name,
                                      reader::LocationRange loc) {
 
-  return sourceManager.readNamespace(*this, name, loc);
+  return withCurrentNS<MaybeNS>(name, [&]() -> MaybeNS {
+    return this->sourceManager.readNamespace(*this, name, loc);
+  });
 }
 
 MaybeNS SereneContext::importNamespace(const std::string &name) {
@@ -138,6 +143,8 @@ llvm::orc::JITDylib *SereneContext::getLatestJITDylib(Namespace &ns) {
   }
 
   auto vec = jitDylibs[ns.name];
+  // TODO: Make sure that the returning Dylib still exists in the JIT
+  //       by calling jit->engine->getJITDylibByName(dylib_name);
   return vec.empty() ? nullptr : vec.back();
 };
 

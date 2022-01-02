@@ -198,7 +198,17 @@ Halley::Halley(serene::SereneContext &ctx,
 };
 
 MaybeJITPtr Halley::lookup(exprs::Symbol &sym) const {
-  auto *dylib = engine->getJITDylibByName(sym.nsName);
+  HALLEY_LOG("Looking up: " << sym.toString());
+  auto *ns = ctx.getNS(sym.nsName);
+
+  if (ns == nullptr) {
+    return MaybeJITPtr::error(errors::makeErrorTree(
+        sym.location, errors::CantResolveSymbol,
+        "Can't find the namespace in the context: " + sym.nsName));
+  }
+
+  auto *dylib = ctx.getLatestJITDylib(*ns);
+  //
 
   if (dylib == nullptr) {
     return MaybeJITPtr::error(
@@ -274,9 +284,10 @@ void Halley::registerSymbols(
 llvm::Optional<errors::ErrorTree> Halley::addNS(Namespace &ns,
                                                 reader::LocationRange &loc) {
 
-  llvm::outs() << llvm::formatv("{0}#{1}", ns.name,
-                                ctx.getNumberOfJITDylibs(ns) + 1)
-               << "\n";
+  HALLEY_LOG(llvm::formatv("Creating Dylib {0}#{1}", ns.name,
+                           ctx.getNumberOfJITDylibs(ns) + 1)
+             << "\n");
+
   auto newDylib = engine->createJITDylib(
       llvm::formatv("{0}#{1}", ns.name, ctx.getNumberOfJITDylibs(ns) + 1));
 
@@ -286,10 +297,6 @@ llvm::Optional<errors::ErrorTree> Halley::addNS(Namespace &ns,
   }
 
   ctx.pushJITDylib(ns, &(*newDylib));
-
-  llvm::outs() << llvm::formatv("{0}#{1}", ns.name,
-                                ctx.getNumberOfJITDylibs(ns) + 1)
-               << "\n";
 
   // TODO: Fix compileToLLVM to return proper errors
   auto maybeModule = ns.compileToLLVM();

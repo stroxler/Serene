@@ -261,8 +261,7 @@ int main(int argc, char *argv[]) {
 
   cl::ParseCommandLineOptions(argc, argv, banner);
 
-  auto ctx    = makeSereneContext();
-  auto userNS = makeNamespace(*ctx, "user", llvm::None);
+  auto ctx = makeSereneContext();
 
   applySereneCLOptions(*ctx);
 

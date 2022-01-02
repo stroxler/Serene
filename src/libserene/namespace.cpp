@@ -31,6 +31,8 @@
 #include "serene/semantics.h"
 #include "serene/slir/slir.h"
 
+#include <serene/export.h>
+
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/FormatVariadic.h>
 #include <llvm/Support/raw_ostream.h>
@@ -201,19 +203,11 @@ MaybeModule Namespace::compileToLLVMFromOffset(unsigned offset) {
   return llvm::None;
 };
 
+NSPtr Namespace::make(SereneContext &ctx, llvm::StringRef name,
+                      llvm::Optional<llvm::StringRef> filename) {
+  return std::make_shared<Namespace>(ctx, name, filename);
+};
+
 Namespace::~Namespace(){};
 
-NSPtr makeNamespace(SereneContext &ctx, llvm::StringRef name,
-                    llvm::Optional<llvm::StringRef> filename, bool setCurrent) {
-  auto nsPtr = std::make_shared<Namespace>(ctx, name, filename);
-
-  ctx.insertNS(nsPtr);
-
-  if (setCurrent) {
-    if (!ctx.setCurrentNS(nsPtr->name)) {
-      throw std::runtime_error("Couldn't set the current NS");
-    }
-  }
-  return nsPtr;
-};
 } // namespace serene

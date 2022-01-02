@@ -63,6 +63,7 @@
 
 namespace serene {
 class SereneContext;
+class Namespace;
 
 namespace exprs {
 class Expression;
@@ -70,6 +71,8 @@ using Node = std::shared_ptr<Expression>;
 using Ast  = std::vector<Node>;
 } // namespace exprs
 
+using NSPtr                = std::shared_ptr<Namespace>;
+using MaybeNS              = Result<NSPtr, errors::ErrorTree>;
 using MaybeModule          = llvm::Optional<llvm::orc::ThreadSafeModule>;
 using MaybeModuleOp        = llvm::Optional<mlir::OwningOpRef<mlir::ModuleOp>>;
 using SemanticEnv          = Environment<std::string, exprs::Node>;
@@ -80,8 +83,10 @@ using Forms                = std::vector<Form>;
 
 /// Serene's namespaces are the unit of compilation. Any code that needs to be
 /// compiled has to be in a namespace. The official way to create a new
-/// namespace is to use the `makeNamespace` function.
+/// namespace is to use the `makeNamespace` member function of `SereneContext`.
 class SERENE_EXPORT Namespace {
+  friend SereneContext;
+
 private:
   SereneContext &ctx;
 
@@ -97,6 +102,11 @@ private:
   SemanticEnvironments environments;
 
   std::vector<llvm::StringRef> symbolList;
+
+  /// Create a naw namespace with the given `name` and optional `filename` and
+  /// return a shared pointer to it in the given Serene context.
+  static NSPtr make(SereneContext &ctx, llvm::StringRef name,
+                    llvm::Optional<llvm::StringRef> filename);
 
 public:
   std::string name;
@@ -160,17 +170,6 @@ public:
 
   ~Namespace();
 };
-
-using NSPtr = std::shared_ptr<Namespace>;
-
-using MaybeNS = Result<NSPtr, errors::ErrorTree>;
-/// Create a naw namespace with the given `name` and optional `filename` and
-/// return a shared pointer to it in the given Serene context. If the
-/// `setCurrent` argument is set to true, the created NS will become the
-/// curret namespace in the context
-SERENE_EXPORT NSPtr makeNamespace(SereneContext &ctx, llvm::StringRef name,
-                                  llvm::Optional<llvm::StringRef> filename,
-                                  bool setCurrent = true);
 
 } // namespace serene
 

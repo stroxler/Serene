@@ -42,8 +42,10 @@
 #include <memory>
 
 #define DEFAULT_NS_NAME "serene.user"
+#define INTERNAL_NS     "serene.internal"
 
 namespace serene {
+class SereneContext;
 
 namespace reader {
 class LocationRange;
@@ -66,6 +68,8 @@ enum class CompilationPhase {
   O2,
   O3,
 };
+/// Terminates the serene compiler process in a thread safe manner
+SERENE_EXPORT void terminate(SereneContext &ctx, int exitCode);
 
 class SERENE_EXPORT SereneContext {
   struct Options {
@@ -79,6 +83,9 @@ class SERENE_EXPORT SereneContext {
   };
 
 public:
+  template <typename T>
+  using CurrentNSFn = std::function<T()>;
+
   // --------------------------------------------------------------------------
   // IMPORTANT:
   // These two contextes have to be the very first members of the class in
@@ -113,22 +120,32 @@ public:
   /// namespace with the same name.
   void insertNS(NSPtr &ns);
 
-  /// Sets the n ame of the current namespace in the context and return
-  /// a boolean indicating the status of this operation. The operation
-  /// will fail if the namespace does not exist in the namespace table.
-  bool setCurrentNS(llvm::StringRef ns_name);
+  /// Execute the given function \p f by setting the `currentNS`
+  /// to the given \p nsName. It will restore the value of `currentNS`
+  /// after \p f returned. It also passes the old value of `currentNS`
+  /// to \p f.
+  template <typename T>
+  T withCurrentNS(llvm::StringRef nsName, CurrentNSFn<T> f) {
+    assert(!currentNS.empty() && "The currentNS is not initialized!");
+    auto tmp        = this->currentNS;
+    this->currentNS = nsName.str();
+
+    T res           = f();
+    this->currentNS = tmp;
+    return res;
+  };
 
   /// Return the current namespace that is being processed at the moment
   Namespace &getCurrentNS();
 
   /// Lookup the namespace with the give name in the current context and
   /// return a pointer to it or a `nullptr` in it doesn't exist.
-  Namespace *getNS(llvm::StringRef ns_name);
+  Namespace *getNS(llvm::StringRef nsName);
 
   /// Lookup and return a shared pointer to the given \p ns_name. This
   /// method should be used only if you need to own the namespace as well
   /// and want to keep it long term (like the JIT).
-  NSPtr getSharedPtrToNS(llvm::StringRef ns_name);
+  NSPtr getSharedPtrToNS(llvm::StringRef nsName);
 
   SereneContext()
       : pm(&mlirContext), diagEngine(makeDiagnosticEngine(*this)),
@@ -138,9 +155,11 @@ public:
 
     // We need to create one empty namespace, so that the JIT can
     // start it's operation.
-    auto ns = makeNamespace(*this, DEFAULT_NS_NAME, llvm::None);
+    auto ns = Namespace::make(*this, DEFAULT_NS_NAME, llvm::None);
 
     insertNS(ns);
+    currentNS = ns->name;
+
     // TODO: Get the crash report path dynamically from the cli
     // pm.enableCrashReproducerGeneration("/home/lxsameer/mlir.mlir");
 
@@ -154,6 +173,13 @@ public:
 
   CompilationPhase getTargetPhase() { return targetPhase; };
   int getOptimizatioLevel();
+
+  // Namespace stuff ---
+
+  /// Create an empty namespace with the given \p name and optional \p filename
+  /// and then insert it into the context
+  NSPtr makeNamespace(llvm::StringRef name,
+                      llvm::Optional<llvm::StringRef> filename);
 
   /// Read a namespace with the given \p name and returne a share pointer
   /// to the name or an Error tree.
@@ -169,6 +195,7 @@ public:
   /// It will \r a shared pointer to the namespace or an error tree.
   MaybeNS importNamespace(const std::string &name);
   MaybeNS importNamespace(const std::string &name, reader::LocationRange loc);
+  // ---
 
   static std::unique_ptr<llvm::LLVMContext> genLLVMContext() {
     return std::make_unique<llvm::LLVMContext>();
@@ -189,6 +216,17 @@ public:
 
     ctx->jit.swap(*maybeJIT);
 
+    // Make serene.user which is the defult NS available on the
+    // JIT
+    auto loc = reader::LocationRange::UnknownLocation(INTERNAL_NS);
+    auto err = ctx->jit->addNS(*ns, loc);
+
+    // TODO: Fix this by calling to the diag engine
+    if (err) {
+      llvm::errs() << err.getValue().back()->getMessage() << "\n";
+      serene::terminate(*ctx, 1);
+      return nullptr;
+    }
     return ctx;
   };
 
@@ -213,6 +251,12 @@ private:
   CompilationPhase targetPhase;
 
   // TODO: Change it to a LLVM::StringMap
+  // TODO: We need to keep different instances of the namespace
+  //       because if any one of them gets cleaned up via reference
+  //       count (if we are still using shared ptr for namespaces if not
+  //       remove this todo) then we will end up with dangling references
+  //       it the JIT
+
   // The namespace table. Every namespace that needs to be compiled has
   // to register itself with the context and appear on this table.
   // This table acts as a cache as well.
@@ -220,7 +264,7 @@ private:
 
   // Why string vs pointer? We might rewrite the namespace and
   // holding a pointer means that it might point to the old version
-  std::string current_ns;
+  std::string currentNS;
 
   /// A vector of pointers to all the jitDylibs for namespaces. Usually
   /// There will be only one pre NS but in case of forceful reloads of a
@@ -231,9 +275,6 @@ private:
 /// Creates a new context object. Contexts are used through out the compilation
 /// process to store the state
 SERENE_EXPORT std::unique_ptr<SereneContext> makeSereneContext();
-
-/// Terminates the serene compiler process in a thread safe manner
-SERENE_EXPORT void terminate(SereneContext &ctx, int exitCode);
 
 } // namespace serene
 

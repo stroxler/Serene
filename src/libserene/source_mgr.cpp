@@ -122,7 +122,7 @@ MaybeNS SourceMgr::readNamespace(SereneContext &ctx, std::string name,
 
   // Create the NS and set the AST
   auto ns =
-      makeNamespace(ctx, name, llvm::Optional(llvm::StringRef(importedFile)));
+      ctx.makeNamespace(name, llvm::Optional(llvm::StringRef(importedFile)));
 
   auto errs = ns->addTree(maybeAst.getValue());
   if (errs) {
