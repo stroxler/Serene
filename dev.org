@@ -1,7 +1,7 @@
 #+TITLE: Serene Development
 #+AUTHOR: Sameer Rahmani
 #+SEQ_TODO: TODO(t/!) NEXT(n/!) BLOCKED(b@/!) | DONE(d%) WONT_DO(c@/!) FAILED(f@/!)
-#+TAGS: DOCS(d) EXAMPLES(e) serenecli(c) reader(r) context(x) Misc(m)
+#+TAGS: DOCS(d) EXAMPLES(e) serenecli(c) reader(r) context(x) Misc(m) JIT(j)
 #+STARTUP: logdrawer logdone logreschedule indent content align constSI entitiespretty nolatexpreview
 #+OPTIONS: tex:t
 #+HTML_MATHJAX: align: left indent: 5em tagside: left font: Neo-Eule
@@ -125,7 +125,9 @@ and recompile those functions with more optimization passes
 
 
 * TODOs
-
+** TODO Walk the module and register the symbols with the engine (lazy and nonlazy) :JIT:
+** TODO Change the compilation layer to accept MLIR modules instead of LLVM IR :JIT:
+This way we can fine tune MLIR's passes based on the JIT settings as well
 ** TODO Create a pass to rename functions to include the ns name
 ** TODO Use =const= where ever it makes sense
 ** TODO Create different pass pipeline for different compilation phases
