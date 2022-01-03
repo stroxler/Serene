@@ -93,6 +93,8 @@ class SERENE_EXPORT Halley {
 
   std::shared_ptr<Namespace> activeNS;
 
+  bool isLazy = false;
+
 public:
   Halley(serene::SereneContext &ctx, llvm::orc::JITTargetMachineBuilder &&jtmb,
          llvm::DataLayout &&dl);
@@ -101,6 +103,7 @@ public:
   static MaybeJIT make(serene::SereneContext &ctx,
                        llvm::orc::JITTargetMachineBuilder &&jtmb);
 
+  void setEngine(std::unique_ptr<llvm::orc::LLJIT> e, bool isLazy);
   /// Looks up a packed-argument function with the given name and returns a
   /// pointer to it.  Propagates errors in case of failure.
   // llvm::Expected<void (*)(void **)> lookup(llvm::StringRef name) const;

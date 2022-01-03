@@ -44,6 +44,7 @@
 #include <llvm/ExecutionEngine/Orc/IRCompileLayer.h>
 #include <llvm/ExecutionEngine/Orc/IRTransformLayer.h>
 #include <llvm/ExecutionEngine/Orc/JITTargetMachineBuilder.h>
+#include <llvm/ExecutionEngine/Orc/LLJIT.h>
 #include <llvm/ExecutionEngine/Orc/RTDyldObjectLinkingLayer.h>
 #include <llvm/ExecutionEngine/SectionMemoryManager.h>
 #include <llvm/IR/Module.h>
@@ -314,6 +315,13 @@ llvm::Optional<errors::ErrorTree> Halley::addNS(Namespace &ns,
   return llvm::None;
 };
 
+void Halley::setEngine(std::unique_ptr<llvm::orc::LLJIT> e, bool isLazy) {
+  // Later on we might use different classes of JIT which might need some
+  // work for lazyness
+  engine       = std::move(e);
+  this->isLazy = isLazy;
+};
+
 void Halley::dumpToObjectFile(llvm::StringRef filename) {
   cache->dumpToObjectFile(filename);
 };
@@ -414,13 +422,28 @@ MaybeJIT Halley::make(SereneContext &serene_ctx,
         std::move(*targetMachine), jitEngine->cache.get());
   };
 
-  auto jit =
-      cantFail(llvm::orc::LLJITBuilder()
-                   .setCompileFunctionCreator(compileFunctionCreator)
-                   .setObjectLinkingLayerCreator(objectLinkingLayerCreator)
-                   .create());
+  if (serene_ctx.opts.JITLazy) {
+    // Setup a LLLazyJIT instance to the times that latency is important
+    // for example in a REPL. This way
+    auto jit =
+        cantFail(llvm::orc::LLLazyJITBuilder()
+                     .setCompileFunctionCreator(compileFunctionCreator)
+                     .setObjectLinkingLayerCreator(objectLinkingLayerCreator)
+                     .create());
+    jitEngine->setEngine(std::move(jit), true);
 
-  jitEngine->engine = std::move(jit);
+  } else {
+    // Setup a LLJIT instance for the times that performance is important
+    // and we want to compile everything as soon as possible. For instance
+    // when we run the JIT in the compiler
+    auto jit =
+        cantFail(llvm::orc::LLJITBuilder()
+                     .setCompileFunctionCreator(compileFunctionCreator)
+                     .setObjectLinkingLayerCreator(objectLinkingLayerCreator)
+                     .create());
+
+    jitEngine->setEngine(std::move(jit), false);
+  }
 
   // Resolve symbols that are statically linked in the current process.
   llvm::orc::JITDylib &mainJD = jitEngine->engine->getMainJITDylib();
