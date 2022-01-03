@@ -157,11 +157,10 @@ ObjectCache::getObject(const llvm::Module *m) {
 
   if (i == cachedObjects.end()) {
     HALLEY_LOG("No object for " + m->getModuleIdentifier() +
-               " in cache. Compiling.\n");
+               " in cache. Compiling.");
     return nullptr;
   }
-  HALLEY_LOG("Object for " + m->getModuleIdentifier() +
-             " loaded from cache.\n");
+  HALLEY_LOG("Object for " + m->getModuleIdentifier() + " loaded from cache.");
   return llvm::MemoryBuffer::getMemBuffer(i->second->getMemBufferRef());
 }
 
@@ -286,8 +285,7 @@ llvm::Optional<errors::ErrorTree> Halley::addNS(Namespace &ns,
                                                 reader::LocationRange &loc) {
 
   HALLEY_LOG(llvm::formatv("Creating Dylib {0}#{1}", ns.name,
-                           ctx.getNumberOfJITDylibs(ns) + 1)
-             << "\n");
+                           ctx.getNumberOfJITDylibs(ns) + 1));
 
   auto newDylib = engine->createJITDylib(
       llvm::formatv("{0}#{1}", ns.name, ctx.getNumberOfJITDylibs(ns) + 1));
@@ -444,6 +442,16 @@ MaybeJIT Halley::make(SereneContext &serene_ctx,
 
     jitEngine->setEngine(std::move(jit), false);
   }
+
+  jitEngine->engine->getIRCompileLayer().setNotifyCompiled(
+      [&](llvm::orc::MaterializationResponsibility &r,
+          llvm::orc::ThreadSafeModule tsm) {
+        auto syms = r.getRequestedSymbols();
+        tsm.withModuleDo([&](llvm::Module &m) {
+          HALLEY_LOG("Compiled "
+                     << syms << " for the module: " << m.getModuleIdentifier());
+        });
+      });
 
   // Resolve symbols that are statically linked in the current process.
   llvm::orc::JITDylib &mainJD = jitEngine->engine->getMainJITDylib();

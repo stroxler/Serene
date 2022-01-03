@@ -73,8 +73,11 @@ SERENE_EXPORT void terminate(SereneContext &ctx, int exitCode);
 
 class SERENE_EXPORT SereneContext {
   struct Options {
+
     /// Whether to use colors for the output or not
-    bool withColors                        = true;
+    bool withColors = true;
+
+    // JIT related flags
     bool JITenableObjectCache              = true;
     bool JITenableGDBNotificationListener  = true;
     bool JITenablePerfNotificationListener = true;
