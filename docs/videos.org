@@ -583,7 +583,8 @@ I didn't show it in action
   - ...
 
 - LLVM provides a =SourceMgr= class that we're not using it
-* Episode 14 - JIT Basics
+* DONE Episode 14 - JIT Basics
+CLOSED: [2022-01-05 Wed 17:37]
 ** Updates:
 - Lost my data :_(
 - Fixed some compatibility issues
@@ -714,3 +715,93 @@ I didn't show it in action
   + LLJIT (Based on ORCv2)
   + LazyLLJIT (Based on LLJIT)
 - Use LLVM's ORCv2 directly to create an engine
+* Episode 15 - LLVM ORC JIT
+** Uptades:
+- Created a bare min JIT that:
+  - Eagrly compiles namespaces
+  - Reload namespacs
+- I guess this the time to start the Serene's Spec
+
+** What is ORCv2?
+- On request compiler
+- Replaces MCJIT
+- ORCv2 docs and examples
+- Kaleidoscope tutorial (not complete)
+
+Before We can move to Serene's code we need to understand ORC first
+
+** Terminology
+*** Execution Session
+A running JIT program. It contains the JITDylibs, error reporting mechanisms, and dispatches
+the materializers.
+
+*** JITAddress
+It's just an address of a JITed code
+
+*** JITDylib
+Represents a JIT'd dynamic library.
+
+This class aims to mimic the behavior of a shared object, but without requiring
+the contained program representations to be compiled up-front. The JITDylib's
+content is defined by adding MaterializationUnits, and contained MaterializationUnits
+will typically rely on the JITDylib's links-against order to resolve external references.
+
+JITDylibs cannot be moved or copied. Their address is stable, and useful as
+a key in some JIT data structures.
+
+*** MaterializationUnit
+  A =MaterializationUnit= represents a set of symbol definitions that can
+  be materialized as a group, or individually discarded (when
+  overriding definitions are encountered).
+
+  =MaterializationUnits= are used when providing lazy definitions of symbols to
+  JITDylibs. The JITDylib will call materialize when the address of a symbol
+  is requested via the lookup method. The =JITDylib= will call discard if a
+  stronger definition is added or already present.
+
+  MaterializationUnit stores in JITDylibs.
+
+*** MaterializationResponsibility
+  Represents and tracks responsibility for materialization and mediates interactions between
+  =MaterializationUnits= and =JITDylibs=. It provides a way for Dylib to find out about the outcome
+  of the materialization.
+
+*** Memory Manager
+A class that manages how JIT engine should use memory, like allocations and deallocations.
+=SectionMemoryManager= is a simple memory manager that is provided by ORC.
+
+*** Layers
+ORC based JIT engines are constructed from several layers. Each layer has a specific responsiblity
+and passes the result of its operation to the next layer. E.g Compile Layer, Link layer and ....
+
+*** Resource Tracker
+The API to remove or transfer the ownership of JIT resources. Usually, a resource is a module.
+
+*** ThreadSafeModule
+A thread safe container for the LLVM module.
+
+** ORC highlevel API
+- ORC provides a Layer based design to that let us create our own JIT engine.
+- It comes with two ready to use engines:
+  We will look at their implementaion later
+  + LLJIT
+  + LLLazyJIT
+
+** Two major solutions to build a JIT
+- Wrap LLJIT or LLLazyJIT
+- Create your own JIT engine and the wrapper
+
+** Resources
+*** Docs
+- https://www.llvm.org/docs/ORCv2.html
+
+*** Examples
+- https://github.com/llvm/llvm-project/tree/main/llvm/examples/HowToUseLLJIT
+- https://github.com/llvm/llvm-project/tree/main/llvm/examples/OrcV2Examples/LLJITDumpObjects
+- https://github.com/llvm/llvm-project/tree/main/llvm/examples/OrcV2Examples/LLJITWithInitializers
+- https://github.com/llvm/llvm-project/tree/main/llvm/examples/OrcV2Examples/LLJITWithLazyReexports
+
+*** Talks
+- [[https://www.youtube.com/watch?v=i-inxFudrgI][ORCv2 -- LLVM JIT APIs Deep Dive]]
+- [[https://www.youtube.com/watch?v=MOQG5vkh9J8][Updating ORC JIT for Concurrency]]
+- [[https://www.youtube.com/watch?v=hILdR8XRvdQ][ORC -- LLVM's Next Generation of JIT API]]
