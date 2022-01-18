@@ -462,6 +462,26 @@ MaybeJIT Halley::make(SereneContext &serene_ctx,
   return MaybeJIT(std::move(jitEngine));
 };
 
+llvm::Optional<errors::ErrorTree> Halley::addAST(exprs::Ast &ast) {
+  auto offset = activeNS->getTree().size();
+  auto errs   = activeNS->addTree(ast);
+
+  if (errs) {
+    return errs.getValue();
+  }
+
+  auto maybeModule = activeNS->compileToLLVMFromOffset(offset);
+
+  auto tsm = std::move(maybeModule.getValue());
+  tsm.withModuleDo([](llvm::Module &m) { packFunctionArguments(&m); });
+
+  auto *dylib = ctx.getLatestJITDylib(*activeNS);
+  // TODO: Make sure that the data layout of the module is the same as the
+  // engine
+  cantFail(engine->addIRModule(*dylib, std::move(tsm)));
+  return llvm::None;
+};
+
 Namespace &Halley::getActiveNS() { return *activeNS; };
 
 llvm::Expected<std::unique_ptr<Halley>> makeHalleyJIT(SereneContext &ctx) {

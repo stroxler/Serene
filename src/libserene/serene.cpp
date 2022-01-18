@@ -109,34 +109,37 @@ SERENE_EXPORT exprs::MaybeAst read(SereneContext &ctx, std::string &input) {
 
 SERENE_EXPORT exprs::MaybeNode eval(SereneContext &ctx, exprs::Ast &input) {
 
-  // TODO: Fix the eval function
-  UNUSED(input);
-
   auto loc = reader::LocationRange::UnknownLocation("nsname");
 
-  auto ns = ctx.importNamespace("docs.examples.hello_world", loc);
+  // auto ns = ctx.importNamespace("docs.examples.hello_world", loc);
 
-  if (!ns) {
-    auto es        = ns.getError();
-    auto nsloadErr = errors::makeError(loc, errors::NSLoadError);
-    es.push_back(nsloadErr);
-    return exprs::MaybeNode::error(es);
+  // if (!ns) {
+  //   auto es        = ns.getError();
+  //   auto nsloadErr = errors::makeError(loc, errors::NSLoadError);
+  //   es.push_back(nsloadErr);
+  //   return exprs::MaybeNode::error(es);
+  // }
+
+  auto errs = ctx.jit->addAST(input);
+  if (errs) {
+    return exprs::MaybeNode::error(errs.getValue());
   }
 
-  auto e    = input[0];
-  auto *sym = llvm::dyn_cast<exprs::Symbol>(e.get());
+  //   auto e    = input[0];
+  // auto *sym = llvm::dyn_cast<exprs::Symbol>(e.get());
 
-  if (sym == nullptr) {
-    return exprs::makeErrorNode(e->location, errors::UnknownError, "only sym");
-  }
+  // if (sym == nullptr) {
+  //   return exprs::makeErrorNode(e->location, errors::UnknownError, "only
+  //   sym");
+  // }
 
-  llvm::outs() << "Read: " << sym->toString() << "\n";
+  // llvm::outs() << "Read: " << sym->toString() << "\n";
 
-  // Get the anonymous expression's JITSymbol.
-  auto symptr = ctx.jit->lookup(*sym);
-  if (!symptr) {
-    return exprs::MaybeNode::error(symptr.getError());
-  }
+  // // Get the anonymous expression's JITSymbol.
+  // auto symptr = ctx.jit->lookup(*sym);
+  // if (!symptr) {
+  //   return exprs::MaybeNode::error(symptr.getError());
+  // }
 
   llvm::outs() << "eval here\n";
 

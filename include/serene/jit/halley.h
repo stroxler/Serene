@@ -27,6 +27,7 @@
 #include "serene/errors.h"
 #include "serene/errors/error.h"
 #include "serene/export.h"
+#include "serene/namespace.h"
 #include "serene/utils.h"
 
 #include <llvm/ADT/StringRef.h>
@@ -180,6 +181,8 @@ public:
 
   llvm::Optional<errors::ErrorTree> addNS(Namespace &ns,
                                           reader::LocationRange &loc);
+
+  llvm::Optional<errors::ErrorTree> addAST(exprs::Ast &ast);
 
   Namespace &getActiveNS();
 };

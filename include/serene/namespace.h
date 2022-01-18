@@ -147,7 +147,6 @@ public:
 
   SereneContext &getContext();
 
-  // TODO: Fix the return type and use a `llvm::Optional` instead
   /// Generate and return a MLIR ModuleOp tha contains the IR of the namespace
   /// with respect to the compilation phase
   MaybeModuleOp generate(unsigned offset = 0);
