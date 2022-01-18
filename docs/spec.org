@@ -1,0 +1,42 @@
+#+TITLE: Serene's Language Specification
+#+AUTHOR: Sameer Rahmani
+#+SEQ_TODO: TODO(t/!) | DONE(d%)
+#+TAGS:
+#+STARTUP: logdrawer logdone logreschedule indent content align constSI entitiespretty nolatexpreview
+#+OPTIONS: tex:t
+#+HTML_MATHJAX: align: left indent: 5em tagside: left font: Neo-Eule
+# book style has to be remapped to koma scripts scrbook
+#+LATEX_CLASS: book
+#+LATEX_HEADER: \usepackage[english]{babel}
+#+LATEX_CLASS_OPTIONS: [fontsize=11pt,paper=a5, pagesize=auto]
+#+LATEX_HEADER: \KOMAoptions{fontsize=11pt}
+#+LATEX_HEADER: \usepackage[utf8]{inputenc}
+#+LATEX_HEADER: \usepackage{microtype}
+#+LATEX_HEADER: \usepackage{pxfonts}
+
+#+LATEX_HEADER: \usepackage{amsmath}
+#+LATEX_HEADER: \usepackage{amssymb}
+#+LATEX_HEADER: \usepackage{mathabx}
+
+#+LATEX_HEADER: \usepackage{tcolorbox}
+#+LATEX_HEADER: \setlength{\parskip}{1em}
+
+#+LATEX_HEADER: \newtcolorbox{infobox}[2][]{colback=cyan!5!white,before skip=14pt,after skip=8pt,colframe=cyan!75!black,sharp corners,title={#2},#1}
+#+LATEX_HEADER: \newcommand\tab[1][1cm]{\hspace*{#1}}
+#+LATEX_HEADER: \let\oldsection\section
+#+LATEX_HEADER: \newcommand\caution[1]{\textcolor{blue}{\textbf{#1}}}
+#+LATEX_HEADER: \renewcommand\section{\pagebreak\oldsection}
+#+LATEX_HEADER: \hypersetup{hidelinks}
+
+#+LATEX_HEADER: \renewcommand{\contentsname}{Serene's Spec}
+
+\clearpage\null\newpage
+
+\chapter{Overview of Serene}
+
+* Basic Types
+
+* Unsorted
+** Eval
+Evaluating any form using =eval= will add the form to the namespace containing the
+=eval= expression.

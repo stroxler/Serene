@@ -29,7 +29,7 @@ namespace serene::slir {
   auto file = ns.filename;
   std::string filename{file.getValueOr("REPL")};
 
-  return mlir::FileLineColLoc::get(builder.getIdentifier(filename), loc.line,
+  return mlir::FileLineColLoc::get(builder.getStringAttr(filename), loc.line,
                                    loc.col);
 }
 

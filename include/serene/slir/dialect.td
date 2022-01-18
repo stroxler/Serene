@@ -22,6 +22,7 @@ def Serene_Dialect : Dialect {
         This dialect tries to map the special forms of a lisp into
         IR level operations.
     }];
+    let useDefaultTypePrinterParser = 1;
 }
 
 // Base class for Serene dialect operations. This operation inherits from the base
@@ -35,6 +36,22 @@ class Serene_Op<string mnemonic, list<OpTrait> traits = []> :
 
 // All of the types will extend this class.
 class Serene_Type<string name> : TypeDef<Serene_Dialect, name> { }
+
+
+def SereneSymbol : Serene_Type<"Symbol"> {
+    let mnemonic = "symbol";
+
+    let summary = "A Lisp symbol type";
+
+    let description = [{
+        A Lisp symbol type
+    }];
+
+    let parameters = (ins "std::string":$ns, "std::string":$name);
+    let assemblyFormat = "`<` $ns `,` $name `>`";
+}
+
+
 
 
 def ValueOp: Serene_Op<"value"> {
@@ -58,6 +75,20 @@ def ValueOp: Serene_Op<"value"> {
     ];
 }
 
+// Def
+def DefOp: Serene_Op<"def"> {
+
+    let summary = "This operation defines a global binding";
+    let description = [{
+        DefOp
+    }];
+
+    let arguments = (ins TypeAttr:$type,
+                         StrAttr:$name,
+                         OptionalAttr<StrAttr>:$sym_visibility);
+
+    let results = (outs SereneSymbol);
+}
 
 
 // TODO: Add the FunctionLike trait here and include its header file in dialect.h

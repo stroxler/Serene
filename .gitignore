@@ -24,3 +24,5 @@ bin/serenec_CXX_cotire.cmake
 
 docs/Doxyfile.docs
 .ccache/
+docs/spec.tex
+docs/spec.pdf

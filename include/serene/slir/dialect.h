@@ -18,6 +18,7 @@
 #ifndef SERENE_SLIR_DIALECT_H
 #define SERENE_SLIR_DIALECT_H
 
+#include <llvm/ADT/TypeSwitch.h>
 #include <mlir/IR/BuiltinOps.h>
 #include <mlir/IR/Dialect.h>
 #include <mlir/Interfaces/ControlFlowInterfaces.h>
@@ -26,12 +27,12 @@
 // Include the auto-generated header file containing the declaration of the
 // serene's dialect.
 #include "serene/slir/dialect.h.inc"
-
+#define GET_TYPEDEF_CLASSES
+#include "serene/slir/types.h.inc"
 // Include the auto-generated header file containing the declarations of the
 // serene's operations.
 // for more on GET_OP_CLASSES: https://mlir.llvm.org/docs/OpDefinitions/
 #define GET_OP_CLASSES
-
 #include "serene/slir/ops.h.inc"
 
 #endif // SERENE_SLIR_DIALECT_H
