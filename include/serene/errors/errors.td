@@ -6,10 +6,9 @@ class Error<string _title = "", string _desc = ""> {
 
 def Err : Error<"Err1 titel"> {
     let description = [{
-        err1
-        multiline
-        desc
-    }];
+err1
+multiline
+desc}];
 }
 
 def Err2 : Error {

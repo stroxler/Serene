@@ -19,7 +19,12 @@
 // The "serene/" part is due to a convention that we use in the project
 #include "serene/errors-backend.h"
 
+#include <llvm/Support/Casting.h>
 #include <llvm/Support/Format.h>
+#include <llvm/Support/LineIterator.h>
+#include <llvm/Support/MemoryBufferRef.h>
+#include <llvm/TableGen/Error.h>
+#include <llvm/TableGen/Record.h>
 
 #define DEBUG_TYPE "errors-backend"
 
@@ -39,11 +44,68 @@ public:
 }; // emitter class
 
 void ErrorsBackend::run(llvm::raw_ostream &os) {
+  int counter = 1;
+
   llvm::emitSourceFileHeader("Serene's Errors collection", os);
-  for (const auto &classPair : records.getClasses()) {
-    llvm::Record *classRec = classPair.second.get();
-    os << classRec << "--\n";
+
+  for (const auto &defPair : records.getDefs()) {
+    llvm::Record &defRec = *defPair.second;
+
+    if (!defRec.isSubClassOf("Error")) {
+      continue;
+    }
+
+    const auto recName = defRec.getName();
+
+    os << "class " << recName << " : public llvm::ErrorInfo<" << recName
+       << "> {\n";
+    os << "  static int ID = " << counter << ";\n";
+    for (const auto &val : defRec.getValues()) {
+      auto valName = val.getName();
+
+      if (!(valName == "title" || valName == "description")) {
+        llvm::PrintWarning("Only 'title' and 'description' are allowed.");
+        llvm::PrintWarning("Record: " + recName);
+        continue;
+      }
+      auto *stringVal = llvm::dyn_cast<llvm::StringInit>(val.getValue());
+
+      if (stringVal == nullptr) {
+        llvm::PrintError("The value of " + valName + " is not string.");
+        llvm::PrintError("Record: " + recName);
+        continue;
+      }
+
+      if (stringVal->getValue().empty()) {
+        llvm::PrintError("The value of " + valName + " is an empty string.");
+        llvm::PrintError("Record: " + recName);
+        continue;
+      }
+
+      os << "  static std::string " << valName << " = ";
+
+      const llvm::MemoryBufferRef value(stringVal->getValue(), valName);
+      llvm::line_iterator lines(value, false);
+      while (!lines.is_at_end()) {
+        if (lines.line_number() != 1) {
+          os << '\t';
+        }
+        auto prevLine = *lines;
+        lines++;
+        os << '"' << prevLine << '"';
+
+        if (lines.is_at_end()) {
+          os << ";\n";
+        } else {
+          os << '\n';
+        }
+      }
+    }
+
+    counter++;
+    os << "};\n\n";
   }
+
   (void)records;
 }
 
