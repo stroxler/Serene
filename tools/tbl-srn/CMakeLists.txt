@@ -16,8 +16,12 @@
 
 set(LLVM_LINK_COMPONENTS Support TableGen)
 
+#TODO: Make sure that we don't include the project wide header files
+#      path here
+include_directories(${PROJECT_SOURCE_DIR}/tools/tbl-srn)
+
 add_executable(tbl-srn
-  errors-backend.cpp
+  serene/errors-backend.cpp
   main.cpp
 )
 

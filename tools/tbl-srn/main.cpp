@@ -23,7 +23,7 @@
  * instances.
  */
 
-#include <errors-backend.h>
+#include "serene/errors-backend.h"
 
 #include <llvm/Support/CommandLine.h>
 #include <llvm/Support/InitLLVM.h>
@@ -34,18 +34,24 @@
 namespace cl = llvm::cl;
 
 namespace serene {
-enum ActionType { ErrorsBackend };
+enum ActionType { PrintRecords, ErrorsBackend };
 
-cl::opt<ActionType>
-    action(cl::desc("Action to perform:"),
-           cl::values(clEnumValN(
-               ErrorsBackend, "errors-backend",
-               "Generate a C++ file containing errors in the input file")));
+cl::opt<ActionType> action(
+    cl::desc("Action to perform:"),
+
+    cl::values(
+        clEnumValN(ErrorsBackend, "errors-backend",
+                   "Generate a C++ file containing errors in the input file"),
+        clEnumValN(PrintRecords, "print-records",
+                   "Print all records to stdout (default)")));
 
 bool llvmTableGenMain(llvm::raw_ostream &os, llvm::RecordKeeper &records) {
   switch (action) {
   case ErrorsBackend:
     emitErrors(records, os);
+    break;
+  case PrintRecords:
+    os << records;
     break;
   }
   return false;

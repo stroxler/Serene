@@ -16,7 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <errors-backend.h>
+// The "serene/" part is due to a convention that we use in the project
+#include "serene/errors-backend.h"
 
 #include <llvm/Support/Format.h>
 
@@ -39,7 +40,10 @@ public:
 
 void ErrorsBackend::run(llvm::raw_ostream &os) {
   llvm::emitSourceFileHeader("Serene's Errors collection", os);
-
+  for (const auto &classPair : records.getClasses()) {
+    llvm::Record *classRec = classPair.second.get();
+    os << classRec << "--\n";
+  }
   (void)records;
 }
 
