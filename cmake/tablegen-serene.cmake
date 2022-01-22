@@ -14,14 +14,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-add_subdirectory(libserene)
-add_subdirectory(serenec)
-add_subdirectory(serene-repl)
-
-
-# Testing only available if this is the main app
-# Emergency override SERENE_CMAKE_BUILD_TESTING provided as well
-if(SERENE_BUILD_TESTING)
-  message("Build the test binary")
-  add_subdirectory(src/tests)
-endif()
+function(serene_tablegen ofn)
+  tablegen(SERENE ${ARGV})
+  set(TABLEGEN_OUTPUT ${TABLEGEN_OUTPUT} ${CMAKE_CURRENT_BINARY_DIR}/${ofn}
+      PARENT_SCOPE)
+  include_directories(${CMAKE_CURRENT_BINARY_DIR})
+endfunction()

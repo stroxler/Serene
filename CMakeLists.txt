@@ -209,6 +209,21 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   include_directories(SYSTEM ${PROJECT_BINARY_DIR}/include)
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/include/)
 
+  # Make sure that our source directory is on the current cmake module path so
+  # that we can include cmake files from this directory.
+  list(INSERT CMAKE_MODULE_PATH 0
+  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/"
+  "${LLVM_COMMON_CMAKE_UTILS}/Modules"
+  )
+
+  include(tablegen-serene)
+
+  # Create the tools we use to compile Serene
+  add_subdirectory(tools)
+
+  # Make sure that serene_tablegen can use the tbl-srn result
+  set(SERENE_TABLEGEN_EXE "$<TARGET_FILE:tbl-srn>")
+
   # The compiled library code is here
   add_subdirectory(src)
   # The executable code is here

@@ -14,14 +14,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-add_subdirectory(libserene)
-add_subdirectory(serenec)
-add_subdirectory(serene-repl)
+set(LLVM_LINK_COMPONENTS Support TableGen)
 
+add_executable(tbl-srn
+  errors-backend.cpp
+  main.cpp
+)
 
-# Testing only available if this is the main app
-# Emergency override SERENE_CMAKE_BUILD_TESTING provided as well
-if(SERENE_BUILD_TESTING)
-  message("Build the test binary")
-  add_subdirectory(src/tests)
-endif()
+set(SERENE_TABLEGEN "tbl-srn" CACHE
+  STRING "Native TableGen executable. Saves building one when cross-compiling.")
+
+# Effective tblgen executable to be used:
+set(SERENE_TABLEGEN_EXE ${SERENE_TABLEGEN} PARENT_SCOPE)
+set(SERENE_TABLEGEN_TARGET ${SERENE_TABLEGEN} PARENT_SCOPE)
+
+target_link_libraries(tbl-srn PRIVATE LLVMTableGenGlobalISel)
+set_target_properties(tbl-srn PROPERTIES FOLDER "tbl-srn")
