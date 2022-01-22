@@ -24,6 +24,8 @@
 #include "serene/exprs/list.h"
 #include "serene/exprs/symbol.h"
 #include "serene/exprs/traits.h"
+#include "serene/slir/dialect.h"
+#include "serene/slir/utils.h"
 
 #include <llvm/Support/Casting.h>
 #include <llvm/Support/ErrorHandling.h>
@@ -115,6 +117,19 @@ void Def::generateIR(serene::Namespace &ns, mlir::ModuleOp &m) {
     value->generateIR(ns, m);
     return;
   }
+
+  // auto loc   = slir::toMLIRLocation(ns, location.start);
+  // auto &mctx = ns.getContext().mlirContext;
+
+  // mlir::OpBuilder builder(&mctx);
+
+  // auto sym = slir::SymbolType::get(&mctx, ns.name, binding);
+
+  // TODO: we need to change the generate method of expressions
+  //       to return mlir::Value or any wrapper of that which would
+  //       be the ssa form of the result of the expression.
+  //       and then use it to define the def op here.
+  // auto def = builder.create<slir::DefOp>(sym, binding, value);
   m.emitError("Def: not implemented!");
 };
 } // namespace exprs

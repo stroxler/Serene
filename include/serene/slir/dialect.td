@@ -83,8 +83,8 @@ def DefOp: Serene_Op<"def"> {
         DefOp
     }];
 
-    let arguments = (ins TypeAttr:$type,
-                         StrAttr:$name,
+    let arguments = (ins StrAttr:$name,
+                         AnyType:$value,
                          OptionalAttr<StrAttr>:$sym_visibility);
 
     let results = (outs SereneSymbol);
