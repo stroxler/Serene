@@ -40,14 +40,76 @@ private:
 public:
   ErrorsBackend(llvm::RecordKeeper &rk) : records(rk) {}
 
+  void createNSBody(llvm::raw_ostream &os);
+  void createErrorClass(const int id, llvm::Record &defRec,
+                        llvm::raw_ostream &os);
   void run(llvm::raw_ostream &os);
 }; // emitter class
 
-void ErrorsBackend::run(llvm::raw_ostream &os) {
+static void inNamespace(llvm::StringRef name, llvm::raw_ostream &os,
+                        std::function<void(llvm::raw_ostream &)> f) {
+  os << "namespace " << name << " {\n\n";
+  f(os);
+  os << "} // namespace " << name << "\n";
+};
+
+void ErrorsBackend::createErrorClass(const int id, llvm::Record &defRec,
+                                     llvm::raw_ostream &os) {
+  (void)records;
+
+  const auto recName = defRec.getName();
+
+  os << "class " << recName << " : public llvm::ErrorInfo<" << recName
+     << "> {\n";
+  os << "  static int ID = " << id << ";\n";
+
+  for (const auto &val : defRec.getValues()) {
+    auto valName = val.getName();
+
+    if (!(valName == "title" || valName == "description")) {
+      llvm::PrintWarning("Only 'title' and 'description' are allowed.");
+      llvm::PrintWarning("Record: " + recName);
+      continue;
+    }
+
+    auto *stringVal = llvm::dyn_cast<llvm::StringInit>(val.getValue());
+
+    if (stringVal == nullptr) {
+      llvm::PrintError("The value of " + valName + " is not string.");
+      llvm::PrintError("Record: " + recName);
+      continue;
+    }
+
+    if (stringVal->getValue().empty()) {
+      llvm::PrintError("The value of " + valName + " is an empty string.");
+      llvm::PrintError("Record: " + recName);
+      continue;
+    }
+
+    os << "  static std::string " << valName << " = ";
+
+    const llvm::MemoryBufferRef value(stringVal->getValue(), valName);
+    llvm::line_iterator lines(value, false);
+    while (!lines.is_at_end()) {
+      if (lines.line_number() != 1) {
+        os << '\t';
+      }
+      auto prevLine = *lines;
+      lines++;
+      os << '"' << prevLine << '"';
+
+      if (lines.is_at_end()) {
+        os << ";\n";
+      } else {
+        os << '\n';
+      }
+    }
+  }
+  os << "};\n\n";
+};
+
+void ErrorsBackend::createNSBody(llvm::raw_ostream &os) {
   int counter = 1;
-
-  llvm::emitSourceFileHeader("Serene's Errors collection", os);
-
   for (const auto &defPair : records.getDefs()) {
     llvm::Record &defRec = *defPair.second;
 
@@ -55,58 +117,21 @@ void ErrorsBackend::run(llvm::raw_ostream &os) {
       continue;
     }
 
-    const auto recName = defRec.getName();
-
-    os << "class " << recName << " : public llvm::ErrorInfo<" << recName
-       << "> {\n";
-    os << "  static int ID = " << counter << ";\n";
-    for (const auto &val : defRec.getValues()) {
-      auto valName = val.getName();
-
-      if (!(valName == "title" || valName == "description")) {
-        llvm::PrintWarning("Only 'title' and 'description' are allowed.");
-        llvm::PrintWarning("Record: " + recName);
-        continue;
-      }
-      auto *stringVal = llvm::dyn_cast<llvm::StringInit>(val.getValue());
-
-      if (stringVal == nullptr) {
-        llvm::PrintError("The value of " + valName + " is not string.");
-        llvm::PrintError("Record: " + recName);
-        continue;
-      }
-
-      if (stringVal->getValue().empty()) {
-        llvm::PrintError("The value of " + valName + " is an empty string.");
-        llvm::PrintError("Record: " + recName);
-        continue;
-      }
-
-      os << "  static std::string " << valName << " = ";
-
-      const llvm::MemoryBufferRef value(stringVal->getValue(), valName);
-      llvm::line_iterator lines(value, false);
-      while (!lines.is_at_end()) {
-        if (lines.line_number() != 1) {
-          os << '\t';
-        }
-        auto prevLine = *lines;
-        lines++;
-        os << '"' << prevLine << '"';
-
-        if (lines.is_at_end()) {
-          os << ";\n";
-        } else {
-          os << '\n';
-        }
-      }
-    }
+    createErrorClass(counter, defRec, os);
 
     counter++;
-    os << "};\n\n";
   }
 
   (void)records;
+}
+
+void ErrorsBackend::run(llvm::raw_ostream &os) {
+  (void)records;
+  llvm::emitSourceFileHeader("Serene's Errors collection", os);
+
+  os << "#include <llvm/Support/Error.h>\n\n";
+  inNamespace("serene::errors", os,
+              [&](llvm::raw_ostream &os) { createNSBody(os); });
 }
 
 void emitErrors(llvm::RecordKeeper &rk, llvm::raw_ostream &os) {
