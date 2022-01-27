@@ -1,6 +1,6 @@
 # Serene Programming Language
 #
-# Copyright (c) 2019-2021 Sameer Rahmani <lxsameer@gnu.org>
+# Copyright (c) 2019-2022 Sameer Rahmani <lxsameer@gnu.org>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

@@ -1,7 +1,7 @@
 /* -*- C++ -*-
  * Serene Programming Language
  *
- * Copyright (c) 2019-2021 Sameer Rahmani <lxsameer@gnu.org>
+ * Copyright (c) 2019-2022 Sameer Rahmani <lxsameer@gnu.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,8 +60,9 @@
 #ifndef SERENE_TRAITS_H
 #define SERENE_TRAITS_H
 
-#include <string>
 #include <type_traits>
+
+#include <string>
 
 namespace serene {
 

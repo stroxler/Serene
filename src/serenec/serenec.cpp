@@ -1,7 +1,7 @@
 /* -*- C++ -*-
  * Serene Programming Language
  *
- * Copyright (c) 2019-2021 Sameer Rahmani <lxsameer@gnu.org>
+ * Copyright (c) 2019-2022 Sameer Rahmani <lxsameer@gnu.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -70,7 +70,7 @@ enum Action {
 
 static std::string banner =
     llvm::formatv("\n\nSerene Compiler Version {0}"
-                  "\nCopyright (C) 2019-2021 "
+                  "\nCopyright (C) 2019-2022 "
                   "Sameer Rahmani <lxsameer@gnu.org>\n"
                   "Serene comes with ABSOLUTELY NO WARRANTY;\n"
                   "This is free software, and you are welcome\n"
