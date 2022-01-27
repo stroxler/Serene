@@ -110,7 +110,7 @@ else()
 endif()
 
 # Generate the tablegen ODS files before this target
-add_dependencies(serene tbl-srn SereneDialectGen ) #SereneErrorGen
+add_dependencies(serene SereneTablegen SereneDialectGen SereneErrorGen)
 
 # We need this directory, and users of our library will need it too
 target_include_directories(serene PUBLIC "$<BUILD_INTERFACE:${INCLUDE_DIR}>")

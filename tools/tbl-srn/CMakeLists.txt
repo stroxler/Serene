@@ -14,10 +14,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-set(LLVM_LINK_COMPONENTS Support TableGen)
-
-#TODO: Make sure that we don't include the project wide header files
-#      path here
 include_directories(${PROJECT_SOURCE_DIR}/tools/tbl-srn)
 
 add_executable(tbl-srn
@@ -25,12 +21,15 @@ add_executable(tbl-srn
   main.cpp
 )
 
-set(SERENE_TABLEGEN "tbl-srn" CACHE
+add_executable(SereneTablegen ALIAS tbl-srn)
+
+set(SERENE_TABLEGEN $<TARGET_FILE:tbl-srn> CACHE
   STRING "Native TableGen executable. Saves building one when cross-compiling.")
 
-# Effective tblgen executable to be used:
-set(SERENE_TABLEGEN_EXE ${SERENE_TABLEGEN} PARENT_SCOPE)
-set(SERENE_TABLEGEN_TARGET ${SERENE_TABLEGEN} PARENT_SCOPE)
+set(SERENE_TABLEGEN_EXE SereneTablegen
+  CACHE STRING "Where to find the tbl-srn binary")
+set(SERENE_TABLEGEN_TARGET SereneTablegen CACHE
+  STRING "Target name for the tbl-srn")
 
-target_link_libraries(tbl-srn PRIVATE LLVMTableGenGlobalISel)
+target_link_libraries(tbl-srn PRIVATE LLVMTableGenGlobalISel ${llvm_libs})
 set_target_properties(tbl-srn PROPERTIES FOLDER "tbl-srn")

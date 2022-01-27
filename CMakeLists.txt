@@ -25,7 +25,7 @@ project(Serene
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 # Policies ==========================
-cmake_policy(SET CMP0116 NEW)
+cmake_policy(SET CMP0116 OLD)
 
 # User Options ======================
 option(CPP_20_SUPPORT "C++20 Support" OFF)
@@ -44,6 +44,7 @@ option(SERENE_SHOW_LLVM_LIBS "Print all the llvm libs available" OFF)
 
 
 option(SERENE_WITH_MLIR_CL_OPTION "Add support for controlling MLIR via command line options" OFF)
+
 
 # Only do these if this is the main project, and not if it is included through add_subdirectory
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
@@ -212,17 +213,14 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   # Make sure that our source directory is on the current cmake module path so
   # that we can include cmake files from this directory.
   list(INSERT CMAKE_MODULE_PATH 0
-  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/"
-  "${LLVM_COMMON_CMAKE_UTILS}/Modules"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/"
+    "${LLVM_COMMON_CMAKE_UTILS}/Modules"
   )
 
   include(tablegen-serene)
 
   # Create the tools we use to compile Serene
   add_subdirectory(tools)
-
-  # Make sure that serene_tablegen can use the tbl-srn result
-  set(SERENE_TABLEGEN_EXE "$<TARGET_FILE:tbl-srn>")
 
   # The compiled library code is here
   add_subdirectory(src)

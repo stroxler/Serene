@@ -41,8 +41,7 @@ public:
   ErrorsBackend(llvm::RecordKeeper &rk) : records(rk) {}
 
   void createNSBody(llvm::raw_ostream &os);
-  void createErrorClass(const int id, llvm::Record &defRec,
-                        llvm::raw_ostream &os);
+  void createErrorClass(int id, llvm::Record &defRec, llvm::raw_ostream &os);
   void run(llvm::raw_ostream &os);
 }; // emitter class
 
@@ -59,9 +58,9 @@ void ErrorsBackend::createErrorClass(const int id, llvm::Record &defRec,
 
   const auto recName = defRec.getName();
 
-  os << "class " << recName << " : public llvm::ErrorInfo<" << recName
-     << "> {\n";
-  os << "  static int ID = " << id << ";\n";
+  os << "class " << recName << " : public SereneError<" << recName << "> {\n"
+     << "public:\n"
+     << "  static int ID = " << id << ";\n";
 
   for (const auto &val : defRec.getValues()) {
     auto valName = val.getName();
@@ -129,7 +128,9 @@ void ErrorsBackend::run(llvm::raw_ostream &os) {
   (void)records;
   llvm::emitSourceFileHeader("Serene's Errors collection", os);
 
-  os << "#include <llvm/Support/Error.h>\n\n";
+  os << "#inlude \"serene/errors/base.h\"\n\n#include "
+        "<llvm/Support/Error.h>\n\n";
+
   inNamespace("serene::errors", os,
               [&](llvm::raw_ostream &os) { createNSBody(os); });
 }
