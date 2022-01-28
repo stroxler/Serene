@@ -20,6 +20,7 @@
 #define SERENE_ERRORS_ERROR_H
 
 #include "serene/errors/constants.h"
+#include "serene/errors/errs.h.inc"
 #include "serene/errors/traits.h"
 #include "serene/reader/traits.h"
 #include "serene/traits.h"

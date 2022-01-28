@@ -60,7 +60,7 @@ void ErrorsBackend::createErrorClass(const int id, llvm::Record &defRec,
 
   os << "class " << recName << " : public SereneError<" << recName << "> {\n"
      << "public:\n"
-     << "  static int ID = " << id << ";\n";
+     << "  static const int ID = " << id << ";\n";
 
   for (const auto &val : defRec.getValues()) {
     auto valName = val.getName();
@@ -85,7 +85,7 @@ void ErrorsBackend::createErrorClass(const int id, llvm::Record &defRec,
       continue;
     }
 
-    os << "  static std::string " << valName << " = ";
+    os << "  inline static const std::string " << valName << " = ";
 
     const llvm::MemoryBufferRef value(stringVal->getValue(), valName);
     llvm::line_iterator lines(value, false);
@@ -128,7 +128,7 @@ void ErrorsBackend::run(llvm::raw_ostream &os) {
   (void)records;
   llvm::emitSourceFileHeader("Serene's Errors collection", os);
 
-  os << "#inlude \"serene/errors/base.h\"\n\n#include "
+  os << "#include \"serene/errors/base.h\"\n\n#include "
         "<llvm/Support/Error.h>\n\n";
 
   inNamespace("serene::errors", os,

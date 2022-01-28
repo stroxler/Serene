@@ -37,8 +37,8 @@ public:
 
   void log(llvm::raw_ostream &os) const { os << msg; };
   std::string message() const override { return msg; };
-  std::string &getTitle() const override { return T::title; };
-  std::string &getDesc() const override { return T::description; };
+  std::string &getTitle() const { return T::title; };
+  std::string &getDesc() const { return T::description; };
   std::error_code convertToErrorCode() const { return std::error_code(); };
 
   SereneError(reader::LocationRange &loc, std::string &msg)
