@@ -715,7 +715,8 @@ CLOSED: [2022-01-05 Wed 17:37]
   + LLJIT (Based on ORCv2)
   + LazyLLJIT (Based on LLJIT)
 - Use LLVM's ORCv2 directly to create an engine
-* Episode 15 - LLVM ORC JIT
+* DONE Episode 15 - LLVM ORC JIT
+CLOSED: [2022-01-28 Fri 12:15]
 ** Uptades:
 - Created a bare min JIT that:
   - Eagrly compiles namespaces
@@ -805,3 +806,120 @@ A thread safe container for the LLVM module.
 - [[https://www.youtube.com/watch?v=i-inxFudrgI][ORCv2 -- LLVM JIT APIs Deep Dive]]
 - [[https://www.youtube.com/watch?v=MOQG5vkh9J8][Updating ORC JIT for Concurrency]]
 - [[https://www.youtube.com/watch?v=hILdR8XRvdQ][ORC -- LLVM's Next Generation of JIT API]]
+* Eposide 16 - ORC Layers
+** Updates:
+*** Support for adding AST directly to the JIT
+*** Minor change to SLIR (big changes are coming)
+*** Started to unify the llvm::Errors with Serene errors
+*** Tablegen backend for error classes
+** The plan for today
+- We had a brief look at LLJIT/LLLazyJIT
+- Better understanding
+  To understand them better we need to understand other components first. Starting from *layers*.
+- We'll have a look at how to define our own layers in the future episodes.
+
+** What are Layers?
+- Layers are the basic blocks of an engine
+- They are composable (kinda)
+- Each layer has it's own requirements and details
+- Each layer holds a reference to it's downstream layer
+
+#+NAME: ep-16-jit-1
+#+BEGIN_SRC graphviz-dot :file /tmp/ep16-1.svg :cmdline -Kdot -Tsvg
+  digraph {
+    graph [bgcolor=transparent]
+    node [color=gray80 shape="box"]
+    edge [color=gray80]
+    rankdir = "LR"
+
+    a[label="Input Type A"]
+    b[label="Input Type B"]
+    c[label="Layer A"]
+    d[label="Layer B"]
+    e[label="Layer C"]
+    f[label="Layer D"]
+    g[label="Layer E"]
+    h[label="Target Code"]
+    a -> c
+    b -> d
+
+    subgraph cluster0 {
+        color=lightgrey;
+        c -> e
+        d -> e
+        e -> f
+        f -> g
+
+        label = "JIT Engine";
+    }
+
+    g -> h
+  }
+#+END_SRC
+
+#+RESULTS: ep-16-jit-1
+[[file:/tmp/ep16-1.svg]]
+
+** Kaleidoscope JIT
+
+- Chapter 1
+
+#+NAME: ep-16-jit-2
+#+BEGIN_SRC graphviz-dot :file /tmp/ep16-2.svg :cmdline -Kdot -Tsvg
+  digraph {
+    graph [bgcolor=transparent]
+    node [color=gray80 shape="box"]
+    edge [color=gray80]
+    rankdir = "LR"
+
+    a[label="LLVM IR Module"]
+    b[label="Compiler Layer"]
+    c[label="Object Layer"]
+    d[label="Target Code"]
+
+    a -> b
+
+    subgraph cluster0 {
+        color=lightgrey;
+        b -> c
+
+        label = "Kaleidoscope JIT";
+    }
+
+    c -> d
+  }
+#+END_SRC
+
+#+RESULTS: ep-16-jit-2
+[[file:/tmp/ep16-2.svg]]
+
+- Chapter 2
+#+NAME: ep-16-jit-3
+#+BEGIN_SRC graphviz-dot :file /tmp/ep16-3.svg :cmdline -Kdot -Tsvg
+  digraph {
+    graph [bgcolor=transparent]
+    node [color=gray80 shape="box"]
+    edge [color=gray80]
+    rankdir = "LR"
+
+    a[label="LLVM IR Module"]
+    b[label="Compiler Layer"]
+    c[label="Object Layer"]
+    e[label="Target Code"]
+    d[label="Optimize layer"]
+    a -> d
+
+    subgraph cluster0 {
+        color=lightgrey;
+        d -> b
+        b -> c
+
+        label = "Kaleidoscope JIT";
+    }
+
+    c -> e
+  }
+#+END_SRC
+
+#+RESULTS: ep-16-jit-3
+[[file:/tmp/ep16-3.svg]]
