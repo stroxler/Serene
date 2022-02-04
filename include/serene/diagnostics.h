@@ -19,8 +19,7 @@
 #ifndef SERENE_DIAGNOSTICS_H
 #define SERENE_DIAGNOSTICS_H
 
-#include "serene/errors/constants.h"
-#include "serene/errors/error.h"
+#include "serene/errors.h"
 #include "serene/reader/location.h"
 #include "serene/source_mgr.h"
 
@@ -51,16 +50,15 @@ class Diagnostic {
   SereneContext &ctx;
   reader::LocationRange loc;
   std::string fn;
-  errors::ErrorVariant *err = nullptr;
-  Type type                 = Type::Error;
+  llvm::Error *err = nullptr;
+  Type type        = Type::Error;
   std::string message, lineContents;
 
   std::string getPrefix(llvm::StringRef prefix = "");
 
 public:
-  Diagnostic(SereneContext &ctx, reader::LocationRange loc,
-             errors::ErrorVariant *e, llvm::StringRef msg,
-             llvm::StringRef fn = "")
+  Diagnostic(SereneContext &ctx, reader::LocationRange loc, llvm::Error *e,
+             llvm::StringRef msg, llvm::StringRef fn = "")
       : ctx(ctx), loc(loc), fn(fn), err(e), message(msg){};
 
 protected:
@@ -73,7 +71,7 @@ class DiagnosticEngine {
 
   mlir::DiagnosticEngine &diagEngine;
 
-  Diagnostic toDiagnostic(reader::LocationRange loc, errors::ErrorVariant &e,
+  Diagnostic toDiagnostic(reader::LocationRange loc, llvm::Error &e,
                           llvm::StringRef msg, llvm::StringRef fn = "");
 
   void print(llvm::raw_ostream &os, Diagnostic &d);
@@ -82,11 +80,10 @@ public:
   DiagnosticEngine(SereneContext &ctx);
 
   void enqueueError(llvm::StringRef msg);
-  void emitSyntaxError(reader::LocationRange loc, errors::ErrorVariant &e,
+  void emitSyntaxError(reader::LocationRange loc, llvm::Error &e,
                        llvm::StringRef msg = "");
 
-  void emit(const errors::ErrorPtr &err);
-  void emit(const errors::ErrorTree &errs);
+  void emit(const llvm::Error &err);
 
   /// Throw out an error with the given `msg` and terminate the execution
   void panic(llvm::StringRef msg);
@@ -99,8 +96,8 @@ std::unique_ptr<DiagnosticEngine> makeDiagnosticEngine(SereneContext &ctx);
 /// Throw out an error with the given `msg` and terminate the execution.
 SERENE_EXPORT void panic(SereneContext &ctx, llvm::StringRef msg);
 
-/// Throw the give `ErrorTree` \p errs and terminate the execution.
-SERENE_EXPORT void throwErrors(SereneContext &ctx, errors::ErrorTree &errs);
+/// Throw the give `llvm::Error` \p errs to the stderr.
+SERENE_EXPORT void throwErrors(SereneContext &ctx, llvm::Error &errs);
 } // namespace serene
 
 #endif

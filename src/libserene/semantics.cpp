@@ -22,6 +22,8 @@
 #include "serene/exprs/expression.h"
 #include "serene/namespace.h"
 
+#include <llvm/Support/Error.h>
+
 namespace serene::semantics {
 
 std::unique_ptr<AnalysisState> AnalysisState::moveToNewEnv() {
@@ -30,7 +32,7 @@ std::unique_ptr<AnalysisState> AnalysisState::moveToNewEnv() {
 };
 
 AnalyzeResult analyze(AnalysisState &state, exprs::Ast &forms) {
-  errors::ErrorTree errors;
+  llvm::Error errors = llvm::Error::success();
   exprs::Ast ast;
 
   for (auto &element : forms) {
@@ -38,7 +40,7 @@ AnalyzeResult analyze(AnalysisState &state, exprs::Ast &forms) {
 
     // Is it a `success` result
     if (maybeNode) {
-      auto &node = maybeNode.getValue();
+      auto &node = *maybeNode;
 
       if (node) {
         // is there a new node to replace the current node ?
@@ -53,15 +55,17 @@ AnalyzeResult analyze(AnalysisState &state, exprs::Ast &forms) {
       // `analyze` returned an errorful result. This type of error
       // is llvm related and has to be raised later
       // (std::move());
-      auto errVector = maybeNode.getError();
-      errors.insert(errors.end(), errVector.begin(), errVector.end());
+      auto err = maybeNode.takeError();
+      errors   = llvm::joinErrors(std::move(errors), std::move(err));
     }
   }
 
-  if (errors.empty()) {
-    return AnalyzeResult::success(std::move(ast));
+  // If the errors (which is an ErrorList) contains error and is
+  // not succssful
+  if (!errors) {
+    return std::move(ast);
   }
 
-  return AnalyzeResult::error(std::move(errors));
+  return std::move(errors);
 };
 }; // namespace serene::semantics

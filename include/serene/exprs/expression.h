@@ -20,13 +20,14 @@
 #define SERENE_EXPRS_EXPRESSION_H
 
 #include "serene/context.h"
-#include "serene/errors/error.h"
+#include "serene/errors.h"
 #include "serene/exprs/traits.h"
 #include "serene/namespace.h"
 #include "serene/reader/location.h"
 #include "serene/semantics.h"
 #include "serene/utils.h"
 
+#include <llvm/Support/Error.h>
 #include <mlir/IR/BuiltinOps.h>
 
 #include <memory>
@@ -40,12 +41,12 @@ namespace exprs {
 class Expression;
 
 using Node      = std::shared_ptr<Expression>;
-using MaybeNode = Result<Node, errors::ErrorTree>;
+using MaybeNode = llvm::Expected<Node>;
 
 using Ast      = std::vector<Node>;
-using MaybeAst = Result<Ast, errors::ErrorTree>;
+using MaybeAst = llvm::Expected<Ast>;
 
-static auto EmptyNode = MaybeNode::success(nullptr);
+static auto EmptyNode = nullptr;
 
 /// The base class of the expressions which provides the common interface for
 /// the expressions to implement.
@@ -111,34 +112,25 @@ std::shared_ptr<T> makeAndCast(Args &&...args) {
   return std::make_shared<T>(std::forward<Args>(args)...);
 };
 
-/// The helper function to create a new `Node` and use that as the success case
-// of a `Result`. It should be useds where every we want to return a `MaybeNode`
-/// successfully
+/// The helper function to create a new `Node` and returnsit. It should be useds
+/// where every we want to return a `MaybeNode` successfully.
 template <typename T, typename... Args>
-Result<Node, errors::ErrorTree> makeSuccessfulNode(Args &&...args) {
-  return Result<Node, errors::ErrorTree>::success(
-      make<T>(std::forward<Args>(args)...));
+MaybeNode makeSuccessfulNode(Args &&...args) {
+  return make<T>(std::forward<Args>(args)...);
 };
 
-/// The hlper function to create an Errorful `Result<T,...>` (`T` would be
-/// either `Node` or `Ast` most of the time) with just one error created from
-/// passing any argument to this function to the `serene::errors::Error`
-/// constructor.
-template <typename T, typename... Args>
-Result<T, errors::ErrorTree> makeErrorful(Args &&...args) {
-  std::vector<errors::ErrorPtr> v{
-      std::move(makeAndCast<errors::Error>(std::forward<Args>(args)...))};
-  return Result<T, errors::ErrorTree>::error(v);
+/// The hlper function to creates an Error (`llvm::Error`) by passing all
+/// the given arguments to the constructor of the template param `E`.
+template <typename E, typename T = Node, typename... Args>
+llvm::Expected<T> makeErrorful(Args &&...args) {
+  return llvm::make_error<E>(std::forward<Args>(args)...);
 };
 
-/// The hlper function to create an Error node (The failure case of a MaybeNod)
-/// with just one error created from passing any argument to this function to
-/// the `serene::errors::Error` constructor.
-template <typename... Args>
+/// The hlper function to creates an Error (`llvm::Error`) by passing all
+/// the given arguments to the constructor of the template param `E`.
+template <typename E, typename... Args>
 MaybeNode makeErrorNode(Args &&...args) {
-  std::vector<errors::ErrorPtr> v{
-      std::move(makeAndCast<errors::Error>(std::forward<Args>(args)...))};
-  return MaybeNode::error(v);
+  return makeErrorful<E, Node>(std::forward<Args>(args)...);
 };
 
 /// Convert the given AST to string by calling the `toString` method

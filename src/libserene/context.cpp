@@ -126,11 +126,11 @@ MaybeNS SereneContext::importNamespace(const std::string &name,
   auto maybeNS = readNamespace(name, loc);
 
   if (maybeNS) {
-    auto &ns = maybeNS.getValue();
-    auto err = jit->addNS(*ns, loc);
-    if (err) {
-      return MaybeNS::error(err.getValue());
+    auto &ns = *maybeNS;
+    if (auto err = jit->addNS(*ns, loc)) {
+      return err;
     }
+
     insertNS(ns);
   }
 

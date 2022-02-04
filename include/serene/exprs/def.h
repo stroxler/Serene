@@ -20,7 +20,7 @@
 #define SERENE_EXPRS_DEF_H
 
 #include "serene/context.h"
-#include "serene/errors/error.h"
+#include "serene/errors.h"
 #include "serene/exprs/expression.h"
 
 #include <llvm/ADT/StringRef.h>

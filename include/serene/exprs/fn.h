@@ -20,7 +20,7 @@
 #define SERENE_EXPRS_FN_H
 
 #include "serene/context.h"
-#include "serene/errors/error.h"
+#include "serene/errors.h"
 #include "serene/exprs/expression.h"
 #include "serene/exprs/list.h"
 #include "serene/namespace.h"

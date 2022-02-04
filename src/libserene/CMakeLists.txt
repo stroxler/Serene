@@ -50,12 +50,10 @@ add_library(serene
   jit/layers.cpp
   jit/halley.cpp
 
+  errors.cpp
 
   # Reader
   reader/reader.cpp
-
-  # Errors
-  errors/error.cpp
 
   # IR
   slir/slir.cpp

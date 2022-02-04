@@ -24,6 +24,7 @@
 #include "serene/utils.h"
 
 #include <llvm/ADT/StringRef.h>
+#include <llvm/Support/Error.h>
 #include <llvm/Support/FormatAdapters.h>
 #include <llvm/Support/FormatVariadic.h>
 #include <llvm/Support/WithColor.h>
@@ -158,8 +159,7 @@ void DiagnosticEngine::print(llvm::raw_ostream &os, Diagnostic &d) {
 };
 
 Diagnostic DiagnosticEngine::toDiagnostic(reader::LocationRange loc,
-                                          errors::ErrorVariant &e,
-                                          llvm::StringRef msg,
+                                          llvm::Error &e, llvm::StringRef msg,
                                           llvm::StringRef fn) {
 
   return Diagnostic(ctx, loc, &e, msg, fn);
@@ -171,8 +171,7 @@ void DiagnosticEngine::enqueueError(llvm::StringRef msg) {
 };
 
 void DiagnosticEngine::emitSyntaxError(reader::LocationRange loc,
-                                       errors::ErrorVariant &e,
-                                       llvm::StringRef msg) {
+                                       llvm::Error &e, llvm::StringRef msg) {
   Diagnostic diag(ctx, loc, &e, msg);
 
   diag.print(llvm::errs(), "SyntaxError");
@@ -203,23 +202,27 @@ std::unique_ptr<DiagnosticEngine> makeDiagnosticEngine(SereneContext &ctx) {
   return std::make_unique<DiagnosticEngine>(ctx);
 }
 
-void DiagnosticEngine::emit(const errors::ErrorPtr &err) {
+void DiagnosticEngine::emit(const llvm::Error &err) {
   UNUSED(ctx);
   // TODO: create a diag and print it
-  llvm::errs() << err->toString() << "\n";
+  llvm::errs() << err << "\n";
 };
 
-void DiagnosticEngine::emit(const errors::ErrorTree &errs) {
-  for (const auto &e : errs) {
-    emit(e);
-  }
-};
+// void DiagnosticEngine::emit(const llvm::Error &errs) {
+//
+//   // for (const auto &e : errs) {
+//   //   emit(e);
+//   // }
+//
+// };
 
 void panic(SereneContext &ctx, llvm::StringRef msg) {
   ctx.diagEngine->panic(msg);
 };
 
-void throwErrors(SereneContext &ctx, errors::ErrorTree &errs) {
+void throwErrors(SereneContext &ctx, llvm::Error &errs) {
+  // llvm::handleErrors(errs,
+  //                    [](const errors::SereneError &e){});
   ctx.diagEngine->emit(errs);
 };
 

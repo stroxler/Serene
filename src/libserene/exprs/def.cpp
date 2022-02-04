@@ -18,7 +18,7 @@
 
 #include "serene/exprs/def.h"
 
-#include "serene/errors/error.h"
+#include "serene/errors.h"
 #include "serene/exprs/expression.h"
 #include "serene/exprs/fn.h"
 #include "serene/exprs/list.h"
@@ -55,8 +55,8 @@ MaybeNode Def::make(semantics::AnalysisState &state, List *list) {
   // TODO: Add support for docstring as the 3rd argument (4th element)
   if (list->count() != 3) {
     std::string msg = llvm::formatv("Expected 3 got {0}", list->count());
-    return makeErrorful<Node>(list->elements[0]->location,
-                              errors::DefWrongNumberOfArgs, msg);
+    return errors::makeError<errors::DefWrongNumberOfArgs>(
+        list->elements[0]->location, msg);
   }
 
   // Make sure that the list starts with a `def`
@@ -68,8 +68,8 @@ MaybeNode Def::make(semantics::AnalysisState &state, List *list) {
   // Make sure that the first argument is a Symbol
   Symbol *binding = llvm::dyn_cast<Symbol>(list->elements[1].get());
   if (binding == nullptr) {
-    return makeErrorful<Node>(list->elements[1]->location,
-                              errors::DefExpectSymbol, "");
+    return errors::makeError<errors::DefExpectSymbol>(
+        list->elements[1]->location);
   }
 
   // Analyze the value
@@ -79,7 +79,7 @@ MaybeNode Def::make(semantics::AnalysisState &state, List *list) {
   // TODO: To refactor this logic into a generic function
   if (value) {
     // Success value
-    auto &valueNode = value.getValue();
+    auto &valueNode = *value;
 
     if (valueNode) {
       // A rewrite is necessary

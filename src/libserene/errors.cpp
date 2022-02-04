@@ -16,22 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SERENE_ERRORS_TRAITS_H
-#define SERENE_ERRORS_TRAITS_H
+#include "serene/errors.h"
 
-#include "serene/errors/constants.h"
-#include "serene/traits.h"
-
-namespace serene::errors {
-template <typename ConcreteType>
-class IError : public TraitBase<ConcreteType, IError> {
-public:
-  IError(){};
-  IError(const IError &) = delete;
-
-  ErrorVariant *getVariant();
-  std::string getMessage();
-};
-
-} // namespace serene::errors
-#endif
+#define GET_ERRS_ARRAY
+#include "serene/errors/errs.h.inc"

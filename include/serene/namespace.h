@@ -34,7 +34,7 @@
 #define SERENE_NAMESPACE_H
 
 #include "serene/environment.h"
-#include "serene/errors/error.h"
+#include "serene/errors.h"
 #include "serene/export.h"
 #include "serene/slir/generatable.h"
 #include "serene/traits.h"
@@ -47,6 +47,7 @@
 #include <llvm/ExecutionEngine/Orc/Core.h>
 #include <llvm/ExecutionEngine/Orc/ThreadSafeModule.h>
 #include <llvm/IR/Module.h>
+#include <llvm/Support/Error.h>
 #include <mlir/IR/Builders.h>
 #include <mlir/IR/BuiltinOps.h>
 #include <mlir/IR/OwningOpRef.h>
@@ -72,7 +73,7 @@ using Ast  = std::vector<Node>;
 } // namespace exprs
 
 using NSPtr                = std::shared_ptr<Namespace>;
-using MaybeNS              = Result<NSPtr, errors::ErrorTree>;
+using MaybeNS              = llvm::Expected<NSPtr>;
 using MaybeModule          = llvm::Optional<llvm::orc::ThreadSafeModule>;
 using MaybeModuleOp        = llvm::Optional<mlir::OwningOpRef<mlir::ModuleOp>>;
 using SemanticEnv          = Environment<std::string, exprs::Node>;
@@ -137,7 +138,7 @@ public:
   /// many elements.
   ///
   /// This function runs the semantic analyzer on the \p ast as well.
-  errors::OptionalErrors addTree(exprs::Ast &ast);
+  llvm::Error addTree(exprs::Ast &ast);
   exprs::Ast &getTree();
 
   const std::vector<llvm::StringRef> &getSymList() { return symbolList; };

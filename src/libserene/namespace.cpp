@@ -25,7 +25,6 @@
 #include "serene/namespace.h"
 
 #include "serene/context.h"
-#include "serene/errors/constants.h"
 #include "serene/exprs/expression.h"
 #include "serene/llvm/IR/Value.h"
 #include "serene/semantics.h"
@@ -90,13 +89,13 @@ mlir::LogicalResult Namespace::define(std::string &name, exprs::Node &node) {
 }
 
 exprs::Ast &Namespace::getTree() { return this->tree; }
-errors::OptionalErrors Namespace::addTree(exprs::Ast &ast) {
+llvm::Error Namespace::addTree(exprs::Ast &ast) {
 
   // TODO: Remove the parse phase
   if (ctx.getTargetPhase() == CompilationPhase::Parse) {
     // we just want the raw AST
     this->tree.insert(this->tree.end(), ast.begin(), ast.end());
-    return llvm::None;
+    return llvm::Error::success();
   }
   auto &rootEnv = getRootEnv();
 
@@ -106,13 +105,13 @@ errors::OptionalErrors Namespace::addTree(exprs::Ast &ast) {
   auto maybeForm = semantics::analyze(*state, ast);
 
   if (!maybeForm) {
-    return maybeForm.getError();
+    return maybeForm.takeError();
   }
 
-  auto semanticAst = std::move(maybeForm.getValue());
+  auto semanticAst = std::move(*maybeForm);
   this->tree.insert(this->tree.end(), semanticAst.begin(), semanticAst.end());
 
-  return llvm::None;
+  return llvm::Error::success();
 }
 
 uint Namespace::nextFnCounter() { return fn_counter++; };

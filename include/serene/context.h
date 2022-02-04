@@ -227,7 +227,7 @@ public:
 
     // TODO: Fix this by calling to the diag engine
     if (err) {
-      llvm::errs() << err.getValue().back()->getMessage() << "\n";
+      llvm::errs() << err << "\n";
       serene::terminate(*ctx, 1);
       return nullptr;
     }

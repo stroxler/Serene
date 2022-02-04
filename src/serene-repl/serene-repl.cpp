@@ -84,20 +84,20 @@ int main(int argc, char *argv[]) {
     auto maybeAst = serene::read(*ctx, line);
 
     if (!maybeAst) {
-      serene::throwErrors(*ctx, maybeAst.getError());
+      auto err = maybeAst.takeError();
+      serene::throwErrors(*ctx, err);
       continue;
     }
 
-    auto x = serene::eval(*ctx, maybeAst.getValue());
+    auto x = serene::eval(*ctx, *maybeAst);
 
-    if (!x.ok()) {
-      auto errs = x.getError();
-      for (auto &err : errs) {
-        llvm::errs() << err->getMessage() << "\n";
-      }
+    if (!x) {
+      auto err = x.takeError();
+      serene::throwErrors(*ctx, err);
       continue;
     }
-    serene::print(*ctx, maybeAst.getValue(), result);
+
+    serene::print(*ctx, *maybeAst, result);
     llvm::outs() << result << "\n";
 
     // Add text to history

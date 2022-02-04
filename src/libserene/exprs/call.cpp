@@ -18,7 +18,7 @@
 
 #include "serene/exprs/call.h"
 
-#include "serene/errors/error.h"
+#include "serene/errors.h"
 #include "serene/exprs/def.h"
 #include "serene/exprs/expression.h"
 #include "serene/exprs/list.h"
@@ -63,7 +63,7 @@ MaybeNode Call::make(semantics::AnalysisState &state, List *list) {
     return maybeFirst;
   }
 
-  Node first = maybeFirst.getValue();
+  Node &first = *maybeFirst;
 
   // No rewrite is needed for the first element
   if (!first) {
@@ -97,7 +97,7 @@ MaybeNode Call::make(semantics::AnalysisState &state, List *list) {
     if (!maybeResult.hasValue()) {
       std::string msg =
           llvm::formatv("Can't resolve the symbol '{0}'", sym->name);
-      return makeErrorful<Node>(sym->location, errors::CantResolveSymbol, msg);
+      return errors::makeError<errors::CantResolveSymbol>(sym->location, msg);
     }
 
     targetNode = std::move(maybeResult.getValue());
@@ -122,19 +122,18 @@ MaybeNode Call::make(semantics::AnalysisState &state, List *list) {
   default: {
     std::string msg = llvm::formatv("Don't know how to call a '{0}'",
                                     stringifyExprType(first->getType()));
-    return makeErrorful<Node>(first->location, errors::DontKnowHowToCallNode,
-                              msg);
+    return errors::makeError<errors::DontKnowHowToCallNode>(first->location,
+                                                            msg);
   }
   };
 
   auto analyzedParams = semantics::analyze(state, rawParams);
 
   if (!analyzedParams) {
-    return MaybeNode::error(analyzedParams.getError());
+    return analyzedParams.takeError();
   }
 
-  return makeSuccessfulNode<Call>(list->location, targetNode,
-                                  analyzedParams.getValue());
+  return makeSuccessfulNode<Call>(list->location, targetNode, *analyzedParams);
 };
 } // namespace exprs
 } // namespace serene

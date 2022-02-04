@@ -332,11 +332,12 @@ int main(int argc, char *argv[]) {
   auto maybeNS = ctx->importNamespace(inputNS, runLoc);
 
   if (!maybeNS) {
-    throwErrors(*ctx, maybeNS.getError());
+    auto err = maybeNS.takeError();
+    throwErrors(*ctx, err);
     return (int)std::errc::no_such_file_or_directory;
   }
 
-  auto ns = maybeNS.getValue();
+  auto ns = *maybeNS;
 
   switch (emitAction) {
   case Action::DumpAST:
@@ -360,7 +361,7 @@ int main(int argc, char *argv[]) {
       return 1;
     }
 
-    auto tsm = std::move(maybeModule.getValue());
+    auto tsm = std::move(*maybeModule);
     tsm.withModuleDo([](auto &m) { m.dump(); });
 
     break;

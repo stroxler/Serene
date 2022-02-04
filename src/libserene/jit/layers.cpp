@@ -127,13 +127,11 @@ llvm::Error NSLayer::add(orc::ResourceTrackerSP &rt, llvm::StringRef nsname,
 
   if (!maybeNS) {
     // TODO: Fix this by making Serene errors compatible with llvm::Error
-    auto err = maybeNS.getError();
-    return llvm::make_error<llvm::StringError>(
-        llvm::Twine(err.front()->getMessage()),
-        std::make_error_code(std::errc::io_error));
+    auto err = maybeNS.takeError();
+    return err;
   }
 
-  auto ns = maybeNS.getValue();
+  auto ns = *maybeNS;
 
   LAYER_LOG("Add the materialize unit for: " + nsname);
   return rt->getJITDylib().define(

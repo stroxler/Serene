@@ -26,7 +26,8 @@
 #include <llvm/TableGen/Error.h>
 #include <llvm/TableGen/Record.h>
 
-#define DEBUG_TYPE "errors-backend"
+#define DEBUG_TYPE      "errors-backend"
+#define INSTANCE_SUFFIX "Instance"
 
 namespace serene {
 
@@ -47,9 +48,10 @@ public:
 
 static void inNamespace(llvm::StringRef name, llvm::raw_ostream &os,
                         std::function<void(llvm::raw_ostream &)> f) {
+
   os << "namespace " << name << " {\n\n";
   f(os);
-  os << "} // namespace " << name << "\n";
+  os << "}; // namespace " << name << "\n";
 };
 
 void ErrorsBackend::createErrorClass(const int id, llvm::Record &defRec,
@@ -58,36 +60,31 @@ void ErrorsBackend::createErrorClass(const int id, llvm::Record &defRec,
 
   const auto recName = defRec.getName();
 
-  os << "class " << recName << " : public SereneError<" << recName << "> {\n"
+  os << "class " << recName << " : public llvm::ErrorInfo<" << recName << ", "
+     << "SereneError> {\n"
      << "public:\n"
-     << "  static const int ID = " << id << ";\n";
+     << "  using llvm::ErrorInfo<" << recName << ", "
+     << "SereneError>::ErrorInfo;\n"
+     << "  constexpr static const int ID = " << id << ";\n};\n\n"
+     << "static const ErrorVariant " << recName << INSTANCE_SUFFIX
+     << " = ErrorVariant::make(\n"
+     << "  " << id << ",\n"
+     << "  \"" << recName << "\",\n";
 
-  for (const auto &val : defRec.getValues()) {
-    auto valName = val.getName();
+  auto desc = defRec.getValueAsString("desc");
 
-    if (!(valName == "title" || valName == "description")) {
-      llvm::PrintWarning("Only 'title' and 'description' are allowed.");
-      llvm::PrintWarning("Record: " + recName);
-      continue;
-    }
+  if (desc.empty()) {
+    llvm::PrintError("'desc' field is empty for " + recName);
+  }
 
-    auto *stringVal = llvm::dyn_cast<llvm::StringInit>(val.getValue());
+  os << "  \"" << desc << "\",\n";
 
-    if (stringVal == nullptr) {
-      llvm::PrintError("The value of " + valName + " is not string.");
-      llvm::PrintError("Record: " + recName);
-      continue;
-    }
+  auto help = defRec.getValueAsString("help");
 
-    if (stringVal->getValue().empty()) {
-      llvm::PrintError("The value of " + valName + " is an empty string.");
-      llvm::PrintError("Record: " + recName);
-      continue;
-    }
+  if (!help.empty()) {
 
-    os << "  inline static const std::string " << valName << " = ";
+    const llvm::MemoryBufferRef value(help, "help");
 
-    const llvm::MemoryBufferRef value(stringVal->getValue(), valName);
     llvm::line_iterator lines(value, false);
     while (!lines.is_at_end()) {
       if (lines.line_number() != 1) {
@@ -103,25 +100,63 @@ void ErrorsBackend::createErrorClass(const int id, llvm::Record &defRec,
         os << '\n';
       }
     }
+  } else {
+    os << "  \"\"";
   }
-  os << "};\n\n";
+
+  os << ");\n";
+  // os << "  " << help << ");\n";
+  //  auto *stringVal = llvm::dyn_cast<llvm::StringInit>(val.getValue());
 };
 
 void ErrorsBackend::createNSBody(llvm::raw_ostream &os) {
-  int counter = 1;
-  for (const auto &defPair : records.getDefs()) {
-    llvm::Record &defRec = *defPair.second;
+  auto *index = records.getGlobal("errorsIndex");
 
-    if (!defRec.isSubClassOf("Error")) {
-      continue;
-    }
-
-    createErrorClass(counter, defRec, os);
-
-    counter++;
+  if (index == nullptr) {
+    llvm::PrintError("'errorsIndex' var is missing!");
+    return;
   }
 
-  (void)records;
+  auto *indexList = llvm::dyn_cast<llvm::ListInit>(index);
+
+  if (indexList == nullptr) {
+    llvm::PrintError("'errorsIndex' has to be a list!");
+    return;
+  }
+
+  os << "#ifdef GET_CLASS_DEFS\n";
+  inNamespace("serene::errors", os, [&](llvm::raw_ostream &os) {
+    for (size_t i = 0; i < indexList->size(); i++) {
+
+      // llvm::Record &defRec = *defPair.second;
+      llvm::Record *defRec = indexList->getElementAsRecord(i);
+
+      if (!defRec->isSubClassOf("Error")) {
+        continue;
+      }
+
+      createErrorClass(i, *defRec, os);
+    }
+  });
+
+  os << "#undef GET_CLASS_DEFS\n#endif\n\n";
+
+  os << "#ifdef GET_ERRS_ARRAY\n\n";
+  inNamespace("serene::errors", os, [&](llvm::raw_ostream &os) {
+    os << "static const std::array<int, ErrorVariant *> "
+          "variants{\n";
+    for (size_t i = 0; i < indexList->size(); i++) {
+
+      // llvm::Record &defRec = *defPair.second;
+      llvm::Record *defRec = indexList->getElementAsRecord(i);
+
+      if (!defRec->isSubClassOf("Error")) {
+        continue;
+      }
+      os << "  &" << defRec->getName() << INSTANCE_SUFFIX << ",\n";
+    }
+  });
+  os << "\n};\n#undef GET_ERRS_ARRAY\n#endif\n";
 }
 
 void ErrorsBackend::run(llvm::raw_ostream &os) {
@@ -130,9 +165,9 @@ void ErrorsBackend::run(llvm::raw_ostream &os) {
 
   os << "#include \"serene/errors/base.h\"\n\n#include "
         "<llvm/Support/Error.h>\n\n";
-
-  inNamespace("serene::errors", os,
-              [&](llvm::raw_ostream &os) { createNSBody(os); });
+  os << "#ifndef SERENE_ERRORS_ERRORS_H\n#define SERENE_ERRORS_ERRORS_H\n\n";
+  createNSBody(os);
+  os << "#endif\n";
 }
 
 void emitErrors(llvm::RecordKeeper &rk, llvm::raw_ostream &os) {

@@ -25,7 +25,6 @@
 #include "serene/serene.h"
 
 #include "serene/diagnostics.h"
-#include "serene/errors/constants.h"
 #include "serene/exprs/expression.h"
 
 // TODO: Remove it
@@ -122,7 +121,7 @@ SERENE_EXPORT exprs::MaybeNode eval(SereneContext &ctx, exprs::Ast &input) {
 
   auto errs = ctx.jit->addAST(input);
   if (errs) {
-    return exprs::MaybeNode::error(errs.getValue());
+    return errs;
   }
 
   //   auto e    = input[0];

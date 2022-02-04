@@ -29,8 +29,7 @@
 
 #include "serene/context.h"
 #include "serene/diagnostics.h"
-#include "serene/errors/constants.h"
-#include "serene/errors/error.h"
+#include "serene/errors.h"
 #include "serene/exprs/symbol.h"
 #include "serene/namespace.h"
 #include "serene/utils.h"
@@ -202,18 +201,16 @@ MaybeJITPtr Halley::lookup(exprs::Symbol &sym) const {
   auto *ns = ctx.getNS(sym.nsName);
 
   if (ns == nullptr) {
-    return MaybeJITPtr::error(errors::makeErrorTree(
-        sym.location, errors::CantResolveSymbol,
-        "Can't find the namespace in the context: " + sym.nsName));
+    return errors::makeError<errors::CantResolveSymbol>(
+        sym.location, "Can't find the namespace in the context: " + sym.nsName);
   }
 
   auto *dylib = ctx.getLatestJITDylib(*ns);
   //
 
   if (dylib == nullptr) {
-    return MaybeJITPtr::error(
-        errors::makeErrorTree(sym.location, errors::CantResolveSymbol,
-                              "Don't know about namespace: " + sym.nsName));
+    return errors::makeError<errors::CantResolveSymbol>(
+        sym.location, "Don't know about namespace: " + sym.nsName);
   }
 
   auto expectedSymbol =
@@ -230,8 +227,7 @@ MaybeJITPtr Halley::lookup(exprs::Symbol &sym) const {
     llvm::raw_string_ostream os(errorMessage);
     llvm::handleAllErrors(expectedSymbol.takeError(),
                           [&os](llvm::ErrorInfoBase &ei) { ei.log(os); });
-    return MaybeJITPtr::error(errors::makeErrorTree(
-        sym.location, errors::CantResolveSymbol, os.str()));
+    return errors::makeError<errors::CantResolveSymbol>(sym.location, os.str());
   }
 
   auto rawFPtr = expectedSymbol->getAddress();
@@ -239,8 +235,8 @@ MaybeJITPtr Halley::lookup(exprs::Symbol &sym) const {
   auto fptr = reinterpret_cast<void (*)(void **)>(rawFPtr);
 
   if (fptr == nullptr) {
-    return MaybeJITPtr::error(errors::makeErrorTree(
-        sym.location, errors::CantResolveSymbol, "Lookup function is null!"));
+    return errors::makeError<errors::CantResolveSymbol>(
+        sym.location, "Lookup function is null!");
   }
 
   return fptr;
@@ -281,8 +277,7 @@ void Halley::registerSymbols(
           mainJitDylib.getExecutionSession(), engine->getDataLayout())))));
 };
 
-llvm::Optional<errors::ErrorTree> Halley::addNS(Namespace &ns,
-                                                reader::LocationRange &loc) {
+llvm::Error Halley::addNS(Namespace &ns, reader::LocationRange &loc) {
 
   HALLEY_LOG(llvm::formatv("Creating Dylib {0}#{1}", ns.name,
                            ctx.getNumberOfJITDylibs(ns) + 1));
@@ -291,8 +286,8 @@ llvm::Optional<errors::ErrorTree> Halley::addNS(Namespace &ns,
       llvm::formatv("{0}#{1}", ns.name, ctx.getNumberOfJITDylibs(ns) + 1));
 
   if (!newDylib) {
-    return errors::makeErrorTree(loc, errors::CompilationError,
-                                 "Filed to create dylib for " + ns.name);
+    return errors::makeError<errors::CompilationError>(
+        loc, "Filed to create dylib for " + ns.name);
   }
 
   ctx.pushJITDylib(ns, &(*newDylib));
@@ -301,7 +296,7 @@ llvm::Optional<errors::ErrorTree> Halley::addNS(Namespace &ns,
   auto maybeModule = ns.compileToLLVM();
 
   if (!maybeModule.hasValue()) {
-    return errors::makeErrorTree(loc, errors::CompilationError);
+    return errors::makeError<errors::CompilationError>(loc);
   }
 
   auto tsm = std::move(maybeModule.getValue());
@@ -310,7 +305,7 @@ llvm::Optional<errors::ErrorTree> Halley::addNS(Namespace &ns,
   // TODO: Make sure that the data layout of the module is the same as the
   // engine
   cantFail(engine->addIRModule(*newDylib, std::move(tsm)));
-  return llvm::None;
+  return llvm::Error::success();
 };
 
 void Halley::setEngine(std::unique_ptr<llvm::orc::LLJIT> e, bool isLazy) {
@@ -462,12 +457,11 @@ MaybeJIT Halley::make(SereneContext &serene_ctx,
   return MaybeJIT(std::move(jitEngine));
 };
 
-llvm::Optional<errors::ErrorTree> Halley::addAST(exprs::Ast &ast) {
+llvm::Error Halley::addAST(exprs::Ast &ast) {
   auto offset = activeNS->getTree().size();
-  auto errs   = activeNS->addTree(ast);
 
-  if (errs) {
-    return errs.getValue();
+  if (auto errs = activeNS->addTree(ast)) {
+    return errs;
   }
 
   auto maybeModule = activeNS->compileToLLVMFromOffset(offset);
@@ -479,7 +473,7 @@ llvm::Optional<errors::ErrorTree> Halley::addAST(exprs::Ast &ast) {
   // TODO: Make sure that the data layout of the module is the same as the
   // engine
   cantFail(engine->addIRModule(*dylib, std::move(tsm)));
-  return llvm::None;
+  return llvm::Error::success();
 };
 
 Namespace &Halley::getActiveNS() { return *activeNS; };

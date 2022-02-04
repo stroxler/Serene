@@ -20,7 +20,7 @@
 #define SERENE_SEMANTICS_H
 
 #include "serene/environment.h"
-#include "serene/errors/error.h"
+#include "serene/errors.h"
 #include "serene/utils.h"
 
 #include <llvm/ADT/StringRef.h>
@@ -39,7 +39,7 @@ class Namespace;
 using SemanticEnv = Environment<std::string, exprs::Node>;
 namespace semantics {
 
-using AnalyzeResult = Result<exprs::Ast, std::vector<errors::ErrorPtr>>;
+using AnalyzeResult = llvm::Expected<exprs::Ast>;
 
 /// This struct represent the state necessary for each analysis job.
 struct AnalysisState {
@@ -62,10 +62,9 @@ std::unique_ptr<AnalysisState> makeAnalysisState(Args &&...args) {
 /// The entry point to the Semantic analysis phase. It calls the `analyze`
 /// method of each node in the given \p form and creates a new AST that
 /// contains a more comprehensive set of nodes in a semantically correct
-/// AST. If the `analyze` method of a node return a `nullptr` value as the
-/// `success` result (Checkout the `Result` type in `utils.h`) then the
-/// original node will be used instead. Any possible error will return as
-/// the `error` case of the `Result` type.
+/// AST. If the `analyze` method of a node return a `nullptr` value then the
+/// original node will be used instead. Any possible error will be returned.
+///
 /// \param state The semantic analysis state that keep track of the envs.
 /// \param form  The actual AST in question.
 AnalyzeResult analyze(AnalysisState &state, exprs::Ast &forms);

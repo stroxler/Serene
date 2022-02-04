@@ -24,7 +24,6 @@
 
 #include "serene/source_mgr.h"
 
-#include "serene/errors/constants.h"
 #include "serene/namespace.h"
 #include "serene/reader/location.h"
 #include "serene/reader/reader.h"
@@ -90,10 +89,8 @@ MaybeNS SourceMgr::readNamespace(SereneContext &ctx, std::string name,
   MemBufPtr newBufOrErr(findFileInLoadPath(name, importedFile));
 
   if (newBufOrErr == nullptr) {
-    auto msg = llvm::formatv("Couldn't find namespace '{0}'", name);
-    auto err = errors::makeErrorTree(importLoc, errors::NSLoadError,
-                                     llvm::StringRef(msg));
-    return MaybeNS::error(err);
+    auto msg = llvm::formatv("Couldn't find namespace '{0}'", name).str();
+    return errors::makeError<errors::NSLoadError>(importLoc, msg);
   }
 
   auto bufferId = AddNewSourceBuffer(std::move(newBufOrErr), importLoc);
@@ -101,10 +98,8 @@ MaybeNS SourceMgr::readNamespace(SereneContext &ctx, std::string name,
   UNUSED(nsTable.insert_or_assign(name, bufferId));
 
   if (bufferId == 0) {
-    auto msg = llvm::formatv("Couldn't add namespace '{0}'", name);
-    auto err = errors::makeErrorTree(importLoc, errors::NSAddToSMError,
-                                     llvm::StringRef(msg));
-    return MaybeNS::error(err);
+    auto msg = llvm::formatv("Couldn't add namespace '{0}'", name).str();
+    return errors::makeError<errors::NSAddToSMError>(importLoc, msg);
   }
 
   // Since we moved the buffer to be added as the source storage we
@@ -117,17 +112,16 @@ MaybeNS SourceMgr::readNamespace(SereneContext &ctx, std::string name,
 
   if (!maybeAst) {
     SMGR_LOG("Couldn't Read namespace: " + name);
-    return MaybeNS::error(maybeAst.getError());
+    return maybeAst.takeError();
   }
 
   // Create the NS and set the AST
   auto ns =
       ctx.makeNamespace(name, llvm::Optional(llvm::StringRef(importedFile)));
 
-  auto errs = ns->addTree(maybeAst.getValue());
-  if (errs) {
+  if (auto errs = ns->addTree(*maybeAst)) {
     SMGR_LOG("Couldn't set the AST for namespace: " + name);
-    return MaybeNS::error(errs.getValue());
+    return errs;
   }
 
   return ns;

@@ -19,7 +19,21 @@
 #ifndef SERENE_ERRORS_H
 #define SERENE_ERRORS_H
 
+#include "serene/errors/base.h"
 #include "serene/errors/errc.h"
-#include "serene/errors/error.h"
+
+#define GET_CLASS_DEFS
+#include "serene/errors/errs.h.inc"
+
+#include <llvm/Support/Error.h>
+
+namespace serene::errors {
+
+template <typename E, typename... Args>
+llvm::Error makeError(Args &&...args) {
+  return llvm::make_error<E>(std::forward<Args>(args)...);
+};
+
+} // namespace serene::errors
 
 #endif

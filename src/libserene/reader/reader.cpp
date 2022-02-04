@@ -18,7 +18,7 @@
 
 #include "serene/reader/reader.h"
 
-#include "serene/errors/constants.h"
+#include "serene/errors.h"
 #include "serene/exprs/expression.h"
 #include "serene/exprs/list.h"
 #include "serene/exprs/number.h"
@@ -225,7 +225,7 @@ exprs::MaybeNode Reader::readNumber(bool neg) {
   LocationRange loc(getCurrentLocation());
 
   if (isdigit(*c) == 0) {
-    return exprs::makeErrorNode(loc, errors::InvalidDigitForNumber);
+    return errors::makeError<errors::InvalidDigitForNumber>(loc);
   }
 
   for (;;) {
@@ -236,8 +236,7 @@ exprs::MaybeNode Reader::readNumber(bool neg) {
     if ((isdigit(*c) != 0) || *c == '.') {
       if (*c == '.' && floatNum) {
         loc = LocationRange(getCurrentLocation());
-        ctx.diagEngine->emitSyntaxError(loc, errors::TwoFloatPoints);
-        terminate(ctx, 1);
+        return errors::makeError<errors::TwoFloatPoints>(loc);
       }
 
       if (*c == '.') {
@@ -253,8 +252,7 @@ exprs::MaybeNode Reader::readNumber(bool neg) {
   if (((std::isalpha(*c) != 0) && !empty) || empty) {
     advance();
     loc.start = getCurrentLocation();
-    ctx.diagEngine->emitSyntaxError(loc, errors::InvalidDigitForNumber);
-    terminate(ctx, 1);
+    return errors::makeError<errors::InvalidDigitForNumber>(loc);
   }
 
   loc.end = getCurrentLocation();
@@ -278,7 +276,7 @@ exprs::MaybeNode Reader::readSymbol() {
       msg = "An extra ')' is detected.";
     }
 
-    return exprs::makeErrorNode(loc, errors::InvalidCharacterForSymbol, msg);
+    return errors::makeError<errors::InvalidCharacterForSymbol>(loc, msg);
   }
 
   if (*c == '-') {
@@ -338,7 +336,7 @@ exprs::MaybeNode Reader::readList() {
       advance(true);
       advance();
       list->location.end = getCurrentLocation();
-      return exprs::makeErrorNode(list->location, errors::EOFWhileScaningAList);
+      return errors::makeError<errors::EOFWhileScaningAList>(list->location);
     }
 
     switch (*c) {
@@ -356,12 +354,12 @@ exprs::MaybeNode Reader::readList() {
         return expr;
       }
 
-      list->append(expr.getValue());
+      list->append(*expr);
     }
 
   } while (!list_terminated);
 
-  return exprs::MaybeNode::success(list);
+  return list;
 };
 
 /// Reads an expression by dispatching to the proper reader function.
@@ -403,18 +401,18 @@ exprs::MaybeAst Reader::read() {
     auto tmp = readExpr();
 
     if (tmp) {
-      if (tmp.getValue() == nullptr) {
+      if (*tmp == nullptr) {
         break;
       }
 
-      this->ast.push_back(move(tmp.getValue()));
+      this->ast.push_back(move(*tmp));
 
     } else {
-      return exprs::MaybeAst::error(tmp.getError());
+      return tmp.takeError();
     }
   }
 
-  return exprs::MaybeAst::success(std::move(this->ast));
+  return std::move(this->ast);
 };
 
 exprs::MaybeAst read(SereneContext &ctx, const llvm::StringRef input,

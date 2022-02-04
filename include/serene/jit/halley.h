@@ -25,7 +25,6 @@
 #define SERENE_JIT_HALLEY_H
 
 #include "serene/errors.h"
-#include "serene/errors/error.h"
 #include "serene/export.h"
 #include "serene/namespace.h"
 #include "serene/utils.h"
@@ -58,7 +57,7 @@ namespace jit {
 class Halley;
 
 using MaybeJIT    = llvm::Expected<std::unique_ptr<Halley>>;
-using MaybeJITPtr = serene::Result<void (*)(void **), errors::ErrorTree>;
+using MaybeJITPtr = llvm::Expected<void (*)(void **)>;
 /// A simple object cache following Lang's LLJITWithObjectCache example and
 /// MLIR's SimpelObjectCache.
 class ObjectCache : public llvm::ObjectCache {
@@ -179,10 +178,9 @@ public:
       llvm::function_ref<llvm::orc::SymbolMap(llvm::orc::MangleAndInterner)>
           symbolMap);
 
-  llvm::Optional<errors::ErrorTree> addNS(Namespace &ns,
-                                          reader::LocationRange &loc);
+  llvm::Error addNS(Namespace &ns, reader::LocationRange &loc);
 
-  llvm::Optional<errors::ErrorTree> addAST(exprs::Ast &ast);
+  llvm::Error addAST(exprs::Ast &ast);
 
   Namespace &getActiveNS();
 };

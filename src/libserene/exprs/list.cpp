@@ -18,7 +18,7 @@
 
 #include "serene/exprs/list.h"
 
-#include "serene/errors/error.h"
+#include "serene/errors.h"
 #include "serene/exprs/call.h"
 #include "serene/exprs/def.h"
 #include "serene/exprs/expression.h"

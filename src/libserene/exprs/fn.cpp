@@ -18,7 +18,7 @@
 
 #include "serene/exprs/fn.h"
 
-#include "serene/errors/error.h"
+#include "serene/errors.h"
 #include "serene/exprs/expression.h"
 #include "serene/exprs/list.h"
 #include "serene/exprs/symbol.h"
@@ -66,8 +66,8 @@ MaybeNode Fn::make(semantics::AnalysisState &state, List *list) {
 
   // TODO: Add support for docstring as the 3rd argument (4th element)
   if (list->count() < 2) {
-    return makeErrorful<Node>(list->elements[0]->location, errors::FnNoArgsList,
-                              "The argument list is mandatory.");
+    return errors::makeError<errors::FnNoArgsList>(
+        list->elements[0]->location, "The argument list is mandatory.");
   }
 
   Symbol *fnSym = llvm::dyn_cast<Symbol>(list->elements[0].get());
@@ -83,8 +83,8 @@ MaybeNode Fn::make(semantics::AnalysisState &state, List *list) {
         llvm::formatv("Arguments of a function has to be a list, got '{0}'",
                       stringifyExprType(list->elements[1]->getType()));
 
-    return makeErrorful<Node>(list->elements[1]->location,
-                              errors::FnArgsMustBeList, msg);
+    return errors::makeError<errors::FnArgsMustBeList>(
+        list->elements[1]->location, msg);
   }
 
   Ast body;
@@ -100,10 +100,10 @@ MaybeNode Fn::make(semantics::AnalysisState &state, List *list) {
     auto maybeAst = semantics::analyze(state, body);
 
     if (!maybeAst) {
-      return MaybeNode::error(std::move(maybeAst.getError()));
+      return maybeAst.takeError();
     }
 
-    body = maybeAst.getValue();
+    body = *maybeAst;
   }
 
   return makeSuccessfulNode<Fn>(ctx, list->location, *args, body);
