@@ -127,8 +127,6 @@ void ErrorsBackend::createNSBody(llvm::raw_ostream &os) {
   os << "#ifdef GET_CLASS_DEFS\n";
   inNamespace("serene::errors", os, [&](llvm::raw_ostream &os) {
     for (size_t i = 0; i < indexList->size(); i++) {
-
-      // llvm::Record &defRec = *defPair.second;
       llvm::Record *defRec = indexList->getElementAsRecord(i);
 
       if (!defRec->isSubClassOf("Error")) {
@@ -143,11 +141,15 @@ void ErrorsBackend::createNSBody(llvm::raw_ostream &os) {
 
   os << "#ifdef GET_ERRS_ARRAY\n\n";
   inNamespace("serene::errors", os, [&](llvm::raw_ostream &os) {
+    os << "SereneError::ID = -1;\n";
+    for (size_t i = 0; i < indexList->size(); i++) {
+      llvm::Record *defRec = indexList->getElementAsRecord(i);
+      os << defRec->getName() << "::ID = " << i << ";\n";
+    }
+
     os << "static const std::array<int, ErrorVariant *> "
           "variants{\n";
     for (size_t i = 0; i < indexList->size(); i++) {
-
-      // llvm::Record &defRec = *defPair.second;
       llvm::Record *defRec = indexList->getElementAsRecord(i);
 
       if (!defRec->isSubClassOf("Error")) {

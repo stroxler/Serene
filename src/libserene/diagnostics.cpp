@@ -74,79 +74,80 @@ std::string Diagnostic::getPrefix(llvm::StringRef prefix) {
   }
 };
 
-void Diagnostic::print(llvm::raw_ostream &os, llvm::StringRef prefix) {
+void Diagnostic::print(llvm::raw_ostream &os, llvm::StringRef prefix) const {
   llvm::ColorMode mode =
       ctx.opts.withColors ? llvm::ColorMode::Auto : llvm::ColorMode::Disable;
 
   llvm::WithColor s(os, llvm::raw_ostream::SAVEDCOLOR, true, false, mode);
+  UNUSED(prefix);
+  UNUSED(err);
+  // s << "\n[";
+  // writeColorByType(os, "Error");
+  // s << "]>\n";
 
-  s << "\n[";
-  writeColorByType(os, "Error");
-  s << "]>\n";
+  // s << "In ns '";
+  // s.changeColor(llvm::raw_ostream::Colors::MAGENTA);
+  // s << loc.start.ns;
+  // s.resetColor();
 
-  s << "In ns '";
-  s.changeColor(llvm::raw_ostream::Colors::MAGENTA);
-  s << loc.start.ns;
-  s.resetColor();
+  // if (loc.start.filename.hasValue()) {
+  //   s << "' At: ";
+  //   s.changeColor(llvm::raw_ostream::Colors::YELLOW);
+  //   s << loc.start.filename.getValue();
+  //   s.resetColor();
+  //   s << ":";
+  //   s.changeColor(llvm::raw_ostream::Colors::CYAN);
+  //   s << loc.start.line;
+  //   s.resetColor();
+  //   s << ":";
+  //   s.changeColor(llvm::raw_ostream::Colors::CYAN);
+  //   s << loc.start.col;
+  //   s.resetColor();
+  // }
 
-  if (loc.start.filename.hasValue()) {
-    s << "' At: ";
-    s.changeColor(llvm::raw_ostream::Colors::YELLOW);
-    s << loc.start.filename.getValue();
-    s.resetColor();
-    s << ":";
-    s.changeColor(llvm::raw_ostream::Colors::CYAN);
-    s << loc.start.line;
-    s.resetColor();
-    s << ":";
-    s.changeColor(llvm::raw_ostream::Colors::CYAN);
-    s << loc.start.col;
-    s.resetColor();
-  }
+  // s << "\n\n";
 
-  s << "\n\n";
+  // const auto &srcBuf = ctx.sourceManager.getBufferInfo(loc.start.ns);
+  // const char *line   = srcBuf.getPointerForLineNumber(loc.start.line);
 
-  const auto &srcBuf = ctx.sourceManager.getBufferInfo(loc.start.ns);
-  const char *line   = srcBuf.getPointerForLineNumber(loc.start.line);
+  // while (*line != '\n' && line != srcBuf.buffer->getBufferEnd()) {
+  //   s << *line;
+  //   line++;
+  // }
 
-  while (*line != '\n' && line != srcBuf.buffer->getBufferEnd()) {
-    s << *line;
-    line++;
-  }
+  // s << '\n';
 
-  s << '\n';
+  // s.changeColor(llvm::raw_ostream::Colors::GREEN);
+  // s << llvm::formatv("{0}", llvm::fmt_pad("^", (size_t)loc.start.col - 1,
+  // 0)); s.resetColor();
 
-  s.changeColor(llvm::raw_ostream::Colors::GREEN);
-  s << llvm::formatv("{0}", llvm::fmt_pad("^", (size_t)loc.start.col - 1, 0));
-  s.resetColor();
+  // s << '\n';
 
-  s << '\n';
+  // s << "[";
+  // if (err != nullptr) {
+  //   writeColorByType(os, err->getErrId 8());
+  // }
+  // s << "] ";
+  // writeColorByType(os, getPrefix(prefix));
+  // s << ": ";
 
-  s << "[";
-  if (err != nullptr) {
-    writeColorByType(os, err->getErrId());
-  }
-  s << "] ";
-  writeColorByType(os, getPrefix(prefix));
-  s << ": ";
+  // if (err != nullptr) {
+  //   s << err->description << '\n';
+  // }
 
-  if (err != nullptr) {
-    s << err->description << '\n';
-  }
+  // if (!message.empty()) {
+  //   s.changeColor(llvm::raw_ostream::Colors::YELLOW);
+  //   s << "With message";
+  //   s.resetColor();
+  //   s << ": " << message << "\n";
+  // }
 
-  if (!message.empty()) {
-    s.changeColor(llvm::raw_ostream::Colors::YELLOW);
-    s << "With message";
-    s.resetColor();
-    s << ": " << message << "\n";
-  }
-
-  if (err != nullptr) {
-    s << "For more information checkout";
-    s.changeColor(llvm::raw_ostream::Colors::CYAN);
-    s << " `serenec --explain ";
-    s << err->getErrId() << "`\n";
-  }
+  // if (err != nullptr) {
+  //   s << "For more information checkout";
+  //   s.changeColor(llvm::raw_ostream::Colors::CYAN);
+  //   s << " `serenec --explain ";
+  //   s << err->getErrId() << "`\n";
+  // }
 };
 
 DiagnosticEngine::DiagnosticEngine(SereneContext &ctx)
@@ -161,7 +162,6 @@ void DiagnosticEngine::print(llvm::raw_ostream &os, Diagnostic &d) {
 Diagnostic DiagnosticEngine::toDiagnostic(reader::LocationRange loc,
                                           llvm::Error &e, llvm::StringRef msg,
                                           llvm::StringRef fn) {
-
   return Diagnostic(ctx, loc, &e, msg, fn);
 };
 
@@ -175,26 +175,6 @@ void DiagnosticEngine::emitSyntaxError(reader::LocationRange loc,
   Diagnostic diag(ctx, loc, &e, msg);
 
   diag.print(llvm::errs(), "SyntaxError");
-  terminate(ctx, 1);
-};
-
-void DiagnosticEngine::panic(llvm::StringRef msg) {
-  // TODO: Use Diagnostic class here instead
-  // TODO: Provide a trace if possible
-
-  llvm::ColorMode mode =
-      ctx.opts.withColors ? llvm::ColorMode::Auto : llvm::ColorMode::Disable;
-
-  llvm::WithColor s(llvm::errs(), llvm::raw_ostream::SAVEDCOLOR, true, false,
-                    mode);
-  s << "\n[";
-  s.changeColor(llvm::raw_ostream::Colors::RED);
-  s << "Panic";
-  s.resetColor();
-  s << "]: ";
-
-  s << msg << "\n";
-  // TODO: Use a proper error code
   terminate(ctx, 1);
 };
 
@@ -216,14 +196,23 @@ void DiagnosticEngine::emit(const llvm::Error &err) {
 //
 // };
 
-void panic(SereneContext &ctx, llvm::StringRef msg) {
-  ctx.diagEngine->panic(msg);
+void panic(SereneContext &ctx, llvm::Twine msg) {
+
+  auto err =
+      llvm::make_error<llvm::StringError>(msg, llvm::inconvertibleErrorCode());
+  ctx.diagEngine->emit(err);
+  terminate(ctx, 1);
 };
 
-void throwErrors(SereneContext &ctx, llvm::Error &errs) {
+void panic(SereneContext &ctx, const llvm::Error &err) {
+  ctx.diagEngine->emit(err);
+  terminate(ctx, 1);
+};
+
+void throwErrors(SereneContext &ctx, const llvm::Error &err) {
   // llvm::handleErrors(errs,
   //                    [](const errors::SereneError &e){});
-  ctx.diagEngine->emit(errs);
+  ctx.diagEngine->emit(err);
 };
 
 } // namespace serene

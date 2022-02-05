@@ -24,6 +24,7 @@
 #include "serene/exprs/number.h"
 #include "serene/exprs/symbol.h"
 #include "serene/namespace.h"
+#include "serene/utils.h"
 
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/Error.h>
@@ -108,6 +109,7 @@ Reader::Reader(SereneContext &ctx, llvm::StringRef buffer, llvm::StringRef ns,
                llvm::Optional<llvm::StringRef> filename)
     : ctx(ctx), ns(ns), filename(filename), buf(buffer),
       currentLocation(Location(ns, filename)) {
+  UNUSED(this->ctx);
   READER_LOG("Setting the first char of the buffer");
   currentChar          = buf.begin() - 1;
   currentPos           = 1;

@@ -49,7 +49,7 @@ class SereneError : public llvm::ErrorInfoBase {
   std::string msg;
 
 public:
-  static const int ID = -1;
+  constexpr static const int ID = -1;
 
   void log(llvm::raw_ostream &os) const override { os << msg; };
   std::string message() const override { return msg; };
