@@ -81,7 +81,7 @@ class SERENE_EXPORT SereneContext {
     bool JITenableObjectCache              = true;
     bool JITenableGDBNotificationListener  = true;
     bool JITenablePerfNotificationListener = true;
-    bool JITLazy                           = true;
+    bool JITLazy                           = false;
 
     Options() = default;
   };

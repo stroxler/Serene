@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
 
 #include <sanitizer/lsan_interface.h>
 // Disable LeakSanitizer for this binary as it has too many leaks that are not
-// very interesting to fix. See compiler-rt/include/sanitizer/lsan_interface.h .
+// very interesting to fix. See compiler-rt/include/sanitizer/lsan_interface.h
 LLVM_ATTRIBUTE_USED int __lsan_is_turned_off() { return 1; }
 
 #endif

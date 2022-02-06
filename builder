@@ -35,7 +35,7 @@ BUILD_DIR=$ROOT_DIR/build
 ME=$(cd "$(dirname "$0")/." >/dev/null 2>&1 ; pwd -P)
 
 CMAKEARGS_DEBUG=" -DCMAKE_BUILD_TYPE=Debug -DSERENE_WITH_MLIR_CL_OPTION=ON"
-# Verbose -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
+ # Verbose -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
 CMAKEARGS=" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DSERENE_CCACHE_DIR=$HOME/.ccache"
 
 # The scan-build utility scans the build for bugs checkout the man page
