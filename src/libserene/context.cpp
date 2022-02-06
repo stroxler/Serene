@@ -176,8 +176,8 @@ void terminate(SereneContext &ctx, int exitCode) {
   std::exit(exitCode);
 }
 
-std::unique_ptr<SereneContext> makeSereneContext() {
-  return SereneContext::make();
+std::unique_ptr<SereneContext> makeSereneContext(Options opts) {
+  return SereneContext::make(opts);
 };
 
 }; // namespace serene

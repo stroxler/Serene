@@ -52,7 +52,10 @@ int main(int argc, char *argv[]) {
 
   llvm::outs() << banner << art;
 
-  auto ctx = makeSereneContext();
+  serene::Options opts;
+  opts.JITLazy = true;
+
+  auto ctx = makeSereneContext(opts);
 
   applySereneCLOptions(*ctx);
 

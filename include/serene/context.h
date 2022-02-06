@@ -71,20 +71,21 @@ enum class CompilationPhase {
 /// Terminates the serene compiler process in a thread safe manner
 SERENE_EXPORT void terminate(SereneContext &ctx, int exitCode);
 
+struct SERENE_EXPORT Options {
+
+  /// Whether to use colors for the output or not
+  bool withColors = true;
+
+  // JIT related flags
+  bool JITenableObjectCache              = true;
+  bool JITenableGDBNotificationListener  = true;
+  bool JITenablePerfNotificationListener = true;
+  bool JITLazy                           = false;
+
+  Options() = default;
+};
+
 class SERENE_EXPORT SereneContext {
-  struct Options {
-
-    /// Whether to use colors for the output or not
-    bool withColors = true;
-
-    // JIT related flags
-    bool JITenableObjectCache              = true;
-    bool JITenableGDBNotificationListener  = true;
-    bool JITenablePerfNotificationListener = true;
-    bool JITLazy                           = false;
-
-    Options() = default;
-  };
 
 public:
   template <typename T>
@@ -151,9 +152,9 @@ public:
   /// and want to keep it long term (like the JIT).
   NSPtr getSharedPtrToNS(llvm::StringRef nsName);
 
-  SereneContext()
+  SereneContext(Options &options)
       : pm(&mlirContext), diagEngine(makeDiagnosticEngine(*this)),
-        targetPhase(CompilationPhase::NoOptimization) {
+        opts(options), targetPhase(CompilationPhase::NoOptimization) {
     mlirContext.getOrLoadDialect<serene::slir::SereneDialect>();
     mlirContext.getOrLoadDialect<mlir::StandardOpsDialect>();
 
@@ -205,8 +206,8 @@ public:
     return std::make_unique<llvm::LLVMContext>();
   };
 
-  static std::unique_ptr<SereneContext> make() {
-    auto ctx = std::make_unique<SereneContext>();
+  static std::unique_ptr<SereneContext> make(Options &options) {
+    auto ctx = std::make_unique<SereneContext>(options);
     auto *ns = ctx->getNS(DEFAULT_NS_NAME);
 
     assert(ns != nullptr && "Default ns doesn't exit!");
@@ -278,7 +279,8 @@ private:
 
 /// Creates a new context object. Contexts are used through out the compilation
 /// process to store the state
-SERENE_EXPORT std::unique_ptr<SereneContext> makeSereneContext();
+SERENE_EXPORT std::unique_ptr<SereneContext>
+makeSereneContext(Options opts = Options());
 
 } // namespace serene
 

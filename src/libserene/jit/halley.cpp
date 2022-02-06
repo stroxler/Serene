@@ -418,6 +418,7 @@ MaybeJIT Halley::make(SereneContext &serene_ctx,
   if (serene_ctx.opts.JITLazy) {
     // Setup a LLLazyJIT instance to the times that latency is important
     // for example in a REPL. This way
+
     auto jit =
         cantFail(llvm::orc::LLLazyJITBuilder()
                      .setCompileFunctionCreator(compileFunctionCreator)
