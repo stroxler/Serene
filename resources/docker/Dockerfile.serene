@@ -1,0 +1,12 @@
+FROM serene/llvm:15
+
+RUN apt-get update --fix-missing && apt-get install -y wget gnupg ccache cmake ccache git ninja-build build-essential binutils libncurses-dev
+WORKDIR /app
+COPY . .
+
+ENV PATH="/opt/llvm/bin:$PATH"
+ENV CXX=clang++
+ENV CC=clang
+ENV LDFLAGS="-fuse-ld=lld"
+
+RUN LD_LIBRARY_PATH="$(clang -print-runtime-dir):$LD_LIBRARY_PATH" ./builder build

@@ -133,6 +133,14 @@ function tests() {
 
 
 case "$command" in
+    "docker-llvm")
+        docker build -f resources/docker/Dockerfile.llvm -t serene/llvm:15 .
+        ;;
+
+    "docker-serene")
+        docker build -f resources/docker/Dockerfile.serene -t serene/build:$(git rev-parse HEAD) .
+        ;;
+
     "setup")
         rm -rfv $ME/.git/hooks/pre-commit
         ln -s $ME/scripts/pre-commit $ME/.git/hooks/pre-commit
