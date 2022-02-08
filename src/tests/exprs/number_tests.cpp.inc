@@ -1,7 +1,7 @@
 /* -*- C++ -*-
  * Serene programming language.
  *
- *  Copyright (c) 2019-2021 Sameer Rahmani <lxsameer@gnu.org>
+ *  Copyright (c) 2019-2022 Sameer Rahmani <lxsameer@gnu.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,8 +22,9 @@
  * SOFTWARE.
  */
 
-#include "../test_helpers.cpp.inc"
 #include "serene/exprs/number.h"
+
+#include "../test_helpers.cpp.inc"
 #include <catch2/catch.hpp>
 
 namespace serene {
@@ -40,8 +41,8 @@ TEST_CASE("Number Expression", "[expression]") {
 
   CHECK(num1->toString() == "<Number 3>");
   CHECK(num2->toString() == "<Number 3.4>");
-  CHECK(num3->toString() ==  "<Number 3>");
-  CHECK(num4->toString() ==  "<Number -3>");
+  CHECK(num3->toString() == "<Number 3>");
+  CHECK(num4->toString() == "<Number -3>");
 };
 
 } // namespace exprs

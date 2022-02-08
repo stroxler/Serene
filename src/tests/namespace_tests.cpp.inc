@@ -1,7 +1,7 @@
 /* -*- C++ -*-
  * Serene programming language.
  *
- *  Copyright (c) 2019-2021 Sameer Rahmani <lxsameer@gnu.org>
+ *  Copyright (c) 2019-2022 Sameer Rahmani <lxsameer@gnu.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,19 +22,20 @@
  * SOFTWARE.
  */
 
-#include "./test_helpers.cpp.inc"
 #include "serene/context.h"
 #include "serene/exprs/expression.h"
 #include "serene/namespace.h"
 #include "serene/reader/reader.h"
+
+#include "./test_helpers.cpp.inc"
 #include <catch2/catch.hpp>
 
 namespace serene {
 
 TEST_CASE("Namespace tests", "[namespace]") {
-  auto ctx = makeSereneContext();
-  auto userNs =
-      makeNamespace(*ctx, "user", llvm::Optional<llvm::StringRef>("/some/file"));
+  auto ctx    = makeSereneContext();
+  auto userNs = makeNamespace(*ctx, "user",
+                              llvm::Optional<llvm::StringRef>("/some/file"));
 
   auto maybeAst = reader::read("(x 1) (def b a)");
 

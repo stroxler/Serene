@@ -1,7 +1,7 @@
 /* -*- C++ -*-
  * Serene programming language.
  *
- *  Copyright (c) 2019-2021 Sameer Rahmani <lxsameer@gnu.org>
+ *  Copyright (c) 2019-2022 Sameer Rahmani <lxsameer@gnu.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,9 +22,10 @@
  * SOFTWARE.
  */
 
-#include "../test_helpers.cpp.inc"
 #include "serene/exprs/expression.h"
 #include "serene/exprs/symbol.h"
+
+#include "../test_helpers.cpp.inc"
 
 namespace serene {
 namespace exprs {
@@ -34,7 +35,7 @@ TEST_CASE("Public Symbol API", "[expression]") {
   auto sym = make<Symbol>(*range.get(), "example");
 
   REQUIRE(sym->getType() == ExprType::Symbol);
-  CHECK(sym->toString() ==  "<Symbol example>");
+  CHECK(sym->toString() == "<Symbol example>");
 };
 } // namespace exprs
 } // namespace serene

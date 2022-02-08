@@ -1,7 +1,7 @@
 /* -*- C++ -*-
  * Serene programming language.
  *
- *  Copyright (c) 2019-2021 Sameer Rahmani <lxsameer@gnu.org>
+ *  Copyright (c) 2019-2022 Sameer Rahmani <lxsameer@gnu.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,20 +22,22 @@
  * SOFTWARE.
  */
 
-#include "./test_helpers.cpp.inc"
 #include "serene/environment.h"
 #include "serene/exprs/expression.h"
 #include "serene/exprs/symbol.h"
-#include "llvm/ADT/StringRef.h"
+
+#include "./test_helpers.cpp.inc"
 #include <catch2/catch.hpp>
 
-namespace serene {
+#include <llvm/ADT/StringRef.h>
 
+namespace serene {
 
 TEST_CASE("Environment tests", "[environment]") {
   std::unique_ptr<reader::LocationRange> range(dummyLocation());
 
-  exprs::Node sym = exprs::make<exprs::Symbol>(*range.get(), llvm::StringRef("example"));
+  exprs::Node sym =
+      exprs::make<exprs::Symbol>(*range.get(), llvm::StringRef("example"));
 
   Environment<llvm::StringRef, exprs::Node> e;
   llvm::Optional<exprs::Node> result = e.lookup("a");

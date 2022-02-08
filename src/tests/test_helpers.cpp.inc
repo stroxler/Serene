@@ -1,7 +1,7 @@
 /* -*- C++ -*-
  * Serene programming language.
  *
- *  Copyright (c) 2019-2021 Sameer Rahmani <lxsameer@gnu.org>
+ *  Copyright (c) 2019-2022 Sameer Rahmani <lxsameer@gnu.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,23 +25,23 @@
 #ifndef TEST_HEALPERS_H
 #define TEST_HEALPERS_H
 
-#include "catch2/catch.hpp"
 #include "serene/reader/location.h"
 
-namespace serene {
+#include <catch2/catch.hpp>
 
+namespace serene {
 
 reader::LocationRange *dummyLocation() {
   reader::Location start;
   reader::Location end;
 
   start.line = 2;
-  start.col = 20;
-  start.pos = 40;
+  start.col  = 20;
+  start.pos  = 40;
 
   end.line = 3;
-  end.col = 30;
-  end.pos = 80;
+  end.col  = 30;
+  end.pos  = 80;
 
   return new reader::LocationRange(start, end);
 };

@@ -1,7 +1,7 @@
 /* -*- C++ -*-
  * Serene programming language.
  *
- *  Copyright (c) 2019-2021 Sameer Rahmani <lxsameer@gnu.org>
+ *  Copyright (c) 2019-2022 Sameer Rahmani <lxsameer@gnu.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,8 +22,9 @@
  * SOFTWARE.
  */
 
-#include "../test_helpers.cpp.inc"
 #include "serene/reader/reader.h"
+
+#include "../test_helpers.cpp.inc"
 #include <catch2/catch.hpp>
 
 namespace serene {
@@ -38,7 +39,7 @@ TEST_CASE("Read numbers", "[reader]") {
 
   auto ast = std::move(maybeAst).getValue();
   REQUIRE_FALSE(ast.empty());
-  CHECK(ast.front()->toString() ==  "<Number 3>");
+  CHECK(ast.front()->toString() == "<Number 3>");
 
   maybeAst = reader::read("-34");
 
@@ -48,7 +49,7 @@ TEST_CASE("Read numbers", "[reader]") {
 
   ast = std::move(maybeAst.getValue());
   REQUIRE_FALSE(ast.empty());
-  CHECK(ast.front()->toString() ==  "<Number -34>");
+  CHECK(ast.front()->toString() == "<Number -34>");
 
   maybeAst = reader::read("-3.5434");
 
@@ -58,7 +59,7 @@ TEST_CASE("Read numbers", "[reader]") {
 
   ast = std::move(maybeAst.getValue());
   REQUIRE_FALSE(ast.empty());
-  CHECK(ast.front()->toString() ==  "<Number -3.5434>");
+  CHECK(ast.front()->toString() == "<Number -3.5434>");
 
   maybeAst = reader::read("444323 2123 123123");
 
@@ -68,8 +69,8 @@ TEST_CASE("Read numbers", "[reader]") {
 
   ast = std::move(maybeAst.getValue());
   REQUIRE(ast.size() == 3);
-  CHECK(ast.front()->toString() ==  "<Number 444323>");
-  CHECK(ast[1]->toString() == "<Number 2123>" );
+  CHECK(ast.front()->toString() == "<Number 444323>");
+  CHECK(ast[1]->toString() == "<Number 2123>");
   CHECK(ast[2]->toString() == "<Number 123123>");
 };
 TEST_CASE("Read Lists and Symbols", "[reader]") {
@@ -81,7 +82,7 @@ TEST_CASE("Read Lists and Symbols", "[reader]") {
 
   auto ast = std::move(maybeAst.getValue());
   REQUIRE_FALSE(ast.empty());
-  CHECK(ast.front()->toString() ==  "<List  <Symbol x> <Number 1>>");
+  CHECK(ast.front()->toString() == "<List  <Symbol x> <Number 1>>");
 
   maybeAst = reader::read("(x (y (z)))");
 
@@ -91,7 +92,8 @@ TEST_CASE("Read Lists and Symbols", "[reader]") {
 
   ast = std::move(maybeAst.getValue());
   REQUIRE_FALSE(ast.empty());
-  CHECK(ast.front()->toString() == "<List  <Symbol x> <List  <Symbol y> <List  <Symbol z>>>>");
+  CHECK(ast.front()->toString() ==
+        "<List  <Symbol x> <List  <Symbol y> <List  <Symbol z>>>>");
 
   maybeAst = reader::read("(x \n y)");
 

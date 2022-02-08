@@ -1,7 +1,7 @@
 /* -*- C++ -*-
  * Serene programming language.
  *
- *  Copyright (c) 2019-2021 Sameer Rahmani <lxsameer@gnu.org>
+ *  Copyright (c) 2019-2022 Sameer Rahmani <lxsameer@gnu.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,25 +22,25 @@
  * SOFTWARE.
  */
 
-#include "../test_helpers.cpp.inc"
-#include "serene/exprs/symbol.h"
 #include "serene/errors.h"
-#include "llvm/Support/Casting.h"
+#include "serene/exprs/symbol.h"
+
+#include "../test_helpers.cpp.inc"
 #include <catch2/catch.hpp>
 
-
+#include <llvm/Support/Casting.h>
 
 namespace serene {
 namespace errors {
 
-
 TEST_CASE("Error Expression", "[expression]") {
   std::unique_ptr<reader::LocationRange> range(dummyLocation());
-  auto err = exprs::makeAndCast<Error>(*range.get(), &DefExpectSymbol, "Something Failed");
+  auto err = exprs::makeAndCast<Error>(*range.get(), &DefExpectSymbol,
+                                       "Something Failed");
 
   CHECK(err->getVariant()->id == E0001);
   CHECK(err->toString() == "<Error E1: Something Failed>");
 };
 
-} // namespace exprs
+} // namespace errors
 } // namespace serene
