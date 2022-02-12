@@ -46,7 +46,7 @@ using MaybeNode = llvm::Expected<Node>;
 using Ast      = std::vector<Node>;
 using MaybeAst = llvm::Expected<Ast>;
 
-static auto EmptyNode = nullptr;
+constexpr static auto EmptyNode = nullptr;
 
 /// The base class of the expressions which provides the common interface for
 /// the expressions to implement.

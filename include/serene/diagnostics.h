@@ -84,6 +84,9 @@ protected:
   void writeColorByType(llvm::raw_ostream &os, llvm::StringRef str);
 };
 
+/// DiagnosticEngine is the central hub for dealing with errors in Serene. It
+/// integrates with MLIR's diag engine and LLVM's error system to handle error
+/// reporting for Serene's compiler
 class DiagnosticEngine {
   SereneContext &ctx;
 
@@ -107,6 +110,10 @@ public:
 /// Create a new instance of the `DiagnosticEngine` from the give
 /// `SereneContext`
 std::unique_ptr<DiagnosticEngine> makeDiagnosticEngine(SereneContext &ctx);
+
+// ----------------------------------------------------------------------------
+// Public API
+// ----------------------------------------------------------------------------
 
 /// Throw out an error with the given \p and terminate the execution.
 SERENE_EXPORT void panic(SereneContext &ctx, llvm::Twine msg);

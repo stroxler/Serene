@@ -40,13 +40,12 @@ SERENE_EXPORT void registerSereneCLOptions();
 /// function has to be called after `llvm::cl::ParseCommandLineOptions`.
 SERENE_EXPORT void applySereneCLOptions(SereneContext &ctx);
 
-/// Reads the the given \p input as a Serene source code in the given
+/// \brief Reads the the given \p input as Serene source code in the given
 /// \c SereneContext \p ctx and returns the possible AST tree of the input or an
 /// error otherwise.
 ///
-/// In case of an error Serene will throw the error messages vis the diagnostic
-/// engine as well and the error that this function returns will be the generic
-/// error message.
+/// If any thing goes wrong it will return an \return \c llvm::Error describing
+/// the issue.
 ///
 /// Be aware than this function reads the input in the context of the current
 /// namespace. So for example if the input is somthing like:

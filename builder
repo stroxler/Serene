@@ -135,7 +135,7 @@ function build-release() { ## Builds the project in "Release" mode
 function build-docs() { ## Builds the documentation of Serene
     clean
     pushed_build
-    cmake -G Ninja -DCMAKE_BUILD_TYPE=Docs "$ROOT_DIR"
+    cmake -G Ninja -DSERENE_ENABLE_DOCS=ON "$ROOT_DIR"
     cmake --build .
     popd_build
 }
