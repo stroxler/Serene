@@ -1,0 +1,18 @@
+SERENE_VERSION=15
+BUILD_NO=4
+REGISTRY=rg.fr-par.scw.cloud/serene
+
+include $(ENVFILE)
+
+.PHONY: build-dev
+build-dev:
+	docker build -t $(REGISTRY)/serene:$(SERENE_VERSION)-$(TAG) $(SOURCE_PATH)
+
+.PHONY: build
+build:
+	docker build -t $(REGISTRY)/serene:$(SERENE_VERSION) --build-arg TASK=build-release .
+
+.PHONY: release
+release:
+	docker login $(REGISTRY) -u $(SERENE_REGISTERY_USER) -p $(SERENE_REGISTERY_PASS)
+	docker push $(REGISTRY)/serene:$(SERENE_VERSION)

@@ -228,16 +228,6 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   add_subdirectory(include)
 
   if (SERENE_ENABLE_DOCS)
-    # Docs only available if this is the main app
-    find_package(Doxygen
-      REQUIRED dot
-      OPTIONAL_COMPONENTS dia)
-
-    if(Doxygen_FOUND)
-      message(STATUS "Found Doxygen, building the docs")
-      add_subdirectory(docs)
-    else()
-      message(STATUS "Doxygen not found, not building the docs")
-    endif()
+    add_subdirectory(docs)
   endif()
 endif()

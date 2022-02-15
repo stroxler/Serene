@@ -176,13 +176,45 @@ function tests() { ## Generates and build the project including the test cases
     popd_build
 }
 
-# function docker-llvm() { #
-#     docker build -f resources/docker/Dockerfile.llvm -t serene/llvm:15-1 .
-# }
+function build-llvm-image() { ## Build the LLVM image that we use to build Serene's image
+    source .env
 
-function docker-serene() { ## Build the Serene docker image for the current HEAD
-    docker build -f resources/docker/Dockerfile.serene -t serene/build:$(git rev-parse HEAD) .
+    docker build \
+           -f $ME/resources/docker/llvm/Dockerfile \
+           -t $REGISTRY/llvm:$1-$2 \
+           --build-arg VERSION=$1 \
+           .
+
 }
+
+function push-llvm-image() { ## Pushes the LLVM image to the registery
+    source .env
+
+    docker login $REGISTRY -u $SERENE_REGISTERY_USER -p $SERENE_REGISTERY_PASS
+    docker push $REGISTRY/llvm:$1
+}
+
+
+
+function build-serene-image() { ## Build the Serene docker image for the current HEAD
+    source .env
+    docker build \
+           -f $ME/resources/docker/serene/Dockerfile \
+           -t $REGISTRY/serene:$VERSION-$(git rev-parse HEAD) \
+           .
+}
+
+function release-serene-image() { ## Build and push the Serene docker image for the current HEAD in Release mode
+    source .env
+    docker build \
+           -f $ME/resources/docker/serene/Dockerfile \
+           -t $REGISTRY/serene:$VERSION \
+           --build-arg TASK=build-release \
+           .
+    docker login $REGISTRY -u $SERENE_REGISTERY_USER -p $SERENE_REGISTERY_PASS
+    docker push $REGISTRY/serene:$VERSION
+}
+
 
 function setup() { ## Setup the working directory and make it ready for development
     rm -rfv $ME/.git/hooks/pre-commit
@@ -203,7 +235,7 @@ echo "Commands:"
 grep -E '^function [a-zA-Z0-9_-]+\(\) \{ ## .*$$' $0 | \
     sort | \
     sed 's/^function \([a-zA-Z0-9_-]*\)() { ## \(.*\)/\1:\2/' | \
-    awk 'BEGIN {FS=":"}; {printf "\033[36m%-20s\033[0m %s\n", $1, $2}'
+    awk 'BEGIN {FS=":"}; {printf "\033[36m%-30s\033[0m %s\n", $1, $2}'
 }
 
 # -----------------------------------------------------------------------------

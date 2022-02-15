@@ -26,3 +26,5 @@ docs/Doxyfile.docs
 .ccache/
 docs/spec.tex
 docs/spec.pdf
+
+.env

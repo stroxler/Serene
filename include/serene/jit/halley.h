@@ -78,6 +78,7 @@ private:
 };
 
 class SERENE_EXPORT Halley {
+  // TODO: Replace this with a variant of LLJIT and LLLazyJIT
   std::unique_ptr<llvm::orc::LLJIT> engine;
   std::unique_ptr<ObjectCache> cache;
 
