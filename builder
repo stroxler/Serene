@@ -32,6 +32,8 @@
 # characters to start the description following by a space. Otherwise, your
 # subcommand won't be registered
 
+set -e
+
 # -----------------------------------------------------------------------------
 # Vars & Config
 # -----------------------------------------------------------------------------
