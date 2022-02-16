@@ -184,7 +184,6 @@ function build-llvm-image() { ## Build the LLVM image that we use to build Seren
            -t $REGISTRY/llvm:$1-$2 \
            --build-arg VERSION=$1 \
            .
-
 }
 
 function push-llvm-image() { ## Pushes the LLVM image to the registery
