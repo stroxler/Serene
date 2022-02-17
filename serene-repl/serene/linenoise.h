@@ -128,6 +128,7 @@
 
 #ifndef _WIN32
 #include <sys/ioctl.h>
+
 #include <termios.h>
 #include <unistd.h>
 #else
@@ -148,6 +149,8 @@
 #pragma warning(push)
 #pragma warning(disable : 4996)
 #endif
+#include <sys/types.h>
+
 #include <ctype.h>
 #include <errno.h>
 #include <fstream>
@@ -157,7 +160,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <string>
-#include <sys/types.h>
 #include <vector>
 
 namespace linenoise {

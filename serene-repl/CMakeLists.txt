@@ -46,3 +46,8 @@ target_include_directories(serene-repl PRIVATE ${PROJECT_BINARY_DIR})
 target_include_directories(serene-repl PRIVATE ${INCLUDE_DIR})
 
 install(TARGETS serene-repl DESTINATION bin)
+
+if(SERENE_BUILD_TESTING)
+  message("Build the test binary")
+  add_subdirectory(tests)
+endif()

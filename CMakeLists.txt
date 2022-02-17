@@ -223,8 +223,8 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   add_subdirectory(serene-tblgen)
 
   # The compiled library code is here
-  add_subdirectory(src)
-
+  add_subdirectory(serenec)
+  add_subdirectory(serene-repl)
   # The compiled library code is here
   add_subdirectory(libserene)
 
