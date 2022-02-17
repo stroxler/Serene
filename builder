@@ -143,6 +143,10 @@ function build-docs() { ## Builds the documentation of Serene
     popd_build
 }
 
+function serve-docs() { ## Serve the docs directory from build dir
+    python -m http.server --directory $BUILD_DIR/docs/sphinx/
+}
+
 function clean() { ## Cleans up the source dir and removes the build
     rm -rf "$BUILD_DIR"
     rm -rf $(find . -iname "*~")

@@ -18,7 +18,6 @@ add_subdirectory(libserene)
 add_subdirectory(serenec)
 add_subdirectory(serene-repl)
 
-
 # Testing only available if this is the main app
 # Emergency override SERENE_CMAKE_BUILD_TESTING provided as well
 if(SERENE_BUILD_TESTING)
