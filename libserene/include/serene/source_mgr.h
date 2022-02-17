@@ -99,7 +99,7 @@ private:
 
     SrcBuffer() = default;
     SrcBuffer(SrcBuffer &&) noexcept;
-    SrcBuffer(const SrcBuffer &) = delete;
+    SrcBuffer(const SrcBuffer &)            = delete;
     SrcBuffer &operator=(const SrcBuffer &) = delete;
     ~SrcBuffer();
   };
@@ -128,12 +128,12 @@ private:
   static std::string convertNamespaceToPath(std::string ns_name);
 
 public:
-  SourceMgr()                  = default;
-  SourceMgr(const SourceMgr &) = delete;
+  SourceMgr()                             = default;
+  SourceMgr(const SourceMgr &)            = delete;
   SourceMgr &operator=(const SourceMgr &) = delete;
   SourceMgr(SourceMgr &&)                 = default;
-  SourceMgr &operator=(SourceMgr &&) = default;
-  ~SourceMgr()                       = default;
+  SourceMgr &operator=(SourceMgr &&)      = default;
+  ~SourceMgr()                            = default;
 
   /// Set the `loadPaths` to the given \p dirs. `loadPaths` is a vector of
   /// directories that Serene will look in order to find a file that constains a

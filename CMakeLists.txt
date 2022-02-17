@@ -59,8 +59,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   set(CMAKE_CXX_STANDARD_REQUIRED True)
 
   # Setup the source locations
-  set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
-  set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
+  set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/libserene/include)
 
   if(SERENE_ENABLE_TIDY)
     find_program(CLANG_TIDY_PATH NAMES clang-tidy REQUIRED)
@@ -203,12 +202,14 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 
 
   # Serene Setup ===================================
-  include_directories(${PROJECT_SOURCE_DIR}/include)
 
   # We don't want the generated files from table gen
   # to be treated as local since the contain warnings
   include_directories(SYSTEM ${PROJECT_BINARY_DIR}/include)
-  include_directories(${CMAKE_CURRENT_BINARY_DIR}/include/)
+  #TODO: Can we move it to the libserene cmake somehow?
+  include_directories(SYSTEM ${PROJECT_BINARY_DIR}/libserene/include/)
+
+  include_directories(${PROJECT_BINARY_DIR}/include/)
 
   # Make sure that our source directory is on the current cmake module path so
   # that we can include cmake files from this directory.
@@ -218,14 +219,15 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   )
 
   include(tablegen-serene)
-
   # Create the tools we use to compile Serene
-  add_subdirectory(tools)
+  add_subdirectory(serene-tblgen)
 
   # The compiled library code is here
   add_subdirectory(src)
-  # The executable code is here
-  add_subdirectory(include)
+
+  # The compiled library code is here
+  add_subdirectory(libserene)
+
 
   if (SERENE_ENABLE_DOCS)
     add_subdirectory(docs)

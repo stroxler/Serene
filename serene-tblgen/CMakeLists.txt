@@ -14,16 +14,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-include_directories(${PROJECT_SOURCE_DIR}/tools/tbl-srn)
+include_directories(${PROJECT_SOURCE_DIR}/serene-tblgen)
 
-add_executable(tbl-srn
+add_executable(serene-tblgen
   serene/errors-backend.cpp
   main.cpp
 )
 
-add_executable(SereneTablegen ALIAS tbl-srn)
+add_executable(SereneTablegen ALIAS serene-tblgen)
 
-set(SERENE_TABLEGEN $<TARGET_FILE:tbl-srn> CACHE
+set(SERENE_TABLEGEN $<TARGET_FILE:serene-tblgen> CACHE
   STRING "Native TableGen executable. Saves building one when cross-compiling.")
 
 set(SERENE_TABLEGEN_EXE SereneTablegen
@@ -31,5 +31,5 @@ set(SERENE_TABLEGEN_EXE SereneTablegen
 set(SERENE_TABLEGEN_TARGET SereneTablegen CACHE
   STRING "Target name for the tbl-srn")
 
-target_link_libraries(tbl-srn PRIVATE LLVMTableGenGlobalISel ${llvm_libs})
-set_target_properties(tbl-srn PROPERTIES FOLDER "tbl-srn")
+target_link_libraries(serene-tblgen PRIVATE LLVMTableGenGlobalISel ${llvm_libs})
+set_target_properties(serene-tblgen PROPERTIES FOLDER "serene-tblgen")
