@@ -165,6 +165,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     endif()
   endif()
 
+  include(GNUInstallDirs)
 
   # LLVM setup =========================================
   find_package(LLVM REQUIRED CONFIG)
@@ -216,7 +217,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   list(INSERT CMAKE_MODULE_PATH 0
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/"
     "${LLVM_COMMON_CMAKE_UTILS}/Modules"
-  )
+    )
 
   include(tablegen-serene)
   # Create the tools we use to compile Serene
@@ -232,4 +233,12 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   if (SERENE_ENABLE_DOCS)
     add_subdirectory(docs)
   endif()
+
+  install(DIRECTORY ${PROJECT_BINARY_DIR}/include/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    FILES_MATCHING
+    PATTERN *.h
+    PATTERN *.td
+    PATTERN "CMake*" EXCLUDE)
+
 endif()

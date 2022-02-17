@@ -14,10 +14,60 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-include_directories(${INCLUD_DIR})
+include_directories(${INCLUDE_DIR})
 
 add_subdirectory(include)
 add_subdirectory(lib)
+
+install(TARGETS serene
+  EXPORT SereneExports
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+
+install(DIRECTORY ${INCLUDE_DIR}/serene
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  FILES_MATCHING
+  PATTERN *.h
+  PATTERN *.td
+  PATTERN "CMake*" EXCLUDE)
+
+
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  FILES_MATCHING
+  PATTERN *.h
+  PATTERN *.td
+  PATTERN *.h.inc
+  PATTERN "CMake*" EXCLUDE)
+
+include(CMakePackageConfigHelpers)
+
+configure_package_config_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+
+  INSTALL_DESTINATION
+  ${CMAKE_INSTALL_LIBDIR}/cmake/serene-${PROJECT_VERSION}
+  )
+
+write_basic_package_version_file(
+  "${PROJECT_NAME}ConfigVersion.cmake"
+  VERSION ${PROJECT_VERSION}
+  COMPATIBILITY SameMajorVersion
+  )
+
+install(FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+  DESTINATION
+  ${CMAKE_INSTALL_LIBDIR}/cmake/serene-${PROJECT_VERSION}
+  )
+
+install(EXPORT SereneExports
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/serene-${PROJECT_VERSION}
+  NAMESPACE serene::)
 
 # Testing only available if this is the main app
 # Emergency override SERENE_CMAKE_BUILD_TESTING provided as well
