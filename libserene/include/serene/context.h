@@ -140,6 +140,17 @@ public:
     return res;
   };
 
+  // void specialization
+  template <>
+  void withCurrentNS(llvm::StringRef nsName, CurrentNSFn<void> f) {
+    assert(!currentNS.empty() && "The currentNS is not initialized!");
+    auto tmp        = this->currentNS;
+    this->currentNS = nsName.str();
+
+    f();
+    this->currentNS = tmp;
+  }
+
   /// Return the current namespace that is being processed at the moment
   Namespace &getCurrentNS();
 

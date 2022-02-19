@@ -28,6 +28,7 @@
 
 #include "./test_helpers.cpp.inc"
 #include <catch2/catch_all.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 namespace serene {
 
@@ -85,5 +86,28 @@ TEST_CASE(
     CHECK(ctx->getCurrentNS().name == userNs->name);
     return 0;
   });
+
+  // Checking the `void` type specialization
+  ctx->withCurrentNS<void>("user", [&]() -> void {
+    CHECK(ctx->getCurrentNS().name == userNs->name);
+  });
+
+  CHECK(ctx->getCurrentNS().name == DEFAULT_NS_NAME);
+};
+
+TEST_CASE("getSharedPtrToNS returns a shared ptr to the NS", "[context]") {
+  auto ctx = makeSereneContext();
+  auto userNs =
+      ctx->makeNamespace("user", llvm::Optional<llvm::StringRef>("/some/file"));
+
+  auto userNs1 = ctx->makeNamespace(
+      "user1", llvm::Optional<llvm::StringRef>("/some/file1"));
+
+  CHECK(ctx->getCurrentNS().name == DEFAULT_NS_NAME);
+
+  NSPtr shouldBeUser1 = ctx->getSharedPtrToNS("user");
+
+  REQUIRE(shouldBeUser1);
+  CHECK(shouldBeUser1->name == userNs->name);
 };
 } // namespace serene
