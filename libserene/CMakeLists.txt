@@ -19,6 +19,7 @@ include_directories(${INCLUDE_DIR})
 add_subdirectory(include)
 add_subdirectory(lib)
 
+# Install rules for libserene target
 install(TARGETS serene
   EXPORT SereneExports
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -26,6 +27,7 @@ install(TARGETS serene
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 
+# Install rules for the public header files.
 install(DIRECTORY ${INCLUDE_DIR}/serene
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
   FILES_MATCHING
@@ -33,7 +35,7 @@ install(DIRECTORY ${INCLUDE_DIR}/serene
   PATTERN *.td
   PATTERN "CMake*" EXCLUDE)
 
-
+# Install rule for the public generated header files
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
   FILES_MATCHING
@@ -44,6 +46,7 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/
 
 include(CMakePackageConfigHelpers)
 
+# Package config file let us use find_package with serene
 configure_package_config_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in"
   "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
@@ -65,6 +68,7 @@ install(FILES
   ${CMAKE_INSTALL_LIBDIR}/cmake/serene-${PROJECT_VERSION}
   )
 
+# Install the package exports
 install(EXPORT SereneExports
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/serene-${PROJECT_VERSION}
   NAMESPACE serene::)

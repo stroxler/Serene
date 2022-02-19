@@ -135,6 +135,8 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   if(SERENE_ENABLE_THINLTO)
   endif()
 
+  include(GNUInstallDirs)
+  Include(FetchContent)
 
   # CCache support ==============================
   if(SERENE_DISABLE_CCACHE)
@@ -165,7 +167,18 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     endif()
   endif()
 
-  include(GNUInstallDirs)
+
+  if(SERENE_BUILD_TESTING)
+    message(STATUS "Fetching Catch2 v3...")
+
+    FetchContent_Declare(
+      Catch2
+      GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+      GIT_TAG        v3.0.0-preview4
+      )
+    FetchContent_MakeAvailable(Catch2)
+    list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
+  endif()
 
   # LLVM setup =========================================
   find_package(LLVM REQUIRED CONFIG)
