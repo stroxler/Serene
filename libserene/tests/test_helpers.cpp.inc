@@ -27,21 +27,23 @@
 
 #include "serene/reader/location.h"
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
 namespace serene {
 
 reader::LocationRange *dummyLocation() {
-  reader::Location start;
-  reader::Location end;
+  reader::Location start("serene.test.ns");
+  reader::Location end("serene.test.ns");
 
-  start.line = 2;
-  start.col  = 20;
-  start.pos  = 40;
+  constexpr const int line1 = 2;
+  constexpr const int line2 = 3;
+  constexpr const int col1  = 20;
+  constexpr const int col2  = 30;
 
-  end.line = 3;
-  end.col  = 30;
-  end.pos  = 80;
+  start.line = line1;
+  start.col  = col1;
+  end.line   = line2;
+  end.col    = col2;
 
   return new reader::LocationRange(start, end);
 };

@@ -25,7 +25,7 @@
 #include "serene/traits.h"
 
 #include "./test_helpers.cpp.inc"
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
 namespace serene {
 

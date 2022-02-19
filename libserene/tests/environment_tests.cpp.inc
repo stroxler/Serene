@@ -27,7 +27,7 @@
 #include "serene/exprs/symbol.h"
 
 #include "./test_helpers.cpp.inc"
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
 #include <llvm/ADT/StringRef.h>
 

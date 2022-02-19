@@ -24,54 +24,56 @@
 
 #include "serene/context.h"
 #include "serene/namespace.h"
+#include "serene/serene.h"
 
 #include "./test_helpers.cpp.inc"
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
 namespace serene {
 
 TEST_CASE("Context tests", "[context]") {
+  initCompiler();
   auto ctx = makeSereneContext();
-  auto ns  = ctx->getNS("blah");
+  auto *ns = ctx->getNS("blah");
 
   REQUIRE_FALSE(ns);
 
-  auto userNs = makeNamespace(*ctx, "user",
-                              llvm::Optional<llvm::StringRef>("/some/file"));
+  SECTION("blah") {
+    auto userNs = ctx->makeNamespace(
+        "user", llvm::Optional<llvm::StringRef>("/some/file"));
 
-  CHECK(userNs->name == "user");
-  REQUIRE(userNs->filename);
-  CHECK(userNs->filename.getValue() == "/some/file");
+    CHECK(userNs->name == "user");
+    REQUIRE(userNs->filename);
+    CHECK(userNs->filename.getValue() == "/some/file");
 
-  ns = ctx->getNS("user");
+    ns = ctx->getNS("user");
 
-  REQUIRE(ns);
-  CHECK(ns->name == userNs->name);
+    REQUIRE(ns);
+    CHECK(ns->name == userNs->name);
 
-  /// Creating new ns with the same name overrides the old one
-  auto userNs1 = makeNamespace(
-      *ctx, "user", llvm::Optional<llvm::StringRef>("/some/other/file"));
+    /// Creating new ns with the same name overrides the old one
+    auto userNs1 = ctx->makeNamespace(
+        "user", llvm::Optional<llvm::StringRef>("/some/other/file"));
 
-  ns = ctx->getNS("user");
+    ns = ctx->getNS("user");
 
-  REQUIRE(ns);
-  CHECK(ns->name == userNs1->name);
-  REQUIRE(ns->filename);
-  CHECK(ns->filename.getValue() == "/some/other/file");
+    REQUIRE(ns);
+    CHECK(ns->name == userNs1->name);
+    REQUIRE(ns->filename);
+    CHECK(ns->filename.getValue() == "/some/other/file");
+  }
 };
 
-TEST_CASE("Get and Set current namespace", "[context]") {
-  auto ctx    = makeSereneContext();
-  auto userNs = makeNamespace(*ctx, "user",
-                              llvm::Optional<llvm::StringRef>("/some/file"));
+TEST_CASE(
+    "withCurrentNS run a function with the given namespace as the current NS",
+    "[context]") {
+  auto ctx = makeSereneContext();
+  auto userNs =
+      ctx->makeNamespace("user", llvm::Optional<llvm::StringRef>("/some/file"));
 
-  auto isSet = ctx->setCurrentNS("user");
-
-  REQUIRE(isSet);
-  CHECK(ctx->getCurrentNS() == userNs);
-
-  isSet = ctx->setCurrentNS("user1");
-  REQUIRE_FALSE(isSet);
-  CHECK(ctx->getCurrentNS() == userNs);
+  ctx->withCurrentNS<int>("user", [&]() -> int {
+    CHECK(ctx->getCurrentNS().name == userNs->name);
+    return 0;
+  });
 };
 } // namespace serene
