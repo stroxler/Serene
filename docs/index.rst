@@ -13,8 +13,8 @@ Welcome to Serene's documentation!
 Docs
 ====
 
-.. doxygenclass:: serene::Namespace
-   :members:
+.. autodoxygenindex::
+
 
 Indices and tables
 ==================

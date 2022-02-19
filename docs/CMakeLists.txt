@@ -20,15 +20,9 @@ find_package(Sphinx REQUIRED)
 # Find all the public headers
 get_target_property(SERENE_PUBLIC_HEADER_DIR serene INTERFACE_INCLUDE_DIRECTORIES)
 
-# doxygen_add_docs(docs
-#   #"${CMAKE_CURRENT_SOURCE_DIR}/index.md"
-#   "${PROJECT_SOURCE_DIR}/src/"
-#   ${INCLUDE_DIR})
-
 #file(GLOB_RECURSE SERENE_PUBLIC_HEADER_DIR ${SERENE_PUBLIC_HEADER_DIR}/*.h)
 file(GLOB_RECURSE SERENE_PUBLIC_HEADERS ${INCLUDE_DIR}/*.h)
-message(STATUS ".........")
-message(STATUS "${SERENE_PUBLIC_HEADERS}")
+
 set(DOXYGEN_INPUT_DIR ${PROJECT_SOURCE_DIR}/)
 set(DOXYGEN_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/doxygen)
 set(DOXYGEN_INDEX_FILE ${DOXYGEN_OUTPUT_DIR}/html/index.html)
