@@ -50,4 +50,6 @@ target_link_libraries(serenec
 target_include_directories(serenec PRIVATE ${PROJECT_BINARY_DIR})
 target_include_directories(serenec PRIVATE ${INCLUDE_DIR})
 
-install(TARGETS serenec DESTINATION bin)
+
+install(TARGETS serenec
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
