@@ -31,37 +31,47 @@
 
 namespace serene {
 
-TEST_CASE("Context tests", "[context]") {
-  initCompiler();
+TEST_CASE("Compiler options", "[context]") {
+  auto opts    = Options();
+  opts.JITLazy = !opts.JITLazy;
+  opts.JITenableGDBNotificationListener =
+      !opts.JITenableGDBNotificationListener;
+
+  auto ctx = makeSereneContext(opts);
+
+  CHECK(ctx->opts.JITLazy == opts.JITLazy);
+  CHECK(ctx->opts.JITenableGDBNotificationListener ==
+        opts.JITenableGDBNotificationListener);
+};
+
+TEST_CASE("makeNamespace & getNS", "[context]") {
   auto ctx = makeSereneContext();
   auto *ns = ctx->getNS("blah");
 
   REQUIRE_FALSE(ns);
 
-  SECTION("blah") {
-    auto userNs = ctx->makeNamespace(
-        "user", llvm::Optional<llvm::StringRef>("/some/file"));
+  auto userNs =
+      ctx->makeNamespace("user", llvm::Optional<llvm::StringRef>("/some/file"));
 
-    CHECK(userNs->name == "user");
-    REQUIRE(userNs->filename);
-    CHECK(userNs->filename.getValue() == "/some/file");
+  CHECK(userNs->name == "user");
+  REQUIRE(userNs->filename);
+  CHECK(userNs->filename.getValue() == "/some/file");
 
-    ns = ctx->getNS("user");
+  ns = ctx->getNS("user");
 
-    REQUIRE(ns);
-    CHECK(ns->name == userNs->name);
+  REQUIRE(ns);
+  CHECK(ns->name == userNs->name);
 
-    /// Creating new ns with the same name overrides the old one
-    auto userNs1 = ctx->makeNamespace(
-        "user", llvm::Optional<llvm::StringRef>("/some/other/file"));
+  /// Creating new ns with the same name overrides the old one
+  auto userNs1 = ctx->makeNamespace(
+      "user", llvm::Optional<llvm::StringRef>("/some/other/file"));
 
-    ns = ctx->getNS("user");
+  ns = ctx->getNS("user");
 
-    REQUIRE(ns);
-    CHECK(ns->name == userNs1->name);
-    REQUIRE(ns->filename);
-    CHECK(ns->filename.getValue() == "/some/other/file");
-  }
+  REQUIRE(ns);
+  CHECK(ns->name == userNs1->name);
+  REQUIRE(ns->filename);
+  CHECK(ns->filename.getValue() == "/some/other/file");
 };
 
 TEST_CASE(

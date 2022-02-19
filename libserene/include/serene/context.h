@@ -68,6 +68,7 @@ enum class CompilationPhase {
   O2,
   O3,
 };
+
 /// Terminates the serene compiler process in a thread safe manner
 SERENE_EXPORT void terminate(SereneContext &ctx, int exitCode);
 
