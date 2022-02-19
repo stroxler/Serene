@@ -43,7 +43,6 @@ Namespace *SereneContext::getNS(llvm::StringRef nsName) {
 };
 
 Namespace &SereneContext::getCurrentNS() {
-  llvm::outs() << this->currentNS << "\n";
   if (this->currentNS.empty() || (namespaces.count(this->currentNS) == 0)) {
     panic(*this, llvm::formatv("getCurrentNS: Namespace '{0}' does not exist",
                                this->currentNS)

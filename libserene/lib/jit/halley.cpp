@@ -482,8 +482,12 @@ Namespace &Halley::getActiveNS() { return *activeNS; };
 llvm::Expected<std::unique_ptr<Halley>> makeHalleyJIT(SereneContext &ctx) {
 
   llvm::orc::JITTargetMachineBuilder jtmb(ctx.getTargetTriple());
+  auto maybeJIT = Halley::make(ctx, std::move(jtmb));
+  if (!maybeJIT) {
+    return maybeJIT.takeError();
+  }
 
-  return Halley::make(ctx, std::move(jtmb));
+  return maybeJIT;
 };
 } // namespace jit
 } // namespace serene

@@ -185,7 +185,7 @@ std::unique_ptr<DiagnosticEngine> makeDiagnosticEngine(SereneContext &ctx) {
 void DiagnosticEngine::emit(const llvm::Error &err) {
   UNUSED(ctx);
   // TODO: create a diag and print it
-  llvm::errs() << err << "\n";
+  llvm::errs() << "[Error]: " << err << "\n";
 };
 
 // void DiagnosticEngine::emit(const llvm::Error &errs) {

@@ -127,8 +127,7 @@ public:
 
   /// Execute the given function \p f by setting the `currentNS`
   /// to the given \p nsName. It will restore the value of `currentNS`
-  /// after \p f returned. It also passes the old value of `currentNS`
-  /// to \p f.
+  /// after \p f returned.
   template <typename T>
   T withCurrentNS(llvm::StringRef nsName, CurrentNSFn<T> f) {
     assert(!currentNS.empty() && "The currentNS is not initialized!");
@@ -215,8 +214,8 @@ public:
     auto maybeJIT = serene::jit::makeHalleyJIT(*ctx);
 
     if (!maybeJIT) {
-      // TODO: Raise an error here
-      return nullptr;
+      auto err = maybeJIT.takeError();
+      panic(*ctx, err);
     }
 
     ctx->jit.swap(*maybeJIT);
@@ -278,7 +277,10 @@ private:
 };
 
 /// Creates a new context object. Contexts are used through out the compilation
-/// process to store the state
+/// process to store the state.
+///
+/// \p opts is an instance of \c Options that can be used to set options of
+///         of the compiler.
 SERENE_EXPORT std::unique_ptr<SereneContext>
 makeSereneContext(Options opts = Options());
 
