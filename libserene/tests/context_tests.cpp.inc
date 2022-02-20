@@ -24,11 +24,14 @@
 
 #include "serene/context.h"
 #include "serene/namespace.h"
+#include "serene/reader/location.h"
 #include "serene/serene.h"
 
 #include "./test_helpers.cpp.inc"
 #include <catch2/catch_all.hpp>
 #include <catch2/catch_test_macros.hpp>
+
+#include <llvm/ADT/None.h>
 
 namespace serene {
 
@@ -110,4 +113,52 @@ TEST_CASE("getSharedPtrToNS returns a shared ptr to the NS", "[context]") {
   REQUIRE(shouldBeUser1);
   CHECK(shouldBeUser1->name == userNs->name);
 };
+
+TEST_CASE("Compilation phase", "[context]") {
+  auto ctx = makeSereneContext();
+  auto cp  = CompilationPhase::O3;
+
+  ctx->setOperationPhase(cp);
+
+  CHECK(ctx->getTargetPhase() == cp);
+  CHECK(ctx->getOptimizatioLevel() == 3);
+
+  // Anything below 0 is 0
+  cp = CompilationPhase::MLIR;
+  ctx->setOperationPhase(cp);
+  CHECK(ctx->getOptimizatioLevel() == 0);
+};
+
+TEST_CASE("makeNamespace", "[context]") {
+  auto ctx = makeSereneContext();
+
+  auto ns = ctx->makeNamespace("example.ns", llvm::None);
+
+  // Namespace has to be empty
+  CHECK(ns->name == "example.ns");
+  CHECK(ns->getTree().empty());
+  CHECK(ns->filename == llvm::None);
+};
+
+TEST_CASE("context and jit", "[context]") {
+  auto ctx = makeSereneContext();
+
+  auto ns = ctx->makeNamespace("example.ns", llvm::None);
+
+  REQUIRE(ctx->jit);
+
+  // no JITDylib should be defined for an empty NS
+  CHECK(ctx->getNumberOfJITDylibs(*ns) == 0);
+
+  SECTION("JITDylib management") {
+    auto unknown = reader::LocationRange::UnknownLocation(DEFAULT_NS_NAME);
+    REQUIRE(!ctx->jit->addNS(*ns, unknown));
+
+    CHECK(ctx->getNumberOfJITDylibs(*ns) == 1);
+
+    REQUIRE(ctx->getLatestJITDylib(*ns));
+    CHECK(ctx->getLatestJITDylib(*ns)->getName() == "example.ns#1");
+  };
+};
+
 } // namespace serene
