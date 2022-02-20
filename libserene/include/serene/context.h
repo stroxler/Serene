@@ -56,6 +56,8 @@ class Expression;
 using Node = std::shared_ptr<Expression>;
 } // namespace exprs
 
+/// This enum describes the different operational phases for the compiler
+/// in order. Anything below `NoOptimization` is considered only for debugging
 enum class CompilationPhase {
   Parse,
   Analysis,
@@ -72,6 +74,10 @@ enum class CompilationPhase {
 /// Terminates the serene compiler process in a thread safe manner
 SERENE_EXPORT void terminate(SereneContext &ctx, int exitCode);
 
+/// Options describes the compiler options that can be passed to the
+/// compiler via command line. Anything that user should be able to
+/// tweak about the compiler has to end up here regardless of the
+/// different subsystem that might use it.
 struct SERENE_EXPORT Options {
 
   /// Whether to use colors for the output or not
@@ -92,15 +98,6 @@ public:
   template <typename T>
   using CurrentNSFn = std::function<T()>;
 
-  // --------------------------------------------------------------------------
-  // IMPORTANT:
-  // These two contextes have to be the very first members of the class in
-  // order to destroy last. DO NOT change the order or add anything before
-  // them
-  // --------------------------------------------------------------------------
-
-  // TODO: Remove the llvmContext
-  llvm::LLVMContext llvmContext;
   mlir::MLIRContext mlirContext;
 
   mlir::PassManager pm;
