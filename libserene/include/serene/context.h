@@ -99,11 +99,8 @@ public:
   using CurrentNSFn = std::function<T()>;
 
   mlir::MLIRContext mlirContext;
-
   mlir::PassManager pm;
-
   std::unique_ptr<DiagnosticEngine> diagEngine;
-
   std::unique_ptr<serene::jit::Halley> jit;
 
   /// The source manager is responsible for loading namespaces and practically
@@ -113,10 +110,7 @@ public:
   /// The set of options to change the compilers behaivoirs
   Options opts;
 
-  std::string targetTriple;
-
-  // TODO: Replace target Triple with this one
-  llvm::Triple triple;
+  const llvm::Triple triple;
 
   /// Insert the given `ns` into the context. The Context object is
   /// the owner of all the namespaces. The `ns` will overwrite any
@@ -162,7 +156,8 @@ public:
 
   SereneContext(Options &options)
       : pm(&mlirContext), diagEngine(makeDiagnosticEngine(*this)),
-        opts(options), targetPhase(CompilationPhase::NoOptimization) {
+        opts(options), triple(llvm::sys::getDefaultTargetTriple()),
+        targetPhase(CompilationPhase::NoOptimization) {
     mlirContext.getOrLoadDialect<serene::slir::SereneDialect>();
     mlirContext.getOrLoadDialect<mlir::StandardOpsDialect>();
 
@@ -175,9 +170,6 @@ public:
 
     // TODO: Get the crash report path dynamically from the cli
     // pm.enableCrashReproducerGeneration("/home/lxsameer/mlir.mlir");
-
-    // TODO: Set the target triple with respect to the CLI args
-    targetTriple = llvm::sys::getDefaultTargetTriple();
   };
 
   /// Set the target compilation phase of the compiler. The compilation
@@ -242,8 +234,6 @@ public:
     }
     return ctx;
   };
-
-  llvm::Triple getTargetTriple() const { return llvm::Triple(targetTriple); };
 
   // JIT JITDylib related functions ---
 

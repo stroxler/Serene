@@ -123,8 +123,10 @@ it would be nice for the JIT to add instrumentation to the compiled
 functions and detect hot functions similar to how javascript jits do it
 and recompile those functions with more optimization passes
 
-
 * TODOs
+** TODO Provide the CLI arguments to pass the =createTargetMachine=.
+We need a way to tweak the target machine object. It's better to provide cli tools
+to do so.
 ** TODO Walk the module and register the symbols with the engine (lazy and nonlazy) :JIT:
 ** TODO Change the compilation layer to accept MLIR modules instead of LLVM IR :JIT:
 This way we can fine tune MLIR's passes based on the JIT settings as well

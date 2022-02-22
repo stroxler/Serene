@@ -365,9 +365,8 @@ MaybeJIT Halley::make(SereneContext &serene_ctx,
     // exported symbol visibility.
     // cf llvm/lib/ExecutionEngine/Orc/LLJIT.cpp
     // LLJIT::createObjectLinkingLayer
-    llvm::Triple targetTriple(llvm::Twine(serene_ctx.targetTriple));
 
-    if (targetTriple.isOSBinFormatCOFF()) {
+    if (serene_ctx.triple.isOSBinFormatCOFF()) {
       objectLayer->setOverrideObjectFlagsWithResponsibilityFlags(true);
       objectLayer->setAutoClaimResponsibilityForObjectSymbols(true);
     }
@@ -481,7 +480,7 @@ Namespace &Halley::getActiveNS() { return *activeNS; };
 
 llvm::Expected<std::unique_ptr<Halley>> makeHalleyJIT(SereneContext &ctx) {
 
-  llvm::orc::JITTargetMachineBuilder jtmb(ctx.getTargetTriple());
+  llvm::orc::JITTargetMachineBuilder jtmb(ctx.triple);
   auto maybeJIT = Halley::make(ctx, std::move(jtmb));
   if (!maybeJIT) {
     return maybeJIT.takeError();
