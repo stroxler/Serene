@@ -224,14 +224,10 @@ public:
     // Make serene.user which is the defult NS available on the
     // JIT
     auto loc = reader::LocationRange::UnknownLocation(INTERNAL_NS);
-    auto err = ctx->jit->addNS(*ns, loc);
-
-    // TODO: Fix this by calling to the diag engine
-    if (err) {
-      llvm::errs() << err << "\n";
-      serene::terminate(*ctx, 1);
-      return nullptr;
+    if (auto err = ctx->jit->addNS(*ns, loc)) {
+      panic(*ctx, err);
     }
+
     return ctx;
   };
 
