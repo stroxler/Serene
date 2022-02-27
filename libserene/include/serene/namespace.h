@@ -20,7 +20,7 @@
  * Commentary:
  * Rules of a namespace:
  * - A namespace has have a name and it has to own it.
- * - A namespace may or may not be assiciated with a file
+ * - A namespace may or may not be associated with a file
  * - The internal AST of a namespace is an evergrowing tree which may expand at
  *   any given time. For example via iteration of a REPL
  * - `environments` vector is the owner of all the semantic envs

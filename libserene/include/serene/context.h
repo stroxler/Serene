@@ -249,20 +249,19 @@ public:
 private:
   CompilationPhase targetPhase;
 
-  // TODO: Change it to a LLVM::StringMap
   // TODO: We need to keep different instances of the namespace
   //       because if any one of them gets cleaned up via reference
   //       count (if we are still using shared ptr for namespaces if not
   //       remove this todo) then we will end up with dangling references
   //       it the JIT
 
-  // The namespace table. Every namespace that needs to be compiled has
-  // to register itself with the context and appear on this table.
-  // This table acts as a cache as well.
+  /// The namespace table. Every namespace that needs to be compiled has
+  /// to register itself with the context and appear on this table.
+  /// This table acts as a cache as well.
   std::map<std::string, NSPtr> namespaces;
 
-  // Why string vs pointer? We might rewrite the namespace and
-  // holding a pointer means that it might point to the old version
+  /// Why string vs pointer? We might rewrite the namespace and
+  /// holding a pointer means that it might point to the old version
   std::string currentNS;
 
   /// A vector of pointers to all the jitDylibs for namespaces. Usually

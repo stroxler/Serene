@@ -207,6 +207,10 @@ NSPtr Namespace::make(SereneContext &ctx, llvm::StringRef name,
   return std::make_shared<Namespace>(ctx, name, filename);
 };
 
-Namespace::~Namespace(){};
+Namespace::~Namespace() {
+  // TODO: Clean up anything related to this namespace in the context
+  // TODO: Remove anything related to this namespace in the JIT
+  NAMESPACE_LOG("Destructing NS: " << name);
+};
 
 } // namespace serene

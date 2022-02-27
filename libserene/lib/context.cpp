@@ -137,6 +137,7 @@ MaybeNS SereneContext::importNamespace(const std::string &name,
 }
 
 llvm::orc::JITDylib *SereneContext::getLatestJITDylib(Namespace &ns) {
+
   if (jitDylibs.count(ns.name) == 0) {
     return nullptr;
   }

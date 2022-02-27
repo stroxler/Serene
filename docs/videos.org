@@ -806,7 +806,8 @@ A thread safe container for the LLVM module.
 - [[https://www.youtube.com/watch?v=i-inxFudrgI][ORCv2 -- LLVM JIT APIs Deep Dive]]
 - [[https://www.youtube.com/watch?v=MOQG5vkh9J8][Updating ORC JIT for Concurrency]]
 - [[https://www.youtube.com/watch?v=hILdR8XRvdQ][ORC -- LLVM's Next Generation of JIT API]]
-* Eposide 16 - ORC Layers
+* DONE Eposide 16 - ORC Layers
+CLOSED: [2022-02-26 Sat 12:50]
 ** Updates:
 *** Support for adding AST directly to the JIT
 *** Minor change to SLIR (big changes are coming)
@@ -923,3 +924,31 @@ A thread safe container for the LLVM module.
 
 #+RESULTS: ep-16-jit-3
 [[file:/tmp/ep16-3.svg]]
+
+* Episode 17 - Custom ORC Layers
+** Updates:
+- Finished the basic compiler wiring
+- Restructured the source tree
+- Tweaked the build system mostly for install targets
+- Refactoring, cleaning up the code and writing tests
+** Quick overview an ORC based JIT engine
+- JIT engines are made out of layers
+- Engines have a hierarchy of layers
+- Layers don't know about each other
+- Layers wrap the program representation in a =MaterializationUnit=, which is
+  then stored in the =JITDylib=.
+- =MaterializationUnits= are responsible for describing the definitions they provide,
+  and for unwrapping the program representation and passing it back to the layer when
+  compilation is required.
+- When a =MaterializationUnit= hands a program representation back to the layer it comes
+  with an associated =MaterializationResponsibility= object. This object tracks the
+  definitions that must be materialized and provides a way to notify the =JITDylib= once
+  they are either successfully materialized or a failure occurs.
+
+** In order to build a custom layer we need:
+*** A custom materialization unit
+Let's have a look at the =MaterializationUnit= class.
+
+*** And the layer class itself
+The layer classes are not special but conventionally the come with few functions
+like: =add=, =emit= and =getInterface=.
