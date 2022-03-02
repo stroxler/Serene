@@ -25,6 +25,10 @@
  *   any given time. For example via iteration of a REPL
  * - `environments` vector is the owner of all the semantic envs
  * - The first env in the `environments` is the root env.
+ *
+ * How to create a namespace ?
+ * The official way to create a namespace object is to use the `SereneContext`
+ * object and call `readNamespace` or `importNamespace`.
  */
 
 // TODO: Add a mechanism to figure out whether a namespace has changed or not
@@ -109,12 +113,12 @@ private:
   static NSPtr make(SereneContext &ctx, llvm::StringRef name,
                     llvm::Optional<llvm::StringRef> filename);
 
+  Namespace(SereneContext &ctx, llvm::StringRef ns_name,
+            llvm::Optional<llvm::StringRef> filename);
+
 public:
   std::string name;
   llvm::Optional<std::string> filename;
-
-  Namespace(SereneContext &ctx, llvm::StringRef ns_name,
-            llvm::Optional<llvm::StringRef> filename);
 
   /// Create a new environment with the give \p parent as the parent,
   /// push the environment to the internal environment storage and

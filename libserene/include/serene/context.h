@@ -186,8 +186,8 @@ public:
   NSPtr makeNamespace(llvm::StringRef name,
                       llvm::Optional<llvm::StringRef> filename);
 
-  /// Read a namespace with the given \p name and returne a share pointer
-  /// to the name or an Error tree.
+  /// Read a namespace with the given \p name and returns a share pointer
+  /// to the name or an Error.
   ///
   /// It just `read` the namespace by parsing it and running the semantic
   /// analyzer on it.

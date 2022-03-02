@@ -102,6 +102,9 @@ NSPtr SereneContext::makeNamespace(llvm::StringRef name,
 };
 
 MaybeNS SereneContext::readNamespace(const std::string &name) {
+  // TODO: Replace this location with a proper location indicating
+  //       the reason why the location data is not available.
+  //       For example, because the ns might be the entry point ns.
   auto loc = reader::LocationRange::UnknownLocation(name);
 
   return readNamespace(name, loc);
@@ -109,7 +112,6 @@ MaybeNS SereneContext::readNamespace(const std::string &name) {
 
 MaybeNS SereneContext::readNamespace(const std::string &name,
                                      reader::LocationRange loc) {
-
   return withCurrentNS<MaybeNS>(name, [&]() -> MaybeNS {
     return this->sourceManager.readNamespace(*this, name, loc);
   });
