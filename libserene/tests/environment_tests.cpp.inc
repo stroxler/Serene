@@ -41,7 +41,7 @@ TEST_CASE("Environment tests", "[environment]") {
 
   exprs::Node sym = exprs::make<exprs::Symbol>(*range, "example", "ns");
 
-  Environment<llvm::StringRef, exprs::Node> e;
+  Environment<exprs::Node> e;
   llvm::Optional<exprs::Node> result = e.lookup("a");
 
   REQUIRE_FALSE(result.hasValue());
@@ -61,7 +61,7 @@ TEST_CASE("Environment tests", "[environment]") {
   CHECK(fetchedSym->nsName == "ns");
 
   SECTION("Testing the environment copy") {
-    Environment<llvm::StringRef, exprs::Node> e1(&e);
+    Environment<exprs::Node> e1(&e);
 
     result = e1.lookup("b");
     REQUIRE_FALSE(result.hasValue());
@@ -74,27 +74,27 @@ TEST_CASE("Environment tests", "[environment]") {
 };
 
 TEST_CASE("Test generic Environment usage", "[environment]") {
-  Environment<int, char> env;
+  Environment<char> env;
 
-  auto result = env.lookup(3);
+  auto result = env.lookup("blah");
   REQUIRE_FALSE(result);
 
-  auto status = env.insert_symbol(3, 'A');
+  auto status = env.insert_symbol("blah", 'A');
   REQUIRE(status.succeeded());
 
-  result = env.lookup(3);
+  result = env.lookup("blah");
   REQUIRE(result);
   CHECK(*result == 'A');
 
-  result = env.lookup(3);
+  result = env.lookup("blah");
   REQUIRE(result);
   CHECK(*result == 'A');
 
   // Test the overwrite functionality
-  status = env.insert_symbol(3, 'B');
+  status = env.insert_symbol("blah", 'B');
   REQUIRE(status.succeeded());
 
-  result = env.lookup(3);
+  result = env.lookup("blah");
   REQUIRE(result);
   CHECK(*result == 'B');
 }

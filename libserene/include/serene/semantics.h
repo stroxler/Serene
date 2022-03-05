@@ -36,7 +36,7 @@ using Ast  = std::vector<Node>;
 }; // namespace exprs
 
 class Namespace;
-using SemanticEnv = Environment<std::string, exprs::Node>;
+using SemanticEnv = Environment<exprs::Node>;
 namespace semantics {
 
 using AnalyzeResult = llvm::Expected<exprs::Ast>;

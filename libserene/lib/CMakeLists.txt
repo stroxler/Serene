@@ -46,8 +46,8 @@ add_library(serene
   semantics.cpp
 
   # jit.cpp
-  jit/engine.cpp
-  jit/layers.cpp
+  # jit/engine.cpp
+  # jit/layers.cpp
   jit/halley.cpp
 
   errors.cpp

@@ -20,8 +20,9 @@
 #define SERENE_ENVIRONMENT_H
 
 #include "serene/llvm/patches.h"
+#include "serene/utils.h"
 
-#include <llvm/ADT/DenseMap.h>
+#include <llvm/ADT/StringMap.h>
 #include <mlir/Support/LogicalResult.h>
 
 namespace serene {
@@ -29,12 +30,12 @@ namespace serene {
 /// This class represents a classic lisp environment (or scope) that holds the
 /// bindings from type `K` to type `V`. For example an environment of symbols
 /// to expressions would be `Environment<Symbol, Node>`
-template <typename K, typename V>
+template <typename V>
 class Environment {
 
-  Environment<K, V> *parent;
+  Environment<V> *parent;
 
-  using StorageType = llvm::DenseMap<K, V>;
+  using StorageType = llvm::StringMap<V>;
   // The actual bindings storage
   StorageType pairs;
 
@@ -43,7 +44,7 @@ public:
   Environment(Environment *parent) : parent(parent){};
 
   /// Look up the given `key` in the environment and return it.
-  llvm::Optional<V> lookup(K key) {
+  llvm::Optional<V> lookup(llvm::StringRef key) {
     if (auto value = pairs.lookup(key)) {
       return value;
     }
@@ -57,8 +58,9 @@ public:
 
   /// Insert the given `key` with the given `value` into the storage. This
   /// operation will shadow an aleady exist `key` in the parent environment
-  mlir::LogicalResult insert_symbol(K key, V value) {
-    pairs.insert(std::pair<K, V>(key, value));
+  mlir::LogicalResult insert_symbol(llvm::StringRef key, V value) {
+    auto result = pairs.insert_or_assign(key, value);
+    UNUSED(result);
     return mlir::success();
   };
 
