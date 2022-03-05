@@ -23,6 +23,8 @@
 #include "serene/exprs/expression.h"
 #include "serene/namespace.h"
 
+#include <serene/export.h>
+
 #include <llvm/ADT/StringRef.h>
 
 #include <string>
@@ -33,25 +35,25 @@ namespace exprs {
 
 /// This data structure represent the Lisp symbol. Just a symbol
 /// in the context of the AST and nothing else.
-class Symbol : public Expression {
+class SERENE_EXPORT Symbol : public Expression {
 
 public:
   std::string name;
   std::string nsName;
 
-  Symbol(reader::LocationRange &loc, llvm::StringRef name,
+  Symbol(const reader::LocationRange &loc, llvm::StringRef name,
          llvm::StringRef currentNS)
       : Expression(loc) {
     // IMPORTANT NOTE: the `name` and `currentNS` should be valid string and
     //                 already validated.
     auto partDelimiter = name.find('/');
     if (partDelimiter == std::string::npos) {
-      nsName     = currentNS;
-      this->name = name;
+      nsName     = currentNS.str();
+      this->name = name.str();
 
     } else {
-      this->name = name.substr(partDelimiter + 1, name.size());
-      nsName     = name.substr(0, partDelimiter);
+      this->name = name.substr(partDelimiter + 1, name.size()).str();
+      nsName     = name.substr(0, partDelimiter).str();
     }
   };
 

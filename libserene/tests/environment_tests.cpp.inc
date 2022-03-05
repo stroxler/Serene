@@ -25,19 +25,21 @@
 #include "serene/environment.h"
 #include "serene/exprs/expression.h"
 #include "serene/exprs/symbol.h"
+#include "serene/reader/location.h"
+#include "serene/serene.h"
 
 #include "./test_helpers.cpp.inc"
 #include <catch2/catch_all.hpp>
+#include <catch2/catch_test_macros.hpp>
 
-#include <llvm/ADT/StringRef.h>
+#include <llvm/Support/Casting.h>
 
 namespace serene {
 
 TEST_CASE("Environment tests", "[environment]") {
   std::unique_ptr<reader::LocationRange> range(dummyLocation());
 
-  exprs::Node sym =
-      exprs::make<exprs::Symbol>(*range.get(), llvm::StringRef("example"));
+  exprs::Node sym = exprs::make<exprs::Symbol>(*range, "example", "ns");
 
   Environment<llvm::StringRef, exprs::Node> e;
   llvm::Optional<exprs::Node> result = e.lookup("a");
@@ -53,15 +55,47 @@ TEST_CASE("Environment tests", "[environment]") {
   REQUIRE(result.hasValue());
   CHECK(result.getValue() == sym);
 
-  Environment<llvm::StringRef, exprs::Node> e1(&e);
+  auto *fetchedSym = llvm::dyn_cast<exprs::Symbol>(result.getValue().get());
+  REQUIRE(fetchedSym != nullptr);
+  CHECK(fetchedSym->name == "example");
+  CHECK(fetchedSym->nsName == "ns");
 
-  result = e1.lookup("b");
-  REQUIRE_FALSE(result.hasValue());
+  SECTION("Testing the environment copy") {
+    Environment<llvm::StringRef, exprs::Node> e1(&e);
 
-  // It should lookup the value in the parent environment
-  result = e1.lookup("a");
-  REQUIRE(result.hasValue());
-  CHECK(result.getValue() == sym);
+    result = e1.lookup("b");
+    REQUIRE_FALSE(result.hasValue());
+
+    // It should lookup the value in the parent environment
+    result = e1.lookup("a");
+    REQUIRE(result.hasValue());
+    CHECK(result.getValue() == sym);
+  };
 };
 
+TEST_CASE("Test generic Environment usage", "[environment]") {
+  Environment<int, char> env;
+
+  auto result = env.lookup(3);
+  REQUIRE_FALSE(result);
+
+  auto status = env.insert_symbol(3, 'A');
+  REQUIRE(status.succeeded());
+
+  result = env.lookup(3);
+  REQUIRE(result);
+  CHECK(*result == 'A');
+
+  result = env.lookup(3);
+  REQUIRE(result);
+  CHECK(*result == 'A');
+
+  // Test the overwrite functionality
+  status = env.insert_symbol(3, 'B');
+  REQUIRE(status.succeeded());
+
+  result = env.lookup(3);
+  REQUIRE(result);
+  CHECK(*result == 'B');
+}
 } // namespace serene

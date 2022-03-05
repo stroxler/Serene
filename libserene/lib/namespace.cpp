@@ -60,10 +60,6 @@ Namespace::Namespace(SereneContext &ctx, llvm::StringRef ns_name,
   createEnv(nullptr);
 };
 
-void Namespace::enqueueError(llvm::StringRef e) const {
-  ctx.diagEngine->enqueueError(e);
-}
-
 SemanticEnv &Namespace::createEnv(SemanticEnv *parent) {
   auto env = std::make_unique<SemanticEnv>(parent);
   environments.push_back(std::move(env));
@@ -89,14 +85,17 @@ mlir::LogicalResult Namespace::define(std::string &name, exprs::Node &node) {
 }
 
 exprs::Ast &Namespace::getTree() { return this->tree; }
+
 llvm::Error Namespace::addTree(exprs::Ast &ast) {
 
-  // TODO: Remove the parse phase
+  // If the target phase is just parsing we don't want
+  // to run the semantic analyzer or anything beyond parser
   if (ctx.getTargetPhase() == CompilationPhase::Parse) {
     // we just want the raw AST
     this->tree.insert(this->tree.end(), ast.begin(), ast.end());
     return llvm::Error::success();
   }
+
   auto &rootEnv = getRootEnv();
 
   auto state = semantics::makeAnalysisState(*this, rootEnv);
@@ -119,7 +118,13 @@ uint Namespace::nextFnCounter() { return fn_counter++; };
 SereneContext &Namespace::getContext() { return this->ctx; };
 
 MaybeModuleOp Namespace::generate(unsigned offset) {
+  // The reason why we return an optional value instead of Errors
+  // is the way MLIR's diagnostic engine works. Passes may use
+  // the `emit` function of operations to report errors to the
+  // diagnostic engine. So we can't return any error diractly.
+
   mlir::OpBuilder builder(&ctx.mlirContext);
+
   // TODO: Fix the unknown location by pointing to the `ns` form
   auto module = mlir::ModuleOp::create(builder.getUnknownLoc(),
                                        llvm::Optional<llvm::StringRef>(name));
@@ -160,6 +165,7 @@ void Namespace::dump() {
   auto maybeModuleOp = generate();
 
   if (!maybeModuleOp) {
+
     llvm::errs() << "Failed to generate the IR.\n";
     return;
   }
@@ -171,6 +177,11 @@ void Namespace::dump() {
 };
 
 MaybeModule Namespace::compileToLLVM() {
+  // The reason why we return an optional value instead of Errors
+  // is the way MLIR's diagnostic engine works. Passes may use
+  // the `emit` function of operations to report errors to the
+  // diagnostic engine. So we can't return any error diractly.
+
   auto maybeModule = generate();
 
   if (!maybeModule) {
@@ -187,6 +198,11 @@ MaybeModule Namespace::compileToLLVM() {
 };
 
 MaybeModule Namespace::compileToLLVMFromOffset(unsigned offset) {
+  // The reason why we return an optional value instead of Errors
+  // is the way MLIR's diagnostic engine works. Passes may use
+  // the `emit` function of operations to report errors to the
+  // diagnostic engine. So we can't return any error diractly.
+
   auto maybeModule = generate(offset);
 
   if (!maybeModule) {

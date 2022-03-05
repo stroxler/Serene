@@ -50,7 +50,7 @@ constexpr static auto EmptyNode = nullptr;
 
 /// The base class of the expressions which provides the common interface for
 /// the expressions to implement.
-class Expression {
+class SERENE_EXPORT Expression {
 public:
   /// The location range provide information regarding to where in the input
   /// string the current expression is used.

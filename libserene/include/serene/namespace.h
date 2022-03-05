@@ -28,7 +28,7 @@
  *
  * How to create a namespace ?
  * The official way to create a namespace object is to use the `SereneContext`
- * object and call `readNamespace` or `importNamespace`.
+ * object and call `readNamespace`, `importNamespace` or `makeNamespace`.
  */
 
 // TODO: Add a mechanism to figure out whether a namespace has changed or not
@@ -88,7 +88,8 @@ using Forms                = std::vector<Form>;
 
 /// Serene's namespaces are the unit of compilation. Any code that needs to be
 /// compiled has to be in a namespace. The official way to create a new
-/// namespace is to use the `makeNamespace` member function of `SereneContext`.
+/// namespace is to use the `readNamespace`, `importNamespace` and
+/// `makeNamespace` member functions of `SereneContext`.
 class SERENE_EXPORT Namespace {
   friend SereneContext;
 
@@ -100,13 +101,17 @@ private:
   std::atomic<uint> fn_counter = 0;
 
   /// The content of the namespace. It should alway hold a semantically
-  /// correct AST. It means thet the AST that we want to stor here has
-  /// to pass the semantic analyzer.
+  /// correct AST. It means thet the AST that we want to store here has
+  /// to pass the semantic analyzer checks.
   exprs::Ast tree;
 
   SemanticEnvironments environments;
 
   std::vector<llvm::StringRef> symbolList;
+
+public:
+  std::string name;
+  llvm::Optional<std::string> filename;
 
   /// Create a naw namespace with the given `name` and optional `filename` and
   /// return a shared pointer to it in the given Serene context.
@@ -115,10 +120,6 @@ private:
 
   Namespace(SereneContext &ctx, llvm::StringRef ns_name,
             llvm::Optional<llvm::StringRef> filename);
-
-public:
-  std::string name;
-  llvm::Optional<std::string> filename;
 
   /// Create a new environment with the give \p parent as the parent,
   /// push the environment to the internal environment storage and
@@ -136,13 +137,12 @@ public:
   mlir::LogicalResult define(std::string &name, exprs::Node &node);
 
   /// Add the given \p ast to the namespace and return any possible error.
-  /// The given \p ast will be added to a vector of ASTs that the namespace
-  /// have. In a normal compilation a Namespace will have a vector of ASTs
-  /// with only one element, but in a REPL like environment it might have
-  /// many elements.
+  /// The given \p ast will be added to a vector of ASTs by expanding
+  /// the tree vector to contain \p ast.
   ///
   /// This function runs the semantic analyzer on the \p ast as well.
   llvm::Error addTree(exprs::Ast &ast);
+
   exprs::Ast &getTree();
 
   const std::vector<llvm::StringRef> &getSymList() { return symbolList; };
@@ -169,8 +169,6 @@ public:
 
   /// Dumps the namespace with respect to the compilation phase
   void dump();
-
-  void enqueueError(llvm::StringRef e) const;
 
   ~Namespace();
 };
