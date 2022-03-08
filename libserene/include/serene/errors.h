@@ -23,6 +23,8 @@
 #include "serene/errors/errc.h"
 #include "serene/export.h"
 
+#include <llvm/Support/Casting.h>
+
 #define GET_CLASS_DEFS
 #include "serene/errors/errs.h.inc"
 
@@ -39,6 +41,7 @@ SERENE_EXPORT llvm::Error makeError(Args &&...args) {
   return llvm::make_error<E>(std::forward<Args>(args)...);
 };
 
+SERENE_EXPORT std::string getMessage(const llvm::Error &e);
 } // namespace serene::errors
 
 #endif

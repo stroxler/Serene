@@ -17,3 +17,13 @@
  */
 
 #include "serene/errors.h"
+
+namespace serene::errors {
+
+std::string getMessage(const llvm::Error &e) {
+  std::string msg;
+  llvm::raw_string_ostream os(msg);
+  os << e;
+  return os.str();
+};
+} // namespace serene::errors

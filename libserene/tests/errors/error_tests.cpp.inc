@@ -31,21 +31,27 @@ namespace serene {
 namespace errors {
 
 TEST_CASE("Serene Error construction", "[errors]") {
-  {
-    std::unique_ptr<reader::LocationRange> range(dummyLocation());
-    llvm::Error err = llvm::make_error<PassFailureError>(*range, "test error");
 
-    auto unhandled =
-        llvm::handleErrors(std::move(err), [&](const PassFailureError &e) {
-          REQUIRE(e.message() == "test error");
-          CHECK(errorVariants[e.ID].title == "PassFailureError");
-          CHECK(errorVariants[e.ID].desc == "Pass Failure.");
-          CHECK(errorVariants[e.ID].help.empty());
-        });
+  std::unique_ptr<reader::LocationRange> range(dummyLocation());
+  llvm::Error err = llvm::make_error<PassFailureError>(*range, "test error");
 
-    CHECK(!unhandled);
-  };
-} // namespace errors
+  auto unhandled =
+      llvm::handleErrors(std::move(err), [&](const PassFailureError &e) {
+        REQUIRE(e.message() == "test error");
+        CHECK(errorVariants[e.ID].title == "PassFailureError");
+        CHECK(errorVariants[e.ID].desc == "Pass Failure.");
+        CHECK(errorVariants[e.ID].help.empty());
+      });
+
+  CHECK(!unhandled);
+}
+
+TEST_CASE("getMessage function", "[errors]") {
+  std::unique_ptr<reader::LocationRange> range(dummyLocation());
+  if (auto err = llvm::make_error<PassFailureError>(*range, "test error")) {
+    CHECK(getMessage(err) == "test error");
+  }
+}
 }; // namespace errors
 } // namespace serene
 
