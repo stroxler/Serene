@@ -26,10 +26,10 @@ namespace exprs {
 
 TEST_CASE("Public Symbol API", "[expression]") {
   std::unique_ptr<reader::LocationRange> range(dummyLocation());
-  auto sym = make<Symbol>(*range.get(), "example");
+  auto sym = make<Symbol>(*range, "example", "user");
 
   REQUIRE(sym->getType() == ExprType::Symbol);
-  CHECK(sym->toString() == "<Symbol example>");
+  CHECK(sym->toString() == "<Symbol user/example>");
 };
 } // namespace exprs
 } // namespace serene

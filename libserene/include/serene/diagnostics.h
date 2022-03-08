@@ -35,10 +35,9 @@
 #define SERENE_DIAGNOSTICS_H
 
 #include "serene/errors.h"
+#include "serene/export.h"
 #include "serene/reader/location.h"
 #include "serene/source_mgr.h"
-
-#include <serene/export.h>
 
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/raw_ostream.h>

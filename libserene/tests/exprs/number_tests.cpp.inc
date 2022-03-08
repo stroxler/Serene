@@ -19,19 +19,18 @@
 #include "serene/exprs/number.h"
 
 #include "../test_helpers.cpp.inc"
-#include <catch2/catch_all.hpp>
 
 namespace serene {
 namespace exprs {
 TEST_CASE("Number Expression", "[expression]") {
   std::unique_ptr<reader::LocationRange> range(dummyLocation());
 
-  auto num1 = makeAndCast<Number>(*range.get(), "3", false, false);
-  auto num2 = makeAndCast<Number>(*range.get(), "3.4", false, true);
+  auto num1 = makeAndCast<Number>(*range, "3", false, false);
+  auto num2 = makeAndCast<Number>(*range, "3.4", false, true);
   // Hence the `isNeg` being true. We need to provide the sign as the input
   // anyway
-  auto num3 = makeAndCast<Number>(*range.get(), "3", true, false);
-  auto num4 = makeAndCast<Number>(*range.get(), "-3", true, false);
+  auto num3 = makeAndCast<Number>(*range, "3", true, false);
+  auto num4 = makeAndCast<Number>(*range, "-3", true, false);
 
   CHECK(num1->toString() == "<Number 3>");
   CHECK(num2->toString() == "<Number 3.4>");

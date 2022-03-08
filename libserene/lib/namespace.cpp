@@ -18,12 +18,11 @@
 #include "serene/namespace.h"
 
 #include "serene/context.h"
+#include "serene/export.h"
 #include "serene/exprs/expression.h"
 #include "serene/llvm/IR/Value.h"
 #include "serene/semantics.h"
 #include "serene/slir/slir.h"
-
-#include <serene/export.h>
 
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Support/FormatVariadic.h>

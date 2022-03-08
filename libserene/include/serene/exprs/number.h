@@ -20,6 +20,7 @@
 #define SERENE_EXPRS_NUMBER_H
 
 #include "serene/context.h"
+#include "serene/export.h"
 #include "serene/exprs/expression.h"
 #include "serene/namespace.h"
 
@@ -32,7 +33,7 @@ namespace exprs {
 /// positive and negative numbers. This is not a data type representative.
 /// So it won't cast to actual numeric types and it has a string container
 /// to hold the parsed value.
-struct Number : public Expression {
+struct SERENE_EXPORT Number : public Expression {
 
   // TODO: Use a variant here instead to store different number types
   std::string value;

@@ -21,8 +21,7 @@
 
 #include "serene/errors/base.h"
 #include "serene/errors/errc.h"
-
-#include <serene/export.h>
+#include "serene/export.h"
 
 #define GET_CLASS_DEFS
 #include "serene/errors/errs.h.inc"

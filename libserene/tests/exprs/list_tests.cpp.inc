@@ -21,10 +21,11 @@
 #include "serene/exprs/symbol.h"
 #include "serene/namespace.h"
 #include "serene/reader/reader.h"
-#include "serene/reader/semantics.h"
+#include "serene/semantics.h"
 
 #include "../test_helpers.cpp.inc"
-#include <catch2/catch_all.hpp>
+
+#include <llvm/Support/Error.h>
 
 namespace serene {
 namespace exprs {
@@ -32,15 +33,15 @@ namespace exprs {
 TEST_CASE("List Expression", "[expression]") {
   std::unique_ptr<reader::LocationRange> range(dummyLocation());
 
-  Node sym  = make<Symbol>(*range.get(), llvm::StringRef("example"));
-  Node sym1 = make<Symbol>(*range.get(), llvm::StringRef("example1"));
+  Node sym  = make<Symbol>(*range, "example");
+  Node sym1 = make<Symbol>(*range, "example1");
 
-  Node list = make<List>(*range.get());
+  Node list = make<List>(*range);
 
   REQUIRE(list->getType() == ExprType::List);
   CHECK(list->toString() == "<List ->");
 
-  Node list2 = make<List>(*range.get(), list);
+  Node list2 = make<List>(*range, list);
   CHECK(list2->toString() == "<List  <List ->>");
 
   Ast elements;
@@ -48,7 +49,7 @@ TEST_CASE("List Expression", "[expression]") {
   elements.push_back(list2);
   elements.push_back(sym);
 
-  auto list3 = make<List>(*range.get(), elements);
+  auto list3 = make<List>(*range, elements);
 
   CHECK(list3->toString() ==
         "<List  <List -> <List  <List ->> <Symbol example>>");
@@ -75,14 +76,20 @@ TEST_CASE("List Expression", "[expression]") {
   }
 };
 
-TEST_CASE("List semantic analysis of 'def'", "[semantic]") {
-  auto ctx      = makeSereneContext();
-  auto ns       = makeNamespace(*ctx, "user", llvm::None);
-  auto ast      = reader::read("(def (a) b)");
-  auto afterAst = reader::analyze(*ctx, ast.getValue());
+TEST_CASE("List semantic analysis of 'def'", "[semantic,expression,list]") {
+
+  auto ctx = makeSereneContext();
+  auto ns  = ctx->makeNamespace("user", llvm::None);
+  auto ast =
+      llvm::cantFail(reader::read(*ctx, "(def (a) b)", "user", llvm::None));
+
+  SemanticEnv env;
+  semantics::AnalysisState state(ns, env);
+  auto afterAst = semantics::analyze(state, ast);
+
   REQUIRE_FALSE(afterAst);
   // Fetch the first error
-  CHECK(afterAst.getError()[0]->toString() == "<Error E1: >");
+  CHECK(afterAst.takeError() == "<Error E1: >");
 
   ast      = reader::read("(def a)");
   afterAst = reader::analyze(*ctx, ast.getValue());

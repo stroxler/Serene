@@ -20,6 +20,7 @@
 #define SERENE_EXPRS_LIST_H
 
 #include "serene/context.h"
+#include "serene/export.h"
 #include "serene/exprs/expression.h"
 
 #include <llvm/ADT/Optional.h>
@@ -32,7 +33,7 @@ namespace exprs {
 
 /// This class represents a List in the AST level and not the List as the data
 /// type.
-class List : public Expression {
+class SERENE_EXPORT List : public Expression {
 public:
   // Internal elements of the lest (small vector of shared pointers to
   // expressions)

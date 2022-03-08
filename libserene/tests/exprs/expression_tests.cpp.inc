@@ -29,14 +29,14 @@ namespace exprs {
 
 TEST_CASE("Public Expression API", "[expression]") {
   std::unique_ptr<reader::LocationRange> range(dummyLocation());
-  auto sym = make<Symbol>(*range.get(), "example");
+  auto sym = make<Symbol>(*range, "example", "user");
 
   REQUIRE(sym->getType() == ExprType::Symbol);
-  CHECK(sym->toString() == "<Symbol example>");
+  CHECK(sym->toString() == "<Symbol user/example>");
 
-  auto list = makeAndCast<List>(*range.get(), sym);
+  auto list = makeAndCast<List>(*range, sym);
 
-  CHECK(list->toString() == "<List  <Symbol example>>");
+  CHECK(list->toString() == "<List  <Symbol user/example>>");
 };
 
 } // namespace exprs

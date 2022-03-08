@@ -20,10 +20,9 @@
 #define SERENE_EXPRS_SYMBOL_H
 
 #include "serene/context.h"
+#include "serene/export.h"
 #include "serene/exprs/expression.h"
 #include "serene/namespace.h"
-
-#include <serene/export.h>
 
 #include <llvm/ADT/StringRef.h>
 
