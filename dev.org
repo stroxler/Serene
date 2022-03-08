@@ -126,7 +126,7 @@ functions and detect hot functions similar to how javascript jits do it
 and recompile those functions with more optimization passes
 
 * TODOs
-
+** TODO Create =Catch2= generators to be used in tests. Specially for the =reader= tests
 ** TODO Investigate possible implementanion for Internal Errors
 - An option is to use llvm registry functionality like the one used in =clang-doc= instead of
   =errorVariants= var.

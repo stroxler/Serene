@@ -16,88 +16,99 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef SERENE_TEST_READER_H
+#define SERENE_TEST_READER_H
+
 #include "serene/reader/reader.h"
 
-#include "../test_helpers.cpp.inc"
-#include <catch2/catch_all.hpp>
+#include <catch2/catch_test_macros.hpp>
+
+// *IMPORTANT NOTE:* The `READ` macro is just a quick way to eliminate
+//                   the overhead of writing the same function signature
+//                   over and over again. Nothing special about it.
+#define READ(input) reader::read(*ctx, input, "user", llvm::None)
 
 namespace serene {
 namespace reader {
 
 TEST_CASE("Read numbers", "[reader]") {
-  auto maybeAst = reader::read("3");
+  auto ctx      = makeSereneContext();
+  auto maybeAst = READ("3");
 
   if (!maybeAst) {
     FAIL();
   }
 
-  auto ast = std::move(maybeAst).getValue();
+  auto ast = *maybeAst;
   REQUIRE_FALSE(ast.empty());
   CHECK(ast.front()->toString() == "<Number 3>");
 
-  maybeAst = reader::read("-34");
+  maybeAst = READ("-34");
 
   if (!maybeAst) {
     FAIL();
   }
 
-  ast = std::move(maybeAst.getValue());
+  ast = *maybeAst;
   REQUIRE_FALSE(ast.empty());
   CHECK(ast.front()->toString() == "<Number -34>");
 
-  maybeAst = reader::read("-3.5434");
+  maybeAst = READ("-3.5434");
 
   if (!maybeAst) {
     FAIL();
   }
 
-  ast = std::move(maybeAst.getValue());
+  ast = *maybeAst;
   REQUIRE_FALSE(ast.empty());
   CHECK(ast.front()->toString() == "<Number -3.5434>");
 
-  maybeAst = reader::read("444323 2123 123123");
+  maybeAst = READ("444323 2123 123123");
 
   if (!maybeAst) {
     FAIL();
   }
 
-  ast = std::move(maybeAst.getValue());
+  ast = *maybeAst;
   REQUIRE(ast.size() == 3);
   CHECK(ast.front()->toString() == "<Number 444323>");
   CHECK(ast[1]->toString() == "<Number 2123>");
   CHECK(ast[2]->toString() == "<Number 123123>");
 };
+
 TEST_CASE("Read Lists and Symbols", "[reader]") {
-  auto maybeAst = reader::read("(x 1)");
+  auto ctx      = makeSereneContext();
+  auto maybeAst = READ("(x 1)");
 
   if (!maybeAst) {
     FAIL();
   }
 
-  auto ast = std::move(maybeAst.getValue());
+  auto ast = *maybeAst;
   REQUIRE_FALSE(ast.empty());
-  CHECK(ast.front()->toString() == "<List  <Symbol x> <Number 1>>");
+  CHECK(ast.front()->toString() == "<List  <Symbol user/x> <Number 1>>");
 
-  maybeAst = reader::read("(x (y (z)))");
+  maybeAst = READ("(x (y (z)))");
 
   if (!maybeAst) {
     FAIL();
   }
 
-  ast = std::move(maybeAst.getValue());
+  ast = *maybeAst;
   REQUIRE_FALSE(ast.empty());
-  CHECK(ast.front()->toString() ==
-        "<List  <Symbol x> <List  <Symbol y> <List  <Symbol z>>>>");
+  CHECK(ast.front()->toString() == "<List  <Symbol user/x> <List  <Symbol "
+                                   "user/y> <List  <Symbol user/z>>>>");
 
-  maybeAst = reader::read("(x \n y)");
+  maybeAst = READ("(x \n y)");
 
   if (!maybeAst) {
     FAIL();
   }
 
-  ast = std::move(maybeAst.getValue());
+  ast = *maybeAst;
   REQUIRE_FALSE(ast.empty());
-  CHECK(ast.front()->toString() == "<List  <Symbol x> <Symbol y>>");
+  CHECK(ast.front()->toString() == "<List  <Symbol user/x> <Symbol user/y>>");
 };
 } // namespace reader
 } // namespace serene
+#endif

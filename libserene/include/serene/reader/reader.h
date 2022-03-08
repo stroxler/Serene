@@ -44,6 +44,7 @@
 #include "serene/reader/location.h"
 #include "serene/serene.h"
 
+#include <serene/export.h>
 #include <system_error>
 
 #include <llvm/Support/Debug.h>
@@ -124,12 +125,13 @@ public:
 
 /// Parses the given `input` string and returns a `Result<ast>`
 /// which may contains an AST or an `llvm::Error`
-exprs::MaybeAst read(SereneContext &ctx, llvm::StringRef input,
-                     llvm::StringRef ns,
-                     llvm::Optional<llvm::StringRef> filename);
-exprs::MaybeAst read(SereneContext &ctx, llvm::MemoryBufferRef input,
-                     llvm::StringRef ns,
-                     llvm::Optional<llvm::StringRef> filename);
+SERENE_EXPORT exprs::MaybeAst read(SereneContext &ctx, llvm::StringRef input,
+                                   llvm::StringRef ns,
+                                   llvm::Optional<llvm::StringRef> filename);
+SERENE_EXPORT exprs::MaybeAst read(SereneContext &ctx,
+                                   llvm::MemoryBufferRef input,
+                                   llvm::StringRef ns,
+                                   llvm::Optional<llvm::StringRef> filename);
 } // namespace serene::reader
 
 #endif
