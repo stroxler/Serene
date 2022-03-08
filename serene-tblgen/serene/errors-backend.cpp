@@ -16,6 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * Commentary:
+ * This is a `tablegen` backend to read from generate error definitions
+ * from the given tablegen records defined in a `.td` file. It relies on
+ * Two main classes to be available in the target source code. `SereneError`
+ * and `ErrorVariant`. Checkout `libserene/include/serene/errors/base.h`.
+ */
+
 // The "serene/" part is due to a convention that we use in the project
 #include "serene/errors-backend.h"
 
@@ -65,48 +73,7 @@ void ErrorsBackend::createErrorClass(const int id, llvm::Record &defRec,
      << "public:\n"
      << "  using llvm::ErrorInfo<" << recName << ", "
      << "SereneError>::ErrorInfo;\n"
-     << "  constexpr static const int ID = " << id << ";\n};\n\n"
-     << "static const ErrorVariant " << recName << INSTANCE_SUFFIX
-     << " = ErrorVariant::make(\n"
-     << "  " << id << ",\n"
-     << "  \"" << recName << "\",\n";
-
-  auto desc = defRec.getValueAsString("desc");
-
-  if (desc.empty()) {
-    llvm::PrintError("'desc' field is empty for " + recName);
-  }
-
-  os << "  \"" << desc << "\",\n";
-
-  auto help = defRec.getValueAsString("help");
-
-  if (!help.empty()) {
-
-    const llvm::MemoryBufferRef value(help, "help");
-
-    llvm::line_iterator lines(value, false);
-    while (!lines.is_at_end()) {
-      if (lines.line_number() != 1) {
-        os << '\t';
-      }
-      auto prevLine = *lines;
-      lines++;
-      os << '"' << prevLine << '"';
-
-      if (lines.is_at_end()) {
-        os << ";\n";
-      } else {
-        os << '\n';
-      }
-    }
-  } else {
-    os << "  \"\"";
-  }
-
-  os << ");\n";
-  // os << "  " << help << ");\n";
-  //  auto *stringVal = llvm::dyn_cast<llvm::StringInit>(val.getValue());
+     << "  constexpr static const int ID = " << id << ";\n};\n\n";
 };
 
 void ErrorsBackend::createNSBody(llvm::raw_ostream &os) {
@@ -135,41 +102,72 @@ void ErrorsBackend::createNSBody(llvm::raw_ostream &os) {
 
       createErrorClass(i, *defRec, os);
     }
-  });
 
-  os << "#undef GET_CLASS_DEFS\n#endif\n\n";
+    os << "static const ErrorVariant errorVariants[" << indexList->size()
+       << "] = {\n";
 
-  os << "#ifdef GET_ERRS_ARRAY\n\n";
-  inNamespace("serene::errors", os, [&](llvm::raw_ostream &os) {
-    os << "SereneError::ID = -1;\n";
     for (size_t i = 0; i < indexList->size(); i++) {
       llvm::Record *defRec = indexList->getElementAsRecord(i);
-      os << defRec->getName() << "::ID = " << i << ";\n";
-    }
-
-    os << "static const std::array<int, ErrorVariant *> "
-          "variants{\n";
-    for (size_t i = 0; i < indexList->size(); i++) {
-      llvm::Record *defRec = indexList->getElementAsRecord(i);
+      auto recName         = defRec->getName();
 
       if (!defRec->isSubClassOf("Error")) {
         continue;
       }
-      os << "  &" << defRec->getName() << INSTANCE_SUFFIX << ",\n";
+
+      os << "  ErrorVariant::make(" << i << ", \n";
+      os << "  \"" << recName << "\",\n";
+
+      auto desc = defRec->getValueAsString("desc");
+
+      if (desc.empty()) {
+        llvm::PrintError("'desc' field is empty for " + recName);
+      }
+
+      os << "  \"" << desc << "\",\n";
+
+      auto help = defRec->getValueAsString("help");
+
+      if (!help.empty()) {
+
+        const llvm::MemoryBufferRef value(help, "help");
+
+        llvm::line_iterator lines(value, false);
+        while (!lines.is_at_end()) {
+          if (lines.line_number() != 1) {
+            os << '\t';
+          }
+          auto prevLine = *lines;
+          lines++;
+          os << '"' << prevLine << '"';
+
+          if (lines.is_at_end()) {
+            os << ";\n";
+          } else {
+            os << '\n';
+          }
+        }
+      } else {
+        os << "  \"\"";
+      }
+
+      os << "),\n";
     }
+
+    os << "};\n";
   });
-  os << "\n};\n#undef GET_ERRS_ARRAY\n#endif\n";
+
+  os << "#undef GET_CLASS_DEFS\n#endif\n\n";
 }
 
 void ErrorsBackend::run(llvm::raw_ostream &os) {
   (void)records;
   llvm::emitSourceFileHeader("Serene's Errors collection", os);
 
+  // DO NOT GUARD THE HEADER WITH #ifndef ...
   os << "#include \"serene/errors/base.h\"\n\n#include "
         "<llvm/Support/Error.h>\n\n";
-  os << "#ifndef SERENE_ERRORS_ERRORS_H\n#define SERENE_ERRORS_ERRORS_H\n\n";
+
   createNSBody(os);
-  os << "#endif\n";
 }
 
 void emitErrors(llvm::RecordKeeper &rk, llvm::raw_ostream &os) {

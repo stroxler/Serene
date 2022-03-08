@@ -21,6 +21,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#ifndef SERENE_TEST_CONTEXT_H
+#define SERENE_TEST_CONTEXT_H
 
 #include "serene/context.h"
 #include "serene/namespace.h"
@@ -162,3 +164,4 @@ TEST_CASE("context and jit", "[context]") {
 };
 
 } // namespace serene
+#endif

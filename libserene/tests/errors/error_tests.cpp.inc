@@ -22,25 +22,37 @@
  * SOFTWARE.
  */
 
+#ifndef SERENE_TEST_ERRORS_H
+#define SERENE_TEST_ERRORS_H
+
 #include "serene/errors.h"
-#include "serene/exprs/symbol.h"
 
-#include "../test_helpers.cpp.inc"
-#include <catch2/catch_all.hpp>
+#include <catch2/catch_test_macros.hpp>
 
-#include <llvm/Support/Casting.h>
+#include <llvm/ADT/StringMap.h>
+#include <llvm/Support/Error.h>
+#include <llvm/Support/ErrorHandling.h>
 
 namespace serene {
 namespace errors {
 
-TEST_CASE("Error Expression", "[expression]") {
-  std::unique_ptr<reader::LocationRange> range(dummyLocation());
-  auto err = exprs::makeAndCast<Error>(*range.get(), &DefExpectSymbol,
-                                       "Something Failed");
+TEST_CASE("Serene Error construction", "[errors]") {
+  {
+    std::unique_ptr<reader::LocationRange> range(dummyLocation());
+    llvm::Error err = llvm::make_error<PassFailureError>(*range, "test error");
 
-  CHECK(err->getVariant()->id == E0001);
-  CHECK(err->toString() == "<Error E1: Something Failed>");
-};
+    auto unhandled =
+        llvm::handleErrors(std::move(err), [&](const PassFailureError &e) {
+          REQUIRE(e.message() == "test error");
+          CHECK(errorVariants[e.ID].title == "PassFailureError");
+          CHECK(errorVariants[e.ID].desc == "Pass Failure.");
+          CHECK(errorVariants[e.ID].help.empty());
+        });
 
+    CHECK(!unhandled);
+  };
 } // namespace errors
+}; // namespace errors
 } // namespace serene
+
+#endif

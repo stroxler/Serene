@@ -22,6 +22,8 @@
 #include "serene/errors/base.h"
 #include "serene/errors/errc.h"
 
+#include <serene/export.h>
+
 #define GET_CLASS_DEFS
 #include "serene/errors/errs.h.inc"
 
@@ -29,8 +31,12 @@
 
 namespace serene::errors {
 
+/// Create and return a Serene flavored `llvm::Error` by passing the parameters
+/// directly to the constructor of type `E`.
+///
+/// This is the official way of creating error objects in Serene.
 template <typename E, typename... Args>
-llvm::Error makeError(Args &&...args) {
+SERENE_EXPORT llvm::Error makeError(Args &&...args) {
   return llvm::make_error<E>(std::forward<Args>(args)...);
 };
 

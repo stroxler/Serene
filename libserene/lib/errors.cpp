@@ -17,6 +17,3 @@
  */
 
 #include "serene/errors.h"
-
-#define GET_ERRS_ARRAY
-#include "serene/errors/errs.h.inc"

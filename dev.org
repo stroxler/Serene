@@ -127,6 +127,10 @@ and recompile those functions with more optimization passes
 
 * TODOs
 
+** TODO Investigate possible implementanion for Internal Errors
+- An option is to use llvm registry functionality like the one used in =clang-doc= instead of
+  =errorVariants= var.
+
 ** TODO In =SereneContext::getLatestJITDylib= function, make sure that the JITDylib is still valid
 Make sure that the returning Dylib still exists in the JIT
 by calling =jit->engine->getJITDylibByName(dylib_name);=

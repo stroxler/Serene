@@ -28,19 +28,20 @@
 
 namespace serene::errors {
 
+// This class is used in the generated code
 struct ErrorVariant {
-  int id;
+  const int id;
   const std::string title;
   const std::string desc;
   const std::string help;
 
-  static ErrorVariant make(int id, const char *t, const char *d,
+  static ErrorVariant make(const int id, const char *t, const char *d,
                            const char *h) {
     return ErrorVariant(id, t, d, h);
   };
 
 private:
-  ErrorVariant(int id, const char *t, const char *d, const char *h)
+  ErrorVariant(const int id, const char *t, const char *d, const char *h)
       : id(id), title(t), desc(d), help(h){};
 };
 

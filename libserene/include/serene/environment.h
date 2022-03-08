@@ -16,10 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SERENE_ENVIRONMENT_H
-#define SERENE_ENVIRONMENT_H
+#ifndef SERENE_TEST_ENVIRONMENT_H
+#define SERENE_TEST_ENVIRONMENT_H
 
-#include "serene/llvm/patches.h"
 #include "serene/utils.h"
 
 #include <llvm/ADT/StringMap.h>
