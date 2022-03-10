@@ -18,15 +18,13 @@
 
 #include "serene/errors.h"
 
-#include "serene/errors/base.h"
-
 #include <llvm/Support/Casting.h>
 #include <llvm/Support/Error.h>
 
 namespace serene::errors {
 
 // We need this to make Error class a llvm::Error friendy implementation
-char Error::ID;
+char SereneError::ID;
 
 std::string getMessage(const llvm::Error &e) {
   std::string msg;

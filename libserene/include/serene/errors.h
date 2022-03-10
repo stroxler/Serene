@@ -19,9 +19,11 @@
 #ifndef SERENE_ERRORS_H
 #define SERENE_ERRORS_H
 
-#include "serene/errors/base.h"
-#include "serene/errors/errc.h"
 #include "serene/export.h"
+#include "serene/reader/location.h"
+
+#define GET_CLASS_DEFS
+#include "serene/errors/errs.h.inc"
 
 #include <llvm/Support/Casting.h>
 #include <llvm/Support/Error.h>
@@ -32,6 +34,33 @@ class SereneContext;
 
 namespace serene::errors {
 
+class SERENE_EXPORT SereneError : public llvm::ErrorInfo<SereneError> {
+public:
+  static char ID;
+  ErrorType errorType;
+
+  SereneContext &ctx;
+  reader::LocationRange location;
+  std::string msg;
+
+  void log(llvm::raw_ostream &os) const override { os << msg; }
+
+  std::error_code convertToErrorCode() const override {
+    // TODO: Fix this by creating a mapping from ErrorType to standard
+    // errc or return the ErrorType number instead
+    return std::make_error_code(std::errc::io_error);
+  }
+
+  SereneError(SereneContext &ctx, ErrorType errtype, reader::LocationRange &loc)
+      : errorType(errtype), ctx(ctx), location(loc){};
+
+  SereneError(SereneContext &ctx, ErrorType errtype, reader::LocationRange &loc,
+              llvm::StringRef msg)
+      : errorType(errtype), ctx(ctx), location(loc), msg(msg.str()){};
+
+  reader::LocationRange &where() { return location; };
+};
+
 /// Create and return a Serene flavored `llvm::Error` by passing the parameters
 /// directly to the constructor of type `E`.
 ///
@@ -39,7 +68,8 @@ namespace serene::errors {
 template <typename... Args>
 SERENE_EXPORT llvm::Error makeError(SereneContext &ctx, ErrorType errtype,
                                     Args &&...args) {
-  return llvm::make_error<Error>(ctx, errtype, std::forward<Args>(args)...);
+  return llvm::make_error<SereneError>(ctx, errtype,
+                                       std::forward<Args>(args)...);
 };
 
 /// Returns the messange that the given error \p e is holding. It doesn't cast

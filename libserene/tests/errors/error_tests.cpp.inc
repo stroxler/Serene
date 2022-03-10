@@ -38,14 +38,15 @@ TEST_CASE("Serene Error construction", "[errors]") {
   auto ctx        = makeSereneContext();
   llvm::Error err = makeError(*ctx, PassFailureError, *range, "test error");
 
-  auto unhandled = llvm::handleErrors(std::move(err), [&](const Error &e) {
-    REQUIRE(e.message() == "test error");
-    const auto *v = getVariant(e.errorType);
-    REQUIRE(v != nullptr);
-    CHECK(v->title == "PassFailureError");
-    CHECK(v->desc == "Pass Failure.");
-    CHECK(v->help.empty());
-  });
+  auto unhandled =
+      llvm::handleErrors(std::move(err), [&](const SereneError &e) {
+        REQUIRE(e.message() == "test error");
+        const auto *v = getVariant(e.errorType);
+        REQUIRE(v != nullptr);
+        CHECK(v->title == "PassFailureError");
+        CHECK(v->desc == "Pass Failure.");
+        CHECK(v->help.empty());
+      });
 
   CHECK(!unhandled);
 }
