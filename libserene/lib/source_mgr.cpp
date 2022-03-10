@@ -84,7 +84,7 @@ MaybeNS SourceMgr::readNamespace(SereneContext &ctx, std::string name,
 
   if (newBufOrErr == nullptr) {
     auto msg = llvm::formatv("Couldn't find namespace '{0}'", name).str();
-    return errors::makeError<errors::NSLoadError>(importLoc, msg);
+    return errors::makeError(ctx, errors::NSLoadError, importLoc, msg);
   }
 
   auto bufferId = AddNewSourceBuffer(std::move(newBufOrErr), importLoc);
@@ -93,7 +93,7 @@ MaybeNS SourceMgr::readNamespace(SereneContext &ctx, std::string name,
 
   if (bufferId == 0) {
     auto msg = llvm::formatv("Couldn't add namespace '{0}'", name).str();
-    return errors::makeError<errors::NSAddToSMError>(importLoc, msg);
+    return errors::makeError(ctx, errors::NSAddToSMError, importLoc, msg);
   }
 
   // Since we moved the buffer to be added as the source storage we

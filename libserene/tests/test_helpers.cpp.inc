@@ -21,7 +21,19 @@
 
 #include "serene/reader/location.h"
 
-#include <catch2/catch_all.hpp>
+// *IMPORTANT NOTE:* The `READ` macro is just a quick way to eliminate
+//                   the overhead of writing the same function signature
+//                   over and over again. Nothing special about it.
+#define READ(input) reader::read(*ctx, input, "user", llvm::None)
+
+#define CHECK_ERR_MSG(e, s) CHECK(serene::errors::getMessage(e) == s)
+// `llvm::Error`s has to be checked in the same scope. This macro makes
+// the check easy while were testing the other aspects of the error.
+// `t` is the concrete error type and `e` is the error instance.
+#define CHECK_ERR(t, e)                                                        \
+  auto unhandled =                                                             \
+      llvm::handleErrors(e, [&](const Error &x) { CHECK(x.errorType == t); }); \
+  CHECK(!unhandled);
 
 namespace serene {
 

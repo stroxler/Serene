@@ -52,6 +52,7 @@ bool Call::classof(const Expression *e) {
 
 MaybeNode Call::make(semantics::AnalysisState &state, List *list) {
 
+  auto &ctx = state.ns.getContext();
   // TODO: replace this with a runtime check
   assert((list->count() != 0) && "Empty call? Seriously ?");
 
@@ -97,7 +98,8 @@ MaybeNode Call::make(semantics::AnalysisState &state, List *list) {
     if (!maybeResult.hasValue()) {
       std::string msg =
           llvm::formatv("Can't resolve the symbol '{0}'", sym->name);
-      return errors::makeError<errors::CantResolveSymbol>(sym->location, msg);
+      return errors::makeError(ctx, errors::CantResolveSymbol, sym->location,
+                               msg);
     }
 
     targetNode = std::move(maybeResult.getValue());
@@ -122,8 +124,8 @@ MaybeNode Call::make(semantics::AnalysisState &state, List *list) {
   default: {
     std::string msg = llvm::formatv("Don't know how to call a '{0}'",
                                     stringifyExprType(first->getType()));
-    return errors::makeError<errors::DontKnowHowToCallNode>(first->location,
-                                                            msg);
+    return errors::makeError(ctx, errors::DontKnowHowToCallNode,
+                             first->location, msg);
   }
   };
 

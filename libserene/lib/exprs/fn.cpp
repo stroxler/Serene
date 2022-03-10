@@ -66,8 +66,9 @@ MaybeNode Fn::make(semantics::AnalysisState &state, List *list) {
 
   // TODO: Add support for docstring as the 3rd argument (4th element)
   if (list->count() < 2) {
-    return errors::makeError<errors::FnNoArgsList>(
-        list->elements[0]->location, "The argument list is mandatory.");
+    return errors::makeError(ctx, errors::FnNoArgsList,
+                             list->elements[0]->location,
+                             "The argument list is mandatory.");
   }
 
   Symbol *fnSym = llvm::dyn_cast<Symbol>(list->elements[0].get());
@@ -83,8 +84,8 @@ MaybeNode Fn::make(semantics::AnalysisState &state, List *list) {
         llvm::formatv("Arguments of a function has to be a list, got '{0}'",
                       stringifyExprType(list->elements[1]->getType()));
 
-    return errors::makeError<errors::FnArgsMustBeList>(
-        list->elements[1]->location, msg);
+    return errors::makeError(ctx, errors::FnArgsMustBeList,
+                             list->elements[1]->location, msg);
   }
 
   Ast body;

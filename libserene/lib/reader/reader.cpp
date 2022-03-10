@@ -227,7 +227,7 @@ exprs::MaybeNode Reader::readNumber(bool neg) {
   LocationRange loc(getCurrentLocation());
 
   if (isdigit(*c) == 0) {
-    return errors::makeError<errors::InvalidDigitForNumber>(loc);
+    return errors::makeError(ctx, errors::InvalidDigitForNumber, loc);
   }
 
   for (;;) {
@@ -238,7 +238,7 @@ exprs::MaybeNode Reader::readNumber(bool neg) {
     if ((isdigit(*c) != 0) || *c == '.') {
       if (*c == '.' && floatNum) {
         loc = LocationRange(getCurrentLocation());
-        return errors::makeError<errors::TwoFloatPoints>(loc);
+        return errors::makeError(ctx, errors::TwoFloatPoints, loc);
       }
 
       if (*c == '.') {
@@ -254,7 +254,7 @@ exprs::MaybeNode Reader::readNumber(bool neg) {
   if (((std::isalpha(*c) != 0) && !empty) || empty) {
     advance();
     loc.start = getCurrentLocation();
-    return errors::makeError<errors::InvalidDigitForNumber>(loc);
+    return errors::makeError(ctx, errors::InvalidDigitForNumber, loc);
   }
 
   loc.end = getCurrentLocation();
@@ -278,7 +278,7 @@ exprs::MaybeNode Reader::readSymbol() {
       msg = "An extra ')' is detected.";
     }
 
-    return errors::makeError<errors::InvalidCharacterForSymbol>(loc, msg);
+    return errors::makeError(ctx, errors::InvalidCharacterForSymbol, loc, msg);
   }
 
   if (*c == '-') {
@@ -338,7 +338,8 @@ exprs::MaybeNode Reader::readList() {
       advance(true);
       advance();
       list->location.end = getCurrentLocation();
-      return errors::makeError<errors::EOFWhileScaningAList>(list->location);
+      return errors::makeError(ctx, errors::EOFWhileScaningAList,
+                               list->location);
     }
 
     switch (*c) {

@@ -192,16 +192,17 @@ MaybeJITPtr Halley::lookup(exprs::Symbol &sym) const {
   auto *ns = ctx.getNS(sym.nsName);
 
   if (ns == nullptr) {
-    return errors::makeError<errors::CantResolveSymbol>(
-        sym.location, "Can't find the namespace in the context: " + sym.nsName);
+    return errors::makeError(ctx, errors::CantResolveSymbol, sym.location,
+                             "Can't find the namespace in the context: " +
+                                 sym.nsName);
   }
 
   auto *dylib = ctx.getLatestJITDylib(*ns);
   //
 
   if (dylib == nullptr) {
-    return errors::makeError<errors::CantResolveSymbol>(
-        sym.location, "Don't know about namespace: " + sym.nsName);
+    return errors::makeError(ctx, errors::CantResolveSymbol, sym.location,
+                             "Don't know about namespace: " + sym.nsName);
   }
 
   auto expectedSymbol =
@@ -218,7 +219,8 @@ MaybeJITPtr Halley::lookup(exprs::Symbol &sym) const {
     llvm::raw_string_ostream os(errorMessage);
     llvm::handleAllErrors(expectedSymbol.takeError(),
                           [&os](llvm::ErrorInfoBase &ei) { ei.log(os); });
-    return errors::makeError<errors::CantResolveSymbol>(sym.location, os.str());
+    return errors::makeError(ctx, errors::CantResolveSymbol, sym.location,
+                             os.str());
   }
 
   auto rawFPtr = expectedSymbol->getAddress();
@@ -226,8 +228,8 @@ MaybeJITPtr Halley::lookup(exprs::Symbol &sym) const {
   auto fptr = reinterpret_cast<void (*)(void **)>(rawFPtr);
 
   if (fptr == nullptr) {
-    return errors::makeError<errors::CantResolveSymbol>(
-        sym.location, "Lookup function is null!");
+    return errors::makeError(ctx, errors::CantResolveSymbol, sym.location,
+                             "Lookup function is null!");
   }
 
   return fptr;
@@ -277,8 +279,8 @@ llvm::Error Halley::addNS(Namespace &ns, reader::LocationRange &loc) {
       llvm::formatv("{0}#{1}", ns.name, ctx.getNumberOfJITDylibs(ns) + 1));
 
   if (!newDylib) {
-    return errors::makeError<errors::CompilationError>(
-        loc, "Filed to create dylib for " + ns.name);
+    return errors::makeError(ctx, errors::CompilationError, loc,
+                             "Filed to create dylib for " + ns.name);
   }
 
   ctx.pushJITDylib(ns, &(*newDylib));
@@ -287,7 +289,7 @@ llvm::Error Halley::addNS(Namespace &ns, reader::LocationRange &loc) {
   auto maybeModule = ns.compileToLLVM();
 
   if (!maybeModule.hasValue()) {
-    return errors::makeError<errors::CompilationError>(loc);
+    return errors::makeError(ctx, errors::CompilationError, loc);
   }
 
   auto tsm = std::move(maybeModule.getValue());

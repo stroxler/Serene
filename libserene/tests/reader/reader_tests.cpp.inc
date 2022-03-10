@@ -21,12 +21,8 @@
 
 #include "serene/reader/reader.h"
 
+#include "../test_helpers.cpp.inc"
 #include <catch2/catch_test_macros.hpp>
-
-// *IMPORTANT NOTE:* The `READ` macro is just a quick way to eliminate
-//                   the overhead of writing the same function signature
-//                   over and over again. Nothing special about it.
-#define READ(input) reader::read(*ctx, input, "user", llvm::None)
 
 namespace serene {
 namespace reader {

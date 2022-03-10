@@ -16,29 +16,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "serene/errors.h"
+#ifndef SERENE_ERRORS_VARIANT_H
+#define SERENE_ERRORS_VARIANT_H
 
-#include "serene/errors/base.h"
-
-#include <llvm/Support/Casting.h>
-#include <llvm/Support/Error.h>
+#include <string>
 
 namespace serene::errors {
 
-// We need this to make Error class a llvm::Error friendy implementation
-char Error::ID;
+// This class is used in the generated code
+struct ErrorVariant {
+  const int id;
+  const std::string title;
+  const std::string desc;
+  const std::string help;
 
-std::string getMessage(const llvm::Error &e) {
-  std::string msg;
-  llvm::raw_string_ostream os(msg);
-  os << e;
-  return os.str();
-};
+  static ErrorVariant make(const int id, const char *t, const char *d,
+                           const char *h) {
+    return ErrorVariant(id, t, d, h);
+  };
 
-const ErrorVariant *getVariant(ErrorType t) {
-  if ((0 <= (int)t) && (t < NUMBER_OF_ERRORS)) {
-    return &errorVariants[t];
-  }
-  return nullptr;
+private:
+  ErrorVariant(const int id, const char *t, const char *d, const char *h)
+      : id(id), title(t), desc(d), help(h){};
 };
 } // namespace serene::errors
+#endif

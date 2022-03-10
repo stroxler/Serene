@@ -19,8 +19,10 @@
 #ifndef SERENE_TEST_ERRORS_H
 #define SERENE_TEST_ERRORS_H
 
+#include "serene/context.h"
 #include "serene/errors.h"
 
+#include "../test_helpers.cpp.inc"
 #include <catch2/catch_test_macros.hpp>
 
 #include <llvm/ADT/StringMap.h>
@@ -33,25 +35,31 @@ namespace errors {
 TEST_CASE("Serene Error construction", "[errors]") {
 
   std::unique_ptr<reader::LocationRange> range(dummyLocation());
-  llvm::Error err = llvm::make_error<PassFailureError>(*range, "test error");
+  auto ctx        = makeSereneContext();
+  llvm::Error err = makeError(*ctx, PassFailureError, *range, "test error");
 
-  auto unhandled =
-      llvm::handleErrors(std::move(err), [&](const PassFailureError &e) {
-        REQUIRE(e.message() == "test error");
-        CHECK(errorVariants[e.ID].title == "PassFailureError");
-        CHECK(errorVariants[e.ID].desc == "Pass Failure.");
-        CHECK(errorVariants[e.ID].help.empty());
-      });
+  auto unhandled = llvm::handleErrors(std::move(err), [&](const Error &e) {
+    REQUIRE(e.message() == "test error");
+    const auto *v = getVariant(e.errorType);
+    REQUIRE(v != nullptr);
+    CHECK(v->title == "PassFailureError");
+    CHECK(v->desc == "Pass Failure.");
+    CHECK(v->help.empty());
+  });
 
   CHECK(!unhandled);
 }
 
 TEST_CASE("getMessage function", "[errors]") {
   std::unique_ptr<reader::LocationRange> range(dummyLocation());
-  if (auto err = llvm::make_error<PassFailureError>(*range, "test error")) {
-    CHECK(getMessage(err) == "test error");
-  }
+  auto ctx        = makeSereneContext();
+  llvm::Error err = makeError(*ctx, PassFailureError, *range, "test error");
+
+  CHECK(getMessage(err) == "test error");
+
+  CHECK_ERR(PassFailureError, std::move(err));
 }
+
 }; // namespace errors
 } // namespace serene
 

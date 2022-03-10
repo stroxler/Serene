@@ -24,11 +24,11 @@
 #include "serene/export.h"
 
 #include <llvm/Support/Casting.h>
-
-#define GET_CLASS_DEFS
-#include "serene/errors/errs.h.inc"
-
 #include <llvm/Support/Error.h>
+
+namespace serene {
+class SereneContext;
+} // namespace serene
 
 namespace serene::errors {
 
@@ -36,12 +36,17 @@ namespace serene::errors {
 /// directly to the constructor of type `E`.
 ///
 /// This is the official way of creating error objects in Serene.
-template <typename E, typename... Args>
-SERENE_EXPORT llvm::Error makeError(Args &&...args) {
-  return llvm::make_error<E>(std::forward<Args>(args)...);
+template <typename... Args>
+SERENE_EXPORT llvm::Error makeError(SereneContext &ctx, ErrorType errtype,
+                                    Args &&...args) {
+  return llvm::make_error<Error>(ctx, errtype, std::forward<Args>(args)...);
 };
 
+/// Returns the messange that the given error \p e is holding. It doesn't cast
+/// the error to a concrete error type.
 SERENE_EXPORT std::string getMessage(const llvm::Error &e);
+
+SERENE_EXPORT const ErrorVariant *getVariant(ErrorType t);
 } // namespace serene::errors
 
 #endif

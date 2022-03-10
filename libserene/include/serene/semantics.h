@@ -21,6 +21,7 @@
 
 #include "serene/environment.h"
 #include "serene/errors.h"
+#include "serene/export.h"
 #include "serene/utils.h"
 
 #include <llvm/ADT/StringRef.h>
@@ -67,7 +68,7 @@ std::unique_ptr<AnalysisState> makeAnalysisState(Args &&...args) {
 ///
 /// \param state The semantic analysis state that keep track of the envs.
 /// \param form  The actual AST in question.
-AnalyzeResult analyze(AnalysisState &state, exprs::Ast &forms);
+SERENE_EXPORT AnalyzeResult analyze(AnalysisState &state, exprs::Ast &forms);
 
 } // namespace semantics
 } // namespace serene

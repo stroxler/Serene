@@ -19,7 +19,11 @@
 #ifndef SERENE_ERRORS_BASE_H
 #define SERENE_ERRORS_BASE_H
 
+#include "serene/export.h"
 #include "serene/reader/location.h"
+
+#define GET_CLASS_DEFS
+#include "serene/errors/errs.h.inc"
 
 #include <system_error>
 
@@ -28,59 +32,31 @@
 
 namespace serene::errors {
 
-// This class is used in the generated code
-struct ErrorVariant {
-  const int id;
-  const std::string title;
-  const std::string desc;
-  const std::string help;
+class SERENE_EXPORT Error : public llvm::ErrorInfo<Error> {
+public:
+  static char ID;
+  ErrorType errorType;
 
-  static ErrorVariant make(const int id, const char *t, const char *d,
-                           const char *h) {
-    return ErrorVariant(id, t, d, h);
-  };
-
-private:
-  ErrorVariant(const int id, const char *t, const char *d, const char *h)
-      : id(id), title(t), desc(d), help(h){};
-};
-
-class SereneError : public llvm::ErrorInfoBase {
+  SereneContext &ctx;
   reader::LocationRange location;
   std::string msg;
 
-public:
-  constexpr static const int ID = -1;
-
-  virtual void log(llvm::raw_ostream &os) const override { os << msg; };
-  virtual std::string message() const override { return msg; };
+  void log(llvm::raw_ostream &os) const override { os << msg; }
 
   std::error_code convertToErrorCode() const override {
-    return std::error_code();
-  };
-
-  SereneError(reader::LocationRange &loc, std::string &msg)
-      : location(loc), msg(msg){};
-
-  SereneError(reader::LocationRange &loc, const char *msg)
-      : location(loc), msg(msg){};
-
-  SereneError(reader::LocationRange &loc, llvm::StringRef msg)
-      : location(loc), msg(msg.str()){};
-
-  SereneError(reader::LocationRange &loc) : location(loc){};
-
-  SereneError(SereneError &e) = delete;
-
-  reader::LocationRange &where() { return location; };
-
-  static const void *classID() { return &ID; }
-
-  bool isA(const void *const id) const override {
-    return id == classID() || llvm::ErrorInfoBase::isA(id);
+    // TODO: Fix this by creating a mapping from ErrorType to standard
+    // errc or return the ErrorType number instead
+    return std::make_error_code(std::errc::io_error);
   }
 
-  ~SereneError() = default;
+  Error(SereneContext &ctx, ErrorType errtype, reader::LocationRange &loc)
+      : errorType(errtype), ctx(ctx), location(loc){};
+
+  Error(SereneContext &ctx, ErrorType errtype, reader::LocationRange &loc,
+        llvm::StringRef msg)
+      : errorType(errtype), ctx(ctx), location(loc), msg(msg.str()){};
+
+  reader::LocationRange &where() { return location; };
 };
 
 }; // namespace serene::errors

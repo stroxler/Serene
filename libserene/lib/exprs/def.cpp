@@ -52,11 +52,13 @@ bool Def::classof(const Expression *e) {
 };
 
 MaybeNode Def::make(semantics::AnalysisState &state, List *list) {
+  auto &ctx = state.ns.getContext();
+
   // TODO: Add support for docstring as the 3rd argument (4th element)
   if (list->count() != 3) {
     std::string msg = llvm::formatv("Expected 3 got {0}", list->count());
-    return errors::makeError<errors::DefWrongNumberOfArgs>(
-        list->elements[0]->location, msg);
+    return errors::makeError(ctx, errors::DefWrongNumberOfArgs,
+                             list->elements[0]->location, msg);
   }
 
   // Make sure that the list starts with a `def`
@@ -68,8 +70,8 @@ MaybeNode Def::make(semantics::AnalysisState &state, List *list) {
   // Make sure that the first argument is a Symbol
   Symbol *binding = llvm::dyn_cast<Symbol>(list->elements[1].get());
   if (binding == nullptr) {
-    return errors::makeError<errors::DefExpectSymbol>(
-        list->elements[1]->location);
+    return errors::makeError(ctx, errors::DefExpectSymbol,
+                             list->elements[1]->location);
   }
 
   // Analyze the value

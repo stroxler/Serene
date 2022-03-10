@@ -65,15 +65,18 @@ static void inNamespace(llvm::StringRef name, llvm::raw_ostream &os,
 void ErrorsBackend::createErrorClass(const int id, llvm::Record &defRec,
                                      llvm::raw_ostream &os) {
   (void)records;
+  (void)id;
 
   const auto recName = defRec.getName();
 
-  os << "class " << recName << " : public llvm::ErrorInfo<" << recName << ", "
-     << "SereneError> {\n"
-     << "public:\n"
-     << "  using llvm::ErrorInfo<" << recName << ", "
-     << "SereneError>::ErrorInfo;\n"
-     << "  constexpr static const int ID = " << id << ";\n};\n\n";
+  os << "  " << recName << ",\n";
+  // os << "class " << recName << " : public llvm::ErrorInfo<" << recName << ",
+  // "
+  //    << "SereneError> {\n"
+  //    << "public:\n"
+  //    << "  using llvm::ErrorInfo<" << recName << ", "
+  //    << "SereneError>::ErrorInfo;\n"
+  //    << "  constexpr static const int ID = " << id << ";\n};\n\n";
 };
 
 void ErrorsBackend::createNSBody(llvm::raw_ostream &os) {
@@ -93,6 +96,7 @@ void ErrorsBackend::createNSBody(llvm::raw_ostream &os) {
 
   os << "#ifdef GET_CLASS_DEFS\n";
   inNamespace("serene::errors", os, [&](llvm::raw_ostream &os) {
+    os << "enum ErrorType {\n";
     for (size_t i = 0; i < indexList->size(); i++) {
       llvm::Record *defRec = indexList->getElementAsRecord(i);
 
@@ -102,7 +106,9 @@ void ErrorsBackend::createNSBody(llvm::raw_ostream &os) {
 
       createErrorClass(i, *defRec, os);
     }
+    os << "};\n\n";
 
+    os << "#define NUMBER_OF_ERRORS " << indexList->size() << "\n";
     os << "static const ErrorVariant errorVariants[" << indexList->size()
        << "] = {\n";
 
@@ -164,7 +170,7 @@ void ErrorsBackend::run(llvm::raw_ostream &os) {
   llvm::emitSourceFileHeader("Serene's Errors collection", os);
 
   // DO NOT GUARD THE HEADER WITH #ifndef ...
-  os << "#include \"serene/errors/base.h\"\n\n#include "
+  os << "#include \"serene/errors/variant.h\"\n\n#include "
         "<llvm/Support/Error.h>\n\n";
 
   createNSBody(os);
