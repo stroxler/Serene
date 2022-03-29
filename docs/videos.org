@@ -954,7 +954,8 @@ Let's have a look at the =MaterializationUnit= class.
 The layer classes are not special but conventionally the come with few functions
 like: =add=, =emit= and =getInterface=.
 
-* Episode 18 - JIT Engine Part 1
+* DONE Episode 18 - JIT Engine Part 1
+CLOSED: [2022-03-29 Tue 19:56]
 ** =Halley= JIT Engine
 - It's not the final implementation
 - Wraps LLJIT and LLLazyJIT
