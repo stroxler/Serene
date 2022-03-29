@@ -187,12 +187,12 @@ function clean() { ## Cleans up the source dir and removes the build
 
 function run() { ## Runs `serenec` and passes all the given aruguments to it
     LD_PRELOAD=$(clang -print-file-name=libclang_rt.asan-x86_64.so) \
-              "$BUILD_DIR"/src/serenec/serenec "$@"
+              "$BUILD_DIR"/serenec/serenec "$@"
 }
 
 function repl() { ## Runs `serene-repl` and passes all the given aruguments to it
     LD_PRELOAD=$(clang -print-file-name=libclang_rt.asan-x86_64.so) \
-              "$BUILD_DIR"/src/serene-repl/serene-repl "$@"
+              "$BUILD_DIR"/serene-repl/serene-repl "$@"
 }
 
 function memcheck-serene() { ## Runs `valgrind` to check `serenec` birany
