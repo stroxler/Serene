@@ -57,15 +57,9 @@
 namespace serene {
 
 namespace jit {
-// TODO: Remove this function and replace it by our own version of
-//       error handler
-/// Wrap a string into an llvm::StringError.
-// static llvm::Error make_string_error(const llvm::Twine &message) {
-//   return llvm::make_error<llvm::StringError>(message.str(),
-//                                              llvm::inconvertibleErrorCode());
-// }
 
 static std::string makePackedFunctionName(llvm::StringRef name) {
+  // TODO: move the "_serene_" constant to a macro or something
   return "_serene_" + name.str();
 }
 
@@ -207,13 +201,13 @@ MaybeJITPtr Halley::lookup(exprs::Symbol &sym) const {
 
   auto expectedSymbol =
       engine->lookup(*dylib, makePackedFunctionName(sym.name));
-  // auto expectedSymbol = engine->lookup(name);
-  //  JIT lookup may return an Error referring to strings stored internally by
-  //  the JIT. If the Error outlives the ExecutionEngine, it would want have a
-  //  dangling reference, which is currently caught by an assertion inside JIT
-  //  thanks to hand-rolled reference counting. Rewrap the error message into a
-  //  string before returning. Alternatively, ORC JIT should consider copying
-  //  the string into the error message.
+
+  // JIT lookup may return an Error referring to strings stored internally by
+  // the JIT. If the Error outlives the ExecutionEngine, it would want have a
+  // dangling reference, which is currently caught by an assertion inside JIT
+  // thanks to hand-rolled reference counting. Rewrap the error message into a
+  // string before returning. Alternatively, ORC JIT should consider copying
+  // the string into the error message.
   if (!expectedSymbol) {
     std::string errorMessage;
     llvm::raw_string_ostream os(errorMessage);
@@ -235,19 +229,6 @@ MaybeJITPtr Halley::lookup(exprs::Symbol &sym) const {
   return fptr;
 };
 
-void createObjectFile(SereneContext &ctx, llvm::StringRef name,
-                      llvm::MemoryBufferRef objBuffer) {
-  std::string errorMessage;
-  auto file = mlir::openOutputFile(name, &errorMessage);
-  if (!file) {
-
-    panic(ctx, errorMessage);
-  }
-
-  file->os() << objBuffer.getBuffer();
-  file->keep();
-}
-
 // llvm::Error Halley::invokePacked(llvm::StringRef name,
 //                                  llvm::MutableArrayRef<void *> args) const {
 //   auto expectedFPtr = lookup(name);
@@ -260,15 +241,6 @@ void createObjectFile(SereneContext &ctx, llvm::StringRef name,
 
 //   return llvm::Error::success();
 // }
-
-void Halley::registerSymbols(
-    llvm::function_ref<llvm::orc::SymbolMap(llvm::orc::MangleAndInterner)>
-        symbolMap) {
-  auto &mainJitDylib = engine->getMainJITDylib();
-  cantFail(mainJitDylib.define(
-      absoluteSymbols(symbolMap(llvm::orc::MangleAndInterner(
-          mainJitDylib.getExecutionSession(), engine->getDataLayout())))));
-};
 
 llvm::Error Halley::addNS(Namespace &ns, reader::LocationRange &loc) {
 

@@ -88,19 +88,19 @@ TEST_CASE("List semantic analysis of 'def'", "[semantic,expression,list]") {
   auto afterAst = semantics::analyze(state, ast);
 
   REQUIRE_FALSE(afterAst);
-  CHECK_ERR(llvm::ErrorList, afterAst.takeError());
-
+  {
+    auto err = afterAst.takeError();
+    CHECK(err.isA<llvm::ErrorList>());
+  }
   ast      = llvm::cantFail(READ("(def a)"));
   afterAst = semantics::analyze(state, ast);
   REQUIRE_FALSE(afterAst);
-  CHECK(errors::getMessage(afterAst.takeError()) ==
-        "<Error E2: Expected 3 got 2>");
+  CHECK(errors::getMessage(afterAst.takeError()) == "Expected 3 got 2");
 
   ast      = llvm::cantFail(READ("(def a b c)"));
   afterAst = semantics::analyze(state, ast);
   REQUIRE_FALSE(afterAst);
-  CHECK(errors::getMessage(afterAst.takeError()) ==
-        "<Error E2: Expected 3 got 4>");
+  CHECK(errors::getMessage(afterAst.takeError()) == "Expected 3 got 4");
 
   ast      = llvm::cantFail(READ("(def a b)"));
   afterAst = semantics::analyze(state, ast);

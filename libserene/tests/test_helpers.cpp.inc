@@ -30,9 +30,16 @@
 // `llvm::Error`s has to be checked in the same scope. This macro makes
 // the check easy while were testing the other aspects of the error.
 // `t` is the concrete error type and `e` is the error instance.
-#define CHECK_ERR(t, e)                                           \
+#define CHECK_SERENE_ERR(t, e)                                    \
   auto unhandled = llvm::handleErrors(                            \
       e, [&](const SereneError &x) { CHECK(x.errorType == t); }); \
+  CHECK(!unhandled);
+
+#define CHECK_ERR(t, e)                                    \
+  auto unhandled = llvm::handleErrors(e, [&](const t &x) { \
+    (void)x;                                               \
+    CHECK(true);                                           \
+  });                                                      \
   CHECK(!unhandled);
 
 namespace serene {

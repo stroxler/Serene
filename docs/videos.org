@@ -925,7 +925,8 @@ CLOSED: [2022-02-26 Sat 12:50]
 #+RESULTS: ep-16-jit-3
 [[file:/tmp/ep16-3.svg]]
 
-* Episode 17 - Custom ORC Layers
+* DONE Episode 17 - Custom ORC Layers
+CLOSED: [2022-03-28 Mon 14:00]
 ** Updates:
 - Finished the basic compiler wiring
 - Restructured the source tree
@@ -952,3 +953,10 @@ Let's have a look at the =MaterializationUnit= class.
 *** And the layer class itself
 The layer classes are not special but conventionally the come with few functions
 like: =add=, =emit= and =getInterface=.
+
+* Episode 18 - JIT Engine Part 1
+** =Halley= JIT Engine
+- It's not the final implementation
+- Wraps LLJIT and LLLazyJIT
+- Uses object cache layer
+- Supports ASTs and Namespaces

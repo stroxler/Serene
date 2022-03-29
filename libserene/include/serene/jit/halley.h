@@ -18,7 +18,15 @@
 
 /**
  * Commentary:
- * The code is based on the MLIR's JIT and named after Edmond Halley.
+  This is the first working attempt on building a JIT engine for Serene
+  and named after Edmond Halley.
+
+  - It supports both ASTs and Namespaces
+  - Every Namespace might have one or more JITDylibs. Depends on the method
+    of the compilation.
+  - It operates in lazy (for REPL) and non-lazy mode and wraps LLJIT
+    and LLLazyJIT
+  - It uses an object cache layer to cache module (not NSs) objects.
  */
 
 #ifndef SERENE_JIT_HALLEY_H
@@ -51,13 +59,14 @@ class Namespace;
 
 namespace exprs {
 class Symbol;
-}
+} // namespace exprs
 
 namespace jit {
 class Halley;
 
 using MaybeJIT    = llvm::Expected<std::unique_ptr<Halley>>;
 using MaybeJITPtr = llvm::Expected<void (*)(void **)>;
+
 /// A simple object cache following Lang's LLJITWithObjectCache example and
 /// MLIR's SimpelObjectCache.
 class ObjectCache : public llvm::ObjectCache {
@@ -100,14 +109,12 @@ public:
   Halley(serene::SereneContext &ctx, llvm::orc::JITTargetMachineBuilder &&jtmb,
          llvm::DataLayout &&dl);
 
-  // TODO: Read the sharedLibPaths via context
   static MaybeJIT make(serene::SereneContext &ctx,
                        llvm::orc::JITTargetMachineBuilder &&jtmb);
 
   void setEngine(std::unique_ptr<llvm::orc::LLJIT> e, bool isLazy);
-  /// Looks up a packed-argument function with the given name and returns a
-  /// pointer to it.  Propagates errors in case of failure.
-  // llvm::Expected<void (*)(void **)> lookup(llvm::StringRef name) const;
+  /// Looks up a packed-argument function with the given sym name and returns a
+  /// pointer to it. Propagates errors in case of failure.
   MaybeJITPtr lookup(exprs::Symbol &sym) const;
 
   /// Invokes the function with the given name passing it the list of opaque
@@ -173,11 +180,6 @@ public:
   // };
 
   void dumpToObjectFile(llvm::StringRef filename);
-
-  /// Register symbols with this ExecutionEngine.
-  void registerSymbols(
-      llvm::function_ref<llvm::orc::SymbolMap(llvm::orc::MangleAndInterner)>
-          symbolMap);
 
   llvm::Error addNS(Namespace &ns, reader::LocationRange &loc);
 

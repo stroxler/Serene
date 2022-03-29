@@ -57,8 +57,7 @@ TEST_CASE("getMessage function", "[errors]") {
   llvm::Error err = makeError(*ctx, PassFailureError, *range, "test error");
 
   CHECK(getMessage(err) == "test error");
-
-  CHECK_ERR(PassFailureError, std::move(err));
+  CHECK_SERENE_ERR(PassFailureError, std::move(err));
 }
 
 }; // namespace errors

@@ -21,7 +21,7 @@
 #include "./environment_tests.cpp.inc"
 #include "./errors/error_tests.cpp.inc"
 #include "./exprs/expression_tests.cpp.inc"
-//#include "./exprs/list_tests.cpp.inc"
+#include "./exprs/list_tests.cpp.inc"
 #include "./exprs/number_tests.cpp.inc"
 #include "./exprs/symbol_tests.cpp.inc"
 #include "./setup.cpp.inc"
