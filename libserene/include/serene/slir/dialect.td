@@ -4,6 +4,7 @@
 include "mlir/IR/OpBase.td"
 include "mlir/IR/OpAsmInterface.td"
 include "mlir/IR/SymbolInterfaces.td"
+include "mlir/IR/AttrTypeBase.td"
 include "mlir/Interfaces/SideEffectInterfaces.td"
 include "mlir/Interfaces/CallInterfaces.td"
 include "mlir/Interfaces/CastInterfaces.td"
@@ -22,7 +23,12 @@ def Serene_Dialect : Dialect {
         This dialect tries to map the special forms of a lisp into
         IR level operations.
     }];
+
+    // All the types have to define a mnemonic
     let useDefaultTypePrinterParser = 1;
+
+    // All the attributes have to define a mnemonic
+    let useDefaultAttributePrinterParser = 1;
 }
 
 // Base class for Serene dialect operations. This operation inherits from the base
@@ -33,7 +39,7 @@ def Serene_Dialect : Dialect {
 class Serene_Op<string mnemonic, list<Trait> traits = []> :
     Op<Serene_Dialect, mnemonic, traits>;
 
-
+// TODO: break up the types into their own file
 // All of the types will extend this class.
 class Serene_Type<string name> : TypeDef<Serene_Dialect, name> { }
 
@@ -50,8 +56,6 @@ def SereneSymbol : Serene_Type<"Symbol"> {
     let parameters = (ins "std::string":$ns, "std::string":$name);
     let assemblyFormat = "`<` $ns `,` $name `>`";
 }
-
-
 
 
 def ValueOp: Serene_Op<"value"> {

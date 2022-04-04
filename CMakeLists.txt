@@ -35,6 +35,7 @@ option(SERENE_ENABLE_THINLTO "Enable ThisLTO." ON)
 option(SERENE_ENABLE_DOCS "Enable document generation" OFF)
 option(SERENE_ENABLE_TIDY "Enable clang tidy check" OFF)
 option(SERENE_DISABLE_CCACHE "Disable automatic ccache integration" OFF)
+option(SERENE_ENABLE_DEVTOOLS "Enable the devtools build" OFF)
 
 # libserene
 option(SERENE_SHARED_LIB "Build libserene as a shared library" ON)
@@ -241,6 +242,8 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   add_subdirectory(serene-repl)
   # The compiled library code is here
   add_subdirectory(libserene)
+
+  add_subdirectory(devtools)
 
 
   if (SERENE_ENABLE_DOCS)
