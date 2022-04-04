@@ -18,12 +18,16 @@
 
 #include "serene/slir/dialect.h"
 
+#include <mlir/Dialect/Func/IR/FuncOps.h>
 #include <mlir/IR/Dialect.h>
 #include <mlir/Tools/mlir-lsp-server/MlirLspServerMain.h>
 
 int main(int argc, char **argv) {
   mlir::DialectRegistry registry;
-  registry.insert<serene::slir::SereneDialect>();
+
+  serene::slir::registerTo(registry);
+
+  registry.insert<mlir::func::FuncDialect>();
 
   // TODO: Register passes here
   return static_cast<int>(

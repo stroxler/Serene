@@ -147,10 +147,10 @@ endif()
 
 
 set(serene_lib_dialects_in_use
-  MLIRStandard)
+  MLIRFunc)
 
 set(serene_lib_transformers_in_use
-  MLIRStandardToLLVM)
+  MLIRFuncToLLVM)
 
 target_link_libraries(serene PRIVATE
   MLIRIR

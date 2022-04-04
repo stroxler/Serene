@@ -112,6 +112,10 @@ void SereneDialect::initialize() {
 // void SereneDialect::printType(
 //     mlir::Type type, mlir::DialectAsmPrinter &printer) const override{};
 
+void registerTo(mlir::DialectRegistry &registry) {
+  registry.insert<serene::slir::SereneDialect>();
+};
+
 } // namespace slir
 } // namespace serene
 #define GET_TYPEDEF_CLASSES

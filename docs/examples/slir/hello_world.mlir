@@ -1,3 +1,3 @@
 module @some.ns {
-       %1 = "serene.define"{}()
+       %1 = "serene.define" (): () -> i32
 }

@@ -18,9 +18,12 @@
 #ifndef SERENE_SLIR_DIALECT_H
 #define SERENE_SLIR_DIALECT_H
 
+#include <serene/export.h>
+
 #include <llvm/ADT/TypeSwitch.h>
 #include <mlir/IR/BuiltinOps.h>
 #include <mlir/IR/Dialect.h>
+#include <mlir/IR/DialectRegistry.h>
 #include <mlir/Interfaces/ControlFlowInterfaces.h>
 #include <mlir/Interfaces/SideEffectInterfaces.h>
 
@@ -35,4 +38,8 @@
 #define GET_OP_CLASSES
 #include "serene/slir/ops.h.inc"
 
+namespace serene::slir {
+SERENE_EXPORT void registerTo(mlir::DialectRegistry &registry);
+} // namespace serene::slir
+  //
 #endif // SERENE_SLIR_DIALECT_H

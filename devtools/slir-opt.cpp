@@ -18,14 +18,17 @@
 
 #include "serene/slir/dialect.h"
 
+#include <mlir/Dialect/Arithmetic/IR/Arithmetic.h>
+#include <mlir/Dialect/Func/IR/FuncOps.h>
 #include <mlir/IR/Dialect.h>
 #include <mlir/Tools/mlir-opt/MlirOptMain.h>
 
 int main(int argc, char **argv) {
   mlir::DialectRegistry registry;
-  registry.insert<serene::slir::SereneDialect>();
 
+  serene::slir::registerTo(registry);
+  registry.insert<mlir::arith::ArithmeticDialect, mlir::func::FuncDialect>();
   // TODO: Register passes here
   return static_cast<int>(
-      mlir::failed(mlir::MlirOptMain(argc, argv, registry)));
+      mlir::failed(mlir::MlirOptMain(argc, argv, "slir-opt", registry)));
 }
