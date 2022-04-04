@@ -35,7 +35,7 @@
 #include <llvm/ADT/Triple.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/Support/Host.h>
-#include <mlir/Dialect/StandardOps/IR/Ops.h>
+#include <mlir/Dialect/Func/IR/FuncOps.h>
 #include <mlir/IR/MLIRContext.h>
 #include <mlir/Pass/PassManager.h>
 
