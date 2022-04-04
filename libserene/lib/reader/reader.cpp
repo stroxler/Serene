@@ -408,7 +408,7 @@ exprs::MaybeAst Reader::read() {
         break;
       }
 
-      this->ast.push_back(move(*tmp));
+      this->ast.push_back(std::move(*tmp));
 
     } else {
       return tmp.takeError();

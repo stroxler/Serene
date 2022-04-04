@@ -150,12 +150,12 @@ namespace slir {
 //   // // FIXME: we may fix the parser instead to always return the last
 //   // expression
 //   // // (this would possibly help the REPL case later)
-//   // ReturnOp returnOp;
+//   // func::ReturnOp returnOp;
 
 //   // if (!entryBlock.empty())
-//   //   returnOp = dyn_cast<ReturnOp>(entryBlock.back());
+//   //   returnOp = dyn_cast<func::ReturnOp>(entryBlock.back());
 //   // if (!returnOp) {
-//   //   builder.create<ReturnOp>(loc(funcAST.getProto()->loc()));
+//   //   builder.create<func::ReturnOp>(loc(funcAST.getProto()->loc()));
 //   // } else if (returnOp.hasOperand()) {
 //   //   // Otherwise, if this return operation has an operand then add a
 //   result

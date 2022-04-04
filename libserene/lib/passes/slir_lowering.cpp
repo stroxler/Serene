@@ -65,7 +65,7 @@ ValueOpLowering::matchAndRewrite(serene::slir::ValueOp op,
                                                         rewriter.getI64Type())
                     .getResult();
 
-  UNUSED(rewriter.create<mlir::ReturnOp>(loc, retVal));
+  UNUSED(rewriter.create<mlir::func::ReturnOp>(loc, retVal));
 
   fn.setPrivate();
 
@@ -116,7 +116,7 @@ FnOpLowering::matchAndRewrite(serene::slir::FnOp op,
                                                         rewriter.getI64Type())
                     .getResult();
 
-  rewriter.create<mlir::ReturnOp>(loc, retVal);
+  rewriter.create<mlir::func::ReturnOp>(loc, retVal);
 
   if (!isPublic) {
     fn.setPrivate();
@@ -142,7 +142,7 @@ struct SLIRToMLIRPass
 // dialects do we want to lower to
 void SLIRToMLIRPass::getDependentDialects(
     mlir::DialectRegistry &registry) const {
-  registry.insert<mlir::StandardOpsDialect, mlir::arith::ArithmeticDialect>();
+  registry.insert<mlir::func::FuncDialect, mlir::arith::ArithmeticDialect>();
 };
 
 /// Return the current function being transformed.
@@ -160,7 +160,7 @@ void SLIRToMLIRPass::runOnModule() {
 
   // We define the specific operations, or dialects, that are legal targets for
   // this lowering. In our case, we are lowering to the `Standard` dialects.
-  target.addLegalDialect<mlir::StandardOpsDialect>();
+  target.addLegalDialect<mlir::func::FuncDialect>();
   target.addLegalDialect<mlir::arith::ArithmeticDialect>();
 
   // We also define the SLIR dialect as Illegal so that the conversion will fail

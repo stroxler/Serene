@@ -159,7 +159,7 @@ public:
         opts(options), triple(llvm::sys::getDefaultTargetTriple()),
         targetPhase(CompilationPhase::NoOptimization) {
     mlirContext.getOrLoadDialect<serene::slir::SereneDialect>();
-    mlirContext.getOrLoadDialect<mlir::StandardOpsDialect>();
+    mlirContext.getOrLoadDialect<mlir::func::FuncDialect>();
 
     // We need to create one empty namespace, so that the JIT can
     // start it's operation.
