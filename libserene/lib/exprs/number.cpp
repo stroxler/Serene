@@ -46,7 +46,7 @@ int Number::toI64() const { return std::stoi(this->value); };
 void Number::generateIR(serene::Namespace &ns, mlir::ModuleOp &m) {
   mlir::OpBuilder builder(&ns.getContext().mlirContext);
 
-  auto op = builder.create<serene::slir::ValueOp>(
+  auto op = builder.create<serene::slir::Value1Op>(
       serene::slir::toMLIRLocation(ns, location.start), toI64());
 
   if (op) {

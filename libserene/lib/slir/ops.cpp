@@ -24,30 +24,4 @@
 #include <mlir/IR/BuiltinAttributes.h>
 #include <mlir/IR/OperationSupport.h>
 
-namespace serene::slir {
-// void FnOp::build(mlir::OpBuilder &odsBuilder, mlir::OperationState &odsState,
-//                  llvm::StringRef name, mlir::FunctionType type,
-//                  llvm::ArrayRef<mlir::NamedAttribute> attrs,
-//                  llvm::ArrayRef<mlir::DictionaryAttr> argAttrs) {
-//   odsState.addAttribute("name", odsBuilder.getStringAttr(name));
-//   llvm::SmallVector<mlir::NamedAttribute> args;
-
-//   for (unsigned int i = 0; i <= type.getNumInputs(); i++) {
-//     odsState.addAttribute(attrName, mlir::TypeAttr::get(type.getResult(i)));
-//     args.push_back(odsBuilder.getNamedAttr(,
-//     mlir::IntegerAttr::get(odsBuilder.getI64Type(), type.getNumInputs())));
-//   }
-
-//   odsState.addAttribute("xxx",
-//   mlir::DictionaryAttr::get(odsBuilder.getContext(), p));
-//   odsState.addAttribute("input_count",
-//   mlir::IntegerAttr::get(odsBuilder.getI64Type(),
-//                                                               type.getNumInputs()));
-//   // if (sym_visibility) {
-//   // odsState.addAttribute("sym_visibility", sym_visibility);
-//   // }
-//   (void)odsState.addRegion();
-//   odsState.addTypes(type);
-// };
-
-} // namespace serene::slir
+namespace serene::slir {} // namespace serene::slir

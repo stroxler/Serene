@@ -1,18 +1,33 @@
+/* -*- C++ -*-
+ * Serene Programming Language
+ *
+ * Copyright (c) 2019-2022 Sameer Rahmani <lxsameer@gnu.org>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 2.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #ifndef SERENE_DIALECT
 #define SERENE_DIALECT
 
+
 include "mlir/IR/OpBase.td"
 include "mlir/IR/OpAsmInterface.td"
-include "mlir/IR/SymbolInterfaces.td"
 include "mlir/IR/AttrTypeBase.td"
 include "mlir/Interfaces/SideEffectInterfaces.td"
-include "mlir/Interfaces/CallInterfaces.td"
-include "mlir/Interfaces/CastInterfaces.td"
-include "mlir/Interfaces/SideEffectInterfaces.td"
 include "mlir/Interfaces/ControlFlowInterfaces.td"
+include "mlir/Interfaces/InferTypeOpInterface.td"
 include "mlir/Interfaces/DataLayoutInterfaces.td"
 include "mlir/Interfaces/VectorInterfaces.td"
-
 
 // Dialect definition. It will directly generate the SereneDialect class
 def Serene_Dialect : Dialect {
@@ -31,38 +46,20 @@ def Serene_Dialect : Dialect {
     let useDefaultAttributePrinterParser = 1;
 }
 
-// Base class for Serene dialect operations. This operation inherits from the base
-// `Op` class in OpBase.td, and provides:
-//   * The parent dialect of the operation.
-//   * The mnemonic for the operation, or the name without the dialect prefix.
-//   * A list of traits for the operation.
-class Serene_Op<string mnemonic, list<Trait> traits = []> :
-    Op<Serene_Dialect, mnemonic, traits>;
+include "types.td"
+include "ops.td"
 
-// TODO: break up the types into their own file
-// All of the types will extend this class.
-class Serene_Type<string name> : TypeDef<Serene_Dialect, name> { }
-
-
-def SereneSymbol : Serene_Type<"Symbol"> {
-    let mnemonic = "symbol";
-
-    let summary = "A Lisp symbol type";
-
+// ============================================================================
+// Old operations that are we need to replace
+// ============================================================================
+def Value1Op: Serene_Op<"value1"> {
+    let summary = "This operation represent a compile time value";
     let description = [{
-        A Lisp symbol type
-    }];
+        ValueOp represent a value in compile time. For example:
 
-    let parameters = (ins "std::string":$ns, "std::string":$name);
-    let assemblyFormat = "`<` $ns `,` $name `>`";
-}
-
-
-def ValueOp: Serene_Op<"value"> {
-
-    let summary = "This operation represent a value";
-    let description = [{
-        ValueOp
+        ```mlir
+        %0 = "serene.value"(){value = 3} : () -> i64
+        ```
     }];
 
     let arguments = (ins I64Attr:$value);
@@ -79,24 +76,7 @@ def ValueOp: Serene_Op<"value"> {
     ];
 }
 
-// Def
-def DefOp: Serene_Op<"def"> {
-
-    let summary = "This operation defines a global binding";
-    let description = [{
-        DefOp
-    }];
-
-    let arguments = (ins StrAttr:$name,
-                         AnyType:$value,
-                         OptionalAttr<StrAttr>:$sym_visibility);
-
-    let results = (outs SereneSymbol);
-}
-
-
-// TODO: Add the FunctionLike trait here and include its header file in dialect.h
-def FnOp: Serene_Op<"fn", [
+def Fn1Op: Serene_Op<"fn1", [
   AffineScope, AutomaticAllocationScope,
   IsolatedFromAbove,
 ]> {
@@ -113,11 +93,11 @@ def FnOp: Serene_Op<"fn", [
                          OptionalAttr<StrAttr>:$sym_visibility);
 
     let regions = (region AnyRegion:$body);
-    let results = (outs I64);
+    let results = (outs SereneFn);
 
 }
 
-def ReturnOp: Serene_Op<"return", [NoSideEffect, HasParent<"FnOp">,
+def Return1Op: Serene_Op<"return", [NoSideEffect, HasParent<"Fn1Op">,
                                    ReturnLike, Terminator]> {
 
     let summary = "This operation marks the return value of a function";

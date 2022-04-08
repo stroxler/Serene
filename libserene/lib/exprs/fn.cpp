@@ -132,7 +132,7 @@ void Fn::generateIR(serene::Namespace &ns, mlir::ModuleOp &m) {
         argSym->name, mlir::TypeAttr::get(builder.getI64Type())));
   }
 
-  auto fn = builder.create<slir::FnOp>(
+  auto fn = builder.create<slir::Fn1Op>(
       loc, builder.getI64Type(), name,
       mlir::DictionaryAttr::get(builder.getContext(), arguments),
       builder.getStringAttr("public"));
@@ -148,9 +148,9 @@ void Fn::generateIR(serene::Namespace &ns, mlir::ModuleOp &m) {
   body.push_back(entryBlock);
 
   builder.setInsertionPointToStart(entryBlock);
-  auto retVal = builder.create<slir::ValueOp>(loc, 0).getResult();
+  auto retVal = builder.create<slir::Value1Op>(loc, 0).getResult();
 
-  slir::ReturnOp returnOp = builder.create<slir::ReturnOp>(loc, retVal);
+  slir::Return1Op returnOp = builder.create<slir::Return1Op>(loc, retVal);
 
   if (!returnOp) {
     m.emitError(

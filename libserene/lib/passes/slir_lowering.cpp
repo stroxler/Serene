@@ -37,16 +37,16 @@ namespace serene::passes {
 
 // ----------------------------------------------------------------------------
 // ValueOp lowering to constant op
-struct ValueOpLowering : public mlir::OpRewritePattern<serene::slir::ValueOp> {
-  using OpRewritePattern<serene::slir::ValueOp>::OpRewritePattern;
+struct ValueOpLowering : public mlir::OpRewritePattern<serene::slir::Value1Op> {
+  using OpRewritePattern<serene::slir::Value1Op>::OpRewritePattern;
 
   mlir::LogicalResult
-  matchAndRewrite(serene::slir::ValueOp op,
+  matchAndRewrite(serene::slir::Value1Op op,
                   mlir::PatternRewriter &rewriter) const final;
 };
 
 mlir::LogicalResult
-ValueOpLowering::matchAndRewrite(serene::slir::ValueOp op,
+ValueOpLowering::matchAndRewrite(serene::slir::Value1Op op,
                                  mlir::PatternRewriter &rewriter) const {
   auto value         = op.value();
   mlir::Location loc = op.getLoc();
@@ -76,16 +76,16 @@ ValueOpLowering::matchAndRewrite(serene::slir::ValueOp op,
 
 // ----------------------------------------------------------------------------
 // Fn lowering pattern
-struct FnOpLowering : public mlir::OpRewritePattern<serene::slir::FnOp> {
-  using OpRewritePattern<serene::slir::FnOp>::OpRewritePattern;
+struct FnOpLowering : public mlir::OpRewritePattern<serene::slir::Fn1Op> {
+  using OpRewritePattern<serene::slir::Fn1Op>::OpRewritePattern;
 
   mlir::LogicalResult
-  matchAndRewrite(serene::slir::FnOp op,
+  matchAndRewrite(serene::slir::Fn1Op op,
                   mlir::PatternRewriter &rewriter) const final;
 };
 
 mlir::LogicalResult
-FnOpLowering::matchAndRewrite(serene::slir::FnOp op,
+FnOpLowering::matchAndRewrite(serene::slir::Fn1Op op,
                               mlir::PatternRewriter &rewriter) const {
   auto args          = op.args();
   auto name          = op.name();
