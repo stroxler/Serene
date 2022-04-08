@@ -15,14 +15,18 @@ module @some.ns {
               %2 = serene.value 3 : i32
 
               // Def operator ----
-              %baz = "serene.def"(%0){name = "baz"}: (i64) -> !serene.symbol
-              "serene.ret"(%baz){} : (!serene.symbol)
+              %baz = "serene.def"(%fnarg1){name = "baz"}: (i1) -> !serene.symbol
+              serene.ret %baz : !serene.symbol
        },
        {
+       ^b1(%f1 : i1):
               %3 = serene.value 4 : i32
 
               // Def operator ----
               %baz1 = "serene.def"(%3){name = "baz"}: (i32) -> !serene.symbol
-              !serene.ret %baz1 : !serene.symbol
+              serene.ret %baz1 : !serene.symbol
+       ^b2:
+              %baz2 = "serene.def"(%3){name = "baz"}: (i32) -> !serene.symbol
+              serene.ret %baz2 : !serene.symbol
        }){name = "some-fn", return_type = i32} : () -> !serene.fn
 }
