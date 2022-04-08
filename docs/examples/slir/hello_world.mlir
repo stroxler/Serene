@@ -16,11 +16,13 @@ module @some.ns {
 
               // Def operator ----
               %baz = "serene.def"(%0){name = "baz"}: (i64) -> !serene.symbol
+              "serene.ret"(%baz){} : (!serene.symbol)
        },
        {
               %3 = serene.value 4 : i32
 
               // Def operator ----
               %baz1 = "serene.def"(%3){name = "baz"}: (i32) -> !serene.symbol
+              !serene.ret %baz1 : !serene.symbol
        }){name = "some-fn", return_type = i32} : () -> !serene.fn
 }

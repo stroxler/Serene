@@ -122,17 +122,31 @@ def FnOp: Serene_Op<"fn", [
     let results = (outs SereneFn);
 }
 
-def ReturnOp: Serene_Op<"ret", [NoSideEffect, HasParent<"FnOp">,
-                                   ReturnLike, Terminator]> {
+def ReturnOp: Serene_Op<"ret", [
+  NoSideEffect, HasParent<"FnOp">,
+  ReturnLike, Terminator
+  //  MemRefsNormalizable
+]> {
 
     let summary = "This operation marks the return value of a function";
     let description = [{
-        ReturnOp
+        `ret` marks the return value of a function body.
+        Example:
+
+        ```mlir
+
+        ```
     }];
 
-    let arguments = (ins AnyType:$operand);
-    let assemblyFormat =
-          [{ attr-dict $operand  `:` type($operand) }];
+    let arguments = (ins Variadic<AnyType>:$operands);
+
+    let builders = [OpBuilder<(ins), [{
+        build($_builder, $_state, llvm::None);
+    }]>];
+
+    let assemblyFormat = "attr-dict ($operands^ `:` type($operands))?";
+    // TODO: Turn on the verifier for `ret`
+    // let hasVerifier = 1;
 }
 
 
