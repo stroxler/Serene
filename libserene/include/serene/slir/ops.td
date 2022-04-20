@@ -20,6 +20,8 @@
 #define SERENE_DIALECT_OPS
 
 include "mlir/IR/OpBase.td"
+include "mlir/Interfaces/CallInterfaces.td"
+include "mlir/IR/SymbolInterfaces.td"
 
 // Base class for Serene dialect operations. This operation inherits from the base
 // `Op` class in OpBase.td, and provides:
@@ -75,8 +77,7 @@ def ValueOp : Serene_Op<"value", [
 
 
 // Def
-def DefOp: Serene_Op<"def"> {
-
+def DefOp: Serene_Op<"def", [Symbol]> {
     let summary = "This operation defines a global binding in the current namespace";
     let description = [{
         `def` defines a global binding in the current namespace. It always return a
@@ -92,12 +93,11 @@ def DefOp: Serene_Op<"def"> {
         ```
     }];
 
-    let arguments = (ins StrAttr:$name,
-                         AnyType:$value,
+    let arguments = (ins StrAttr:$sym_name, AnyType:$value, //StrAttr:$name,SymbolNameAttr:$sym_name
                          OptionalAttr<StrAttr>:$sym_visibility);
 
     let results = (outs SereneSymbol);
-    let assemblyFormat = "attr-dict $name `,` $value `:` type($value)";
+    let assemblyFormat = "attr-dict $sym_name `,` $value `:` type($value)";
 }
 
 def FnOp: Serene_Op<"fn", [
@@ -134,7 +134,7 @@ def ReturnOp: Serene_Op<"ret", [
         Example:
 
         ```mlir
-
+        serene.ret %foo : i32
         ```
     }];
 
@@ -149,5 +149,29 @@ def ReturnOp: Serene_Op<"ret", [
     // let hasVerifier = 1;
 }
 
+def CallOp : Serene_Op<"call",
+    [MemRefsNormalizable]> {
+  let summary = "call operation";
+  let description = [{
+    The `serene.call` operation represents a direct call to a function that is
+    within the same symbol scope as the call. The operands and result types of
+    the call must match the specified function type. The callee is encoded as a
+    symbol reference attribute named "callee".
+
+    Example:
+
+    ```mlir
+    %2 = serene.call @my_add(%0, %1) : (f32, f32) -> f32
+    ```
+  }];
+
+  let arguments = (ins SereneFn:$fn,
+                       Variadic<AnyType>:$args);
+  let results = (outs Variadic<AnyType>);
+
+  let assemblyFormat = [{
+    $fn `(` $args `)` attr-dict `:` functional-type($args, results)
+  }];
+}
 
 #endif // SERENE_DIALECT_OPS
