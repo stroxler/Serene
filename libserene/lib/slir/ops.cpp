@@ -24,4 +24,16 @@
 #include <mlir/IR/BuiltinAttributes.h>
 #include <mlir/IR/OperationSupport.h>
 
-namespace serene::slir {} // namespace serene::slir
+namespace serene::slir {
+
+mlir::DataLayoutSpecInterface NsOp::getDataLayoutSpec() {
+  // Take the first and only (if present) attribute that implements the
+  // interface. This needs a linear search, but is called only once per data
+  // layout object construction that is used for repeated queries.
+  for (mlir::NamedAttribute attr : getOperation()->getAttrs())
+    if (auto spec = attr.getValue().dyn_cast<mlir::DataLayoutSpecInterface>())
+      return spec;
+  return {};
+}
+
+} // namespace serene::slir

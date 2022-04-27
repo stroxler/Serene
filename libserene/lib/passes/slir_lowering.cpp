@@ -21,6 +21,7 @@
 #include "serene/utils.h"
 
 #include <llvm/Support/Casting.h>
+#include <llvm/Support/raw_ostream.h>
 #include <mlir/Dialect/Arithmetic/IR/Arithmetic.h>
 #include <mlir/Dialect/Func/IR/FuncOps.h>
 #include <mlir/Dialect/LLVMIR/LLVMDialect.h>
@@ -34,6 +35,27 @@
 #include <cstdint>
 
 namespace serene::passes {
+#define GEN_PASS_CLASSES
+#include "serene/passes/passes.h.inc"
+
+class LowerSymbol : public LowerSymbolBase<LowerSymbol> {
+  void runOnOperation() override { llvm::outs() << "here\n"; }
+};
+
+std::unique_ptr<mlir::Pass> createLowerSymbol() {
+  return std::make_unique<LowerSymbol>();
+}
+
+class LowerSLIR : public LowerSLIRBase<LowerSLIR> {
+  void runOnOperation() override { llvm::outs() << "here\n"; }
+};
+
+std::unique_ptr<mlir::Pass> createLowerSLIR() {
+  return std::make_unique<LowerSLIR>();
+}
+
+#define GEN_PASS_REGISTRATION
+#include "serene/passes/passes.h.inc"
 
 // ----------------------------------------------------------------------------
 // ValueOp lowering to constant op
@@ -191,4 +213,6 @@ void SLIRToMLIRPass::runOnModule() {
 std::unique_ptr<mlir::Pass> createSLIRLowerToMLIRPass() {
   return std::make_unique<SLIRToMLIRPass>();
 };
+
+void registerAllPasses() { registerPasses(); }
 } // namespace serene::passes

@@ -1,4 +1,4 @@
-/* -*- C++ -*-
+/*
  * Serene Programming Language
  *
  * Copyright (c) 2019-2022 Sameer Rahmani <lxsameer@gnu.org>

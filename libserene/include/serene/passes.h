@@ -19,10 +19,16 @@
 #ifndef SERENE_PASSES_H
 #define SERENE_PASSES_H
 
+#include "serene/export.h"
+
 #include <mlir/Pass/Pass.h>
 
 namespace serene::passes {
 
+/// Return a pass to lower the serene.symbol op
+SERENE_EXPORT std::unique_ptr<mlir::Pass> createLowerSymbol();
+
+SERENE_EXPORT void registerAllPasses();
 /// Return a pass to convert SLIR dialect to built-in dialects
 /// of MLIR.
 std::unique_ptr<mlir::Pass> createSLIRLowerToMLIRPass();

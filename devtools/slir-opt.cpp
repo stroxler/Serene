@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "serene/passes.h"
 #include "serene/slir/dialect.h"
 
 #include <mlir/Dialect/Arithmetic/IR/Arithmetic.h>
@@ -28,7 +29,9 @@ int main(int argc, char **argv) {
 
   serene::slir::registerTo(registry);
   registry.insert<mlir::arith::ArithmeticDialect, mlir::func::FuncDialect>();
-  // TODO: Register passes here
+
+  serene::passes::registerAllPasses();
+
   return static_cast<int>(
       mlir::failed(mlir::MlirOptMain(argc, argv, "slir-opt", registry)));
 }

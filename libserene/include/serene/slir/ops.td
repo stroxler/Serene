@@ -1,4 +1,4 @@
-/* -*- C++ -*-
+/*
  * Serene Programming Language
  *
  * Copyright (c) 2019-2022 Sameer Rahmani <lxsameer@gnu.org>
@@ -21,7 +21,9 @@
 
 include "mlir/IR/OpBase.td"
 include "mlir/Interfaces/CallInterfaces.td"
+include "mlir/IR/RegionKindInterface.td"
 include "mlir/IR/SymbolInterfaces.td"
+include "mlir/IR/OpAsmInterface.td"
 
 // Base class for Serene dialect operations. This operation inherits from the base
 // `Op` class in OpBase.td, and provides:
@@ -75,21 +77,48 @@ def ValueOp : Serene_Op<"value", [
   let assemblyFormat = "attr-dict $value";
 }
 
+// Symbol Op
+def SymbolOp : Serene_Op<"symbol", [
+    ConstantLike, NoSideEffect, IsolatedFromAbove
+]> {
 
-// Def
-def DefOp: Serene_Op<"def", [Symbol]> {
+  let summary = "This operation is the compile time contructor for symbol type";
+  let description = [{
+    The `symbol` operation produces an SSA value that holds a value of type
+    symbol at compile time.
+
+    Example:
+
+    ```
+
+    %1 = serene.symbol "some.ns" "symbol_name"
+
+    // Equivalent generic form
+    %1 = "serene.symbol"() {ns = "some.ns", name = "symbol_name"} : () -> i32
+    ```
+  }];
+
+  let arguments = (ins StrAttr:$ns, StrAttr:$name);
+  let results = (outs SereneSymbol:$result);
+
+  let assemblyFormat = "attr-dict $ns $name";
+}
+
+
+// Define
+def DefnieOp: Serene_Op<"define", [Symbol]> {
     let summary = "This operation defines a global binding in the current namespace";
     let description = [{
-        `def` defines a global binding in the current namespace. It always return a
+        `define` defines a global binding in the current namespace. It always return a
         symbol type.
 
         Examples:
 
         ```mlir
-        %foo = "serene.def"(%0){name = "foo"}: (i64) -> !serene.symbol
+        %foo = "serene.define"(%0){name = "foo"}: (i64) -> !serene.symbol
 
         // compact form
-        %bar = serene.def "bar", %0 : i64
+        %bar = serene.define "bar", %0 : i64
         ```
     }];
 
@@ -171,6 +200,65 @@ def CallOp : Serene_Op<"call",
 
   let assemblyFormat = [{
     $fn `(` $args `)` attr-dict `:` functional-type($args, results)
+  }];
+}
+
+def NsOp : Serene_Op<"ns", [
+    AffineScope, IsolatedFromAbove, NoRegionArguments, SymbolTable, Symbol,
+    OpAsmOpInterface
+] # GraphRegionNoTerminator.traits> {
+  let summary = "This operation represents a Serene namespace.";
+  let description = [{
+    The `serene.ns` operation represents a namespace that will eventually
+    lowers to a `mlir::ModuleOp`.
+
+    Example:
+
+    ```mlir
+    serene.ns @some.ns {
+    ....
+    }
+    ```
+  }];
+
+  // TODO: Create a new Attr type that is an array to represent
+  //       required namespaces
+  let arguments = (ins SymbolNameAttr:$sym_name,
+                       OptionalAttr<StrAttr>:$sym_visibility);
+
+  let regions = (region SizedRegion<1>:$body);
+
+  let assemblyFormat = "$sym_name attr-dict-with-keyword $body";
+
+  let builders = [
+    OpBuilder<(ins CArg<"llvm::Optional<llvm::StringRef>", "{}">:$name)>
+  ];
+
+  let extraClassDeclaration = [{
+    /// Construct a namespace from the given location with an optional name.
+    //  static NsOp create(slir::reader::LocationRange loc, Optional<StringRef> name = llvm::None);
+
+    /// Return the name of this module if present.
+    llvm::StringRef getName() { return sym_name(); }
+
+    //===------------------------------------------------------------------===//
+    // SymbolOpInterface Methods
+    //===------------------------------------------------------------------===//
+
+    /// A ModuleOp may optionally define a symbol.
+    bool isOptionalSymbol() { return false; }
+
+    //===------------------------------------------------------------------===//
+    // DataLayoutOpInterface Methods
+    //===------------------------------------------------------------------===//
+    mlir::DataLayoutSpecInterface getDataLayoutSpec();
+
+    //===------------------------------------------------------------------===//
+    // OpAsmOpInterface Methods
+    //===------------------------------------------------------------------===//
+    static ::llvm::StringRef getDefaultDialect() {
+      return "builtin";
+    }
   }];
 }
 
