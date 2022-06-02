@@ -62,6 +62,7 @@ add_library(serene
   slir/generatable.cpp
   slir/utils.cpp
   slir/ops.cpp
+  slir/type_converter.cpp
   passes/slir_lowering.cpp
   passes/to_llvm_dialect.cpp
   )

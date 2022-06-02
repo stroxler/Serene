@@ -22,6 +22,21 @@
 // All of the types will extend this class.
 class Serene_Type<string name> : TypeDef<Serene_Dialect, name> { }
 
+def SereneString : Serene_Type<"String"> {
+    let mnemonic = "string";
+
+    let summary = "A simple string type";
+
+    let description = [{
+        A simple string type that contains the following structure:
+
+        i8*:     buffer; pointer to the character buffer
+        i32:     length; the number of chars in the buffer
+        i32:     maxlen; the maximum number of chars in the buffer
+        i32:     factor; the number of chars to preallocate when growing
+    }];
+}
+
 
 def SereneSymbol : Serene_Type<"Symbol"> {
     let mnemonic = "symbol";
@@ -31,7 +46,6 @@ def SereneSymbol : Serene_Type<"Symbol"> {
     let description = [{
         A Lisp symbol type
     }];
-
     // let parameters = (ins "std::string":$ns, "std::string":$name);
 }
 
