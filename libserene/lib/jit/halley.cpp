@@ -217,7 +217,7 @@ MaybeJITPtr Halley::lookup(exprs::Symbol &sym) const {
                              os.str());
   }
 
-  auto rawFPtr = expectedSymbol->getAddress();
+  auto rawFPtr = expectedSymbol->getValue();
   // NOLINTNEXTLINE(performance-no-int-to-ptr)
   auto fptr = reinterpret_cast<void (*)(void **)>(rawFPtr);
 
