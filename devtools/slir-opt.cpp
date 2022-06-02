@@ -21,6 +21,7 @@
 
 #include <mlir/Dialect/Arithmetic/IR/Arithmetic.h>
 #include <mlir/Dialect/Func/IR/FuncOps.h>
+#include <mlir/Dialect/LLVMIR/LLVMDialect.h>
 #include <mlir/IR/Dialect.h>
 #include <mlir/Tools/mlir-opt/MlirOptMain.h>
 
@@ -28,7 +29,8 @@ int main(int argc, char **argv) {
   mlir::DialectRegistry registry;
 
   serene::slir::registerTo(registry);
-  registry.insert<mlir::arith::ArithmeticDialect, mlir::func::FuncDialect>();
+  registry.insert<mlir::arith::ArithmeticDialect, mlir::func::FuncDialect,
+                  mlir::LLVM::LLVMDialect>();
 
   serene::passes::registerAllPasses();
 
