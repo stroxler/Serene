@@ -28,3 +28,6 @@ docs/spec.tex
 docs/spec.pdf
 
 .env
+.tex
+.pdf
+docs/overall_picture.png
