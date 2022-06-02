@@ -33,6 +33,8 @@ include "mlir/IR/OpAsmInterface.td"
 class Serene_Op<string mnemonic, list<Trait> traits = []> :
     Op<Serene_Dialect, mnemonic, traits>;
 
+
+// serene.value
 def ValueOp : Serene_Op<"value", [
     ConstantLike, NoSideEffect,
     TypesMatchWith<
@@ -75,11 +77,12 @@ def ValueOp : Serene_Op<"value", [
   // Need to define the ::fold() method to make value op foldable
   // let hasFolder = 1;
   let assemblyFormat = "attr-dict $value";
+  let hasFolder = 1;
 }
 
-// Symbol Op
+// serene.symbol
 def SymbolOp : Serene_Op<"symbol", [
-    ConstantLike, NoSideEffect, IsolatedFromAbove
+    NoSideEffect, //ConstantLike,
 ]> {
 
   let summary = "This operation is the compile time contructor for symbol type";
@@ -104,9 +107,32 @@ def SymbolOp : Serene_Op<"symbol", [
   let assemblyFormat = "attr-dict $ns $name";
 }
 
+// serene.convert
+def ConvertOp : Serene_Op<"convert", [
+    NoSideEffect
+]> {
 
-// Define
-def DefnieOp: Serene_Op<"define", [Symbol]> {
+  let summary = "This operation converts a symbol to the equivelant llvm type";
+  let description = [{
+    This operation converts a symbol to the equivelant llvm type
+  }];
+
+  let arguments = (ins AnyType:$value);
+
+  let results = (outs AnyType:$result);
+
+  let assemblyFormat = [{
+    $value attr-dict `:` functional-type($value, results)
+  }];
+
+}
+
+// ============================================================================
+// Define Family
+// ============================================================================
+
+// serene.define
+def DefineOp: Serene_Op<"define", [Symbol]> {
     let summary = "This operation defines a global binding in the current namespace";
     let description = [{
         `define` defines a global binding in the current namespace. It always return a
@@ -122,13 +148,56 @@ def DefnieOp: Serene_Op<"define", [Symbol]> {
         ```
     }];
 
-    let arguments = (ins StrAttr:$sym_name, AnyType:$value, //StrAttr:$name,SymbolNameAttr:$sym_name
+    let arguments = (ins SymbolNameAttr:$sym_name, AnyType:$value,
+                         OptionalAttr<BoolAttr>:$is_top_level,
                          OptionalAttr<StrAttr>:$sym_visibility);
 
-    let results = (outs SereneSymbol);
+    //let results = (outs SereneSymbol);
     let assemblyFormat = "attr-dict $sym_name `,` $value `:` type($value)";
 }
 
+// serene.define_constant
+def DefineConstantOp: Serene_Op<"define_constant", [Symbol]> {
+    let summary = "This operation defines a constant global binding in the current namespace";
+    let description = [{
+        `define` defines a constant global binding in the current namespace. It always return a
+        symbol type.
+
+        Examples:
+
+        ```mlir
+        %foo = "serene.define_constant"(%0){name = "foo"}: (i64) -> !serene.symbol
+
+        // compact form
+        %bar = serene.define_constant "bar", %0 : i64
+        ```
+    }];
+
+    let arguments = (ins SymbolNameAttr:$sym_name, AnyAttr:$value,
+                         OptionalAttr<BoolAttr>:$is_top_level,
+                         OptionalAttr<StrAttr>:$sym_visibility);
+
+    //    let results = (outs SereneSymbol);
+    let assemblyFormat = "attr-dict $sym_name $value";
+}
+
+// serene.set_value
+def SetValueOp: Serene_Op<"set_value", []> {
+
+    let summary = "Sets the value of a SLIRS global varible.";
+    let description = [{
+        This operation sets the value of a SLIR global variable. This operation
+        is NOT threadsafe.
+
+    }];
+
+    let arguments = (ins SymbolRefAttr:$var,
+                         AnyType:$value);
+
+    let assemblyFormat = "attr-dict $var `,` $value `:` type($value)";
+}
+
+// serene.fn
 def FnOp: Serene_Op<"fn", [
   AffineScope, AutomaticAllocationScope,
   IsolatedFromAbove,
@@ -151,6 +220,8 @@ def FnOp: Serene_Op<"fn", [
     let results = (outs SereneFn);
 }
 
+
+// serene.ret
 def ReturnOp: Serene_Op<"ret", [
   NoSideEffect, HasParent<"FnOp">,
   ReturnLike, Terminator
@@ -178,6 +249,8 @@ def ReturnOp: Serene_Op<"ret", [
     // let hasVerifier = 1;
 }
 
+
+// serene.call
 def CallOp : Serene_Op<"call",
     [MemRefsNormalizable]> {
   let summary = "call operation";
@@ -203,6 +276,8 @@ def CallOp : Serene_Op<"call",
   }];
 }
 
+
+// TODO: Do we need to have a NS type?
 def NsOp : Serene_Op<"ns", [
     AffineScope, IsolatedFromAbove, NoRegionArguments, SymbolTable, Symbol,
     OpAsmOpInterface
