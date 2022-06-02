@@ -21,6 +21,9 @@
 #include <serene/export.h>
 
 #include <llvm/ADT/TypeSwitch.h>
+#include <mlir/Dialect/Arithmetic/IR/Arithmetic.h>
+#include <mlir/Dialect/Func/IR/FuncOps.h>
+#include <mlir/Dialect/LLVMIR/LLVMDialect.h>
 #include <mlir/IR/BuiltinOps.h>
 #include <mlir/IR/Dialect.h>
 #include <mlir/IR/DialectRegistry.h>
@@ -29,6 +32,7 @@
 #include <mlir/Interfaces/ControlFlowInterfaces.h>
 #include <mlir/Interfaces/InferTypeOpInterface.h>
 #include <mlir/Interfaces/SideEffectInterfaces.h>
+
 // Include the auto-generated header file containing the declaration of the
 // serene's dialect.
 #include "serene/slir/dialect.h.inc"

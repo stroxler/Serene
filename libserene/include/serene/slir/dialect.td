@@ -42,9 +42,17 @@ def Serene_Dialect : Dialect {
     // All the types have to define a mnemonic
     let useDefaultTypePrinterParser = 1;
 
+    // TODO: Uncomment this when ever we have custom attrs
     // All the attributes have to define a mnemonic
-    let useDefaultAttributePrinterParser = 1;
+    // let useDefaultAttributePrinterParser = 1;
+
+    let dependentDialects = [
+        "mlir::arith::ArithmeticDialect",
+        "mlir::func::FuncDialect",
+        "mlir::LLVM::LLVMDialect"
+  ];
 }
+
 
 include "types.td"
 include "ops.td"
