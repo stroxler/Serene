@@ -5,6 +5,11 @@
 
 #define SERENE_VERSION "@PROJECT_VERSION@"
 
+// Why so obvious? to make the linter shutup :))
+#define I8_SIZE  8
+#define I32_SIZE 32
+#define I64_SIZE 64
+
 // Should we build the support for MLIR CL OPTIONS?
 #cmakedefine SERENE_WITH_MLIR_CL_OPTION
 
