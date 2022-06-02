@@ -23,6 +23,9 @@
 
 #include <mlir/Pass/Pass.h>
 
+#define PASS_LOG(...) \
+  DEBUG_WITH_TYPE("PASSES", llvm::dbgs() << __VA_ARGS__ << "\n");
+
 namespace serene::passes {
 
 /// Return a pass to lower the serene.symbol op

@@ -36,6 +36,7 @@
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/Support/Host.h>
 #include <mlir/Dialect/Func/IR/FuncOps.h>
+#include <mlir/Dialect/LLVMIR/LLVMDialect.h>
 #include <mlir/IR/MLIRContext.h>
 #include <mlir/Pass/PassManager.h>
 
@@ -160,6 +161,7 @@ public:
         targetPhase(CompilationPhase::NoOptimization) {
     mlirContext.getOrLoadDialect<serene::slir::SereneDialect>();
     mlirContext.getOrLoadDialect<mlir::func::FuncDialect>();
+    mlirContext.getOrLoadDialect<mlir::LLVM::LLVMDialect>();
 
     // We need to create one empty namespace, so that the JIT can
     // start it's operation.
