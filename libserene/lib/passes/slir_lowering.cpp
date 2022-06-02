@@ -103,12 +103,6 @@ static ll::GlobalOp getOrCreateString(mlir::Location loc,
     mlir::OpBuilder::InsertionGuard insertGuard(builder);
     builder.setInsertionPointToStart(module.getBody());
 
-    auto createIndex = [&](int32_t value) -> mlir::Value {
-      return builder.create<ll::ConstantOp>(
-          loc, mlir::IntegerType::get(ctx, I32_SIZE),
-          builder.getI32IntegerAttr(value));
-    };
-
     mlir::Attribute initValue{};
     auto type = slir::getStringTypeinLLVM(*ctx);
 
@@ -125,14 +119,21 @@ static ll::GlobalOp getOrCreateString(mlir::Location loc,
     auto strOp = getOrCreateInternalString(loc, builder, name, value, module);
     auto ptrToStr = getPtrToInternalString(builder, strOp);
 
+    auto length = builder.create<ll::ConstantOp>(
+        loc, mlir::IntegerType::get(ctx, I32_SIZE),
+        builder.getI32IntegerAttr(len));
+
     // Setting the string pointer field
-    structInstant = builder.create<ll::InsertElementOp>(
-        loc, structInstant.getType(), structInstant, ptrToStr, createIndex(0));
+    structInstant = builder.create<ll::InsertValueOp>(
+        loc, structInstant.getType(), structInstant, ptrToStr,
+        builder.getI64ArrayAttr(0));
 
     // Setting the len field
-    structInstant = builder.create<ll::InsertElementOp>(
-        loc, structInstant.getType(), structInstant, createIndex(len),
-        createIndex(1));
+    structInstant = builder.create<ll::InsertValueOp>(
+        loc, structInstant.getType(), structInstant, length,
+        builder.getI64ArrayAttr(1));
+
+    builder.create<ll::ReturnOp>(loc, structInstant);
   }
 
   return global;
@@ -153,12 +154,6 @@ static ll::GlobalOp getOrCreateSymbol(mlir::Location loc,
   if (!(global = module.lookupSymbol<ll::GlobalOp>(symName))) {
     mlir::OpBuilder::InsertionGuard insertGuard(builder);
     builder.setInsertionPointToStart(module.getBody());
-
-    auto createIndex = [&](int32_t value) -> mlir::Value {
-      return builder.create<ll::ConstantOp>(
-          loc, mlir::IntegerType::get(ctx, I32_SIZE),
-          builder.getI32IntegerAttr(value));
-    };
 
     mlir::Attribute initValue{};
     auto type = slir::getSymbolTypeinLLVM(*ctx);
@@ -194,12 +189,16 @@ static ll::GlobalOp getOrCreateSymbol(mlir::Location loc,
     auto ptrToName = builder.create<ll::AddressOfOp>(loc, nameField);
 
     // Setting the string pointer field
-    structInstant = builder.create<ll::InsertElementOp>(
-        loc, structInstant.getType(), structInstant, ptrToNs, createIndex(0));
+    structInstant = builder.create<ll::InsertValueOp>(
+        loc, structInstant.getType(), structInstant, ptrToNs,
+        builder.getI64ArrayAttr(0));
 
     // Setting the len field
-    structInstant = builder.create<ll::InsertElementOp>(
-        loc, structInstant.getType(), structInstant, ptrToName, createIndex(1));
+    structInstant = builder.create<ll::InsertValueOp>(
+        loc, structInstant.getType(), structInstant, ptrToName,
+        builder.getI64ArrayAttr(0));
+
+    builder.create<ll::ReturnOp>(loc, structInstant);
   }
 
   return global;

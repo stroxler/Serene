@@ -18,6 +18,8 @@
 
 #include "serene/slir/type_converter.h"
 
+#include <mlir/Dialect/LLVMIR/LLVMTypes.h>
+
 namespace ll = mlir::LLVM;
 
 namespace serene {
@@ -27,7 +29,7 @@ mlir::Type getStringTypeinLLVM(mlir::MLIRContext &ctx) {
   auto stringStruct =
       ll::LLVMStructType::getIdentified(&ctx, "serene.core.string");
 
-  mlir::SmallVector<mlir::Type, 4> subtypes;
+  mlir::SmallVector<mlir::Type, 2> subtypes;
 
   subtypes.push_back(
       ll::LLVMPointerType::get(mlir::IntegerType::get(&ctx, I8_SIZE)));
@@ -37,7 +39,7 @@ mlir::Type getStringTypeinLLVM(mlir::MLIRContext &ctx) {
 
   (void)stringStruct.setBody(subtypes, false);
 
-  return ll::LLVMPointerType::get(stringStruct);
+  return stringStruct;
 };
 
 mlir::Type getSymbolTypeinLLVM(mlir::MLIRContext &ctx) {
@@ -45,12 +47,14 @@ mlir::Type getSymbolTypeinLLVM(mlir::MLIRContext &ctx) {
       ll::LLVMStructType::getIdentified(&ctx, "serene.core.symbol");
 
   auto strType = getStringTypeinLLVM(ctx);
-  llvm::SmallVector<mlir::Type, 2> strings{strType, strType};
+  auto strPtr  = ll::LLVMPointerType::get(strType);
+
+  llvm::SmallVector<mlir::Type, 2> strings{strPtr, strPtr};
 
   // We discard the result becasue if the body was already set it means
   // that we're ok and the struct already exists
   (void)symbolStruct.setBody(strings, false);
-  return ll::LLVMPointerType::get(symbolStruct);
+  return symbolStruct;
 };
 
 TypeConverter::ConverterFn TypeConverter::convertSereneTypes() {
