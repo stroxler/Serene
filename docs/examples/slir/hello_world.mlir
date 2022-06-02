@@ -1,4 +1,4 @@
-serene.ns @some.ns {
+module @some.ns {
        // Value operator ----
        %0 = "serene.value"(){value= 3} : () -> i64
        // compact form
