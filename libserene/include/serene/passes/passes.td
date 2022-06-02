@@ -21,17 +21,10 @@
 
 include "mlir/Pass/PassBase.td"
 
-def LowerSymbol : Pass<"lower-symbol", "slir::SymbolOp"> {
-  let summary = "Lowers `serene.symbol` operation to LLVM dialect";
 
-  let description = [{Lowers `serene.symbol` operation to LLVM dialect as an struct}];
-
-  // This is how we can create the default instance of this pass.
-  // via `createLowerSymbol` function
-  let constructor = "serene::passes::createLowerSymbol()";
-}
-
-def LowerSLIR : Pass<"lower-slir", "slir::NsOp"> {
+// TODO: When we add and utilize namespace operations we need
+//       use NsOp instead of the ModuleOp for root of lowering
+def LowerSLIR : Pass<"lower-slir", "mlir::ModuleOp"> {
   let summary = "Lowers the SLIR dialect to LLVM IR indirectly";
 
   let description = [{
@@ -43,7 +36,8 @@ def LowerSLIR : Pass<"lower-slir", "slir::NsOp"> {
   // This is how we can create the default instance of this pass.
   // via `createLowerSymbol` function
   let constructor = "serene::passes::createLowerSLIR()";
-  let dependentDialects = ["slir::SereneDialect", "mlir::func::FuncDialect"];
+  let dependentDialects = ["mlir::func::FuncDialect", "mlir::arith::ArithmeticDialect"];
+
 }
 
 #endif // SERENE_PASSES_TD

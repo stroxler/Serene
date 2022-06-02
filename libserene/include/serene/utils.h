@@ -131,5 +131,10 @@ public:
   operator bool() const { return ok(); }
 };
 
+inline void makeFQSymbolName(const llvm::StringRef &ns,
+                             const llvm::StringRef &sym, std::string &result) {
+  result = (ns + "/" + sym).str();
+};
+
 } // namespace serene
 #endif
