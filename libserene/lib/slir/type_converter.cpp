@@ -29,14 +29,12 @@ mlir::Type getStringTypeinLLVM(mlir::MLIRContext &ctx) {
   auto stringStruct =
       ll::LLVMStructType::getIdentified(&ctx, "serene.core.string");
 
-  mlir::SmallVector<mlir::Type, 2> subtypes;
+  mlir::SmallVector<mlir::Type, 4> subtypes;
 
   subtypes.push_back(
       ll::LLVMPointerType::get(mlir::IntegerType::get(&ctx, I8_SIZE)));
+  // Length field
   subtypes.push_back(mlir::IntegerType::get(&ctx, I32_SIZE));
-  // subtypes.push_back(mlir::IntegerType::get(&ctx, I32_SIZE));
-  // subtypes.push_back(mlir::IntegerType::get(&ctx, I32_SIZE));
-
   (void)stringStruct.setBody(subtypes, false);
 
   return stringStruct;

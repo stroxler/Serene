@@ -24,7 +24,6 @@ class Serene_Type<string name> : TypeDef<Serene_Dialect, name> { }
 
 def SereneString : Serene_Type<"String"> {
     let mnemonic = "string";
-
     let summary = "A simple string type";
 
     let description = [{
@@ -32,8 +31,6 @@ def SereneString : Serene_Type<"String"> {
 
         i8*:     buffer; pointer to the character buffer
         i32:     length; the number of chars in the buffer
-        i32:     maxlen; the maximum number of chars in the buffer
-        i32:     factor; the number of chars to preallocate when growing
     }];
 }
 
