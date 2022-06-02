@@ -36,7 +36,31 @@
 
 * Basic Types
 
+* Special Forms
+
+** ~def~:
+~def~ has the following form:
+
+#+BEGIN_SRC lisp
+  (def <NAME> <VALUE>)
+#+END_SRC
+
+- Defines a global binding
+- Returns the name of the binding as a symbol
+- ~<NAME>~ has to be a symbol
+- If ~def~ is not a top level expression, it will create an ~undef~ global binding which
+  will be set to the ~<VALUE>~ when the execution flow reaches the ~def~ itself.
+
 * Unsorted
 ** Eval
 Evaluating any form using =eval= will add the form to the namespace containing the
 =eval= expression.
+* Glossary
+- Symbol :: A Lisp Symbol. Just a symbol. A name that might be bound to a value
+  and evaluates to the value.
+- IR Symbol :: The ~Symbol~ infrastructure essentially provides a non-SSA mechanism in which to refer to an
+operation in IR symbolically with a name. On MLIR level they are different from *native symbols*
+even though we use them to refer to *native symbols*. But they don't necessarily map to
+  *native symbols*.
+- Native Sybol :: As the name suggests native symbols refer to native code symbols. Like those you find in an
+object file.
