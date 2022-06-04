@@ -16,33 +16,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "serene/slir/dialect.h"
-
-#include "serene/slir/dialect.cpp.inc"
-#include "serene/slir/ops.h"
 #include "serene/slir/types.h"
 
-#include <mlir/IR/Builders.h>
-#include <mlir/IR/Dialect.h>
-#include <mlir/IR/DialectImplementation.h>
-#include <mlir/IR/MLIRContext.h>
+#include "serene/slir/dialect.h"
 
-namespace serene {
-namespace slir {
+#define GET_TYPEDEF_CLASSES
+#include "serene/slir/types.cpp.inc"
 
-/// Dialect initialization, the instance will be owned by the context. This is
-/// the point of registration of types and operations for the dialect.
-void SereneDialect::initialize() {
-  registerType();
-  addOperations<
-#define GET_OP_LIST
-#include "serene/slir/ops.cpp.inc"
-      >();
+namespace serene::slir {
+
+PtrType PtrType::get(mlir::MLIRContext *context, unsigned addressSpace) {
+  return Base::get(context, mlir::Type(), addressSpace);
 }
 
-void registerTo(mlir::DialectRegistry &registry) {
-  registry.insert<serene::slir::SereneDialect>();
+PtrType PtrType::get(mlir::Type pointee, unsigned addressSpace) {
+  return Base::get(pointee.getContext(), pointee, addressSpace);
+}
+
+bool PtrType::isOpaque() const { return !getImpl()->pointeeType; }
+
+void SereneDialect::registerType() {
+  addTypes<
+#define GET_TYPEDEF_LIST
+#include "serene/slir/types.cpp.inc"
+      >();
 };
 
-} // namespace slir
-} // namespace serene
+} // namespace serene::slir

@@ -16,7 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "serene/slir/ops.h"
+
 #include "serene/slir/dialect.h"
+#include "serene/slir/types.h"
 #include "serene/utils.h"
 
 #include <llvm/Support/FormatVariadic.h>
@@ -24,6 +27,9 @@
 #include <mlir/IR/Builders.h>
 #include <mlir/IR/BuiltinAttributes.h>
 #include <mlir/IR/OperationSupport.h>
+
+#define GET_OP_CLASSES
+#include "serene/slir/ops.cpp.inc"
 
 namespace serene::slir {
 

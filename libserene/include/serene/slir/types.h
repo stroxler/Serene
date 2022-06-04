@@ -16,33 +16,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "serene/slir/dialect.h"
+#ifndef SERENE_DIALECT_TYPES_H
+#define SERENE_DIALECT_TYPES_H
 
-#include "serene/slir/dialect.cpp.inc"
-#include "serene/slir/ops.h"
-#include "serene/slir/types.h"
-
-#include <mlir/IR/Builders.h>
-#include <mlir/IR/Dialect.h>
+#include <llvm/ADT/TypeSwitch.h>
+#include <mlir/IR/BuiltinOps.h>
+#include <mlir/IR/BuiltinTypes.h>
 #include <mlir/IR/DialectImplementation.h>
-#include <mlir/IR/MLIRContext.h>
+#include <mlir/IR/TypeSupport.h>
 
-namespace serene {
-namespace slir {
+#define GET_TYPEDEF_CLASSES
+#include "serene/slir/types.h.inc"
 
-/// Dialect initialization, the instance will be owned by the context. This is
-/// the point of registration of types and operations for the dialect.
-void SereneDialect::initialize() {
-  registerType();
-  addOperations<
-#define GET_OP_LIST
-#include "serene/slir/ops.cpp.inc"
-      >();
-}
-
-void registerTo(mlir::DialectRegistry &registry) {
-  registry.insert<serene::slir::SereneDialect>();
-};
-
-} // namespace slir
-} // namespace serene
+#endif

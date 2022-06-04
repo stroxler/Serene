@@ -18,9 +18,12 @@
 
 #include "serene/context.h"
 #include "serene/conventions.h"
+#include "serene/diagnostics.h"
 #include "serene/passes.h"
 #include "serene/slir/dialect.h"
+#include "serene/slir/ops.h"
 #include "serene/slir/type_converter.h"
+#include "serene/slir/types.h"
 #include "serene/utils.h"
 
 #include <serene/config.h>
@@ -112,6 +115,12 @@ static ll::GlobalOp getOrCreateString(mlir::Location loc,
     auto &gr    = global.getInitializerRegion();
     auto *block = builder.createBlock(&gr);
 
+    if (block == nullptr) {
+      module.emitError("Faild to create block of the globalOp!");
+      // TODO: change the return type to Expected<GlobalOp> and return
+      //       an error here
+    }
+
     builder.setInsertionPoint(block, block->begin());
 
     mlir::Value structInstant = builder.create<ll::UndefOp>(loc, type);
@@ -168,6 +177,12 @@ static ll::GlobalOp getOrCreateSymbol(mlir::Location loc,
     auto &gr    = global.getInitializerRegion();
     auto *block = builder.createBlock(&gr);
 
+    if (block == nullptr) {
+      module.emitError("Faild to create block of the globalOp!");
+      // TODO: change the return type to Expected<GlobalOp> and return
+      //       an error here
+    }
+
     builder.setInsertionPoint(block, block->begin());
 
     mlir::Value structInstant = builder.create<ll::UndefOp>(loc, type);
@@ -216,22 +231,22 @@ mlir::LogicalResult
 LowerSymbol::matchAndRewrite(serene::slir::SymbolOp op, OpAdaptor adaptor,
                              mlir::ConversionPatternRewriter &rewriter) const {
 
+  UNUSED(adaptor);
   auto ns     = op.ns();
   auto name   = op.name();
   auto loc    = op.getLoc();
   auto module = op->getParentOfType<mlir::ModuleOp>();
 
   // If there is no use for the result of this op then simply erase it
-  // if (!op.getResult().use_empty()) {
-  //   rewriter.eraseOp(op);
-  //   return mlir::success();
-  // }
+  if (op.getResult().use_empty()) {
+    rewriter.eraseOp(op);
+    return mlir::success();
+  }
 
   auto global = getOrCreateSymbol(loc, rewriter, ns, name, module);
-  rewriter.eraseOp(op);
+  auto ptr    = rewriter.create<ll::AddressOfOp>(loc, global);
 
-  (void)adaptor;
-  (void)global;
+  rewriter.replaceOp(op, ptr.getResult());
 
   return mlir::success();
 }
@@ -277,8 +292,10 @@ LowerDefine::matchAndRewrite(serene::slir::DefineOp op, OpAdaptor adaptor,
         op, op.sym_name(), constantValue, rewriter.getBoolAttr(isTopLevel),
         op.sym_visibilityAttr());
 
-    // TODO: Erase the valueop if it has no other 'use' in the IR
-    // rewriter.eraseOp(valueop);
+    if (valueop->use_empty()) {
+      PASS_LOG("Erase op due to empty use:" << valueop);
+      rewriter.eraseOp(valueop);
+    }
 
     return mlir::success();
   }
@@ -286,6 +303,7 @@ LowerDefine::matchAndRewrite(serene::slir::DefineOp op, OpAdaptor adaptor,
   // If the value was a Function literal (like an anonymous function)
   // rewrite to a Func.FuncOp
   if (mlir::isa<slir::FnOp>(valueop)) {
+    // TODO: Lower to a function op
     rewriter.eraseOp(op);
     return mlir::success();
   }
@@ -308,11 +326,7 @@ LowerDefine::matchAndRewrite(serene::slir::DefineOp op, OpAdaptor adaptor,
 
     {
       mlir::PatternRewriter::InsertionGuard insertGuard(rewriter);
-      auto moduleOp        = op->getParentOfType<mlir::ModuleOp>();
-      auto &topLevelRegion = moduleOp.getBodyRegion();
-      auto &moduleBlock    = topLevelRegion.getBlocks();
-
-      rewriter.setInsertionPointToStart(&moduleBlock.front());
+      rewriter.setInsertionPointToStart(moduleOp.getBody());
 
       auto globalOp = rewriter.create<ll::GlobalOp>(loc, llvmType,
                                                     /*isConstant=*/false,
@@ -321,8 +335,7 @@ LowerDefine::matchAndRewrite(serene::slir::DefineOp op, OpAdaptor adaptor,
       auto *block   = rewriter.createBlock(&gr);
 
       if (block == nullptr) {
-        // TODO: use diagnastics
-        llvm::errs() << "Faild to create block of the globalOp!";
+        op.emitError("Faild to create block of the globalOp!");
         return mlir::failure();
       }
 

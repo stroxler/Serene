@@ -15,10 +15,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef SERENE_SLIR_DIALECT_H
-#define SERENE_SLIR_DIALECT_H
 
-#include <serene/export.h>
+#ifndef SERENE_DIALECT_OPS_H
+#define SERENE_DIALECT_OPS_H
+
+#include "serene/slir/types.h"
 
 #include <llvm/ADT/TypeSwitch.h>
 #include <mlir/Dialect/Arithmetic/IR/Arithmetic.h>
@@ -33,13 +34,7 @@
 #include <mlir/Interfaces/InferTypeOpInterface.h>
 #include <mlir/Interfaces/SideEffectInterfaces.h>
 
-// Include the auto-generated header file containing the declaration of the
-// serene's dialect.
-#include "serene/slir/dialect.h.inc"
-#include "serene/slir/types.h"
+#define GET_OP_CLASSES
+#include "serene/slir/ops.h.inc"
 
-namespace serene::slir {
-SERENE_EXPORT void registerTo(mlir::DialectRegistry &registry);
-} // namespace serene::slir
-  //
-#endif // SERENE_SLIR_DIALECT_H
+#endif
