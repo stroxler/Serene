@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SERENE_DIALECT_OPS
-#define SERENE_DIALECT_OPS
+#ifndef SERENE_DIALECT_OPS_TD
+#define SERENE_DIALECT_OPS_TD
 
 include "mlir/IR/OpBase.td"
 include "mlir/Interfaces/CallInterfaces.td"
@@ -82,7 +82,7 @@ def ValueOp : Serene_Op<"value", [
 
 // serene.symbol
 def SymbolOp : Serene_Op<"symbol", [
-    NoSideEffect, //ConstantLike,
+    NoSideEffect, ConstantLike,
 ]> {
 
   let summary = "This operation is the compile time contructor for symbol type";
@@ -102,7 +102,7 @@ def SymbolOp : Serene_Op<"symbol", [
   }];
 
   let arguments = (ins StrAttr:$ns, StrAttr:$name);
-  let results = (outs SereneSymbol:$result);
+  let results = (outs SymbolType:$result);
 
   let assemblyFormat = "attr-dict $ns $name";
 }
@@ -119,7 +119,7 @@ def ConvertOp : Serene_Op<"convert", [
 
   let arguments = (ins AnyType:$value);
 
-  let results = (outs AnyType:$result);
+  let results = (outs Ptr<SymbolType>:$result);
 
   let assemblyFormat = [{
     $value attr-dict `:` functional-type($value, results)
@@ -217,7 +217,7 @@ def FnOp: Serene_Op<"fn", [
                          OptionalAttr<StrAttr>:$sym_visibility);
 
     let regions = (region VariadicRegion<AnyRegion>:$bodies);
-    let results = (outs SereneFn);
+    let results = (outs FnType);
 }
 
 
@@ -267,7 +267,7 @@ def CallOp : Serene_Op<"call",
     ```
   }];
 
-  let arguments = (ins SereneFn:$fn,
+  let arguments = (ins FnType:$fn,
                        Variadic<AnyType>:$args);
   let results = (outs Variadic<AnyType>);
 

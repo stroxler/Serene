@@ -18,6 +18,9 @@
 
 #include "serene/slir/type_converter.h"
 
+#include "serene/slir/dialect.h"
+
+#include <llvm/Support/Casting.h>
 #include <mlir/Dialect/LLVMIR/LLVMTypes.h>
 
 namespace ll = mlir::LLVM;
@@ -55,6 +58,13 @@ mlir::Type getSymbolTypeinLLVM(mlir::MLIRContext &ctx) {
   return symbolStruct;
 };
 
+mlir::Type getPtrTypeinLLVM(mlir::MLIRContext &ctx, PtrType p) {
+  UNUSED(ctx);
+  auto T       = p.getPointeeType();
+  auto llvmPtr = ll::LLVMPointerType::get(T);
+  return llvmPtr;
+}
+
 TypeConverter::ConverterFn TypeConverter::convertSereneTypes() {
   return [&](mlir::Type type) -> MaybeType {
     if (type.isa<StringType>()) {
@@ -63,6 +73,10 @@ TypeConverter::ConverterFn TypeConverter::convertSereneTypes() {
 
     if (type.isa<SymbolType>()) {
       return getSymbolTypeinLLVM(ctx);
+    }
+
+    if (type.isa<PtrType>()) {
+      return getPtrTypeinLLVM(ctx, type.cast<PtrType>());
     }
 
     return llvm::None;

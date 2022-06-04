@@ -56,13 +56,14 @@ add_library(serene
   reader/reader.cpp
 
   # IR
+  slir/types.cpp
   slir/slir.cpp
-  slir/dialect.cpp
   slir/value_op.cpp
   slir/generatable.cpp
   slir/utils.cpp
   slir/ops.cpp
   slir/type_converter.cpp
+  slir/dialect.cpp
   passes/slir_lowering.cpp
   passes/to_llvm_dialect.cpp
   )

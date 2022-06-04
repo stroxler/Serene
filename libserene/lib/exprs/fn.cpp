@@ -23,6 +23,7 @@
 #include "serene/exprs/list.h"
 #include "serene/exprs/symbol.h"
 #include "serene/slir/dialect.h"
+#include "serene/slir/ops.h"
 #include "serene/slir/utils.h"
 
 #include <llvm/Support/Casting.h>

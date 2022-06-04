@@ -20,6 +20,7 @@
 
 #include "serene/exprs/expression.h"
 #include "serene/slir/dialect.h"
+#include "serene/slir/ops.h"
 #include "serene/slir/utils.h"
 
 namespace serene {

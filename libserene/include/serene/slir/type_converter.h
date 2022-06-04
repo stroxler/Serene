@@ -23,6 +23,8 @@
 #include "serene/context.h"
 #include "serene/export.h"
 #include "serene/slir/dialect.h"
+#include "serene/slir/ops.h"
+#include "serene/slir/types.h"
 #include "serene/utils.h"
 
 #include <mlir/Dialect/LLVMIR/LLVMTypes.h>
@@ -31,6 +33,19 @@
 
 namespace serene::slir {
 class SymbolType;
+class PtrType;
+
+/// Returns the LLVM pointer type to the type `T` that is Serene pointer
+/// `p` is pointing to.
+mlir::Type getPtrTypeinLLVM(mlir::MLIRContext &ctx, PtrType p);
+
+/// Returns the conversion result of converting Serene String type
+/// to LLVM dialect
+mlir::Type getStringTypeinLLVM(mlir::MLIRContext &ctx);
+
+/// Returns the conversoin result of converting Serene Symbol type
+/// to LLVM dialect
+mlir::Type getSymbolTypeinLLVM(mlir::MLIRContext &ctx);
 
 class TypeConverter : public mlir::TypeConverter {
   mlir::MLIRContext &ctx;
@@ -66,14 +81,6 @@ public:
     addTargetMaterialization(materializeSymbolFn());
   }
 };
-
-/// Returns the conversion result of converting Serene String type
-/// to LLVM dialect
-mlir::Type getStringTypeinLLVM(mlir::MLIRContext &ctx);
-
-/// Returns the conversoin result of converting Serene Symbol type
-/// to LLVM dialect
-mlir::Type getSymbolTypeinLLVM(mlir::MLIRContext &ctx);
 } // namespace serene::slir
 
 #endif
