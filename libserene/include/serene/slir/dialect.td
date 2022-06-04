@@ -1,4 +1,4 @@
-/* -*- C++ -*-
+/*
  * Serene Programming Language
  *
  * Copyright (c) 2019-2022 Sameer Rahmani <lxsameer@gnu.org>
@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SERENE_DIALECT
-#define SERENE_DIALECT
+#ifndef SERENE_DIALECT_TD
+#define SERENE_DIALECT_TD
 
 
 include "mlir/IR/OpBase.td"
@@ -51,6 +51,11 @@ def Serene_Dialect : Dialect {
         "mlir::func::FuncDialect",
         "mlir::LLVM::LLVMDialect"
   ];
+
+  let extraClassDeclaration = [{
+    /// Register all the Serene types
+    void registerType();
+  }];
 }
 
 
@@ -101,7 +106,7 @@ def Fn1Op: Serene_Op<"fn1", [
                          OptionalAttr<StrAttr>:$sym_visibility);
 
     let regions = (region AnyRegion:$body);
-    let results = (outs SereneFn);
+    let results = (outs FnType);
 
 }
 
