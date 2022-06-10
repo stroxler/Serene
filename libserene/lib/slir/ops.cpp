@@ -45,6 +45,11 @@ mlir::DataLayoutSpecInterface NsOp::getDataLayoutSpec() {
   return {};
 }
 
+mlir::OpFoldResult SymbolOp::fold(llvm::ArrayRef<mlir::Attribute> operands) {
+  UNUSED(operands);
+  return value();
+};
+
 mlir::OpFoldResult ValueOp::fold(llvm::ArrayRef<mlir::Attribute> operands) {
   UNUSED(operands);
   return value();

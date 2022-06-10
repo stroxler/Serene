@@ -20,10 +20,35 @@
 #define SERENE_DIALECT_TYPES_TD
 
 include "mlir/IR/OpBase.td"
+include "mlir/IR/AttrTypeBase.td"
 
-// All of the types will extend this class.
-class Serene_Type<string name> : TypeDef<Serene_Dialect, name> { }
+// The base class for all the Serene types
+class Serene_Type<string name, string typeMnemonic, list<Trait> traits = []>
+    : TypeDef<Serene_Dialect, name, traits> {
+    let mnemonic = typeMnemonic;
+}
 
+// The base class for all the Serene attributes
+class Serene_Attr<string name, string attrMnemonic, list<Trait> traits = []>
+    : AttrDef<Serene_Dialect, name, traits> {
+  let mnemonic = attrMnemonic;
+}
+
+// Attributes =================================================================
+def SymbolAttr : Serene_Attr<"Symbol", "symbol"> {
+  let summary = "An Attribute containing a symbol value.";
+  let description = [{
+    An integer attribute is a literal attribute that represents a symbol
+    value.
+  }];
+
+  let parameters = (ins StringRefParameter<"The namespace of the symbol">:$ns,
+                        StringRefParameter<"The symbol name itself">:$name);
+
+  let assemblyFormat = "`<` $ns `,` $name `>`";
+}
+
+// Type Traits ================================================================
 def AnyPtr : Type<CPred<"$_self.isa<PtrType>()">,
                           "Serene pointer type", "Ptr">;
 
@@ -44,8 +69,8 @@ class Ptr<Type type> : Type<
 }
 
 
-def PtrType : Serene_Type<"Ptr"> {
-   let mnemonic = "ptr";
+// Types ======================================================================
+def PtrType : Serene_Type<"Ptr", "ptr"> {
     let summary = "A pointer to a value of type T.";
 
     let description = [{
@@ -70,8 +95,7 @@ def PtrType : Serene_Type<"Ptr"> {
     }];
 }
 
-def StringType : Serene_Type<"String"> {
-    let mnemonic = "string";
+def StringType : Serene_Type<"String", "string"> {
     let summary = "A simple string type";
 
     let description = [{
@@ -83,9 +107,7 @@ def StringType : Serene_Type<"String"> {
 }
 
 
-def SymbolType : Serene_Type<"Symbol"> {
-    let mnemonic = "symbol";
-
+def SymbolType : Serene_Type<"Symbol", "symbol"> {
     let summary = "A Lisp symbol type";
 
     let description = [{
@@ -94,8 +116,7 @@ def SymbolType : Serene_Type<"Symbol"> {
     // let parameters = (ins "std::string":$ns, "std::string":$name);
 }
 
-def FnType : Serene_Type<"Fn"> {
-    let mnemonic = "fn";
+def FnType : Serene_Type<"Fn", "fn"> {
 
     let summary = "Function type";
 
@@ -115,5 +136,6 @@ def Serene_Type : AnyTypeOf<[
     StringType,
     FnType
 ]>;
+
 
 #endif // SERENE_DIALECT_TYPES_TD

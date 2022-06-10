@@ -25,6 +25,9 @@
 #include <mlir/IR/DialectImplementation.h>
 #include <mlir/IR/TypeSupport.h>
 
+#define GET_ATTRDEF_CLASSES
+#include "serene/slir/attrs.h.inc"
+
 #define GET_TYPEDEF_CLASSES
 #include "serene/slir/types.h.inc"
 

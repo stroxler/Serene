@@ -20,6 +20,9 @@
 
 #include "serene/slir/dialect.h"
 
+#define GET_ATTRDEF_CLASSES
+#include "serene/slir/attrs.c.inc"
+
 #define GET_TYPEDEF_CLASSES
 #include "serene/slir/types.cpp.inc"
 
@@ -36,6 +39,10 @@ PtrType PtrType::get(mlir::Type pointee, unsigned addressSpace) {
 bool PtrType::isOpaque() const { return !getImpl()->pointeeType; }
 
 void SereneDialect::registerType() {
+  addAttributes<
+#define GET_ATTRDEF_LIST
+#include "serene/slir/attrs.cpp.inc"
+      >();
   addTypes<
 #define GET_TYPEDEF_LIST
 #include "serene/slir/types.cpp.inc"

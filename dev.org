@@ -36,6 +36,8 @@ Then here is the list or parsers that we have considered
 - [[http://www.lispworks.com/documentation/HyperSpec/Body/02_df.htm][Backquote in CL]]
 - [[https://www.cs.cmu.edu/Groups/AI/html/cltl/clm/node367.html][Backquote spec in Common Lisp the Language, 2nd Edition]]
 - [[http://christophe.rhodes.io/notes/blog/posts/2014/backquote_and_pretty_printing/][Backquote and pretty printing]]
+*** Compilers
+- https://bernsteinbear.com/blog/compiling-a-lisp-0/
 ** Rust
 - [[https://doc.rust-lang.org/book/][The Rust book]] (in [[https://www.reddit.com/r/rust/comments/2s1zj2/the_rust_programming_language_book_as_epub/][EPUB]] format)
 ** LLVM

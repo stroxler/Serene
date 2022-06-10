@@ -80,6 +80,35 @@ def ValueOp : Serene_Op<"value", [
   let hasFolder = 1;
 }
 
+// serene.intern
+def InternOp : Serene_Op<"intern", [
+    NoSideEffect
+]> {
+
+  let summary = "This operation is the runtime contructor for symbol type";
+  let description = [{
+    The `intern` operation produces an SSA value that holds a value of type
+    symbol at runtime.
+
+    Example:
+
+    ```
+
+    %ns = serene.string "some.ns"
+    %name = serene.string "symbol_name"
+    %1 = serene.intern  %ns %name
+
+    // Equivalent generic form
+    %1 = "serene.symbol"(%ns, %name){} : (!serene.string, !serene.string) -> !serene.ptr<serene.symbol>
+    ```
+  }];
+
+  let arguments = (ins StringType:$ns, StringType:$name);
+  let results = (outs Ptr<SymbolType>:$result);
+
+  let assemblyFormat = "attr-dict $ns $name";
+}
+
 // serene.symbol
 def SymbolOp : Serene_Op<"symbol", [
     NoSideEffect, ConstantLike,
@@ -101,10 +130,11 @@ def SymbolOp : Serene_Op<"symbol", [
     ```
   }];
 
-  let arguments = (ins StrAttr:$ns, StrAttr:$name);
-  let results = (outs SymbolType:$result);
+  let arguments = (ins SymbolAttr:$value);
+  let results = (outs Ptr<SymbolType>:$result);
 
-  let assemblyFormat = "attr-dict $ns $name";
+  let assemblyFormat = "attr-dict $value";
+  let hasFolder = 1;
 }
 
 // serene.convert
@@ -119,7 +149,7 @@ def ConvertOp : Serene_Op<"convert", [
 
   let arguments = (ins AnyType:$value);
 
-  let results = (outs Ptr<SymbolType>:$result);
+  let results = (outs AnyType:$result);
 
   let assemblyFormat = [{
     $value attr-dict `:` functional-type($value, results)

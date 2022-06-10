@@ -29,6 +29,7 @@
 #include <serene/config.h>
 
 #include <llvm/Support/Casting.h>
+#include <llvm/Support/Error.h>
 #include <llvm/Support/ErrorHandling.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Support/thread.h>
@@ -54,202 +55,318 @@ namespace ll = mlir::LLVM;
 
 namespace serene::passes {
 
-static ll::GlobalOp getOrCreateInternalString(mlir::Location loc,
-                                              mlir::OpBuilder &builder,
-                                              llvm::StringRef name,
-                                              llvm::StringRef value,
-                                              mlir::ModuleOp module) {
+// static ll::GlobalOp getOrCreateInternalString(mlir::Location loc,
+//                                               mlir::OpBuilder &builder,
+//                                               llvm::StringRef name,
+//                                               llvm::StringRef value,
+//                                               mlir::ModuleOp module) {
 
-  // Create the global at the entry of the module.
-  ll::GlobalOp global;
+//   // Create the global at the entry of the module.
+//   ll::GlobalOp global;
 
-  if (!(global = module.lookupSymbol<ll::GlobalOp>(name))) {
-    mlir::OpBuilder::InsertionGuard insertGuard(builder);
-    builder.setInsertionPointToStart(module.getBody());
+//   if (!(global = module.lookupSymbol<ll::GlobalOp>(name))) {
+//     mlir::OpBuilder::InsertionGuard insertGuard(builder);
+//     builder.setInsertionPointToStart(module.getBody());
 
-    auto type = ll::LLVMArrayType::get(
-        mlir::IntegerType::get(builder.getContext(), I8_SIZE), value.size());
-    // TODO: Do we want link once ?
-    global = builder.create<ll::GlobalOp>(loc, type, /*isConstant=*/true,
-                                          ll::Linkage::Linkonce, name,
-                                          builder.getStringAttr(value),
-                                          /*alignment=*/0);
-  }
+//     auto type = ll::LLVMArrayType::get(
+//         mlir::IntegerType::get(builder.getContext(), I8_SIZE), value.size());
+//     // TODO: Do we want link once ?
+//     global = builder.create<ll::GlobalOp>(loc, type, /*isConstant=*/true,
+//                                           ll::Linkage::Linkonce, name,
+//                                           builder.getStringAttr(value),
+//                                           /*alignment=*/0);
+//   }
 
-  return global;
-};
+//   return global;
+// };
 
-static mlir::Value getPtrToInternalString(mlir::OpBuilder &builder,
-                                          ll::GlobalOp global) {
-  auto loc = global.getLoc();
-  auto I8  = mlir::IntegerType::get(builder.getContext(), I8_SIZE);
-  // Get the pointer to the first character in the global string.
-  mlir::Value globalPtr = builder.create<ll::AddressOfOp>(loc, global);
-  mlir::Value cst0      = builder.create<ll::ConstantOp>(
-      loc, mlir::IntegerType::get(builder.getContext(), I64_SIZE),
-      builder.getIntegerAttr(builder.getIndexType(), 0));
+// static mlir::Value getPtrToInternalString(mlir::OpBuilder &builder,
+//                                           ll::GlobalOp global) {
+//   auto loc = global.getLoc();
+//   auto I8  = mlir::IntegerType::get(builder.getContext(), I8_SIZE);
+//   // Get the pointer to the first character in the global string.
+//   mlir::Value globalPtr = builder.create<ll::AddressOfOp>(loc, global);
+//   mlir::Value cst0      = builder.create<ll::ConstantOp>(
+//       loc, mlir::IntegerType::get(builder.getContext(), I64_SIZE),
+//       builder.getIntegerAttr(builder.getIndexType(), 0));
 
-  return builder.create<ll::GEPOp>(loc, ll::LLVMPointerType::get(I8), globalPtr,
-                                   llvm::ArrayRef<mlir::Value>({cst0}));
-};
+//   return builder.create<ll::GEPOp>(loc, ll::LLVMPointerType::get(I8),
+//   globalPtr,
+//                                    llvm::ArrayRef<mlir::Value>({cst0}));
+// };
 
-static ll::GlobalOp getOrCreateString(mlir::Location loc,
-                                      mlir::OpBuilder &builder,
-                                      llvm::StringRef name,
-                                      llvm::StringRef value, uint32_t len,
-                                      mlir::ModuleOp module) {
-  auto *ctx = builder.getContext();
-  ll::GlobalOp global;
+// static ll::GlobalOp getOrCreateString(mlir::Location loc,
+//                                       mlir::OpBuilder &builder,
+//                                       llvm::StringRef name,
+//                                       llvm::StringRef value, uint32_t len,
+//                                       mlir::ModuleOp module) {
+//   auto *ctx = builder.getContext();
+//   ll::GlobalOp global;
 
-  if (!(global = module.lookupSymbol<ll::GlobalOp>(name))) {
+//   if (!(global = module.lookupSymbol<ll::GlobalOp>(name))) {
 
-    mlir::OpBuilder::InsertionGuard insertGuard(builder);
-    builder.setInsertionPointToStart(module.getBody());
+//     mlir::OpBuilder::InsertionGuard insertGuard(builder);
+//     builder.setInsertionPointToStart(module.getBody());
 
-    mlir::Attribute initValue{};
-    auto type = slir::getStringTypeinLLVM(*ctx);
+//     mlir::Attribute initValue{};
+//     auto type = slir::getStringTypeinLLVM(*ctx);
 
-    global = builder.create<ll::GlobalOp>(
-        loc, type, /*isConstant=*/true, ll::Linkage::Linkonce, name, initValue);
+//     global = builder.create<ll::GlobalOp>(
+//         loc, type, /*isConstant=*/true, ll::Linkage::Linkonce, name,
+//         initValue);
 
-    auto &gr    = global.getInitializerRegion();
-    auto *block = builder.createBlock(&gr);
+//     auto &gr    = global.getInitializerRegion();
+//     auto *block = builder.createBlock(&gr);
 
-    if (block == nullptr) {
-      module.emitError("Faild to create block of the globalOp!");
-      // TODO: change the return type to Expected<GlobalOp> and return
-      //       an error here
-    }
+//     if (block == nullptr) {
+//       module.emitError("Faild to create block of the globalOp!");
+//       // TODO: change the return type to Expected<GlobalOp> and return
+//       //       an error here
+//     }
 
-    builder.setInsertionPoint(block, block->begin());
+//     builder.setInsertionPoint(block, block->begin());
 
-    mlir::Value structInstant = builder.create<ll::UndefOp>(loc, type);
+//     mlir::Value structInstant = builder.create<ll::UndefOp>(loc, type);
 
-    auto strOp = getOrCreateInternalString(loc, builder, name, value, module);
-    auto ptrToStr = getPtrToInternalString(builder, strOp);
+//     auto strOp = getOrCreateInternalString(loc, builder, name, value,
+//     module); auto ptrToStr = getPtrToInternalString(builder, strOp);
 
-    auto length = builder.create<ll::ConstantOp>(
-        loc, mlir::IntegerType::get(ctx, I32_SIZE),
-        builder.getI32IntegerAttr(len));
+//     auto length = builder.create<ll::ConstantOp>(
+//         loc, mlir::IntegerType::get(ctx, I32_SIZE),
+//         builder.getI32IntegerAttr(len));
 
-    // Setting the string pointer field
-    structInstant = builder.create<ll::InsertValueOp>(
-        loc, structInstant.getType(), structInstant, ptrToStr,
-        builder.getI64ArrayAttr(0));
+//     // Setting the string pointer field
+//     structInstant = builder.create<ll::InsertValueOp>(
+//         loc, structInstant.getType(), structInstant, ptrToStr,
+//         builder.getI64ArrayAttr(0));
 
-    // Setting the len field
-    structInstant = builder.create<ll::InsertValueOp>(
-        loc, structInstant.getType(), structInstant, length,
-        builder.getI64ArrayAttr(1));
+//     // Setting the len field
+//     structInstant = builder.create<ll::InsertValueOp>(
+//         loc, structInstant.getType(), structInstant, length,
+//         builder.getI64ArrayAttr(1));
 
-    builder.create<ll::ReturnOp>(loc, structInstant);
-  }
+//     builder.create<ll::ReturnOp>(loc, structInstant);
+//   }
 
-  return global;
-};
+//   return global;
+// };
 
-static ll::GlobalOp getOrCreateSymbol(mlir::Location loc,
-                                      mlir::OpBuilder &builder,
-                                      llvm::StringRef ns, llvm::StringRef name,
-                                      mlir::ModuleOp module) {
-  std::string fqName;
-  ll::GlobalOp global;
+// static ll::GlobalOp getOrCreateSymbol(mlir::Location loc,
+//                                       mlir::OpBuilder &builder,
+//                                       llvm::StringRef ns, llvm::StringRef
+//                                       name, mlir::ModuleOp module) {
+//   std::string fqName;
+//   ll::GlobalOp global;
 
-  auto *ctx    = builder.getContext();
-  auto symName = serene::mangleInternalSymName(fqName);
+//   auto *ctx    = builder.getContext();
+//   auto symName = serene::mangleInternalSymName(fqName);
 
-  makeFQSymbolName(ns, name, fqName);
+//   makeFQSymbolName(ns, name, fqName);
 
-  if (!(global = module.lookupSymbol<ll::GlobalOp>(symName))) {
-    mlir::OpBuilder::InsertionGuard insertGuard(builder);
-    builder.setInsertionPointToStart(module.getBody());
+//   if (!(global = module.lookupSymbol<ll::GlobalOp>(symName))) {
+//     mlir::OpBuilder::InsertionGuard insertGuard(builder);
+//     builder.setInsertionPointToStart(module.getBody());
 
-    mlir::Attribute initValue{};
-    auto type = slir::getSymbolTypeinLLVM(*ctx);
+//     mlir::Attribute initValue{};
+//     auto type = slir::getSymbolTypeinLLVM(*ctx);
 
-    // We want to allow merging the strings representing the ns or name part
-    // of the symbol with other modules to unify them.
-    ll::Linkage linkage = ll::Linkage::Linkonce;
+//     // We want to allow merging the strings representing the ns or name part
+//     // of the symbol with other modules to unify them.
+//     ll::Linkage linkage = ll::Linkage::Linkonce;
 
-    global = builder.create<ll::GlobalOp>(loc, type, /*isConstant=*/true,
-                                          linkage, symName, initValue);
+//     global = builder.create<ll::GlobalOp>(loc, type, /*isConstant=*/true,
+//                                           linkage, symName, initValue);
 
-    auto &gr    = global.getInitializerRegion();
-    auto *block = builder.createBlock(&gr);
+//     auto &gr    = global.getInitializerRegion();
+//     auto *block = builder.createBlock(&gr);
 
-    if (block == nullptr) {
-      module.emitError("Faild to create block of the globalOp!");
-      // TODO: change the return type to Expected<GlobalOp> and return
-      //       an error here
-    }
+//     if (block == nullptr) {
+//       module.emitError("Faild to create block of the globalOp!");
+//       // TODO: change the return type to Expected<GlobalOp> and return
+//       //       an error here
+//     }
 
-    builder.setInsertionPoint(block, block->begin());
+//     builder.setInsertionPoint(block, block->begin());
 
-    mlir::Value structInstant = builder.create<ll::UndefOp>(loc, type);
+//     mlir::Value structInstant = builder.create<ll::UndefOp>(loc, type);
 
-    // We want to use the mangled ns as the name of the constant that
-    // holds the ns string
-    auto mangledNSName = serene::mangleInternalStringName(ns);
-    // The globalop that we want to use for the ns field
-    auto nsField =
-        getOrCreateString(loc, builder, mangledNSName, ns, ns.size(), module);
-    auto ptrToNs = builder.create<ll::AddressOfOp>(loc, nsField);
+//     // We want to use the mangled ns as the name of the constant that
+//     // holds the ns string
+//     auto mangledNSName = serene::mangleInternalStringName(ns);
+//     // The globalop that we want to use for the ns field
+//     auto nsField =
+//         getOrCreateString(loc, builder, mangledNSName, ns, ns.size(),
+//         module);
+//     auto ptrToNs = builder.create<ll::AddressOfOp>(loc, nsField);
 
-    // We want to use the mangled 'name' as the name of the constant that
-    // holds the 'name' string
-    auto mangledName = serene::mangleInternalStringName(name);
-    // The global op to use as the 'name' field
-    auto nameField =
-        getOrCreateString(loc, builder, mangledName, name, name.size(), module);
-    auto ptrToName = builder.create<ll::AddressOfOp>(loc, nameField);
+//     // We want to use the mangled 'name' as the name of the constant that
+//     // holds the 'name' string
+//     auto mangledName = serene::mangleInternalStringName(name);
+//     // The global op to use as the 'name' field
+//     auto nameField =
+//         getOrCreateString(loc, builder, mangledName, name, name.size(),
+//         module);
+//     auto ptrToName = builder.create<ll::AddressOfOp>(loc, nameField);
 
-    // Setting the string pointer field
-    structInstant = builder.create<ll::InsertValueOp>(
-        loc, structInstant.getType(), structInstant, ptrToNs,
-        builder.getI64ArrayAttr(0));
+//     // Setting the string pointer field
+//     structInstant = builder.create<ll::InsertValueOp>(
+//         loc, structInstant.getType(), structInstant, ptrToNs,
+//         builder.getI64ArrayAttr(0));
 
-    // Setting the len field
-    structInstant = builder.create<ll::InsertValueOp>(
-        loc, structInstant.getType(), structInstant, ptrToName,
-        builder.getI64ArrayAttr(0));
+//     // Setting the len field
+//     structInstant = builder.create<ll::InsertValueOp>(
+//         loc, structInstant.getType(), structInstant, ptrToName,
+//         builder.getI64ArrayAttr(0));
 
-    builder.create<ll::ReturnOp>(loc, structInstant);
-  }
+//     builder.create<ll::ReturnOp>(loc, structInstant);
+//   }
 
-  return global;
-};
+//   return global;
+// };
 
-struct LowerSymbol : public mlir::OpConversionPattern<slir::SymbolOp> {
-  using OpConversionPattern<slir::SymbolOp>::OpConversionPattern;
+// static ll::GlobalOp getOrCreateSymbol(mlir::Location loc,
+//                                       mlir::OpBuilder &builder, mlir::Value
+//                                       ns, mlir::Value name, mlir::ModuleOp
+//                                       module) {
 
-  mlir::LogicalResult
-  matchAndRewrite(serene::slir::SymbolOp op, OpAdaptor adaptor,
-                  mlir::ConversionPatternRewriter &rewriter) const override;
-};
+//   assert(!ns.getType().isa<slir::StringType>() &&
+//          !ns.getType().isa<slir::StringType>() &&
+//          "TypeError: ns and name has to be strings");
 
-mlir::LogicalResult
-LowerSymbol::matchAndRewrite(serene::slir::SymbolOp op, OpAdaptor adaptor,
-                             mlir::ConversionPatternRewriter &rewriter) const {
+//   std::string fqName;
+//   ll::GlobalOp global;
 
-  UNUSED(adaptor);
-  auto ns     = op.ns();
-  auto name   = op.name();
-  auto loc    = op.getLoc();
-  auto module = op->getParentOfType<mlir::ModuleOp>();
+//   auto *ctx    = builder.getContext();
+//   auto symName = serene::mangleInternalSymName(fqName);
 
-  // If there is no use for the result of this op then simply erase it
-  if (op.getResult().use_empty()) {
-    rewriter.eraseOp(op);
-    return mlir::success();
-  }
+//   makeFQSymbolName(ns, name, fqName);
 
-  auto global = getOrCreateSymbol(loc, rewriter, ns, name, module);
-  auto ptr    = rewriter.create<ll::AddressOfOp>(loc, global);
+//   if (!(global = module.lookupSymbol<ll::GlobalOp>(symName))) {
+//     mlir::OpBuilder::InsertionGuard insertGuard(builder);
+//     builder.setInsertionPointToStart(module.getBody());
 
-  rewriter.replaceOp(op, ptr.getResult());
+//     mlir::Attribute initValue{};
+//     auto type = slir::getSymbolTypeinLLVM(*ctx);
 
-  return mlir::success();
-}
+//     // We want to allow merging the strings representing the ns or name part
+//     // of the symbol with other modules to unify them.
+//     ll::Linkage linkage = ll::Linkage::Linkonce;
+
+//     global = builder.create<ll::GlobalOp>(loc, type, /*isConstant=*/true,
+//                                           linkage, symName, initValue);
+
+//     auto &gr    = global.getInitializerRegion();
+//     auto *block = builder.createBlock(&gr);
+
+//     if (block == nullptr) {
+//       module.emitError("Faild to create block of the globalOp!");
+//       // TODO: change the return type to Expected<GlobalOp> and return
+//       //       an error here
+//     }
+
+//     builder.setInsertionPoint(block, block->begin());
+
+//     mlir::Value structInstant = builder.create<ll::UndefOp>(loc, type);
+
+//     // We want to use the mangled ns as the name of the constant that
+//     // holds the ns string
+//     auto mangledNSName = serene::mangleInternalStringName(ns);
+//     // The globalop that we want to use for the ns field
+//     auto nsField =
+//         getOrCreateString(loc, builder, mangledNSName, ns, ns.size(),
+//         module);
+//     auto ptrToNs = builder.create<ll::AddressOfOp>(loc, nsField);
+
+//     // We want to use the mangled 'name' as the name of the constant that
+//     // holds the 'name' string
+//     auto mangledName = serene::mangleInternalStringName(name);
+//     // The global op to use as the 'name' field
+//     auto nameField =
+//         getOrCreateString(loc, builder, mangledName, name, name.size(),
+//         module);
+//     auto ptrToName = builder.create<ll::AddressOfOp>(loc, nameField);
+
+//     // Setting the string pointer field
+//     structInstant = builder.create<ll::InsertValueOp>(
+//         loc, structInstant.getType(), structInstant, ptrToNs,
+//         builder.getI64ArrayAttr(0));
+
+//     // Setting the len field
+//     structInstant = builder.create<ll::InsertValueOp>(
+//         loc, structInstant.getType(), structInstant, ptrToName,
+//         builder.getI64ArrayAttr(0));
+
+//     builder.create<ll::ReturnOp>(loc, structInstant);
+//   }
+
+//   return global;
+// };
+
+// struct LowerIntern : public mlir::OpConversionPattern<slir::InternOp> {
+//   using OpConversionPattern<slir::InternOp>::OpConversionPattern;
+
+//   mlir::LogicalResult
+//   matchAndRewrite(serene::slir::InternOp op, OpAdaptor adaptor,
+//                   mlir::ConversionPatternRewriter &rewriter) const override;
+// };
+
+// mlir::LogicalResult
+// LowerIntern::matchAndRewrite(serene::slir::InternOp op, OpAdaptor adaptor,
+//                              mlir::ConversionPatternRewriter &rewriter) const
+//                              {
+
+//   UNUSED(adaptor);
+//   auto ns     = op.ns();
+//   auto name   = op.name();
+//   auto loc    = op.getLoc();
+//   auto module = op->getParentOfType<mlir::ModuleOp>();
+
+//   // If there is no use for the result of this op then simply erase it
+//   if (op.getResult().use_empty()) {
+//     rewriter.eraseOp(op);
+//     return mlir::success();
+//   }
+
+//   auto global = getOrCreateSymbol(loc, rewriter, ns, name, module);
+//   auto ptr    = rewriter.create<ll::AddressOfOp>(loc, global);
+
+//   rewriter.replaceOp(op, ptr.getResult());
+
+//   return mlir::success();
+// }
+
+// struct LowerSymbol : public mlir::OpConversionPattern<slir::SymbolOp> {
+//   using OpConversionPattern<slir::SymbolOp>::OpConversionPattern;
+
+//   mlir::LogicalResult
+//   matchAndRewrite(serene::slir::SymbolOp op, OpAdaptor adaptor,
+//                   mlir::ConversionPatternRewriter &rewriter) const override;
+// };
+
+// mlir::LogicalResult
+// LowerSymbol::matchAndRewrite(serene::slir::SymbolOp op, OpAdaptor adaptor,
+//                              mlir::ConversionPatternRewriter &rewriter) const
+//                              {
+
+//   UNUSED(adaptor);
+//   auto ns     = op.ns();
+//   auto name   = op.name();
+//   auto loc    = op.getLoc();
+//   auto module = op->getParentOfType<mlir::ModuleOp>();
+
+//   // If there is no use for the result of this op then simply erase it
+//   if (op.getResult().use_empty()) {
+//     rewriter.eraseOp(op);
+//     return mlir::success();
+//   }
+
+//   auto global = getOrCreateSymbol(loc, rewriter, ns, name, module);
+//   auto ptr    = rewriter.create<ll::AddressOfOp>(loc, global);
+
+//   rewriter.replaceOp(op, ptr.getResult());
+
+//   return mlir::success();
+// }
 
 struct LowerDefine : public mlir::OpConversionPattern<slir::DefineOp> {
   using OpConversionPattern<slir::DefineOp>::OpConversionPattern;
@@ -464,8 +581,8 @@ class LowerSLIR : public LowerSLIRBase<LowerSLIR> {
 
     // Pattern to lower ValueOp and FnOp
     // LowerDefineConstant
-    patterns.add<LowerSymbol, LowerDefine, LowerDefineConstant>(typeConverter,
-                                                                &getContext());
+    patterns.add<LowerDefine, LowerDefineConstant>(typeConverter,
+                                                   &getContext());
 
     // With the target and rewrite patterns defined, we can now attempt the
     // conversion. The conversion will signal failure if any of our `illegal`

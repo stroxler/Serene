@@ -26,13 +26,13 @@
 #include <string>
 
 namespace serene {
-static std::string mangleInternalStringName(llvm::StringRef str) {
-  return "__serene__internal__str__" + str.str();
-}
+// static std::string mangleInternalStringName(llvm::StringRef str) {
+//   return "__serene__internal__str__" + str.str();
+// }
 
-static std::string mangleInternalSymName(llvm::StringRef str) {
-  return "__serene__symbol__" + str.str();
-}
+// static std::string mangleInternalSymName(llvm::StringRef str) {
+//   return "__serene__symbol__" + str.str();
+// }
 
 } // namespace serene
 
