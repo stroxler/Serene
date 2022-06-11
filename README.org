@@ -21,7 +21,7 @@ Setup the githook and install dependencies using the following commands:
 
   *Important Note*: We're trying to keep Serene up to date with the LLVM release cycle till we get
   to our first release. So we use the development version of the LLVM. Currently we are using
-  =aff028f7d8322c625422febd3d8b9794746cdc5b= commit as our reference.
+  =9080e21906a162cb2aabcd214d62fa3e463b7675= commit as our reference.
 
   MLIR is a part of the [[https://llvm.org][LLVM]] project and in order to build it we need to build the LLVM itself as well.
   Here is a quick guide to build the latest version of the LLVM and MLIR.
@@ -40,6 +40,8 @@ Setup the githook and install dependencies using the following commands:
           -DLLVM_BUILD_EXAMPLES=ON \
           -DLLVM_TARGETS_TO_BUILD="X86" \
           -DCMAKE_BUILD_TYPE=Release \
+          -DLLVM_EXTERNAL_PROJECTS=iwyu \ # Only if you want to enable the 'Include what you use' tool
+          -DLLVM_EXTERNAL_IWYU_SOURCE_DIR=/path/to/iwyu \
           -DLLVM_ENABLE_ASSERTIONS=ON \
           -DLLVM_CCACHE_BUILD=ON \
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
@@ -71,6 +73,12 @@ While you're working on *Serene* be mindful of:
   #+BEGIN_SRC bash
     LD_PRELOAD=$(clang -print-file-name=libclang_rt.asan-x86_64.so) /path/to/executable
   #+END_SRC
+
+** Build the devtools
+We have our own version of `mlir-opt` which is `slir-opt` and also we have an LSP server for SLIR too.
+Both are in the ~devtools~ directory and in order to build them all you need to do is to use
+~-DSERENE_ENABLE_DEVTOOLS=ON~ parameter with cmake for example ~./builder build -DSERENE_ENABLE_DEVTOOLS=ON~
+will do the job for you.
 
 * How to build
 In order to build for development (Debug mode) just use =./builder build= to setup the build and build
