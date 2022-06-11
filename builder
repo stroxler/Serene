@@ -273,8 +273,14 @@ function release-serene-image() { ## Build and push the Serene docker image for 
 
 
 function setup() { ## Setup the working directory and make it ready for development
-    rm -rfv "$ME/.git/hooks/pre-commit"
-    ln -s "$ME/scripts/pre-commit" "$ME/.git/hooks/pre-commit"
+    if command -v python3 >/dev/null 2>&1; then
+        pip install pre-commit
+        pre-commit install
+    else
+        error "Python is required to setup pre-commit"
+    fi
+    # rm -rfv "$ME/.git/hooks/pre-commit"
+    # ln -s "$ME/scripts/pre-commit" "$ME/.git/hooks/pre-commit"
 }
 
 function scan-build() { ## Runs the `scan-build` utility to analyze the build process
