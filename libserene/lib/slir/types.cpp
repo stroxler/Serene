@@ -21,7 +21,7 @@
 #include "serene/slir/dialect.h"
 
 #define GET_ATTRDEF_CLASSES
-#include "serene/slir/attrs.c.inc"
+#include "serene/slir/attrs.cpp.inc"
 
 #define GET_TYPEDEF_CLASSES
 #include "serene/slir/types.cpp.inc"

@@ -16,7 +16,7 @@
 
 if (SERENE_ENABLE_DEVTOOLS)
 
-  add_executable(slir-lsp-server slir-lsp-server.cpp)
+add_executable(slir-lsp-server slir-lsp-server.cpp)
 add_executable(Serene::SLIR::LSP ALIAS slir-lsp-server)
 
 set_target_properties(slir-lsp-server PROPERTIES
