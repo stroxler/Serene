@@ -16,98 +16,99 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "serene/jit/halley.h"
-#include "serene/namespace.h"
-#include "serene/reader/location.h"
-#include "serene/reader/reader.h"
-#include "serene/semantics.h"
-#include "serene/serene.h"
-#include "serene/slir/generatable.h"
-#include "serene/slir/slir.h"
+// #include "serene/jit/halley.h"
+// #include "serene/namespace.h"
+// #include "serene/reader/location.h"
+// #include "serene/reader/reader.h"
+// #include "serene/semantics.h"
+// #include "serene/serene.h"
+// #include "serene/slir/generatable.h"
+// #include "serene/slir/slir.h"
 
-#include <lld/Common/Driver.h>
+// #include <lld/Common/Driver.h>
 
-#include <clang/Driver/Compilation.h>
-#include <clang/Driver/Driver.h>
-#include <clang/Frontend/TextDiagnosticPrinter.h>
-#include <clang/Tooling/Tooling.h>
-#include <llvm/ADT/ArrayRef.h>
-#include <llvm/ADT/SmallString.h>
-#include <llvm/ADT/StringRef.h>
-#include <llvm/IR/LegacyPassManager.h>
-//#include <llvm/MC/TargetRegistry.h>
-#include <llvm/Support/CommandLine.h>
-#include <llvm/Support/FileSystem.h>
-#include <llvm/Support/FormatVariadic.h>
-#include <llvm/Support/Host.h>
-#include <llvm/Support/Path.h>
-#include <llvm/Support/raw_ostream.h>
-#include <llvm/Target/TargetMachine.h>
-#include <llvm/Target/TargetOptions.h>
+// #include <clang/Driver/Compilation.h>
+// #include <clang/Driver/Driver.h>
+// #include <clang/Frontend/TextDiagnosticPrinter.h>
+// #include <clang/Tooling/Tooling.h>
+// #include <llvm/ADT/ArrayRef.h>
+// #include <llvm/ADT/SmallString.h>
+// #include <llvm/ADT/StringRef.h>
+// #include <llvm/IR/LegacyPassManager.h>
+// //#include <llvm/MC/TargetRegistry.h>
+// #include <llvm/Support/CommandLine.h>
+// #include <llvm/Support/FileSystem.h>
+// #include <llvm/Support/FormatVariadic.h>
+// #include <llvm/Support/Host.h>
+// #include <llvm/Support/Path.h>
+// #include <llvm/Support/raw_ostream.h>
+// #include <llvm/Target/TargetMachine.h>
+// #include <llvm/Target/TargetOptions.h>
 
-#include <memory>
+// #include <memory>
 
-using namespace std;
-using namespace serene;
+// using namespace std;
+// using namespace serene;
 
-namespace cl = llvm::cl;
+// namespace cl = llvm::cl;
 
-namespace {
-enum Action {
-  None,
-  DumpAST,
-  DumpSLIR,
-  DumpMLIR,
-  DumpSemantic,
-  DumpLIR,
-  DumpIR,
-  CompileToObject,
-  Compile,
-  // TODO: Remove this option and replace it by a subcommand
-  RunJIT,
-};
-} // namespace
+// namespace {
+// enum Action {
+//   None,
+//   DumpAST,
+//   DumpSLIR,
+//   DumpMLIR,
+//   DumpSemantic,
+//   DumpLIR,
+//   DumpIR,
+//   CompileToObject,
+//   Compile,
+//   // TODO: Remove this option and replace it by a subcommand
+//   RunJIT,
+// };
+// } // namespace
 
-static std::string banner =
-    llvm::formatv("\n\nSerene Compiler Version {0}"
-                  "\nCopyright (C) 2019-2022 "
-                  "Sameer Rahmani <lxsameer@gnu.org>\n"
-                  "Serene comes with ABSOLUTELY NO WARRANTY;\n"
-                  "This is free software, and you are welcome\n"
-                  "to redistribute it under certain conditions; \n"
-                  "for details take a look at the LICENSE file.\n",
-                  SERENE_VERSION);
+// static std::string banner =
+//     llvm::formatv("\n\nSerene Compiler Version {0}"
+//                   "\nCopyright (C) 2019-2022 "
+//                   "Sameer Rahmani <lxsameer@gnu.org>\n"
+//                   "Serene comes with ABSOLUTELY NO WARRANTY;\n"
+//                   "This is free software, and you are welcome\n"
+//                   "to redistribute it under certain conditions; \n"
+//                   "for details take a look at the LICENSE file.\n",
+//                   SERENE_VERSION);
 
-static cl::opt<std::string> inputNS(cl::Positional, cl::desc("<namespace>"),
-                                    cl::Required);
+// static cl::opt<std::string> inputNS(cl::Positional, cl::desc("<namespace>"),
+//                                     cl::Required);
 
-static cl::opt<std::string> outputFile(
-    "o", cl::desc("The relative path to the output file from the build dir"),
-    cl::init("-"), cl::value_desc("filename"));
+// static cl::opt<std::string> outputFile(
+//     "o", cl::desc("The relative path to the output file from the build dir"),
+//     cl::init("-"), cl::value_desc("filename"));
 
-static cl::opt<std::string>
-    outputDir("b", cl::desc("The absolute path to the build directory"),
-              cl::value_desc("dir"), cl::Required);
+// static cl::opt<std::string>
+//     outputDir("b", cl::desc("The absolute path to the build directory"),
+//               cl::value_desc("dir"), cl::Required);
 
-static cl::opt<enum Action> emitAction(
-    "emit", cl::desc("Select what to dump."), cl::init(Compile),
-    cl::values(clEnumValN(DumpSemantic, "semantic",
-                          "Output the AST after one level of analysis only")),
-    cl::values(clEnumValN(DumpIR, "ir", "Output the lowered IR only")),
-    cl::values(clEnumValN(DumpSLIR, "slir", "Output the SLIR only")),
-    cl::values(clEnumValN(DumpMLIR, "mlir",
-                          "Output the MLIR only (Lowered SLIR)")),
-    cl::values(clEnumValN(DumpLIR, "lir",
-                          "Output the LIR only (Lowerd to LLVM dialect)")),
-    cl::values(clEnumValN(DumpAST, "ast", "Output the AST only")),
-    cl::values(clEnumValN(CompileToObject, "object",
-                          "Compile to object file.")),
-    cl::values(clEnumValN(Compile, "target",
-                          "Compile to target code. (Default)")),
-    cl::values(clEnumValN(RunJIT, "jit",
-                          "Run the give input file with the JIT."))
+// static cl::opt<enum Action> emitAction(
+//     "emit", cl::desc("Select what to dump."), cl::init(Compile),
+//     cl::values(clEnumValN(DumpSemantic, "semantic",
+//                           "Output the AST after one level of analysis
+//                           only")),
+//     cl::values(clEnumValN(DumpIR, "ir", "Output the lowered IR only")),
+//     cl::values(clEnumValN(DumpSLIR, "slir", "Output the SLIR only")),
+//     cl::values(clEnumValN(DumpMLIR, "mlir",
+//                           "Output the MLIR only (Lowered SLIR)")),
+//     cl::values(clEnumValN(DumpLIR, "lir",
+//                           "Output the LIR only (Lowerd to LLVM dialect)")),
+//     cl::values(clEnumValN(DumpAST, "ast", "Output the AST only")),
+//     cl::values(clEnumValN(CompileToObject, "object",
+//                           "Compile to object file.")),
+//     cl::values(clEnumValN(Compile, "target",
+//                           "Compile to target code. (Default)")),
+//     cl::values(clEnumValN(RunJIT, "jit",
+//                           "Run the give input file with the JIT."))
 
-);
+// );
 
 // int dumpAsObject(Namespace &ns) {
 //   // TODO: Move the compilation process to the Namespace class
@@ -255,142 +256,143 @@ static cl::opt<enum Action> emitAction(
 //     return 0;
 //   };
 
-int main(int argc, char *argv[]) {
-  initCompiler();
-  registerSereneCLOptions();
+int main() {
+  // initCompiler();
+  // registerSereneCLOptions();
 
-  cl::ParseCommandLineOptions(argc, argv, banner);
+  // cl::ParseCommandLineOptions(argc, argv, banner);
 
-  auto ctx = makeSereneContext();
+  // auto ctx = makeSereneContext();
 
-  applySereneCLOptions(*ctx);
+  // applySereneCLOptions(*ctx);
 
-  // TODO: handle the outputDir by not forcing it. it should be
-  //       default to the current working dir
-  if (outputDir == "-") {
-    llvm::errs() << "Error: The build directory is not set. Did you forget to "
-                    "use '-b'?\n";
-    return 1;
-  }
+  // // TODO: handle the outputDir by not forcing it. it should be
+  // //       default to the current working dir
+  // if (outputDir == "-") {
+  //   llvm::errs() << "Error: The build directory is not set. Did you forget to
+  //   "
+  //                   "use '-b'?\n";
+  //   return 1;
+  // }
 
-  switch (emitAction) {
-
-  case Action::RunJIT: {
-    // TODO: Replace it by a proper jit configuration
-    ctx->setOperationPhase(CompilationPhase::NoOptimization);
-    break;
-  };
-
-    // Just print out the raw AST
-  case Action::DumpAST: {
-    ctx->setOperationPhase(CompilationPhase::Parse);
-    break;
-  };
-
-  case Action::DumpSemantic: {
-    ctx->setOperationPhase(CompilationPhase::Analysis);
-    break;
-  };
-
-  case Action::DumpSLIR: {
-    ctx->setOperationPhase(CompilationPhase::SLIR);
-    break;
-  }
-
-  case Action::DumpMLIR: {
-    ctx->setOperationPhase(CompilationPhase::MLIR);
-    break;
-  }
-
-  case Action::DumpLIR: {
-    ctx->setOperationPhase(CompilationPhase::LIR);
-    break;
-  }
-
-  case Action::DumpIR: {
-    ctx->setOperationPhase(CompilationPhase::IR);
-    break;
-  }
-
-  case Action::CompileToObject: {
-    ctx->setOperationPhase(CompilationPhase::NoOptimization);
-    break;
-  }
-
-  case Action::Compile: {
-    ctx->setOperationPhase(CompilationPhase::NoOptimization);
-    break;
-  }
-
-  default: {
-    llvm::errs() << "No action specified. TODO: Print out help here\n";
-    return 1;
-  }
-  }
-
-  auto runLoc  = reader::LocationRange::UnknownLocation(inputNS);
-  auto maybeNS = ctx->importNamespace(inputNS, runLoc);
-
-  if (!maybeNS) {
-    auto err = maybeNS.takeError();
-    throwErrors(*ctx, err);
-    return (int)std::errc::no_such_file_or_directory;
-  }
-
-  auto ns = *maybeNS;
-
-  switch (emitAction) {
-  case Action::DumpAST:
-  case Action::DumpSemantic: {
-    auto ast = ns->getTree();
-    llvm::outs() << exprs::astToString(&ast) << "\n";
-    return 0;
-  }
-
-  case Action::DumpSLIR:
-  case Action::DumpMLIR:
-  case Action::DumpLIR: {
-    ns->dump();
-    break;
-  };
-  case Action::DumpIR: {
-    auto maybeModule = ns->compileToLLVM();
-
-    if (!maybeModule) {
-      llvm::errs() << "Failed to generate the IR.\n";
-      return 1;
-    }
-
-    auto tsm = std::move(*maybeModule);
-    tsm.withModuleDo([](auto &m) { m.dump(); });
-
-    break;
-  };
+  // switch (emitAction) {
 
   // case Action::RunJIT: {
-  //   auto maybeJIT = JIT::make(*ns);
-  //   if (!maybeJIT) {
-  //     // TODO: panic in here: "Couldn't creat the JIT!"
-  //     return -1;
-  //   }
-  //   auto jit = std::move(maybeJIT.getValue());
-
-  //   if (jit->invoke("main")) {
-  //     llvm::errs() << "Faild to invoke the 'main' function.\n";
-  //     return 1;
-  //   }
-  //   llvm::outs() << "Done!";
+  //   // TODO: Replace it by a proper jit configuration
+  //   ctx->setOperationPhase(CompilationPhase::NoOptimization);
   //   break;
   // };
 
-  // case Action::Compile:
-  // case Action::CompileToObject: {
-  //   return dumpAsObject(*ns);
+  //   // Just print out the raw AST
+  // case Action::DumpAST: {
+  //   ctx->setOperationPhase(CompilationPhase::Parse);
+  //   break;
   // };
-  default: {
-    llvm::errs() << "Action is not supported yet!\n";
-  };
-  }
+
+  // case Action::DumpSemantic: {
+  //   ctx->setOperationPhase(CompilationPhase::Analysis);
+  //   break;
+  // };
+
+  // case Action::DumpSLIR: {
+  //   ctx->setOperationPhase(CompilationPhase::SLIR);
+  //   break;
+  // }
+
+  // case Action::DumpMLIR: {
+  //   ctx->setOperationPhase(CompilationPhase::MLIR);
+  //   break;
+  // }
+
+  // case Action::DumpLIR: {
+  //   ctx->setOperationPhase(CompilationPhase::LIR);
+  //   break;
+  // }
+
+  // case Action::DumpIR: {
+  //   ctx->setOperationPhase(CompilationPhase::IR);
+  //   break;
+  // }
+
+  // case Action::CompileToObject: {
+  //   ctx->setOperationPhase(CompilationPhase::NoOptimization);
+  //   break;
+  // }
+
+  // case Action::Compile: {
+  //   ctx->setOperationPhase(CompilationPhase::NoOptimization);
+  //   break;
+  // }
+
+  // default: {
+  //   llvm::errs() << "No action specified. TODO: Print out help here\n";
+  //   return 1;
+  // }
+  // }
+
+  // auto runLoc  = reader::LocationRange::UnknownLocation(inputNS);
+  // auto maybeNS = ctx->importNamespace(inputNS, runLoc);
+
+  // if (!maybeNS) {
+  //   auto err = maybeNS.takeError();
+  //   throwErrors(*ctx, err);
+  //   return (int)std::errc::no_such_file_or_directory;
+  // }
+
+  // auto ns = *maybeNS;
+
+  // switch (emitAction) {
+  // case Action::DumpAST:
+  // case Action::DumpSemantic: {
+  //   auto ast = ns->getTree();
+  //   llvm::outs() << exprs::astToString(&ast) << "\n";
+  //   return 0;
+  // }
+
+  // case Action::DumpSLIR:
+  // case Action::DumpMLIR:
+  // case Action::DumpLIR: {
+  //   ns->dump();
+  //   break;
+  // };
+  // case Action::DumpIR: {
+  //   auto maybeModule = ns->compileToLLVM();
+
+  //   if (!maybeModule) {
+  //     llvm::errs() << "Failed to generate the IR.\n";
+  //     return 1;
+  //   }
+
+  //   auto tsm = std::move(*maybeModule);
+  //   tsm.withModuleDo([](auto &m) { m.dump(); });
+
+  //   break;
+  // };
+
+  // // case Action::RunJIT: {
+  // //   auto maybeJIT = JIT::make(*ns);
+  // //   if (!maybeJIT) {
+  // //     // TODO: panic in here: "Couldn't creat the JIT!"
+  // //     return -1;
+  // //   }
+  // //   auto jit = std::move(maybeJIT.getValue());
+
+  // //   if (jit->invoke("main")) {
+  // //     llvm::errs() << "Faild to invoke the 'main' function.\n";
+  // //     return 1;
+  // //   }
+  // //   llvm::outs() << "Done!";
+  // //   break;
+  // // };
+
+  // // case Action::Compile:
+  // // case Action::CompileToObject: {
+  // //   return dumpAsObject(*ns);
+  // // };
+  // default: {
+  //   llvm::errs() << "Action is not supported yet!\n";
+  // };
+  // }
 
   return 0;
 }

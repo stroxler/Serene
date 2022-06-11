@@ -17,7 +17,7 @@ cmake_minimum_required(VERSION 3.19)
 
 # Project name and a few useful settings. Other commands can pick up the results
 project(Serene
-  VERSION 0.1.0
+  VERSION 1.0.0
   DESCRIPTION "Serene language is a modern Lisp."
   LANGUAGES CXX C)
 
@@ -214,8 +214,6 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 
   llvm_map_components_to_libnames(llvm_libs support)
 
-
-
   # Serene Setup ===================================
 
   # We don't want the generated files from table gen
@@ -233,11 +231,21 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     "${LLVM_COMMON_CMAKE_UTILS}/Modules"
     )
 
+  # Hide all the symbols by default
+  if(NOT DEFINED CMAKE_CXX_VISIBILITY_PRESET AND
+      NOT DEFINED CMAKE_VISIBILITY_INLINES_HIDDEN)
+    set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+    set(CMAKE_VISIBILITY_INLINES_HIDDEN YES)
+  endif()
+
   include(tablegen-serene)
   # Create the tools we use to compile Serene
   add_subdirectory(serene-tblgen)
 
-  # The compiled library code is here
+  # The static library containing builtin special forms and functions
+  add_subdirectory(core)
+
+  # Binary tools of the compiler
   add_subdirectory(serenec)
   add_subdirectory(serene-repl)
   # The compiled library code is here
