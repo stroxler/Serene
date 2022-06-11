@@ -7,14 +7,15 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v3.2.0
     hooks:
-    - id: check-ast
+    - id: check-added-large-files
+    - id: check-symlinks
     - id: check-byte-order-marker
     - id: check-case-conflict
     - id: check-docstring-first
     - id: check-executables-have-shebangs
     - id: check-json
     - id: check-yaml
-    - id: debug-statements
+    - id: forbid-new-submodules
     - id: end-of-file-fixer
     - id: trailing-whitespace
     - id: mixed-line-ending
@@ -28,3 +29,8 @@ repos:
       - id: cppcheck
       - id: cpplint
       - id: include-what-you-use
+  - repo: git://github.com/detailyang/pre-commit-shell
+    rev: v1.0.6
+    hooks:
+    - id: shell-lint
+      args: [--format=json]
