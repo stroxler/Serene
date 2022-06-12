@@ -17,11 +17,6 @@ steps:
     - cmake --version
     - ./builder build
 
-- name: Clang Tidy
-  image: rg.fr-par.scw.cloud/serene/llvm:15-8
-  commands:
-    - ./builder build-tidy
-
 - name: Linters
   image: rg.fr-par.scw.cloud/serene/llvm:15-8
   commands:
