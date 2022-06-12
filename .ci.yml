@@ -6,11 +6,10 @@ platform:
   arch: arm64
 
 steps:
-- name: greeting
-  image: alpine
+- name:
+  image: rg.fr-par.scw.cloud/serene/llvm:15-7
   commands:
-  - echo hello
-  - echo world
+    - ./builder build
   when:
     branch:
     - master

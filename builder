@@ -228,11 +228,20 @@ function build-tests() { ## Generates and build the project including the test c
     popd_build
 }
 
+function build-llvm-image-arm64() { ## Build the LLVM image that we use to build Serene's image (on ARM64)
+    # shellcheck source=/dev/null
+    source .env
+    docker buildx build --platform linux/arm64 --builder multiarch --load \
+           -f "$ME/resources/docker/llvm/Dockerfile" \
+           -t "$REGISTRY/llvm:$1-$2" \
+           --build-arg VERSION="$1" \
+           .
+}
+
 function build-llvm-image() { ## Build the LLVM image that we use to build Serene's image
     # shellcheck source=/dev/null
     source .env
-
-    docker build \
+    docker buildx build \
            -f "$ME/resources/docker/llvm/Dockerfile" \
            -t "$REGISTRY/llvm:$1-$2" \
            --build-arg VERSION="$1" \
@@ -247,6 +256,15 @@ function push-llvm-image() { ## Pushes the LLVM image to the registery
     docker push "$REGISTRY/llvm:$1"
 }
 
+function build-serene-image-arm64() { ## Build the Serene docker image for the current HEAD (on ARM64)
+    # shellcheck source=/dev/null
+    source .env
+
+    docker buildx build --platform linux/arm64 --builder multiarch --load \
+           -f "$ME/resources/docker/serene/Dockerfile" \
+           -t "$REGISTRY/serene:$VERSION-$(git rev-parse HEAD)" \
+           .
+}
 
 
 function build-serene-image() { ## Build the Serene docker image for the current HEAD

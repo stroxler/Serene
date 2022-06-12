@@ -2,7 +2,8 @@ FROM debian:sid-slim
 
 ARG VERSION
 
-RUN apt-get update && apt-get install -y wget \
+RUN uname -a
+RUN apt-get update && apt-get install -y  apt-utils && apt-get install -y wget \
     gnupg \
     ccache \
     cmake \
@@ -15,6 +16,7 @@ RUN apt-get update && apt-get install -y wget \
     wget \
     software-properties-common \
     zlib1g \
+    apt-utils \
     zlib1g-dev
 
 RUN wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh
@@ -37,3 +39,12 @@ ENV CMAKE_PREFIX_PATH=/usr/lib/llvm-${VERSION}
 ENV LD_LIBRARY_PATH=/usr/lib/llvm-${VERSION}/lib/clang/${VERSION}.0.0/lib/linux/
 
 RUN apt-get clean
+
+WORKDIR /iwuy
+RUN git clone https://github.com/include-what-you-use/include-what-you-use.git --depth 1 && \
+    mkdir build && cd build && \
+    cmake -G "Unix Makefiles" -DCMAKE_PREFIX_PATH=/usr/lib/llvm-${VERSION} ../include-what-you-use && \
+    make && make install
+
+WORKDIR /
+RUN rm /iwuy -rf
