@@ -65,9 +65,9 @@ ROOT_DIR=$(pwd)
 BUILD_DIR=$ROOT_DIR/build
 ME=$(cd "$(dirname "$0")/." >/dev/null 2>&1 ; pwd -P)
 
-CMAKEARGS_DEBUG=" -DCMAKE_BUILD_TYPE=Debug"
+CMAKEARGS_DEBUG=("-DCMAKE_BUILD_TYPE=Debug")
  # Verbose -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
-CMAKEARGS=" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DSERENE_CCACHE_DIR=$HOME/.ccache"
+CMAKEARGS=("-DCMAKE_EXPORT_COMPILE_COMMANDS=ON" "-DSERENE_CCACHE_DIR=$HOME/.ccache")
 
 # -----------------------------------------------------------------------------
 # Helper functions
@@ -103,8 +103,8 @@ function popd_build() {
 function build-gen() {
     pushed_build
     info "Running: "
-    info "cmake -G Ninja $CMAKEARGS $CMAKEARGS_DEBUG \"$*\" \"$ROOT_DIR\""
-    cmake -G Ninja "$CMAKEARGS" "$CMAKEARGS_DEBUG" "$*" "$ROOT_DIR"
+    info "cmake -G Ninja " "${CMAKEARGS[@]}" "${CMAKEARGS[@]}" "\"$*\" \"$ROOT_DIR\""
+    cmake -G Ninja "${CMAKEARGS[@]}" "${CMAKEARGS_DEBUG[@]}" "$*" "$ROOT_DIR"
     popd_build
 }
 

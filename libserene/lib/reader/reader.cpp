@@ -179,8 +179,8 @@ const char *Reader::nextChar(bool skipWhitespace, unsigned count) {
   return c;
 };
 
-bool Reader::isEndOfBuffer(const unsigned char *c) {
-  return *c == '\0' || currentPos > buf.size() || *c == EOF;
+bool Reader::isEndOfBuffer(const char *c) {
+  return *c == '\0' || currentPos > buf.size() || ((const int)*c == EOF);
 };
 
 Location Reader::getCurrentLocation() { return currentLocation.clone(); };
