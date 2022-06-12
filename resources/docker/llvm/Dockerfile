@@ -17,6 +17,8 @@ RUN apt-get update && apt-get install -y  apt-utils && apt-get install -y wget \
     software-properties-common \
     zlib1g \
     apt-utils \
+    cppcheck \
+    shellcheck \
     zlib1g-dev
 
 RUN wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh
@@ -27,11 +29,15 @@ RUN apt-get update --fix-missing && \
     libmlir-${VERSION} \
     libmlir-${VERSION}-dbgsym \
     liblld-${VERSION} \
-    liblld-${VERSION}-dev
+    liblld-${VERSION}-dev \
+    clang-format-${VERSION} \
+    clang-tidy-${VERSION}
 
 RUN ln -s `which lld-${VERSION}` /usr/bin/lld && \
     ln -s `which clang-${VERSION}` /usr/bin/clang && \
     ln -s `which clang++-${VERSION}` /usr/bin/clang++ && \
+    ln -s `which clang-format-${VERSION}` /usr/bin/clang-format && \
+    ln -s `which clang-tidy-${VERSION}` /usr/bin/clang-tidy && \
     ln -s `which mlir-tblgen-${VERSION}`  /usr/bin/mlir-tblgen
 
 ENV MLIR_DIR /usr/lib/llvm-${VERSION}
@@ -46,5 +52,9 @@ RUN git clone https://github.com/include-what-you-use/include-what-you-use.git -
     cmake -G "Unix Makefiles" -DCMAKE_PREFIX_PATH=/usr/lib/llvm-${VERSION} ../include-what-you-use && \
     make && make install
 
-WORKDIR /
+WORKDIR /app
 RUN rm /iwuy -rf
+
+COPY .pre-commit-config.yaml .
+RUN git init .
+RUN apt-get install -y --no-install-recommends pre-commit && pre-commit autoupdate && rm /app/.pre-commit-config.yaml

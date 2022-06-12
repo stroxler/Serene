@@ -5,12 +5,21 @@ platform:
   os: linux
   arch: arm64
 
-steps:
-- name: Build
-  image: rg.fr-par.scw.cloud/serene/llvm:15-7
-  commands:
-    - cmake --version
-    - ./builder build
+trigger:
   when:
     branch:
     - master
+
+steps:
+- name: Build
+  image: rg.fr-par.scw.cloud/serene/llvm:15-8
+  commands:
+    - cmake --version
+    - ./builder build
+- name: Lint
+  image: rg.fr-par.scw.cloud/serene/llvm:15-8
+  commands:
+    - pre-commit clang-tidy -a
+    - pre-commit cppcheck -a
+    - pre-commit include-what-you-use -a
+    - pre-commit shell-lint -a
