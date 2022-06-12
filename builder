@@ -160,7 +160,7 @@ function build-20() { ## Builds the project using C++20 (will regenerate the bui
     popd_build
 }
 
-function build-tidy { ## Builds the project using clang-tidy (It takes longer than usual)
+function build-tidy() { ## Builds the project using clang-tidy (It takes longer than usual)
     build "-DSERENE_ENABLE_TIDY=ON" "${@:2}"
 }
 

@@ -27,7 +27,7 @@ set_target_properties(serene-repl PROPERTIES
   INTERPROCEDURAL_OPTIMIZATION TRUE)
 
 if(SERENE_ENABLE_TIDY)
-  set_target_properties(serene PROPERTIES CXX_CLANG_TIDY ${CLANG_TIDY_PATH})
+  set_target_properties(serene-repl PROPERTIES CXX_CLANG_TIDY ${CLANG_TIDY_PATH})
 endif()
 
 if (CPP_20_SUPPORT)
