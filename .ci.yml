@@ -6,7 +6,7 @@ platform:
   arch: arm64
 
 steps:
-- name:
+- name: Build
   image: rg.fr-par.scw.cloud/serene/llvm:15-7
   commands:
     - ./builder build
