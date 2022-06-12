@@ -39,7 +39,7 @@ set -e
 # -----------------------------------------------------------------------------
 
 command=$1
-VERSION="0.4.0"
+VERSION="0.5.0"
 
 # Serene subprojects. We use this array to run common tasks on all the projects
 # like running the test cases
@@ -103,7 +103,7 @@ function popd_build() {
 function build-gen() {
     pushed_build
     info "Running: "
-    info "cmake -G Ninja " "${CMAKEARGS[@]}" "${CMAKEARGS[@]}" "\"$*\" \"$ROOT_DIR\""
+    info "cmake -G Ninja ${CMAKEARGS[*]} ${CMAKEARGS[*]}" "\"$*\" \"$ROOT_DIR\""
     cmake -G Ninja "${CMAKEARGS[@]}" "${CMAKEARGS_DEBUG[@]}" "$*" "$ROOT_DIR"
     popd_build
 }
@@ -112,21 +112,21 @@ function build-gen() {
 function info() {
     if [ "$1" ]
     then
-        echo -e "[\033[01;32mINFO\033[00m]: $1"
+        echo -e "[\033[01;32mINFO\033[00m]: $*"
     fi
 }
 
 function error() {
     if [ "$1" ]
     then
-        echo -e "[\033[01;31mERR\033[00m]: $1"
+        echo -e "[\033[01;31mERR\033[00m]: $*"
     fi
 }
 
 function warn() {
     if [ "$1" ]
     then
-        echo -e "[\033[01;33mWARN\033[00m]: $1"
+        echo -e "[\033[01;33mWARN\033[00m]: $*"
     fi
 }
 
