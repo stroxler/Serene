@@ -43,7 +43,6 @@ option(SERENE_SHOW_MLIR_DIALECTS "Print out a list of MLIR dialect libs" OFF)
 option(SERENE_SHOW_MLIR_TRANSFORMERS "Print out a list of MLIR dialect transformer libs" OFF)
 option(SERENE_SHOW_LLVM_LIBS "Print all the llvm libs available" OFF)
 
-
 option(SERENE_WITH_MLIR_CL_OPTION "Add support for controlling MLIR via command line options" OFF)
 
 

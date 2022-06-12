@@ -9,6 +9,7 @@ steps:
 - name: Build
   image: rg.fr-par.scw.cloud/serene/llvm:15-7
   commands:
+    - cmake --version
     - ./builder build
   when:
     branch:

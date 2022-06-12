@@ -65,7 +65,7 @@ ROOT_DIR=$(pwd)
 BUILD_DIR=$ROOT_DIR/build
 ME=$(cd "$(dirname "$0")/." >/dev/null 2>&1 ; pwd -P)
 
-CMAKEARGS_DEBUG=" -DCMAKE_BUILD_TYPE=Debug -DSERENE_WITH_MLIR_CL_OPTION=ON"
+CMAKEARGS_DEBUG=" -DCMAKE_BUILD_TYPE=Debug"
  # Verbose -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
 CMAKEARGS=" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DSERENE_CCACHE_DIR=$HOME/.ccache"
 
@@ -140,10 +140,15 @@ function compile() { ## Compiles the project using the generated build scripts
 }
 
 function build() { ## Builds the project by regenerating the build scripts
+    local cpus
+
     clean
     build-gen "$@"
     pushed_build
-    cmake --build .
+
+    cpus=$(grep ^cpu\\scores /proc/cpuinfo | uniq |  awk '{print $4}')
+    cmake --build . -j "$cpus"
+
     popd_build
 }
 
