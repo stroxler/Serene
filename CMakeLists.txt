@@ -241,16 +241,15 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   # Create the tools we use to compile Serene
   add_subdirectory(serene-tblgen)
 
+  # Binary tools of the compiler
+  # add_subdirectory(serenec)
+  # add_subdirectory(serene-repl)
+  # The compiled library code is here
+  add_subdirectory(libserene)
   # The static library containing builtin special forms and functions
   add_subdirectory(core)
 
-  # Binary tools of the compiler
-  add_subdirectory(serenec)
-  add_subdirectory(serene-repl)
-  # The compiled library code is here
-  add_subdirectory(libserene)
-
-  add_subdirectory(devtools)
+  # add_subdirectory(devtools)
 
 
   if (SERENE_ENABLE_DOCS)

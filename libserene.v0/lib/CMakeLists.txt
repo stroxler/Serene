@@ -23,7 +23,43 @@ if(NOT APPLE)
 endif()
 
 add_library(serene
-  serene.cpp)
+  exprs/symbol.cpp
+  exprs/list.cpp
+  exprs/number.cpp
+  exprs/expression.cpp
+  exprs/def.cpp
+  exprs/fn.cpp
+  exprs/call.cpp
+
+  serene.cpp
+  context.cpp
+  namespace.cpp
+  source_mgr.cpp
+  diagnostics.cpp
+  semantics.cpp
+
+  # jit.cpp
+  # jit/engine.cpp
+  # jit/layers.cpp
+  jit/halley.cpp
+
+  errors.cpp
+
+  # Reader
+  reader/reader.cpp
+
+  # IR
+  slir/types.cpp
+  slir/slir.cpp
+  slir/value_op.cpp
+  slir/generatable.cpp
+  slir/utils.cpp
+  slir/ops.cpp
+  slir/type_converter.cpp
+  slir/dialect.cpp
+  passes/slir_lowering.cpp
+  passes/to_llvm_dialect.cpp
+  )
 
 # Create an ALIAS target. This way if we mess up the name
 # there will be an cmake error inseat of a linker error which is harder
@@ -36,9 +72,6 @@ set_target_properties(serene PROPERTIES
   SOVERSION ${PROJECT_VERSION_MAJOR}
   # Warn on unused libs
   LINK_WHAT_YOU_USE TRUE
-  CXX_INCLUDE_WHAT_YOU_USE "include-what-you-use"
-  C_INCLUDE_WHAT_YOU_USE "include-what-you-use"
-
   # LTO support
   INTERPROCEDURAL_OPTIMIZATION TRUE)
 
@@ -70,19 +103,67 @@ else()
 endif()
 
 # Generate the tablegen ODS files before this target
-#add_dependencies(serene)
+add_dependencies(serene SereneTablegen SereneDialectGen SerenePassGen SereneErrorGen)
 
 # We need this directory, and users of our library will need it too
-target_include_directories(serene PUBLIC "$<BUILD_INTERFACE:${LIB_SERENE_INCLUDE_DIR}>")
+target_include_directories(serene PUBLIC "$<BUILD_INTERFACE:${INCLUDE_DIR}>")
 target_include_directories(serene PUBLIC "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>")
 
 # Generate the export.h
 include(GenerateExportHeader)
-
 generate_export_header(serene EXPORT_FILE_NAME ${PROJECT_BINARY_DIR}/include/serene/export.h)
 target_compile_definitions(
   serene PUBLIC "$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:SERENE_STATIC_DEFINE>")
 
+get_property(dialect_libs GLOBAL PROPERTY MLIR_DIALECT_LIBS)
+get_property(conversion_libs GLOBAL PROPERTY MLIR_CONVERSION_LIBS)
 
-# target_link_libraries(serene PRIVATE
-#   ${llvm_libs})
+
+if(SERENE_SHOW_MLIR_DIALECTS)
+  message(STATUS "MLIR Dialects to choose from:")
+  foreach(lib ${dialect_libs})
+    message(STATUS "\t${lib}")
+  endforeach()
+endif()
+
+
+if(SERENE_SHOW_MLIR_TRANSFORMERS)
+  message(STATUS "MLIR Dialects transformers to choose from:")
+  foreach(lib ${conversion_libs})
+    message(STATUS "\t${lib}")
+  endforeach()
+endif()
+
+if(SERENE_SHOW_LLVM_LIBS)
+  execute_process(COMMAND llvm-config --libs all
+    OUTPUT_VARIABLE SERENE_LLVM_LIBS)
+  message(STATUS "LLVM libs available:\n ${SERENE_LLVM_LIBS}")
+endif()
+
+
+set(serene_lib_dialects_in_use
+  MLIRFunc)
+
+set(serene_lib_transformers_in_use
+  MLIRFuncToLLVM)
+
+target_link_libraries(serene PRIVATE
+  MLIRIR
+  MLIRPass
+  MLIRTransforms
+
+  ${serene_lib_dialects_in_use}
+  ${serene_lib_transformers_in_use}
+
+  #TODO: Remove this lib, we're just using one func
+  MLIRExecutionEngine
+
+  # LLVM's JIT lib
+  LLVMExecutionEngine
+  LLVMOrcJIT
+  MLIRLLVMToLLVMIRTranslation
+
+  LLVMTarget
+  LLVMX86AsmParser
+
+  ${llvm_libs})

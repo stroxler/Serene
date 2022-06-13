@@ -47,7 +47,7 @@ private:
   llvm::RecordKeeper &records;
 
 public:
-  ErrorsBackend(llvm::RecordKeeper &rk) : records(rk) {}
+  explicit ErrorsBackend(llvm::RecordKeeper &rk) : records(rk) {}
 
   void createNSBody(llvm::raw_ostream &os);
   void createErrorClass(int id, llvm::Record &defRec, llvm::raw_ostream &os);
