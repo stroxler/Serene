@@ -16,6 +16,7 @@ steps:
   commands:
     - cmake --version
     - ./builder build
+    - ln -s build/compile_commands.json ./compile_commands.json
 
 - name: Linters
   image: rg.fr-par.scw.cloud/serene/llvm:15-8
