@@ -1,4 +1,5 @@
 * Serene lang
+ Build Status: [[https://drone.devheroes.codes/api/badges/Serene/Serene/status.svg]]
 
 ** Setup development environment
 Setup the githook and install dependencies using the following commands:

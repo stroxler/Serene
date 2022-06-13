@@ -961,3 +961,106 @@ CLOSED: [2022-03-29 Tue 19:56]
 - Wraps LLJIT and LLLazyJIT
 - Uses object cache layer
 - Supports ASTs and Namespaces
+
+* DONE Episode 19 - JIT Engine Part 2
+CLOSED: [2022-05-04 Wed 21:30]
+** How Serene is different from other programming langs?
+- Serene is just a JIT engine
+- Compiletime vs Runtime
+  + The borderline is not clear in case of Serene
+
+The Big picture
+#+NAME: ep-19-jit-1
+#+BEGIN_SRC graphviz-dot :file /tmp/ep19-1.svg :cmdline -Kdot -Tsvg
+digraph {
+    fontcolor="gray80"
+
+    graph [bgcolor=transparent]
+    node [color=gray80 shape="box", fontcolor="gray80"]
+    edge [color=gray80, fontcolor="gray80"]
+
+
+    input_ns[label="Input Namespace"]
+
+    ast[label="AST"]
+    vast[label="Valid AST"]
+    ir[label="LLVM IR"]
+
+    subgraph cluster_2 {
+        label="REPL"
+        color="gray80"
+
+        graph [bgcolor=transparent, fontcolor="gray80"]
+        node [color=gray80 shape="box", fontcolor="gray80"]
+
+        input_form[label="Input Form"]
+        result[label="Evaluation result"]
+        result -> input_form[label="Loop"]
+}
+
+subgraph cluster_0 {
+    label="JIT"
+    color="gray80"
+
+    graph [bgcolor=transparent, fontcolor="gray80"]
+    node [color=gray80 shape="box", fontcolor="gray80"]
+
+
+    execute[label="Execute native code"]
+    binary[label="Binary File"]
+
+    subgraph cluster_1 {
+        label="AddAst/Ns"
+        color="gray80"
+
+        graph [bgcolor=transparent, fontcolor="gray80"]
+        node [color=gray80 shape="box", fontcolor="gray80"]
+
+        vast -> ir [label="Compile (No optimization)"]
+
+        subgraph cluster_4 {
+            label="Macro Expansion"
+            color="gray80"
+
+            graph [bgcolor=transparent, fontcolor="gray80"]
+            node [color=gray80 shape="box", fontcolor="gray80"]
+
+            vast -> macros [label=" Find the macros"]
+            macros -> JITDylib [label=" look up the required\n Symbols in compiled code"]
+            JITDylib -> symbols [label=" lookup"]
+        }
+
+        wrapped_code[lable="Wrapped IR"]
+        ir -> wrapped_code[label= " Wrap top level Forms in \nfunctions/calls"]
+        wrapped_code -> native [label=" Compile (No optimization)"]
+    }
+
+    symbols -> execute [label="Execute the functions mapped to the symbols"]
+    execute -> vast
+    execute -> result [label=" Print"]
+    execute -> binary [label=" Dump"]
+
+    native ->  execute [label="invoke"]
+    native -> JITDylib [label="Add"]
+    JITDylib -> Context [label="Store as part the namespace"]
+  }
+
+  subgraph cluster_3 {
+    label="CLI interface"
+    color="gray80"
+
+    graph [bgcolor=transparent, fontcolor="gray80"]
+    node [color=gray80 shape="box", fontcolor="gray80"]
+
+    input_ns -> file [label=" resolve to file"]
+  }
+
+  input_form -> ast [label=" read"]
+  file -> ast [label=" read"]
+  ast -> vast [label=" Semantic Analysis"]
+}
+#+END_SRC
+
+#+RESULTS: ep-19-jit-1
+[[file:/tmp/ep19-1.png]]
+** Let's look at some code
