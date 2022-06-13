@@ -216,12 +216,12 @@ function tests() { ## Runs all the test cases
 
             if [[ -f "$test_file" ]]; then
                 LD_PRELOAD=$(clang -print-file-name=libclang_rt.asan-x86_64.so) \
-                          eval "$test_file" "${@:2}"
+                          eval "$test_file ${*:2}"
             fi
         done
     else
         LD_PRELOAD=$(clang -print-file-name=libclang_rt.asan-x86_64.so) \
-                  eval "$BUILD_DIR/$1/tests/$1Tests" "${@:2}"
+                  eval "$BUILD_DIR/$1/tests/$1Tests ${*:2}"
     fi
 }
 
@@ -337,7 +337,7 @@ echo -e "for details take a look at the LICENSE file.\n"
 # Find the subcommand in the functions and run we find it.
 for fn in $(fn-names); do
     if [[ $fn == "$command" ]]; then
-        eval "$fn" "${@:2}"
+        eval "$fn ${*:2}"
         exit $?
     fi
 done
