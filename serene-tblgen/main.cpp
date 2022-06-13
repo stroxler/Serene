@@ -23,14 +23,16 @@
  * instances.
  */
 
-#include "serene/errors-backend.h"
+#include "serene/errors-backend.h" // for emitErrors
 
-#include <llvm/Support/CommandLine.h>
-#include <llvm/Support/InitLLVM.h>
-#include <llvm/Support/raw_ostream.h>
-#include <llvm/TableGen/Main.h>
-#include <llvm/TableGen/Record.h>
-#include <llvm/TableGen/SetTheory.h>
+#include <llvm/ADT/SmallVector.h>     // for SmallVector
+#include <llvm/ADT/StringRef.h>       // for StringRef
+#include <llvm/Support/CommandLine.h> // for opt, ParseCommandLineOptions
+#include <llvm/Support/Compiler.h>    // for LLVM_ATTRIBUTE_USED
+#include <llvm/Support/InitLLVM.h>    // for InitLLVM
+#include <llvm/Support/raw_ostream.h> // for raw_ostream
+#include <llvm/TableGen/Main.h>       // for TableGenMain
+#include <llvm/TableGen/Record.h>     // for operator<<, RecordKeeper (ptr ...
 
 namespace cl = llvm::cl;
 
@@ -73,7 +75,8 @@ int main(int argc, char **argv) {
 #if __has_feature(address_sanitizer) || defined(__SANITIZE_ADDRESS__) || \
     __has_feature(leak_sanitizer)
 
-#include <sanitizer/lsan_interface.h>
+#include <sanitizer/lsan_interface.h> // for __lsan_is_turned_off
+
 // Disable LeakSanitizer for this binary as it has too many leaks that are not
 // very interesting to fix. See compiler-rt/include/sanitizer/lsan_interface.h
 LLVM_ATTRIBUTE_USED int __lsan_is_turned_off() { return 1; }

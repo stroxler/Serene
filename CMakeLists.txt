@@ -65,6 +65,8 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     find_program(CLANG_TIDY_PATH NAMES clang-tidy REQUIRED)
   endif()
 
+  find_program(iwyu NAMES include-what-you-use iwyu REQUIRED)
+  set(iwyu_path ${iwyu})
   # Let's ensure -std=c++xx instead of -std=g++xx
   set(CMAKE_CXX_EXTENSIONS OFF)
 

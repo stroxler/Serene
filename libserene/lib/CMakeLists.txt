@@ -23,7 +23,8 @@ if(NOT APPLE)
 endif()
 
 add_library(serene
-  serene.cpp)
+  serene.cpp
+  context.cpp)
 
 # Create an ALIAS target. This way if we mess up the name
 # there will be an cmake error inseat of a linker error which is harder
@@ -36,8 +37,8 @@ set_target_properties(serene PROPERTIES
   SOVERSION ${PROJECT_VERSION_MAJOR}
   # Warn on unused libs
   LINK_WHAT_YOU_USE TRUE
-  CXX_INCLUDE_WHAT_YOU_USE "include-what-you-use"
-  C_INCLUDE_WHAT_YOU_USE "include-what-you-use"
+  CXX_INCLUDE_WHAT_YOU_USE "${iwyu_path}"
+  C_INCLUDE_WHAT_YOU_USE "${iwyu_path}"
 
   # LTO support
   INTERPROCEDURAL_OPTIMIZATION TRUE)
@@ -84,5 +85,5 @@ target_compile_definitions(
   serene PUBLIC "$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:SERENE_STATIC_DEFINE>")
 
 
-# target_link_libraries(serene PRIVATE
-#   ${llvm_libs})
+target_link_libraries(serene PRIVATE
+  ${llvm_libs})

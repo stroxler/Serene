@@ -16,8 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <llvm/TableGen/Record.h>
-#include <llvm/TableGen/TableGenBackend.h>
+namespace llvm {
+class RecordKeeper;
+class raw_ostream;
+} // namespace llvm
 
 #define DEBUG_TYPE "errors-backend"
 

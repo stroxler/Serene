@@ -27,12 +27,18 @@
 // The "serene/" part is due to a convention that we use in the project
 #include "serene/errors-backend.h"
 
-#include <llvm/Support/Casting.h>
-#include <llvm/Support/Format.h>
-#include <llvm/Support/LineIterator.h>
-#include <llvm/Support/MemoryBufferRef.h>
-#include <llvm/TableGen/Error.h>
-#include <llvm/TableGen/Record.h>
+#include <llvm/ADT/StringRef.h>            // for StringRef
+#include <llvm/ADT/Twine.h>                // for operator+
+#include <llvm/Support/Casting.h>          // for dyn_cast
+#include <llvm/Support/LineIterator.h>     // for line_iterator
+#include <llvm/Support/MemoryBufferRef.h>  // for MemoryBufferRef
+#include <llvm/Support/raw_ostream.h>      // for raw_ostream
+#include <llvm/TableGen/Error.h>           // for PrintError
+#include <llvm/TableGen/Record.h>          // for ListInit, Record, RecordK...
+#include <llvm/TableGen/TableGenBackend.h> // for emitSourceFileHeader
+
+#include <functional> // for function
+#include <stddef.h>   // for size_t
 
 #define DEBUG_TYPE      "errors-backend"
 #define INSTANCE_SUFFIX "Instance"

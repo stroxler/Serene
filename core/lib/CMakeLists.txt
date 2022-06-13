@@ -37,8 +37,8 @@ set_target_properties(core PROPERTIES
   CMAKE_PKG_NAME SereneCore
   # Warn on unused libs
   LINK_WHAT_YOU_USE TRUE
-  CXX_INCLUDE_WHAT_YOU_USE "include-what-you-use"
-
+  CXX_INCLUDE_WHAT_YOU_USE "${iwyu_path}"
+  C_INCLUDE_WHAT_YOU_USE "${iwyu_path}"
   # LTO support
   INTERPROCEDURAL_OPTIMIZATION TRUE)
 
