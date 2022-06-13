@@ -10,6 +10,8 @@
 #define I32_SIZE 32
 #define I64_SIZE 64
 
+#define MAX_PATH_SLOTS 256
+
 // Should we build the support for MLIR CL OPTIONS?
 #cmakedefine SERENE_WITH_MLIR_CL_OPTION
 

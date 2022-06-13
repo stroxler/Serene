@@ -19,8 +19,7 @@
 #ifndef SERENE_CONTEXT_H
 #define SERENE_CONTEXT_H
 
-#include "serene/export.h"     // for SERENE_EXPORT
-#include "serene/source_mgr.h" // for SourceMgr
+#include "serene/export.h" // for SERENE_EXPORT
 
 #include <llvm/ADT/Triple.h>     // for Triple
 #include <llvm/ADT/Twine.h>      // for Twine
@@ -80,10 +79,6 @@ class SERENE_EXPORT SereneContext {
 public:
   template <typename T>
   using CurrentNSFn = std::function<T()>;
-
-  /// The source manager is responsible for loading files and practically
-  /// managing the source code in form of memory buffers.
-  SourceMgr sourceManager;
 
   /// The set of options to change the compilers behaivoirs
   Options opts;
