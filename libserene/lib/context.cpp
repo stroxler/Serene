@@ -18,7 +18,7 @@
 
 #include "serene/context.h"
 
-#include <cstdlib>  // for exit
+#include <cstdlib> // for exit
 
 namespace serene {
 

@@ -30,7 +30,6 @@ repos:
     rev: v1.3.5
     hooks:
       - id: clang-format
-        args: ['-i']
       - id: cppcheck
         args: ['--project=compile_commands.json']
   - repo: https://github.com/detailyang/pre-commit-shell
