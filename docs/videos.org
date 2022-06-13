@@ -1064,3 +1064,19 @@ subgraph cluster_0 {
 #+RESULTS: ep-19-jit-1
 [[file:/tmp/ep19-1.png]]
 ** Let's look at some code
+* Episode 20 - Future Roadmap
+** So Far
+- We created a bare bone and minimal compiler
+  + That is capable of just in time and ahead of time compilation
+- We had an over of MLIR and pass management
+- We didn't spend time on fundamentals
+** Design change
+- The current implementation is suitable for a static compiler
+- We want to move toward a more dynamic compiler
+** What's next?
+- Part 2
+- We're going to focus on some of the compiler fundamentals
+- We will create simple utilities to help us in our journey
+- Hopefully we will talk about type systems
+- We're going to sharpen our skills on LLVM/MLIR
+- I'm going to work on the new design
