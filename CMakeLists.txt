@@ -44,7 +44,7 @@ option(SERENE_SHOW_MLIR_TRANSFORMERS "Print out a list of MLIR dialect transform
 option(SERENE_SHOW_LLVM_LIBS "Print all the llvm libs available" OFF)
 
 option(SERENE_WITH_MLIR_CL_OPTION "Add support for controlling MLIR via command line options" OFF)
-
+option(SERENE_USE_COMPILER_RT "Use LLVM's compiler-rt" OFF)
 
 # Only do these if this is the main project, and not if it is included through add_subdirectory
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
@@ -118,6 +118,10 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     # Do not link against shared libraries
     #--static
     )
+
+  if (SERENE_USE_COMPILER_RT)
+    add_link_options(-rtlib=compiler-rt -stdlib=libc++ )
+  endif()
 
   # Do we need to build serene as a shared lib? default is "yes"
   if(SERENE_SHARED_LIB)

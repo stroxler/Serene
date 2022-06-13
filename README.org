@@ -46,7 +46,7 @@ Setup the githook and install dependencies using the following commands:
           -DLLVM_ENABLE_ASSERTIONS=ON \
           -DLLVM_CCACHE_BUILD=ON \
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-          -DLLVM_ENABLE_PROJECTS='clang;lldb;lld;mlir;clang-tools-extra;compiler-rt' \
+          -DLLVM_ENABLE_PROJECTS='clang;lldb;lld;mlir;clang-tools-extra;compiler-rt;libcxx;libcxxabi;libunwind' \
           -DCMAKE_C_COMPILER=clang \       # If you have clang installed already
           -DCMAKE_CXX_COMPILER=clang++ \   # If you have clang installed already
           -DLLVM_ENABLE_LLD=ON
