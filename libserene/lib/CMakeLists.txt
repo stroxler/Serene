@@ -24,7 +24,9 @@ endif()
 
 add_library(serene
   serene.cpp
-  context.cpp)
+  context.cpp
+
+  jit/halley.cpp)
 
 # Create an ALIAS target. This way if we mess up the name
 # there will be an cmake error inseat of a linker error which is harder
@@ -86,4 +88,5 @@ target_compile_definitions(
 
 
 target_link_libraries(serene PRIVATE
+  LLVMOrcJIT
   ${llvm_libs})

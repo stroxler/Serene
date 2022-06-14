@@ -18,8 +18,13 @@
 
 #include "serene/serene.h"
 
-namespace serene {
+#include "serene/jit/halley.h" // for makeHalleyJIT, MaybeEngine
 
-int makeEngine() { return 0; };
+namespace serene {
+class SereneContext;
+
+serene::jit::MaybeEngine makeEngine(SereneContext &ctx) {
+  return serene::jit::makeHalleyJIT(ctx);
+};
 
 } // namespace serene

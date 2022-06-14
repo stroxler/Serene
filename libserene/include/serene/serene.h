@@ -19,10 +19,12 @@
 #ifndef SERENE_SERENE_H
 #define SERENE_SERENE_H
 
-#include "serene/export.h"
+#include "serene/export.h"     // for SERENE_EXPORT
+#include "serene/jit/halley.h" // for MaybeEngine
 
 namespace serene {
-int SERENE_EXPORT makeEngine();
+
+serene::jit::MaybeEngine SERENE_EXPORT makeEngine();
 
 } // namespace serene
 #endif
