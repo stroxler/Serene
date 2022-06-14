@@ -20,6 +20,7 @@
 #define SERENE_CONTEXT_H
 
 #include "serene/export.h" // for SERENE_EXPORT
+#include "serene/options.h"
 
 #include <llvm/ADT/Triple.h>     // for Triple
 #include <llvm/ADT/Twine.h>      // for Twine
@@ -56,24 +57,6 @@ enum class CompilationPhase {
 /// via the JIT use an appropriate function in the `serene.core` ns.
 SERENE_EXPORT void terminate(SereneContext &ctx, int exitCode);
 
-/// Options describes the compiler options that can be passed to the
-/// compiler via command line. Anything that user should be able to
-/// tweak about the compiler has to end up here regardless of the
-/// different subsystem that might use it.
-struct SERENE_EXPORT Options {
-
-  /// Whether to use colors for the output or not
-  bool withColors = true;
-
-  // JIT related flags
-  bool JITenableObjectCache              = true;
-  bool JITenableGDBNotificationListener  = true;
-  bool JITenablePerfNotificationListener = true;
-  bool JITLazy                           = false;
-
-  Options() = default;
-};
-
 class SERENE_EXPORT SereneContext {
 
 public:
@@ -100,6 +83,9 @@ public:
     return std::make_unique<llvm::LLVMContext>();
   };
 
+  /// Setup the load path for namespace lookups
+  void setLoadPaths(std::vector<std::string> &dirs) { loadPaths.swap(dirs); };
+
   // JIT JITDylib related functions ---
 
   // TODO: For Dylib related functions, make sure that the namespace in questoin
@@ -117,7 +103,7 @@ public:
 
 private:
   CompilationPhase targetPhase;
-
+  std::vector<std::string> loadPaths;
   /// A vector of pointers to all the jitDylibs for namespaces. Usually
   /// There will be only one pre NS but in case of forceful reloads of a
   /// namespace there will be more.

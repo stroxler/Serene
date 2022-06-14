@@ -89,4 +89,7 @@ target_compile_definitions(
 
 target_link_libraries(serene PRIVATE
   LLVMOrcJIT
+  LLVMX86CodeGen
+  LLVMX86AsmParser
+
   ${llvm_libs})

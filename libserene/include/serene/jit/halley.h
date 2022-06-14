@@ -32,7 +32,8 @@
 #ifndef SERENE_JIT_HALLEY_H
 #define SERENE_JIT_HALLEY_H
 
-#include "serene/export.h" // for SERENE...
+#include "serene/context.h" // for Serene...
+#include "serene/export.h"  // for SERENE...
 
 #include <llvm/ADT/SmallVector.h>                             // for SmallV...
 #include <llvm/ADT/StringMap.h>                               // for StringMap
@@ -59,12 +60,15 @@ class Module;
 } // namespace llvm
 
 namespace serene {
-class SereneContext;
-
 namespace jit {
 class Halley;
 
-using MaybeEngine    = llvm::Expected<std::unique_ptr<Halley>>;
+// Why? This is the lazy man's way to make it easier to replace
+// the class under the hood later on to test different implementaion
+// with the same interface
+using Engine         = Halley;
+using EnginePtr      = std::unique_ptr<Engine>;
+using MaybeEngine    = llvm::Expected<EnginePtr>;
 using MaybeEnginePtr = llvm::Expected<void (*)(void **)>;
 
 /// A simple object cache following Lang's LLJITWithObjectCache example and
@@ -99,16 +103,19 @@ class SERENE_EXPORT Halley {
 
   llvm::orc::JITTargetMachineBuilder jtmb;
   llvm::DataLayout &dl;
-  SereneContext &ctx;
+
+  std::unique_ptr<SereneContext> ctx;
 
   bool isLazy = false;
 
 public:
-  Halley(serene::SereneContext &ctx, llvm::orc::JITTargetMachineBuilder &&jtmb,
-         llvm::DataLayout &&dl);
+  Halley(std::unique_ptr<SereneContext> ctx,
+         llvm::orc::JITTargetMachineBuilder &&jtmb, llvm::DataLayout &&dl);
 
-  static MaybeEngine make(serene::SereneContext &ctx,
+  static MaybeEngine make(std::unique_ptr<SereneContext> sereneCtxPtr,
                           llvm::orc::JITTargetMachineBuilder &&jtmb);
+
+  SereneContext &getContext() { return *ctx; };
 
   void setEngine(std::unique_ptr<llvm::orc::LLJIT> e, bool isLazy);
   /// Looks up a packed-argument function with the given sym name and returns a
@@ -156,7 +163,7 @@ public:
   void dumpToObjectFile(llvm::StringRef filename);
 };
 
-MaybeEngine makeHalleyJIT(SereneContext &ctx);
+MaybeEngine makeHalleyJIT(std::unique_ptr<SereneContext> ctx);
 
 } // namespace jit
 } // namespace serene

@@ -15,9 +15,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #include "serene/jit/halley.h"
 
 #include "serene/context.h" // for Seren...
+#include "serene/options.h" // for Options
 
 #include <system_error> // for error...
 
@@ -97,17 +99,17 @@ void ObjectCache::dumpToObjectFile(llvm::StringRef outputFilename) {
   file->keep();
 }
 
-Halley::Halley(serene::SereneContext &ctx,
+Halley::Halley(std::unique_ptr<SereneContext> ctx,
                llvm::orc::JITTargetMachineBuilder &&jtmb, llvm::DataLayout &&dl)
-    : cache(ctx.opts.JITenableObjectCache ? new ObjectCache() : nullptr),
-      gdbListener(ctx.opts.JITenableGDBNotificationListener
+    : cache(ctx->opts.JITenableObjectCache ? new ObjectCache() : nullptr),
+      gdbListener(ctx->opts.JITenableGDBNotificationListener
 
                       ? llvm::JITEventListener::createGDBRegistrationListener()
                       : nullptr),
-      perfListener(ctx.opts.JITenablePerfNotificationListener
+      perfListener(ctx->opts.JITenablePerfNotificationListener
                        ? llvm::JITEventListener::createPerfJITEventListener()
                        : nullptr),
-      jtmb(jtmb), dl(dl), ctx(ctx){};
+      jtmb(jtmb), dl(dl), ctx(std::move(ctx)){};
 
 // MaybeJITPtr Halley::lookup(exprs::Symbol &sym) const {
 //   HALLEY_LOG("Looking up: " << sym.toString());
@@ -170,16 +172,15 @@ void Halley::dumpToObjectFile(llvm::StringRef filename) {
   cache->dumpToObjectFile(filename);
 };
 
-MaybeEngine Halley::make(SereneContext &serene_ctx,
+MaybeEngine Halley::make(std::unique_ptr<SereneContext> sereneCtxPtr,
                          llvm::orc::JITTargetMachineBuilder &&jtmb) {
-
   auto dl = jtmb.getDefaultDataLayoutForTarget();
   if (!dl) {
     return dl.takeError();
   }
 
-  auto jitEngine =
-      std::make_unique<Halley>(serene_ctx, std::move(jtmb), std::move(*dl));
+  auto jitEngine = std::make_unique<Halley>(std::move(sereneCtxPtr),
+                                            std::move(jtmb), std::move(*dl));
 
   // Why not the llvmcontext from the SereneContext??
   // Sice we're going to pass the ownership of this context to a thread
@@ -192,6 +193,9 @@ MaybeEngine Halley::make(SereneContext &serene_ctx,
   // use the first context to generate the IR and the second one to just
   // run it.
   std::unique_ptr<llvm::LLVMContext> ctx(new llvm::LLVMContext);
+
+  // Since we moved the original sereneCtxPtr into the engine.
+  auto &sereneCtx = jitEngine->getContext();
 
   // Callback to create the object layer with symbol resolution to current
   // process and dynamically linked libraries.
@@ -217,7 +221,7 @@ MaybeEngine Halley::make(SereneContext &serene_ctx,
     // cf llvm/lib/ExecutionEngine/Orc/LLJIT.cpp
     // LLJIT::createObjectLinkingLayer
 
-    if (serene_ctx.triple.isOSBinFormatCOFF()) {
+    if (sereneCtx.triple.isOSBinFormatCOFF()) {
       objectLayer->setOverrideObjectFlagsWithResponsibilityFlags(true);
       objectLayer->setAutoClaimResponsibilityForObjectSymbols(true);
     }
@@ -252,7 +256,7 @@ MaybeEngine Halley::make(SereneContext &serene_ctx,
       -> llvm::Expected<
           std::unique_ptr<llvm::orc::IRCompileLayer::IRCompiler>> {
     llvm::CodeGenOpt::Level jitCodeGenOptLevel =
-        static_cast<llvm::CodeGenOpt::Level>(serene_ctx.getOptimizatioLevel());
+        static_cast<llvm::CodeGenOpt::Level>(sereneCtx.getOptimizatioLevel());
 
     JTMB.setCodeGenOptLevel(jitCodeGenOptLevel);
 
@@ -265,7 +269,7 @@ MaybeEngine Halley::make(SereneContext &serene_ctx,
         std::move(*targetMachine), jitEngine->cache.get());
   };
 
-  if (serene_ctx.opts.JITLazy) {
+  if (sereneCtx.opts.JITLazy) {
     // Setup a LLLazyJIT instance to the times that latency is important
     // for example in a REPL. This way
 
@@ -308,10 +312,10 @@ MaybeEngine Halley::make(SereneContext &serene_ctx,
   return MaybeEngine(std::move(jitEngine));
 };
 
-MaybeEngine makeHalleyJIT(SereneContext &ctx) {
+MaybeEngine makeHalleyJIT(std::unique_ptr<SereneContext> ctx) {
 
-  llvm::orc::JITTargetMachineBuilder jtmb(ctx.triple);
-  auto maybeJIT = Halley::make(ctx, std::move(jtmb));
+  llvm::orc::JITTargetMachineBuilder jtmb(ctx->triple);
+  auto maybeJIT = Halley::make(std::move(ctx), std::move(jtmb));
   if (!maybeJIT) {
     return maybeJIT.takeError();
   }

@@ -16,6 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "serene/config.h"
+#include "serene/context.h"
+#include "serene/serene.h"
 // #include "serene/jit/halley.h"
 // #include "serene/namespace.h"
 // #include "serene/reader/location.h"
@@ -36,9 +39,11 @@
 // #include <llvm/ADT/StringRef.h>
 // #include <llvm/IR/LegacyPassManager.h>
 // //#include <llvm/MC/TargetRegistry.h>
-// #include <llvm/Support/CommandLine.h>
+#include <llvm/Support/CommandLine.h>
 // #include <llvm/Support/FileSystem.h>
-// #include <llvm/Support/FormatVariadic.h>
+#include <llvm/Support/FormatVariadic.h>
+
+#include <iostream>
 // #include <llvm/Support/Host.h>
 // #include <llvm/Support/Path.h>
 // #include <llvm/Support/raw_ostream.h>
@@ -48,9 +53,9 @@
 // #include <memory>
 
 // using namespace std;
-// using namespace serene;
+using namespace serene;
 
-// namespace cl = llvm::cl;
+namespace cl = llvm::cl;
 
 // namespace {
 // enum Action {
@@ -68,15 +73,15 @@
 // };
 // } // namespace
 
-// static std::string banner =
-//     llvm::formatv("\n\nSerene Compiler Version {0}"
-//                   "\nCopyright (C) 2019-2022 "
-//                   "Sameer Rahmani <lxsameer@gnu.org>\n"
-//                   "Serene comes with ABSOLUTELY NO WARRANTY;\n"
-//                   "This is free software, and you are welcome\n"
-//                   "to redistribute it under certain conditions; \n"
-//                   "for details take a look at the LICENSE file.\n",
-//                   SERENE_VERSION);
+static std::string banner =
+    llvm::formatv("\n\nSerene Compiler Version {0}"
+                  "\nCopyright (C) 2019-2022 "
+                  "Sameer Rahmani <lxsameer@gnu.org>\n"
+                  "Serene comes with ABSOLUTELY NO WARRANTY;\n"
+                  "This is free software, and you are welcome\n"
+                  "to redistribute it under certain conditions; \n"
+                  "for details take a look at the LICENSE file.\n",
+                  SERENE_VERSION);
 
 // static cl::opt<std::string> inputNS(cl::Positional, cl::desc("<namespace>"),
 //                                     cl::Required);
@@ -256,15 +261,21 @@
 //     return 0;
 //   };
 
-int main() {
-  // initCompiler();
-  // registerSereneCLOptions();
+int main(int argc, char *argv[]) {
+  initSerene();
+  registerSereneCLOptions();
 
-  // cl::ParseCommandLineOptions(argc, argv, banner);
+  cl::ParseCommandLineOptions(argc, argv, banner);
 
-  // auto ctx = makeSereneContext();
+  auto engine = makeEngine();
 
-  // applySereneCLOptions(*ctx);
+  if (!engine) {
+    llvm::errs() << "Error: Couldn't create the engine due to '"
+                 << engine.takeError() << "'\n";
+    return 1;
+  }
+
+  applySereneCLOptions(*(*engine));
 
   // // TODO: handle the outputDir by not forcing it. it should be
   // //       default to the current working dir
