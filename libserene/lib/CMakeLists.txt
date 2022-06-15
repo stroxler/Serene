@@ -87,12 +87,4 @@ target_compile_definitions(
   serene PUBLIC "$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:SERENE_STATIC_DEFINE>")
 
 
-target_link_libraries(serene PRIVATE
-  LLVMOrcJIT
-  # TODO: [build] Find a better way to link against the target arch
-  LLVMX86CodeGen
-  LLVMX86AsmParser
-  LLVMAArch64CodeGen
-  LLVMAArch64AsmParser
-
-  ${llvm_libs})
+target_link_libraries(serene PRIVATE ${llvm_libs})

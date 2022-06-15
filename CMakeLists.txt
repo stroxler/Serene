@@ -217,7 +217,9 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   link_directories(${LLVM_BUILD_LIBRARY_DIR})
   add_definitions(${LLVM_DEFINITIONS})
 
-  llvm_map_components_to_libnames(llvm_libs support)
+  llvm_map_components_to_libnames(llvm_libs "all")
+  message(STATUS "....... ${llvm_libs}")
+  message(STATUS ${llvm_libs})
 
   # Serene Setup ===================================
 
