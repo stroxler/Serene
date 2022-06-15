@@ -89,7 +89,10 @@ target_compile_definitions(
 
 target_link_libraries(serene PRIVATE
   LLVMOrcJIT
+  # TODO: [build] Find a better way to link against the target arch
   LLVMX86CodeGen
   LLVMX86AsmParser
+  LLVMAArch64CodeGen
+  LLVMAArch64AsmParser
 
   ${llvm_libs})

@@ -29,6 +29,8 @@
 
 #include <functional> // for function
 #include <memory>     // for make_unique, unique_ptr
+#include <string>     // for string, basic_string
+#include <vector>     // for vector
 
 #define DEFAULT_NS_NAME "serene.user"
 #define INTERNAL_NS     "serene.internal"
