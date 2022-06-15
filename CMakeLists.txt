@@ -217,9 +217,18 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   link_directories(${LLVM_BUILD_LIBRARY_DIR})
   add_definitions(${LLVM_DEFINITIONS})
 
-  llvm_map_components_to_libnames(llvm_libs "all")
-  message(STATUS "....... ${llvm_libs}")
-  message(STATUS ${llvm_libs})
+  execute_process(COMMAND llvm-config --components
+    OUTPUT_VARIABLE llvm_components)
+
+  llvm_map_components_to_libnames(llvm_libs
+    core
+    support
+    jitlink
+    orcjit
+    aarch64asmparser
+    aarch64codegen
+    x86asmparser
+    x86codegen)
 
   # Serene Setup ===================================
 
