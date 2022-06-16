@@ -217,18 +217,24 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   link_directories(${LLVM_BUILD_LIBRARY_DIR})
   add_definitions(${LLVM_DEFINITIONS})
 
-  execute_process(COMMAND llvm-config --components
-    OUTPUT_VARIABLE llvm_components)
+  # execute_process(COMMAND llvm-config --components
+  #   OUTPUT_VARIABLE llvm_libraries)
 
+  # string(REGEX REPLACE "\n$" "" llvm_libraries "${llvm_libraries}")
+  # string(REPLACE " " ";" llvm_libs ${llvm_libraries})
+
+  set(arch_dependant_components "")
+  foreach(arch ${LLVM_TARGETS_TO_BUILD})
+    list(APPEND arch_dependant_components "${arch}asmparser" "${arch}codegen")
+  endforeach(arch)
+
+  message(STATUS "................ ${arch_dependant_components}")
   llvm_map_components_to_libnames(llvm_libs
     core
     support
     jitlink
     orcjit
-    aarch64asmparser
-    aarch64codegen
-    x86asmparser
-    x86codegen)
+    ${arch_dependant_components})
 
   # Serene Setup ===================================
 
