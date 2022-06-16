@@ -288,6 +288,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     # aarch64codegen
     # x86asmparser
     # x86codegen
+    ExecutionEngine
     ${LLVM_TARGETS_TO_BUILD}
     )
 
