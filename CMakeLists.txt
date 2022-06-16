@@ -231,7 +231,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     string(REPLACE ";" " " params_list "${params}")
 
     # Ask llvm-config for all the libs for the given components
-    execute_process(COMMAND bash -c "llvm-config ${params_list}"
+    execute_process(COMMAND bash -c "llvm-config-15 ${params_list}"
       OUTPUT_VARIABLE llvm_libraries)
 
     string(REGEX REPLACE "\n$" "" llvm_libraries "${llvm_libraries}")
