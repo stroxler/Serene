@@ -284,10 +284,13 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     support
     jitlink
     orcjit
-    aarch64asmparser
-    aarch64codegen
-    x86asmparser
-    x86codegen)
+    # aarch64asmparser
+    # aarch64codegen
+    # x86asmparser
+    # x86codegen
+    X86
+    AArch64
+    )
 
   message(STATUS "-- Libs to ----- link:")
   message(STATUS ${llvm_libs1})
