@@ -275,7 +275,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 
   # set(arch_dependant_components "")
   # foreach(arch ${LLVM_TARGETS_TO_BUILD})
-  #   list(APPEND arch_dependant_components "${arch}asmparser" "${arch}codegen")
+  #   list(APPEND arch_dependant_components "${arch}asmpa)
   # endforeach(arch)
 
 
@@ -288,11 +288,10 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     # aarch64codegen
     # x86asmparser
     # x86codegen
-    X86
-    AArch64
+    ${LLVM_TARGETS_TO_BUILD}
     )
 
-  message(STATUS "-- Libs to ----- link:")
+  message(STATUS "-- Libs to ----- link: ${LLVM_TARGETS_TO_BUILD}")
   message(STATUS ${llvm_libs1})
 
   # Serene Setup ===================================
