@@ -88,3 +88,4 @@ target_compile_definitions(
 
 
 target_link_libraries(serene PRIVATE ${llvm_libs})
+llvm_update_compile_flags(serene)

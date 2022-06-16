@@ -282,6 +282,16 @@ function build-serene-image() { ## Build the Serene docker image for the current
            .
 }
 
+function build-serene-image-arm64() { ## Build the Serene docker image for the current HEAD (on ARM64)
+    # shellcheck source=/dev/null
+    source .env
+
+    docker buildx build --platform linux/arm64 --builder multiarch --load \
+           -f "$ME/resources/docker/serene/Dockerfile" \
+           -t "$REGISTRY/serene:$VERSION-$(git rev-parse HEAD)" \
+           .
+}
+
 function release-serene-image() { ## Build and push the Serene docker image for the current HEAD in Release mode
     # shellcheck source=/dev/null
     source .env

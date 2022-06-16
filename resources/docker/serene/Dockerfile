@@ -1,4 +1,4 @@
-FROM rg.fr-par.scw.cloud/serene/llvm:15-7
+FROM rg.fr-par.scw.cloud/serene/llvm:15-8
 
 ARG TASK=build
 

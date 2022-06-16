@@ -187,7 +187,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   endif()
 
   # LLVM setup =========================================
-  find_package(LLVM REQUIRED CONFIG)
+  find_package(LLVM REQUIRED all-targets CONFIG)
   find_package(MLIR REQUIRED CONFIG)
   find_package(LLD REQUIRED CONFIG)
 
@@ -217,24 +217,81 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   link_directories(${LLVM_BUILD_LIBRARY_DIR})
   add_definitions(${LLVM_DEFINITIONS})
 
-  # execute_process(COMMAND llvm-config --components
-  #   OUTPUT_VARIABLE llvm_libraries)
 
-  # string(REGEX REPLACE "\n$" "" llvm_libraries "${llvm_libraries}")
-  # string(REPLACE " " ";" llvm_libs ${llvm_libraries})
 
-  set(arch_dependant_components "")
-  foreach(arch ${LLVM_TARGETS_TO_BUILD})
-    list(APPEND arch_dependant_components "${arch}asmparser" "${arch}codegen")
-  endforeach(arch)
+  function(llvm_libs_for output components)
+    # A trick to extract variable number of args beside the first
+    list(SUBLIST ARGV 1 -1 comps)
 
-  message(STATUS "................ ${arch_dependant_components}")
-  llvm_map_components_to_libnames(llvm_libs
+    # Generate a list of parameters to pass to llvm-config
+    set(params "")
+    foreach(lib ${comps})
+      string(APPEND params "--libs ${lib} ")
+    endforeach(lib)
+    string(REPLACE ";" " " params_list "${params}")
+
+    # Ask llvm-config for all the libs for the given components
+    execute_process(COMMAND bash -c "llvm-config ${params_list}"
+      OUTPUT_VARIABLE llvm_libraries)
+
+    string(REGEX REPLACE "\n$" "" llvm_libraries "${llvm_libraries}")
+    string(REPLACE " " ";" llvm_libs ${llvm_libraries})
+
+    # Convert the lib names to cmake target names
+    set(targets "")
+    foreach(lib ${llvm_libs})
+      string(SUBSTRING ${lib} 2 100 target_name)
+      list(APPEND targets "${target_name}")
+    endforeach(lib)
+
+    set(${output} ${targets} PARENT_SCOPE)
+  endfunction()
+
+  function(llvm_target_archs output)
+    set(archs "")
+    foreach(arch ${LLVM_TARGETS_TO_BUILD})
+      string(TOLOWER ${arch} arch_name)
+      list (APPEND archs "${arch_name}")
+    endforeach(arch)
+
+    set(${output} ${archs} PARENT_SCOPE)
+  endfunction()
+
+  llvm_target_archs(llvm_archs)
+  message(STATUS "-- LLVM is built against:: ${llvm_archs}")
+
+  llvm_libs_for(llvm_libs
+    ${llvm_archs}
     core
     support
     jitlink
     orcjit
-    ${arch_dependant_components})
+    asmparser
+    codegen)
+
+  message(STATUS "-- Libs to link:")
+  message(STATUS ${llvm_libs})
+
+
+  # set(arch_dependant_components "")
+  # foreach(arch ${LLVM_TARGETS_TO_BUILD})
+  #   list(APPEND arch_dependant_components "${arch}asmparser" "${arch}codegen")
+  # endforeach(arch)
+
+
+  llvm_map_components_to_libnames(llvm_libs1
+    core
+    support
+    jitlink
+    orcjit
+    all
+    aarch64asmparser
+    aarch64codegen
+    x86asmparser
+    x86codegen)
+
+  message(STATUS "-- Libs to ----- link:")
+  message(STATUS ${llvm_libs1})
 
   # Serene Setup ===================================
 
