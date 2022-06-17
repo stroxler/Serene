@@ -106,9 +106,15 @@ Halley::Halley(std::unique_ptr<SereneContext> ctx,
 
                       ? llvm::JITEventListener::createGDBRegistrationListener()
                       : nullptr),
-      perfListener(ctx->opts.JITenablePerfNotificationListener
-                       ? llvm::JITEventListener::createPerfJITEventListener()
-                       : nullptr),
+      perfListener(
+#if LLVM_USE_PERF
+          ctx->opts.JITenablePerfNotificationListener
+              ? llvm::JITEventListener::createPerfJITEventListener()
+              : nullptr
+#else
+          nullptr
+#endif
+          ),
       jtmb(jtmb), dl(dl), ctx(std::move(ctx)){};
 
 // MaybeJITPtr Halley::lookup(exprs::Symbol &sym) const {
@@ -313,7 +319,6 @@ MaybeEngine Halley::make(std::unique_ptr<SereneContext> sereneCtxPtr,
 };
 
 MaybeEngine makeHalleyJIT(std::unique_ptr<SereneContext> ctx) {
-
   llvm::orc::JITTargetMachineBuilder jtmb(ctx->triple);
   auto maybeJIT = Halley::make(std::move(ctx), std::move(jtmb));
   if (!maybeJIT) {
