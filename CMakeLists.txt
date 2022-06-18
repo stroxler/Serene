@@ -297,7 +297,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     ${LLVM_TARGETS_TO_BUILD}
     )
 
-  message(STATUS "-- Libs to ----- link: ${LLVM_TARGETS_TO_BUILD}")
+  message(STATUS "-- ${LLVM_USE_PERF} | ${CONDITIONAL_COMPONENTS}")
   message(STATUS ${llvm_libs})
 
   # Serene Setup ===================================
