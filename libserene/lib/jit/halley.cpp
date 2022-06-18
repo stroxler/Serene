@@ -107,6 +107,10 @@ Halley::Halley(std::unique_ptr<SereneContext> ctx,
                       ? llvm::JITEventListener::createGDBRegistrationListener()
                       : nullptr),
       perfListener(
+// TODO: [llvm] Remove this line when apt.llvm.org fixed the undefined symbol
+//       for createPerfJITListener
+#define LLVM_USE_PERF 1
+
 #if LLVM_USE_PERF
           ctx->opts.JITenablePerfNotificationListener
               ? llvm::JITEventListener::createPerfJITEventListener()
@@ -115,7 +119,13 @@ Halley::Halley(std::unique_ptr<SereneContext> ctx,
           nullptr
 #endif
           ),
-      jtmb(jtmb), dl(dl), ctx(std::move(ctx)){};
+      jtmb(jtmb), dl(dl), ctx(std::move(ctx)) {
+#if LLVM_USE_PERF
+#include <hnt>;
+#else
+#include <fallllllse>
+#endif
+};
 
 // MaybeJITPtr Halley::lookup(exprs::Symbol &sym) const {
 //   HALLEY_LOG("Looking up: " << sym.toString());
