@@ -15,7 +15,7 @@ steps:
   image: rg.fr-par.scw.cloud/serene/llvm:15-8
   commands:
     - cmake --version
-    - ./builder build
+    - ./builder build -DLLVM_USE_PERF=ON
     - ln -s build/compile_commands.json ./compile_commands.json
 
 - name: Linters

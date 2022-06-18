@@ -279,10 +279,13 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   # endforeach(arch)
 
 
+  option(LLVM_USE_PERF "If the target LLVM build is built with LLVM_USE_PERF" OFF)
   set(CONDITIONAL_COMPONENTS "")
+
   if(LLVM_USE_PERF)
     list(APPEND CONDITIONAL_COMPONENTS PerfJITEvents)
   endif()
+
   llvm_map_components_to_libnames(llvm_libs
     core
     support
