@@ -46,6 +46,10 @@ option(SERENE_SHOW_LLVM_LIBS "Print all the llvm libs available" OFF)
 option(SERENE_WITH_MLIR_CL_OPTION "Add support for controlling MLIR via command line options" OFF)
 option(SERENE_USE_COMPILER_RT "Use LLVM's compiler-rt" OFF)
 
+# LLVM
+# Info about the target llvm build
+option(LLVM_USE_PERF "If the target LLVM build is built with LLVM_USE_PERF" OFF)
+
 # Only do these if this is the main project, and not if it is included through add_subdirectory
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   ## Settings =======================
@@ -218,68 +222,6 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   add_definitions(${LLVM_DEFINITIONS})
 
 
-
-  # function(llvm_libs_for output components)
-  #   # A trick to extract variable number of args beside the first
-  #   list(SUBLIST ARGV 1 -1 comps)
-
-  #   # Generate a list of parameters to pass to llvm-config
-  #   set(params "")
-  #   foreach(lib ${comps})
-  #     string(APPEND params "--libs ${lib} ")
-  #   endforeach(lib)
-  #   string(REPLACE ";" " " params_list "${params}")
-
-  #   # Ask llvm-config for all the libs for the given components
-  #   execute_process(COMMAND bash -c "llvm-config-15 ${params_list}"
-  #     OUTPUT_VARIABLE llvm_libraries)
-
-  #   string(REGEX REPLACE "\n$" "" llvm_libraries "${llvm_libraries}")
-  #   string(REPLACE " " ";" llvm_libs ${llvm_libraries})
-
-  #   # Convert the lib names to cmake target names
-  #   set(targets "")
-  #   foreach(lib ${llvm_libs})
-  #     string(SUBSTRING ${lib} 2 100 target_name)
-  #     list(APPEND targets "${target_name}")
-  #   endforeach(lib)
-
-  #   set(${output} ${targets} PARENT_SCOPE)
-  # endfunction()
-
-  # function(llvm_target_archs output)
-  #   set(archs "")
-  #   foreach(arch ${LLVM_TARGETS_TO_BUILD})
-  #     string(TOLOWER ${arch} arch_name)
-  #     list (APPEND archs "${arch_name}")
-  #   endforeach(arch)
-
-  #   set(${output} ${archs} PARENT_SCOPE)
-  # endfunction()
-
-  # llvm_target_archs(llvm_archs)
-  # message(STATUS "-- LLVM is built against:: ${llvm_archs}")
-
-  # llvm_libs_for(llvm_libs1
-  #   ${llvm_archs}
-  #   core
-  #   support
-  #   jitlink
-  #   orcjit
-  #   asmparser
-  #   codegen)
-
-  # message(STATUS "-- Libs to link:")
-  # message(STATUS ${llvm_libs1})
-
-
-  # set(arch_dependant_components "")
-  # foreach(arch ${LLVM_TARGETS_TO_BUILD})
-  #   list(APPEND arch_dependant_components "${arch}asmpa)
-  # endforeach(arch)
-
-
-  option(LLVM_USE_PERF "If the target LLVM build is built with LLVM_USE_PERF" OFF)
   set(CONDITIONAL_COMPONENTS "")
 
   if(LLVM_USE_PERF)
@@ -291,17 +233,10 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     support
     jitlink
     orcjit
-    # aarch64asmparser
-    # aarch64codegen
-    # x86asmparser
-    # x86codegen
     ExecutionEngine
     ${CONDITIONAL_COMPONENTS}
     ${LLVM_TARGETS_TO_BUILD}
     )
-
-  message(STATUS "-- ${LLVM_USE_PERF} | ${CONDITIONAL_COMPONENTS}")
-  message(STATUS ${llvm_libs})
 
   # Serene Setup ===================================
 
