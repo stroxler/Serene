@@ -298,7 +298,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     )
 
   message(STATUS "-- Libs to ----- link: ${LLVM_TARGETS_TO_BUILD}")
-  message(STATUS ${llvm_libs1})
+  message(STATUS ${llvm_libs})
 
   # Serene Setup ===================================
 
