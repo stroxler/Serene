@@ -279,6 +279,10 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   # endforeach(arch)
 
 
+  set(CONDITIONAL_COMPONENTS "")
+  if(LLVM_USE_PERF)
+    list(APPEND CONDITIONAL_COMPONENTS PerfJITEvents)
+  endif()
   llvm_map_components_to_libnames(llvm_libs
     core
     support
@@ -289,6 +293,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     # x86asmparser
     # x86codegen
     ExecutionEngine
+    ${CONDITIONAL_COMPONENTS}
     ${LLVM_TARGETS_TO_BUILD}
     )
 

@@ -106,13 +106,9 @@ Halley::Halley(std::unique_ptr<SereneContext> ctx,
 
                       ? llvm::JITEventListener::createGDBRegistrationListener()
                       : nullptr),
-      perfListener(
-// TODO: [llvm] Remove this line when apt.llvm.org fixed the undefined symbol
-//       for createPerfJITEventListener
-#define LLVM_USE_PERF 0
-          ctx->opts.JITenablePerfNotificationListener
-              ? llvm::JITEventListener::createPerfJITEventListener()
-              : nullptr),
+      perfListener(ctx->opts.JITenablePerfNotificationListener
+                       ? llvm::JITEventListener::createPerfJITEventListener()
+                       : nullptr),
       jtmb(jtmb), dl(dl), ctx(std::move(ctx)){};
 
 // MaybeJITPtr Halley::lookup(exprs::Symbol &sym) const {
