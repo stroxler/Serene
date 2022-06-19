@@ -21,19 +21,16 @@
   This is the first working attempt on building a JIT engine for Serene
   and named after Edmond Halley.
 
-  - It supports both ASTs and Namespaces
-  - Every Namespace might have one or more JITDylibs. Depends on the method
-    of the compilation.
   - It operates in lazy (for REPL) and non-lazy mode and wraps LLJIT
     and LLLazyJIT
   - It uses an object cache layer to cache module (not NSs) objects.
  */
-
 #ifndef SERENE_JIT_HALLEY_H
 #define SERENE_JIT_HALLEY_H
 
-#include "serene/context.h" // for Serene...
-#include "serene/export.h"  // for SERENE...
+#include "serene/context.h"     // for Serene...
+#include "serene/export.h"      // for SERENE...
+#include "serene/types/types.h" // for Intern...
 
 #include <llvm/ADT/SmallVector.h>                             // for SmallV...
 #include <llvm/ADT/StringMap.h>                               // for StringMap
@@ -47,7 +44,9 @@
 #include <llvm/Support/MemoryBufferRef.h>                     // for Memory...
 #include <llvm/Support/raw_ostream.h>                         // for raw_os...
 
-#include <memory> // for unique...
+#include <memory>   // for unique...
+#include <stddef.h> // for size_t
+#include <vector>   // for vector
 
 #define HALLEY_LOG(...)                  \
   DEBUG_WITH_TYPE("halley", llvm::dbgs() \
@@ -57,6 +56,10 @@ namespace llvm {
 class DataLayout;
 class JITEventListener;
 class Module;
+namespace orc {
+class JITDylib;
+} // namespace orc
+
 } // namespace llvm
 
 namespace serene {
@@ -108,6 +111,25 @@ class SERENE_EXPORT Halley {
 
   bool isLazy = false;
 
+  // TODO: [jit] Replace this vector with a thread safe time-optimized
+  // datastructure that is capable of indexing strings and own all
+  // the strings. A lockless algorithm would be even better
+
+  /// Owns all the internal strings used in the compilation process
+  std::vector<types::InternalString> stringStorage;
+
+  std::vector<types::Namespace> nsStorage;
+  // /TODO
+
+  // JIT JITDylib related functions ---
+  llvm::StringMap<llvm::SmallVector<llvm::orc::JITDylib *, 1>> jitDylibs;
+
+  /// Register the given pointer to a `JITDylib` \p l, with the give \p ns.
+  void pushJITDylib(types::Namespace &ns, llvm::orc::JITDylib *l);
+
+  // /// Returns the number of registered `JITDylib` for the given \p ns.
+  size_t getNumberOfJITDylibs(types::Namespace &ns);
+
 public:
   Halley(std::unique_ptr<SereneContext> ctx,
          llvm::orc::JITTargetMachineBuilder &&jtmb, llvm::DataLayout &&dl);
@@ -116,6 +138,15 @@ public:
                           llvm::orc::JITTargetMachineBuilder &&jtmb);
 
   SereneContext &getContext() { return *ctx; };
+
+  llvm::Error createEmptyNS(llvm::StringRef name);
+
+  types::InternalString &insertString(types::InternalString &s);
+  types::Namespace &insertNamespace(types::Namespace &n);
+
+  /// Return a pointer to the most registered JITDylib of the given \p ns
+  ////name
+  llvm::orc::JITDylib *getLatestJITDylib(types::Namespace &ns);
 
   void setEngine(std::unique_ptr<llvm::orc::LLJIT> e, bool isLazy);
   /// Looks up a packed-argument function with the given sym name and returns a

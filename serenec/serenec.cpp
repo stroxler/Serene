@@ -19,6 +19,8 @@
 #include "serene/config.h"
 #include "serene/context.h"
 #include "serene/serene.h"
+#include "serene/types/types.h"
+
 // #include "serene/jit/halley.h"
 // #include "serene/namespace.h"
 // #include "serene/reader/location.h"
@@ -276,6 +278,9 @@ int main(int argc, char *argv[]) {
   }
 
   applySereneCLOptions(*(*engine));
+
+  const std::string forms{"some.ns/sym"};
+  const types::InternalString data(forms.c_str(), forms.size());
 
   // // TODO: handle the outputDir by not forcing it. it should be
   // //       default to the current working dir

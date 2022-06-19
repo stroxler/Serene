@@ -14,8 +14,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-set(LIB_SERENE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
-include_directories(${LIB_SERENE_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/lib)
+set(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set(LIBSERENE_INCLUDE_DIR ${INCLUDE_DIR} PARENT_SCOPE)
+include_directories(${INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/lib)
 
 add_subdirectory(lib)
 

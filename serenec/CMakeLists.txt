@@ -25,6 +25,8 @@ set_target_properties(serenec PROPERTIES
   # LTO support
   INTERPROCEDURAL_OPTIMIZATION TRUE)
 
+add_dependencies(serenec Serene::core)
+
 if(SERENE_ENABLE_TIDY)
   set_target_properties(serenec PROPERTIES CXX_CLANG_TIDY ${CLANG_TIDY_PATH})
 endif()

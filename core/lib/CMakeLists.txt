@@ -61,10 +61,5 @@ include(GenerateExportHeader)
 
 generate_export_header(core EXPORT_FILE_NAME ${PROJECT_BINARY_DIR}/include/serene/core/export.h)
 
-if(SERENE_SHOW_LLVM_LIBS)
-  execute_process(COMMAND llvm-config --libs all
-    OUTPUT_VARIABLE SERENE_LLVM_LIBS)
-  message(STATUS "LLVM libs available:\n ${SERENE_LLVM_LIBS}")
-endif()
 
 target_link_libraries(core PRIVATE)

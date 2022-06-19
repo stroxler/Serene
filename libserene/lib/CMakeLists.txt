@@ -76,7 +76,7 @@ endif()
 #add_dependencies(serene)
 
 # We need this directory, and users of our library will need it too
-target_include_directories(serene PUBLIC "$<BUILD_INTERFACE:${LIB_SERENE_INCLUDE_DIR}>")
+target_include_directories(serene PUBLIC "$<BUILD_INTERFACE:${LIBSERENE_INCLUDE_DIR}>")
 target_include_directories(serene PUBLIC "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>")
 
 # Generate the export.h

@@ -15,11 +15,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 #include "serene/jit/halley.h"
 
-#include "serene/context.h" // for Seren...
-#include "serene/options.h" // for Options
+#include "serene/context.h"     // for Seren...
+#include "serene/options.h"     // for Options
+#include "serene/types/types.h" // for Names...
 
 #include <system_error> // for error...
 
@@ -42,6 +42,7 @@
 #include <llvm/IR/Module.h>                                    // for Module
 #include <llvm/Support/CodeGen.h>                              // for Level
 #include <llvm/Support/FileSystem.h>                           // for OF_None
+#include <llvm/Support/FormatVariadic.h>                       // for formatv
 #include <llvm/Support/ToolOutputFile.h>                       // for ToolO...
 #include <llvm/Support/raw_ostream.h>                          // for raw_o...
 
@@ -98,6 +99,37 @@ void ObjectCache::dumpToObjectFile(llvm::StringRef outputFilename) {
   file->os() << cachedObject->getBuffer();
   file->keep();
 }
+
+llvm::orc::JITDylib *Halley::getLatestJITDylib(types::Namespace &ns) {
+
+  if (jitDylibs.count(ns.name->data) == 0) {
+    return nullptr;
+  }
+
+  auto vec = jitDylibs[ns.name->data];
+  // TODO: Make sure that the returning Dylib still exists in the JIT
+  //       by calling jit->engine->getJITDylibByName(dylib_name);
+  return vec.empty() ? nullptr : vec.back();
+};
+
+void Halley::pushJITDylib(types::Namespace &ns, llvm::orc::JITDylib *l) {
+  if (jitDylibs.count(ns.name->data) == 0) {
+    llvm::SmallVector<llvm::orc::JITDylib *, 1> vec{l};
+    jitDylibs[ns.name->data] = vec;
+    return;
+  }
+  auto vec = jitDylibs[ns.name->data];
+  vec.push_back(l);
+  jitDylibs[ns.name->data] = vec;
+}
+
+size_t Halley::getNumberOfJITDylibs(types::Namespace &ns) {
+  if (jitDylibs.count(ns.name->data) == 0) {
+    return 0;
+  }
+  auto vec = jitDylibs[ns.name->data];
+  return vec.size();
+};
 
 Halley::Halley(std::unique_ptr<SereneContext> ctx,
                llvm::orc::JITTargetMachineBuilder &&jtmb, llvm::DataLayout &&dl)
@@ -310,6 +342,44 @@ MaybeEngine Halley::make(std::unique_ptr<SereneContext> sereneCtxPtr,
           jitEngine->dl.getGlobalPrefix())));
 
   return MaybeEngine(std::move(jitEngine));
+};
+
+types::InternalString &Halley::insertString(types::InternalString &s) {
+  stringStorage.push_back(s);
+  auto &sameString = stringStorage.back();
+  return sameString;
+};
+
+types::Namespace &Halley::insertNamespace(types::Namespace &n) {
+  nsStorage.push_back(n);
+  auto &sameNs = nsStorage.back();
+  return sameNs;
+};
+
+llvm::Error Halley::createEmptyNS(llvm::StringRef name) {
+
+  // TODO: [serene.core] We need to provide some functions on llvm level to
+  // build instances from these type in a functional way. We need to avoid
+  // randomly build instances here and there that causes unsafe memory
+  types::InternalString nsName_(name.str().c_str(), name.size());
+  auto &nsName = insertString(nsName_);
+
+  types::Namespace ns_(&nsName);
+  auto &ns = insertNamespace(ns_);
+
+  HALLEY_LOG(llvm::formatv("Creating Dylib {0}#{1}", ns.name,
+                           getNumberOfJITDylibs(ns) + 1));
+
+  auto newDylib = engine->createJITDylib(
+      llvm::formatv("{0}#{1}", ns.name, getNumberOfJITDylibs(ns) + 1));
+
+  if (!newDylib) {
+    llvm::errs() << "Couldn't create the jitDylib\n";
+    serene::terminate(*ctx, 1);
+  }
+
+  pushJITDylib(ns, &(*newDylib));
+  return llvm::Error::success();
 };
 
 MaybeEngine makeHalleyJIT(std::unique_ptr<SereneContext> ctx) {
