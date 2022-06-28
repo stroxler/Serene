@@ -269,18 +269,26 @@ int main(int argc, char *argv[]) {
 
   cl::ParseCommandLineOptions(argc, argv, banner);
 
-  auto engine = makeEngine();
+  auto maybeEngine = makeEngine();
 
-  if (!engine) {
+  if (!maybeEngine) {
     llvm::errs() << "Error: Couldn't create the engine due to '"
-                 << engine.takeError() << "'\n";
+                 << maybeEngine.takeError() << "'\n";
     return 1;
   }
 
-  applySereneCLOptions(*(*engine));
+  auto &engine = *maybeEngine;
+  applySereneCLOptions(*engine);
 
   const std::string forms{"some.ns/sym"};
   const types::InternalString data(forms.c_str(), forms.size());
+
+  auto err = engine->createEmptyNS("some.ns/sym");
+
+  if (err) {
+    llvm::errs() << "Error: " << err << "'\n";
+    return 1;
+  }
 
   // // TODO: handle the outputDir by not forcing it. it should be
   // //       default to the current working dir

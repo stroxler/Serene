@@ -19,22 +19,20 @@
 #ifndef SERENE_TYPES_TYPE_H
 #define SERENE_TYPES_TYPE_H
 
-#include <string>
-
 namespace serene::types {
 
 struct Expression {
-  const int8_t *data;
-
-  explicit Expression(const int8_t *data) : data(data){};
+  const unsigned char *data;
+  explicit Expression(const unsigned char *data) : data(data){};
 };
 
 struct InternalString {
   // We store the actual string in a "string" data section
   const char *data;
-  const int64_t len;
+  const unsigned int len;
 
-  InternalString(const char *data, const int64_t len) : data(data), len(len){};
+  InternalString(const char *data, const unsigned int len)
+      : data(data), len(len){};
 };
 
 struct Symbol {

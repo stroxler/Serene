@@ -96,11 +96,16 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     -fdata-sections
 
     $<$<CONFIG:DEBUG>:-g3>
+    $<$<CONFIG:DEBUG>:-O1>
     $<$<CONFIG:DEBUG>:-ggdb>
     # For the sake of debugging
     $<$<CONFIG:DEBUG>:-fno-inline>
     # To make the local ccache happy
     $<$<CONFIG:DEBUG>:-fdebug-prefix-map=${PROJECT_SOURCE_DIR}=.>
+
+    # No tail call elimination on Debug to let asan provide
+    # better stacktrackes
+    $<$<CONFIG:DEBUG>:-fno-optimize-sibling-calls>
 
     $<$<CONFIG:DEBUG>:-fno-omit-frame-pointer>
     $<$<CONFIG:RELEASE>:-fomit-frame-pointer>

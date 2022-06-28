@@ -23,7 +23,8 @@
 
 #include <system_error> // for error...
 
-#include <llvm/ADT/StringMapEntry.h>                           // for Strin...
+#include <llvm/ADT/StringMapEntry.h> // for Strin...
+#include <llvm/ADT/StringRef.h>
 #include <llvm/ADT/Triple.h>                                   // for Triple
 #include <llvm/ADT/iterator.h>                                 // for itera...
 #include <llvm/ExecutionEngine/JITEventListener.h>             // for JITEv...
@@ -124,11 +125,13 @@ void Halley::pushJITDylib(types::Namespace &ns, llvm::orc::JITDylib *l) {
 }
 
 size_t Halley::getNumberOfJITDylibs(types::Namespace &ns) {
+  llvm::outs() << *ns.name->data << "hnt\n";
+
   if (jitDylibs.count(ns.name->data) == 0) {
     return 0;
   }
-  auto vec = jitDylibs[ns.name->data];
-  return vec.size();
+
+  return jitDylibs[ns.name->data].size();
 };
 
 Halley::Halley(std::unique_ptr<SereneContext> ctx,
@@ -344,34 +347,40 @@ MaybeEngine Halley::make(std::unique_ptr<SereneContext> sereneCtxPtr,
   return MaybeEngine(std::move(jitEngine));
 };
 
-types::InternalString &Halley::insertString(types::InternalString &s) {
-  stringStorage.push_back(s);
-  auto &sameString = stringStorage.back();
-  return sameString;
+types::InternalString &Halley::getInternalString(llvm::StringRef s) {
+  // TODO: [serene.core] We need to provide some functions on llvm level to
+  // build instances from these type in a functional way. We need to avoid
+  // randomly build instances here and there that causes unsafe memory
+
+  auto str = std::make_unique<types::InternalString>(s.str().c_str(), s.size());
+  stringStorage.push_back(std::move(str));
+  const auto &sameString = stringStorage.back();
+  return *sameString;
+  // /TODO
 };
 
-types::Namespace &Halley::insertNamespace(types::Namespace &n) {
-  nsStorage.push_back(n);
-  auto &sameNs = nsStorage.back();
-  return sameNs;
+types::Namespace &Halley::createNamespace(llvm::StringRef name) {
+  // TODO: [serene.core] We need to provide some functions on llvm level to
+  // build instances from these type in a functional way. We need to avoid
+  // randomly build instances here and there that causes unsafe memory
+  auto nsName = getInternalString(name);
+  auto ns     = std::make_unique<types::Namespace>(&nsName);
+  nsStorage.push_back(std::move(ns));
+  const auto &sameNs = nsStorage.back();
+  return *sameNs;
+  // /TODO
 };
 
 llvm::Error Halley::createEmptyNS(llvm::StringRef name) {
 
-  // TODO: [serene.core] We need to provide some functions on llvm level to
-  // build instances from these type in a functional way. We need to avoid
-  // randomly build instances here and there that causes unsafe memory
-  types::InternalString nsName_(name.str().c_str(), name.size());
-  auto &nsName = insertString(nsName_);
+  auto &ns = createNamespace(name);
 
-  types::Namespace ns_(&nsName);
-  auto &ns = insertNamespace(ns_);
+  auto numOfDylibs = getNumberOfJITDylibs(ns) + 1;
 
-  HALLEY_LOG(llvm::formatv("Creating Dylib {0}#{1}", ns.name,
-                           getNumberOfJITDylibs(ns) + 1));
+  HALLEY_LOG(llvm::formatv("Creating Dylib {0}#{1}", ns.name, numOfDylibs));
 
-  auto newDylib = engine->createJITDylib(
-      llvm::formatv("{0}#{1}", ns.name, getNumberOfJITDylibs(ns) + 1));
+  auto newDylib =
+      engine->createJITDylib(llvm::formatv("{0}#{1}", ns.name, numOfDylibs));
 
   if (!newDylib) {
     llvm::errs() << "Couldn't create the jitDylib\n";
