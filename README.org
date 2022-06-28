@@ -22,7 +22,7 @@ Setup the githook and install dependencies using the following commands:
 
   *Important Note*: We're trying to keep Serene up to date with the LLVM release cycle till we get
   to our first release. So we use the development version of the LLVM. Currently we are using
-  =9080e21906a162cb2aabcd214d62fa3e463b7675= commit as our reference.
+  =14.0.6= branch as our reference.
 
   MLIR is a part of the [[https://llvm.org][LLVM]] project and in order to build it we need to build the LLVM itself as well.
   Here is a quick guide to build the latest version of the LLVM and MLIR.
