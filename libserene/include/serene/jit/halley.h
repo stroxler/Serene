@@ -72,7 +72,7 @@ class Halley;
 using Engine         = Halley;
 using EnginePtr      = std::unique_ptr<Engine>;
 using MaybeEngine    = llvm::Expected<EnginePtr>;
-using MaybeEnginePtr = llvm::Expected<void (*)(void **)>;
+using MaybeEnginePtr = llvm::Expected<void *(*)()>;
 
 /// A simple object cache following Lang's LLJITWithObjectCache example and
 /// MLIR's SimpelObjectCache.
@@ -151,7 +151,8 @@ public:
   void setEngine(std::unique_ptr<llvm::orc::LLJIT> e, bool isLazy);
   /// Looks up a packed-argument function with the given sym name and returns a
   /// pointer to it. Propagates errors in case of failure.
-  // MaybeJITPtr lookup(exprs::Symbol &sym) const;
+  MaybeEnginePtr lookup(const char *nsName, const char *sym);
+  MaybeEnginePtr lookup(const types::Symbol &sym) const;
 
   /// Invokes the function with the given name passing it the list of opaque
   /// pointers to the actual arguments.
@@ -191,7 +192,7 @@ public:
     }
   };
 
-  llvm::Error loadModule(const char *file);
+  llvm::Error loadModule(const char *nsName, const char *file);
   void dumpToObjectFile(llvm::StringRef filename);
 };
 

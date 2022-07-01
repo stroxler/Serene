@@ -284,20 +284,30 @@ int main(int argc, char *argv[]) {
   const std::string forms{"some.ns/sym"};
   const types::InternalString data(forms.c_str(), forms.size());
 
-  auto err = engine->createEmptyNS("some.ns/sym");
+  auto err = engine->createEmptyNS("some.ns");
 
   if (err) {
     llvm::errs() << "Error: " << err << "'\n";
     return 1;
   }
 
-  err = engine->loadModule("/home/lxsameer/test.ll");
+  err = engine->loadModule("some.ns", "/home/lxsameer/test.ll");
 
   if (err) {
     llvm::errs() << "Error: " << err << "'\n";
     return 1;
   }
 
+  auto bt = engine->lookup("some.ns", "blah");
+
+  if (!bt) {
+    llvm::errs() << "Error: " << bt.takeError() << "'\n";
+    return 1;
+  }
+  auto c    = *bt;
+  void *res = c();
+
+  (void)res;
   // // TODO: handle the outputDir by not forcing it. it should be
   // //       default to the current working dir
   // if (outputDir == "-") {

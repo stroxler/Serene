@@ -406,11 +406,54 @@ llvm::Error Halley::createEmptyNS(const char *name) {
   return llvm::Error::success();
 };
 
+MaybeEnginePtr Halley::lookup(const char *nsName, const char *sym) {
+  assert(sym && "'sym' is null: lookup");
+  assert(sym && "'nsName' is null: lookup");
+
+  llvm::StringRef s{sym};
+  auto *dylib = jitDylibs[nsName].back();
+
+  if (dylib == nullptr) {
+    std::string h = ("No dylib " + s).str();
+    return llvm::make_error<llvm::StringError>(
+        std::make_error_code(std::errc::executable_format_error), h);
+  }
+
+  auto expectedSymbol = engine->lookup(*dylib, s);
+
+  // JIT lookup may return an Error referring to strings stored internally by
+  // the JIT. If the Error outlives the ExecutionEngine, it would want have a
+  // dangling reference, which is currently caught by an assertion inside JIT
+  // thanks to hand-rolled reference counting. Rewrap the error message into a
+  // string before returning. Alternatively, ORC JIT should consider copying
+  // the string into the error message.
+  if (!expectedSymbol) {
+    return llvm::make_error<llvm::StringError>(
+        std::make_error_code(std::errc::executable_format_error), "No symbol");
+  }
+
+  auto rawFPtr = *expectedSymbol;
+  // NOLINTNEXTLINE(performance-no-int-to-ptr)
+  auto fptr = reinterpret_cast<void *(*)()>(&rawFPtr);
+
+  if (fptr == nullptr) {
+    return llvm::make_error<llvm::StringError>(
+        std::make_error_code(std::errc::executable_format_error),
+        "Lookup function is null!");
+  }
+
+  return fptr;
+};
+
 // TODO: Remove this function before prod release
-llvm::Error Halley::loadModule(const char *file) {
-  assert(file && "File is nullptr: loadModule");
+llvm::Error Halley::loadModule(const char *nsName, const char *file) {
+  assert(file && "'file' is nullptr: loadModule");
+  assert(nsName && "'nsName' is nullptr: loadModule");
+
   auto llvmContext = ctx->genLLVMContext();
   llvm::SMDiagnostic error;
+
+  auto *dylib = jitDylibs[nsName].back();
 
   auto module = llvm::parseIRFile(file, error, *llvmContext);
 
@@ -420,7 +463,10 @@ llvm::Error Halley::loadModule(const char *file) {
         error.getMessage().str() + " File: " + file);
   }
 
-  return llvm::Error::success();
+  auto tsm =
+      llvm::orc::ThreadSafeModule(std::move(module), std::move(llvmContext));
+
+  return engine->addIRModule(*dylib, std::move(tsm));
 };
 // /TODO
 
