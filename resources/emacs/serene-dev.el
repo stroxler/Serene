@@ -35,18 +35,25 @@
 (defvar serene/compile-buffer "*compile*")
 
 
-(defmacro serene/builder (command &optional buf-name)
+(defmacro serene/builder (command &optional buf-name sync)
   "Run the given COMMAND via the builder script.
-Use the optional BUF-NAME as the buffer."
+Use the optional BUF-NAME as the buffer.
+
+If SYNC is non-nil it will block."
   (let ((buf (or buf-name (format "*%s*" command))))
-    `(projectile-run-async-shell-command-in-root (format "./builder %s" ,command) ,buf)))
+    (if (not sync)
+        `(projectile-run-async-shell-command-in-root
+          (format "./builder %s" ,command) ,buf)
+      `(projectile-run-shell-command-in-root
+          (format "./builder %s" ,command) ,buf))))
 
 
-(defun serene/compile ()
+(defun serene/compile (&optional sync)
   "Compile the project.
-It will run the `./builder compile' asynchronously."
+It will run the `./builder compile' asynchronously or synchronously if
+SYNC is non-nil."
   (interactive)
-  (serene/builder "compile" serene/compile-buffer))
+  (serene/builder "compile" serene/compile-buffer sync))
 
 
 (defun serene/build ()
