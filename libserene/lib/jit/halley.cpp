@@ -406,6 +406,7 @@ llvm::Error Halley::createEmptyNS(const char *name) {
   return llvm::Error::success();
 };
 
+// TODO: Remove this function before prod release
 llvm::Error Halley::loadModule(const char *file) {
   assert(file && "File is nullptr: loadModule");
   auto llvmContext = ctx->genLLVMContext();
@@ -421,6 +422,7 @@ llvm::Error Halley::loadModule(const char *file) {
 
   return llvm::Error::success();
 };
+// /TODO
 
 MaybeEngine makeHalleyJIT(std::unique_ptr<SereneContext> ctx) {
   llvm::orc::JITTargetMachineBuilder jtmb(ctx->triple);

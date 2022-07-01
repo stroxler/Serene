@@ -46,7 +46,7 @@ set -e
 # -----------------------------------------------------------------------------
 
 command=$1
-VERSION="0.5.0"
+VERSION="0.6.0"
 
 # Serene subprojects. We use this array to run common tasks on all the projects
 # like running the test cases
@@ -200,6 +200,11 @@ function clean() { ## Cleans up the source dir and removes the build
 function run() { ## Runs `serenec` and passes all the given aruguments to it
     LD_PRELOAD=$(clang -print-file-name=libclang_rt.asan-x86_64.so) \
               "$BUILD_DIR"/serenec/serenec "$@"
+}
+
+function lldb-run() { ## Runs `serenec` under lldb
+    LD_PRELOAD=$(clang -print-file-name=libclang_rt.asan-x86_64.so) \
+              lldb -- "$BUILD_DIR"/serenec/serenec "$@"
 }
 
 function repl() { ## Runs `serene-repl` and passes all the given aruguments to it

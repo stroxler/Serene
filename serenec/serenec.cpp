@@ -291,6 +291,13 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
+  err = engine->loadModule("/home/lxsameer/test.ll");
+
+  if (err) {
+    llvm::errs() << "Error: " << err << "'\n";
+    return 1;
+  }
+
   // // TODO: handle the outputDir by not forcing it. it should be
   // //       default to the current working dir
   // if (outputDir == "-") {
