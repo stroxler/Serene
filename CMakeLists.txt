@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 cmake_minimum_required(VERSION 3.19)
 
+
 # Project name and a few useful settings. Other commands can pick up the results
 project(Serene
   VERSION 1.0.0
@@ -138,6 +139,8 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   if(SERENE_SHARED_LIB)
     set(BUILD_SHARED_LIBS "${SERENE_SHARED_LIB}")
   endif()
+
+  find_package(BDWgc 8.2.0 REQUIRED)
 
   find_program(LLD_PROGRAM REQUIRED NAMES lld)
   find_program(MLIRTBLGEN_PROGRAM REQUIRED NAMES mlir-tblgen)

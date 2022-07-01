@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #include "serene/jit/halley.h"
 
 #include "serene/context.h"     // for Seren...
@@ -49,9 +50,11 @@
 
 #include <algorithm> // for max
 #include <assert.h>  // for assert
-#include <memory>    // for uniqu...
-#include <string>    // for opera...
-#include <utility>   // for move
+#include <cstring>
+#include <gc.h>
+#include <memory>  // for uniqu...
+#include <string>  // for opera...
+#include <utility> // for move
 
 #define COMMON_ARGS_COUNT 8
 
@@ -347,40 +350,48 @@ MaybeEngine Halley::make(std::unique_ptr<SereneContext> sereneCtxPtr,
   return MaybeEngine(std::move(jitEngine));
 };
 
-types::InternalString &Halley::getInternalString(llvm::StringRef s) {
+const types::InternalString &Halley::getInternalString(const char *s) {
   // TODO: [serene.core] We need to provide some functions on llvm level to
   // build instances from these type in a functional way. We need to avoid
   // randomly build instances here and there that causes unsafe memory
+  auto len = std::strlen(s);
 
-  auto str = std::make_unique<types::InternalString>(s.str().c_str(), s.size());
-  stringStorage.push_back(std::move(str));
-  const auto &sameString = stringStorage.back();
-  return *sameString;
+  auto *str =
+      (types::InternalString *)GC_MALLOC_ATOMIC(sizeof(types::InternalString));
+
+  str->data = (char *)GC_MALLOC_ATOMIC(len);
+  memcpy((void *)str->data, (void *)s, len);
+  str->len = len;
+
+  stringStorage.push_back(str);
+  return *str;
   // /TODO
 };
 
-types::Namespace &Halley::createNamespace(llvm::StringRef name) {
+types::Namespace &Halley::createNamespace(const char *name) {
   // TODO: [serene.core] We need to provide some functions on llvm level to
   // build instances from these type in a functional way. We need to avoid
   // randomly build instances here and there that causes unsafe memory
-  auto nsName = getInternalString(name);
-  auto ns     = std::make_unique<types::Namespace>(&nsName);
-  nsStorage.push_back(std::move(ns));
-  const auto &sameNs = nsStorage.back();
-  return *sameNs;
+  const auto &nsName = getInternalString(name);
+  auto *ns           = (types::Namespace *)GC_MALLOC(sizeof(types::Namespace));
+  ns->name           = &nsName;
+
+  nsStorage.push_back(ns);
+  return *ns;
   // /TODO
 };
 
-llvm::Error Halley::createEmptyNS(llvm::StringRef name) {
+llvm::Error Halley::createEmptyNS(const char *name) {
 
   auto &ns = createNamespace(name);
 
   auto numOfDylibs = getNumberOfJITDylibs(ns) + 1;
 
-  HALLEY_LOG(llvm::formatv("Creating Dylib {0}#{1}", ns.name, numOfDylibs));
+  HALLEY_LOG(
+      llvm::formatv("Creating Dylib {0}#{1}", ns.name->data, numOfDylibs));
 
-  auto newDylib =
-      engine->createJITDylib(llvm::formatv("{0}#{1}", ns.name, numOfDylibs));
+  auto newDylib = engine->createJITDylib(
+      llvm::formatv("{0}#{1}", ns.name->data, numOfDylibs));
 
   if (!newDylib) {
     llvm::errs() << "Couldn't create the jitDylib\n";

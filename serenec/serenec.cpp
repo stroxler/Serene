@@ -264,7 +264,8 @@ static std::string banner =
 //   };
 
 int main(int argc, char *argv[]) {
-  initSerene();
+  SERENE_INIT();
+
   registerSereneCLOptions();
 
   cl::ParseCommandLineOptions(argc, argv, banner);

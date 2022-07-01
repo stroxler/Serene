@@ -116,9 +116,9 @@ class SERENE_EXPORT Halley {
   // the strings. A lockless algorithm would be even better
 
   /// Owns all the internal strings used in the compilation process
-  std::vector<std::unique_ptr<types::InternalString>> stringStorage;
+  std::vector<types::InternalString *> stringStorage;
 
-  std::vector<std::unique_ptr<types::Namespace>> nsStorage;
+  std::vector<types::Namespace *> nsStorage;
   // /TODO
 
   // JIT JITDylib related functions ---
@@ -130,7 +130,7 @@ class SERENE_EXPORT Halley {
   // /// Returns the number of registered `JITDylib` for the given \p ns.
   size_t getNumberOfJITDylibs(types::Namespace &ns);
 
-  types::Namespace &createNamespace(llvm::StringRef name);
+  types::Namespace &createNamespace(const char *name);
 
 public:
   Halley(std::unique_ptr<SereneContext> ctx,
@@ -141,8 +141,8 @@ public:
 
   SereneContext &getContext() { return *ctx; };
 
-  llvm::Error createEmptyNS(llvm::StringRef name);
-  types::InternalString &getInternalString(llvm::StringRef s);
+  llvm::Error createEmptyNS(const char *name);
+  const types::InternalString &getInternalString(const char *s);
 
   /// Return a pointer to the most registered JITDylib of the given \p ns
   ////name

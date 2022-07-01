@@ -29,7 +29,7 @@ struct Expression {
 struct InternalString {
   // We store the actual string in a "string" data section
   const char *data;
-  const unsigned int len;
+  unsigned int len;
 
   InternalString(const char *data, const unsigned int len)
       : data(data), len(len){};

@@ -87,5 +87,5 @@ target_compile_definitions(
   serene PUBLIC "$<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:SERENE_STATIC_DEFINE>")
 
 
-target_link_libraries(serene PRIVATE ${llvm_libs})
+target_link_libraries(serene PRIVATE ${llvm_libs} BDWgc::gc)
 llvm_update_compile_flags(serene)

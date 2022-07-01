@@ -18,10 +18,15 @@
 
 #ifndef SERENE_SERENE_H
 #define SERENE_SERENE_H
-
 #include "serene/export.h"     // for SERENE_EXPORT
 #include "serene/jit/halley.h" // for Engine, MaybeEngine
 #include "serene/options.h"    // for Options
+
+#include <gc.h>
+
+#define SERENE_INIT() \
+  GC_INIT();          \
+  initSerene();
 
 namespace serene {
 

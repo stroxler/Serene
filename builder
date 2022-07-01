@@ -31,6 +31,13 @@
 # Make sure to provid one line of DESCRIPTION for the subcommand and use two "#"
 # characters to start the description following by a space. Otherwise, your
 # subcommand won't be registered
+#
+## Verbos Mode
+# In order to turn on the verbose mode for your build just invoke the builder script
+# like:
+#
+# $ VERBOSE=ON ./builder build/
+#
 
 set -e
 
@@ -66,8 +73,8 @@ BUILD_DIR=$ROOT_DIR/build
 ME=$(cd "$(dirname "$0")/." >/dev/null 2>&1 ; pwd -P)
 
 CMAKEARGS_DEBUG=("-DCMAKE_BUILD_TYPE=Debug")
- # Verbose -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
-CMAKEARGS=("-DCMAKE_EXPORT_COMPILE_COMMANDS=ON" "-DSERENE_CCACHE_DIR=$HOME/.ccache")
+CMAKEARGS=("-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+           "-DSERENE_CCACHE_DIR=$HOME/.ccache")
 
 # -----------------------------------------------------------------------------
 # Helper functions
