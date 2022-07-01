@@ -21,11 +21,20 @@
 
 namespace serene::types {
 
+// ============================================================================
+// Expression
+// ============================================================================
 struct Expression {
   const unsigned char *data;
   explicit Expression(const unsigned char *data) : data(data){};
 };
 
+// ============================================================================
+// Internal String
+// ============================================================================
+
+/// Internal string represts a smaller type of string with limited set of
+/// functionalities that we use only for internal usage
 struct InternalString {
   // We store the actual string in a "string" data section
   const char *data;
@@ -35,6 +44,9 @@ struct InternalString {
       : data(data), len(len){};
 };
 
+// ============================================================================
+// Symbol
+// ============================================================================
 struct Symbol {
   const InternalString *ns;
   const InternalString *name;
@@ -43,6 +55,9 @@ struct Symbol {
       : ns(ns), name(name){};
 };
 
+// ============================================================================
+// Namespace
+// ============================================================================
 struct Namespace {
   const InternalString *name;
 

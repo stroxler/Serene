@@ -191,6 +191,7 @@ public:
     }
   };
 
+  llvm::Error loadModule(const char *file);
   void dumpToObjectFile(llvm::StringRef filename);
 };
 

@@ -42,14 +42,19 @@
 #include <llvm/IR/DataLayout.h>                                // for DataL...
 #include <llvm/IR/LLVMContext.h>                               // for LLVMC...
 #include <llvm/IR/Module.h>                                    // for Module
-#include <llvm/Support/CodeGen.h>                              // for Level
-#include <llvm/Support/FileSystem.h>                           // for OF_None
-#include <llvm/Support/FormatVariadic.h>                       // for formatv
-#include <llvm/Support/ToolOutputFile.h>                       // for ToolO...
-#include <llvm/Support/raw_ostream.h>                          // for raw_o...
+#include <llvm/IRReader/IRReader.h>
+#include <llvm/Support/CodeGen.h> // for Level
+#include <llvm/Support/Error.h>
+#include <llvm/Support/FileSystem.h>     // for OF_None
+#include <llvm/Support/FormatVariadic.h> // for formatv
+#include <llvm/Support/MemoryBuffer.h>
+#include <llvm/Support/SourceMgr.h>
+#include <llvm/Support/ToolOutputFile.h> // for ToolO...
+#include <llvm/Support/raw_ostream.h>    // for raw_o...
 
 #include <algorithm> // for max
 #include <assert.h>  // for assert
+#include <cerrno>
 #include <cstring>
 #include <gc.h>
 #include <memory>  // for uniqu...
@@ -128,8 +133,6 @@ void Halley::pushJITDylib(types::Namespace &ns, llvm::orc::JITDylib *l) {
 }
 
 size_t Halley::getNumberOfJITDylibs(types::Namespace &ns) {
-  llvm::outs() << *ns.name->data << "hnt\n";
-
   if (jitDylibs.count(ns.name->data) == 0) {
     return 0;
   }
@@ -354,6 +357,7 @@ const types::InternalString &Halley::getInternalString(const char *s) {
   // TODO: [serene.core] We need to provide some functions on llvm level to
   // build instances from these type in a functional way. We need to avoid
   // randomly build instances here and there that causes unsafe memory
+  assert(s && "s is nullptr: getInternalString");
   auto len = std::strlen(s);
 
   auto *str =
@@ -372,6 +376,7 @@ types::Namespace &Halley::createNamespace(const char *name) {
   // TODO: [serene.core] We need to provide some functions on llvm level to
   // build instances from these type in a functional way. We need to avoid
   // randomly build instances here and there that causes unsafe memory
+  assert(name && "name is nullptr: createNamespace");
   const auto &nsName = getInternalString(name);
   auto *ns           = (types::Namespace *)GC_MALLOC(sizeof(types::Namespace));
   ns->name           = &nsName;
@@ -382,9 +387,8 @@ types::Namespace &Halley::createNamespace(const char *name) {
 };
 
 llvm::Error Halley::createEmptyNS(const char *name) {
-
-  auto &ns = createNamespace(name);
-
+  assert(name && "name is nullptr: createEmptyNS");
+  auto &ns         = createNamespace(name);
   auto numOfDylibs = getNumberOfJITDylibs(ns) + 1;
 
   HALLEY_LOG(
@@ -399,6 +403,22 @@ llvm::Error Halley::createEmptyNS(const char *name) {
   }
 
   pushJITDylib(ns, &(*newDylib));
+  return llvm::Error::success();
+};
+
+llvm::Error Halley::loadModule(const char *file) {
+  assert(file && "File is nullptr: loadModule");
+  auto llvmContext = ctx->genLLVMContext();
+  llvm::SMDiagnostic error;
+
+  auto module = llvm::parseIRFile(file, error, *llvmContext);
+
+  if (module == nullptr) {
+    return llvm::make_error<llvm::StringError>(
+        std::make_error_code(std::errc::executable_format_error),
+        error.getMessage().str() + " File: " + file);
+  }
+
   return llvm::Error::success();
 };
 
