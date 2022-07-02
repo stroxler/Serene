@@ -52,6 +52,7 @@ else()
   target_compile_features(core PUBLIC cxx_std_17)
 endif()
 
+#target_compile_options(core PUBLIC ${CMAKE_C_FLAGS} -emit-llvm)
 # We need this directory, and users of our library will need it too
 target_include_directories(core PUBLIC "$<BUILD_INTERFACE:${INCLUDE_DIR}>")
 target_include_directories(core PUBLIC "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>")

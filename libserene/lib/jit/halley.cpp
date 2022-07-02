@@ -473,7 +473,9 @@ llvm::Error Halley::loadModule(const char *nsName, const char *file) {
 // TODO: [error] Remove this function when we implemented
 // the error subsystem
 llvm::Error NotImplemented(llvm::StringRef s) {
-  return llvm::make_error<llvm::StringError>("Not Implemented: " + s);
+  return llvm::make_error<llvm::StringError>(
+      std::make_error_code(std::errc::executable_format_error),
+      "Not Implemented: " + s);
 };
 // /TODO
 
