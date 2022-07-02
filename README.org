@@ -109,7 +109,4 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   If you need help or you just want to hangout, you can find us at:
 
   - *IRC*: *#serene-lang* on the libera chat server
-
-  - *Matrix Network*: https://matrix.to/#/#serene:matrix.org?via=matrix.org&via=gitter.im
-
   - *MailingList*: https://www.freelists.org/list/serene

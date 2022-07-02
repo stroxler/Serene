@@ -470,6 +470,107 @@ llvm::Error Halley::loadModule(const char *nsName, const char *file) {
 };
 // /TODO
 
+// TODO: [error] Remove this function when we implemented
+// the error subsystem
+llvm::Error NotImplemented(llvm::StringRef s) {
+  return llvm::make_error<llvm::StringError>("Not Implemented: " + s);
+};
+// /TODO
+
+template <>
+llvm::Error
+Halley::loadNamespaceFrom<fs::NSFileType::Source>(llvm::StringRef nsName,
+                                                  llvm::StringRef path) {
+  (void)nsName;
+  (void)path;
+  return NotImplemented("loadNamespaceFrom<source>");
+};
+
+template <>
+llvm::Error
+Halley::loadNamespaceFrom<fs::NSFileType::TextIR>(llvm::StringRef nsName,
+                                                  llvm::StringRef path) {
+  (void)nsName;
+  (void)path;
+
+  return NotImplemented("loadNamespaceFrom<TextIR>");
+};
+
+template <>
+llvm::Error
+Halley::loadNamespaceFrom<fs::NSFileType::BinaryIR>(llvm::StringRef nsName,
+                                                    llvm::StringRef path) {
+  (void)nsName;
+  (void)path;
+  return NotImplemented("loadNamespaceFrom<binary>");
+};
+
+template <>
+llvm::Error
+Halley::loadNamespaceFrom<fs::NSFileType::ObjectFile>(llvm::StringRef nsName,
+                                                      llvm::StringRef path) {
+  (void)nsName;
+  (void)path;
+  return NotImplemented("loadNamespaceFrom<object>");
+};
+
+template <>
+llvm::Error
+Halley::loadNamespaceFrom<fs::NSFileType::StaticLib>(llvm::StringRef nsName,
+                                                     llvm::StringRef path) {
+  (void)nsName;
+  (void)path;
+  return NotImplemented("loadNamespaceFrom<static>");
+};
+
+template <>
+llvm::Error
+Halley::loadNamespaceFrom<fs::NSFileType::SharedLib>(llvm::StringRef nsName,
+                                                     llvm::StringRef path) {
+  (void)nsName;
+  (void)path;
+  return NotImplemented("loadNamespaceFrom<shared>");
+};
+
+llvm::Error Halley::loadNamespaceFrom(fs::NSFileType type_,
+                                      llvm::StringRef nsName,
+                                      llvm::StringRef path) {
+  switch (type_) {
+  case fs::NSFileType::Source:
+    return loadNamespaceFrom<fs::NSFileType::Source>(nsName, path);
+  case fs::NSFileType::TextIR:
+    return loadNamespaceFrom<fs::NSFileType::TextIR>(nsName, path);
+  case fs::NSFileType::BinaryIR:
+    return loadNamespaceFrom<fs::NSFileType::BinaryIR>(nsName, path);
+  case fs::NSFileType::ObjectFile:
+    return loadNamespaceFrom<fs::NSFileType::ObjectFile>(nsName, path);
+  case fs::NSFileType::StaticLib:
+  case fs::NSFileType::SharedLib:
+    return loadNamespaceFrom<fs::NSFileType::StaticLib>(nsName, path);
+  };
+};
+
+llvm::Error Halley::loadNamespace(std::string &nsName) {
+  for (auto &path : ctx->getLoadPaths()) {
+    std::string nsFileName = fs::namespaceToPath(nsName);
+    (void)path;
+    for (int i = 0; i <= (int)fs::NSFileType::SharedLib; i++) {
+      if (fs::exists(nsFileName + fs::extensionFor((fs::NSFileType)i))) {
+        // fs::NSFileType type_ = ;
+        return loadNamespaceFrom((fs::NSFileType)i, nsName,
+                                 nsFileName +
+                                     fs::extensionFor((fs::NSFileType)i));
+      }
+    }
+  }
+  return llvm::Error::success();
+};
+
+llvm::Error Halley::initialize() {
+  (void)ctx;
+  return llvm::Error::success();
+};
+
 MaybeEngine makeHalleyJIT(std::unique_ptr<SereneContext> ctx) {
   llvm::orc::JITTargetMachineBuilder jtmb(ctx->triple);
   auto maybeJIT = Halley::make(std::move(ctx), std::move(jtmb));

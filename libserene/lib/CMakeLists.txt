@@ -25,6 +25,7 @@ endif()
 add_library(serene
   serene.cpp
   context.cpp
+  fs.cpp
 
   jit/halley.cpp)
 

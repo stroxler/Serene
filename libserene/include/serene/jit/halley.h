@@ -28,8 +28,9 @@
 #ifndef SERENE_JIT_HALLEY_H
 #define SERENE_JIT_HALLEY_H
 
-#include "serene/context.h"     // for Serene...
-#include "serene/export.h"      // for SERENE...
+#include "serene/context.h" // for Serene...
+#include "serene/export.h"  // for SERENE...
+#include "serene/fs.h"
 #include "serene/types/types.h" // for Intern...
 
 #include <llvm/ADT/SmallVector.h>                             // for SmallV...
@@ -136,6 +137,11 @@ public:
   Halley(std::unique_ptr<SereneContext> ctx,
          llvm::orc::JITTargetMachineBuilder &&jtmb, llvm::DataLayout &&dl);
 
+  /// Initialize the engine by loading required libraries and shared libs
+  /// like the `serene.core` and other namespaces
+  llvm::Error initialize();
+  llvm::Error loadNamespace(std::string &nsName);
+
   static MaybeEngine make(std::unique_ptr<SereneContext> sereneCtxPtr,
                           llvm::orc::JITTargetMachineBuilder &&jtmb);
 
@@ -194,6 +200,14 @@ public:
 
   llvm::Error loadModule(const char *nsName, const char *file);
   void dumpToObjectFile(llvm::StringRef filename);
+
+  /// This function loads the namespace by the given `nsName` from the file
+  /// in the given `path`. It assumes that the `path` exists.
+  llvm::Error loadNamespaceFrom(fs::NSFileType type_, llvm::StringRef nsName,
+                                llvm::StringRef path);
+
+  template <fs::NSFileType fileType>
+  llvm::Error loadNamespaceFrom(llvm::StringRef nsName, llvm::StringRef path);
 };
 
 MaybeEngine makeHalleyJIT(std::unique_ptr<SereneContext> ctx);

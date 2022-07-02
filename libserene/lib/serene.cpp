@@ -68,6 +68,7 @@ void applySereneCLOptions(serene::jit::Engine &engine) {
     return;
   }
 
+  // TODO: [engine] Should we move this to the engine itself?
   auto &ctx = engine.getContext();
   ctx.setLoadPaths(options->loadPaths);
 

@@ -88,6 +88,8 @@ public:
   /// Setup the load path for namespace lookups
   void setLoadPaths(std::vector<std::string> &dirs) { loadPaths.swap(dirs); };
 
+  /// Return the load paths for namespaces
+  std::vector<std::string> &getLoadPaths() { return loadPaths; };
   // JIT JITDylib related functions ---
 
   // TODO: For Dylib related functions, make sure that the namespace in questoin
