@@ -22,9 +22,11 @@ if(NOT APPLE)
   set(CMAKE_INSTALL_RPATH $ORIGIN)
 endif()
 
+set(SOURCES reader.cpp)
 add_library(core STATIC
-  reader.cpp)
+  ${SOURCES})
 
+#add_custom_target(serene.core)
 # Create an ALIAS target. This way if we mess up the name
 # there will be an cmake error inseat of a linker error which is harder
 # to understand. So any binary that wants to use serene has to
@@ -52,7 +54,6 @@ else()
   target_compile_features(core PUBLIC cxx_std_17)
 endif()
 
-#target_compile_options(core PUBLIC ${CMAKE_C_FLAGS} -emit-llvm)
 # We need this directory, and users of our library will need it too
 target_include_directories(core PUBLIC "$<BUILD_INTERFACE:${INCLUDE_DIR}>")
 target_include_directories(core PUBLIC "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>")

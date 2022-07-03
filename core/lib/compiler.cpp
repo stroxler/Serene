@@ -17,11 +17,10 @@
  */
 
 #include "serene/core/reader.h"
-
 #include "serene/types/types.h"
 
 namespace serene {
 
-int reader() { return 0; };
+int compile() { return 0; };
 
 } // namespace serene
