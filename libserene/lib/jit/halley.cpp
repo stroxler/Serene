@@ -26,16 +26,18 @@
 
 #include <llvm/ADT/StringMapEntry.h> // for Strin...
 #include <llvm/ADT/StringRef.h>
-#include <llvm/ADT/Triple.h>                                   // for Triple
-#include <llvm/ADT/iterator.h>                                 // for itera...
-#include <llvm/ExecutionEngine/JITEventListener.h>             // for JITEv...
-#include <llvm/ExecutionEngine/Orc/CompileUtils.h>             // for TMOwn...
-#include <llvm/ExecutionEngine/Orc/Core.h>                     // for Execu...
-#include <llvm/ExecutionEngine/Orc/DebugUtils.h>               // for opera...
-#include <llvm/ExecutionEngine/Orc/ExecutionUtils.h>           // for Dynam...
-#include <llvm/ExecutionEngine/Orc/IRCompileLayer.h>           // for IRCom...
-#include <llvm/ExecutionEngine/Orc/JITTargetMachineBuilder.h>  // for JITTa...
-#include <llvm/ExecutionEngine/Orc/LLJIT.h>                    // for LLJIT...
+#include <llvm/ADT/Triple.h>   // for Triple
+#include <llvm/ADT/iterator.h> // for itera...
+#include <llvm/BinaryFormat/Magic.h>
+#include <llvm/ExecutionEngine/JITEventListener.h>            // for JITEv...
+#include <llvm/ExecutionEngine/Orc/CompileUtils.h>            // for TMOwn...
+#include <llvm/ExecutionEngine/Orc/Core.h>                    // for Execu...
+#include <llvm/ExecutionEngine/Orc/DebugUtils.h>              // for opera...
+#include <llvm/ExecutionEngine/Orc/ExecutionUtils.h>          // for Dynam...
+#include <llvm/ExecutionEngine/Orc/IRCompileLayer.h>          // for IRCom...
+#include <llvm/ExecutionEngine/Orc/JITTargetMachineBuilder.h> // for JITTa...
+#include <llvm/ExecutionEngine/Orc/LLJIT.h>                   // for LLJIT...
+#include <llvm/ExecutionEngine/Orc/ObjectFileInterface.h>
 #include <llvm/ExecutionEngine/Orc/RTDyldObjectLinkingLayer.h> // for RTDyl...
 #include <llvm/ExecutionEngine/Orc/ThreadSafeModule.h>         // for Threa...
 #include <llvm/ExecutionEngine/SectionMemoryManager.h>         // for Secti...
@@ -109,13 +111,16 @@ void ObjectCache::dumpToObjectFile(llvm::StringRef outputFilename) {
   file->keep();
 }
 
-llvm::orc::JITDylib *Halley::getLatestJITDylib(types::Namespace &ns) {
+llvm::orc::JITDylib *Halley::getLatestJITDylib(const types::Namespace &ns) {
+  return getLatestJITDylib(ns.name->data);
+};
 
-  if (jitDylibs.count(ns.name->data) == 0) {
+llvm::orc::JITDylib *Halley::getLatestJITDylib(const char *nsName) {
+  if (jitDylibs.count(nsName) == 0) {
     return nullptr;
   }
 
-  auto vec = jitDylibs[ns.name->data];
+  auto vec = jitDylibs[nsName];
   // TODO: Make sure that the returning Dylib still exists in the JIT
   //       by calling jit->engine->getJITDylibByName(dylib_name);
   return vec.empty() ? nullptr : vec.back();
@@ -291,8 +296,8 @@ MaybeEngine Halley::make(std::unique_ptr<SereneContext> sereneCtxPtr,
     return objectLayer;
   };
 
-  // Callback to inspect the cache and recompile on demand. This follows Lang's
-  // LLJITWithObjectCache example.
+  // Callback to inspect the cache and recompile on demand. This follows
+  // Lang's LLJITWithObjectCache example.
   auto compileFunctionCreator = [&](llvm::orc::JITTargetMachineBuilder JTMB)
       -> llvm::Expected<
           std::unique_ptr<llvm::orc::IRCompileLayer::IRCompiler>> {
@@ -372,7 +377,7 @@ const types::InternalString &Halley::getInternalString(const char *s) {
   // /TODO
 };
 
-types::Namespace &Halley::createNamespace(const char *name) {
+types::Namespace &Halley::makeNamespace(const char *name) {
   // TODO: [serene.core] We need to provide some functions on llvm level to
   // build instances from these type in a functional way. We need to avoid
   // randomly build instances here and there that causes unsafe memory
@@ -388,7 +393,8 @@ types::Namespace &Halley::createNamespace(const char *name) {
 
 llvm::Error Halley::createEmptyNS(const char *name) {
   assert(name && "name is nullptr: createEmptyNS");
-  auto &ns         = createNamespace(name);
+  // TODO: Look up the Namespace first.
+  auto &ns         = makeNamespace(name);
   auto numOfDylibs = getNumberOfJITDylibs(ns) + 1;
 
   HALLEY_LOG(
@@ -477,6 +483,15 @@ llvm::Error NotImplemented(llvm::StringRef s) {
       std::make_error_code(std::errc::executable_format_error),
       "Not Implemented: " + s);
 };
+
+// TODO: [error] Replace this function when we implemented
+// the error subsystem with the official implementation
+llvm::Error tempError(SereneContext &ctx, llvm::Twine s) {
+  (void)ctx;
+  return llvm::make_error<llvm::StringError>(
+      std::make_error_code(std::errc::executable_format_error),
+      "[Error]: " + s);
+};
 // /TODO
 
 template <>
@@ -522,7 +537,47 @@ Halley::loadNamespaceFrom<fs::NSFileType::StaticLib>(llvm::StringRef nsName,
                                                      llvm::StringRef path) {
   (void)nsName;
   (void)path;
-  return NotImplemented("loadNamespaceFrom<static>");
+  // Skip missing or non-regular paths.
+  if (llvm::sys::fs::get_file_type(path) !=
+      llvm::sys::fs::file_type::regular_file) {
+    return tempError(*ctx, "Not a regular file: " + path);
+  }
+
+  llvm::file_magic magic;
+  if (auto ec = llvm::identify_magic(path, magic)) {
+    // If there was an error loading the file then skip it.
+    return tempError(*ctx,
+                     ec.message() + "\nFile Identification Erorr: " + path);
+  }
+
+  if (magic != llvm::file_magic::archive ||
+      magic != llvm::file_magic::macho_universal_binary) {
+    return tempError(*ctx, "Not a static lib: " + path);
+  }
+
+  auto err = createEmptyNS(nsName.str().c_str());
+  if (err) {
+    return err;
+  }
+
+  auto &session = engine->getExecutionSession();
+  auto *jd      = getLatestJITDylib(nsName.str().c_str());
+  assert(jd == nullptr && "'jd' must not be null since we just created it.");
+
+  // TODO: Handle hidden static libs as well look at the addLibrary/AddArchive
+  // in llvm-jitlink
+
+  auto generator = llvm::orc::StaticLibraryDefinitionGenerator::Load(
+      engine->getObjLinkingLayer(), path.str().c_str(),
+      session.getExecutorProcessControl().getTargetTriple(),
+      std::move(llvm::orc::getObjectFileInterface));
+
+  if (!generator) {
+    return generator.takeError();
+  }
+
+  jd->addGenerator(std::move(*generator));
+  return llvm::Error::success();
 };
 
 template <>
@@ -531,6 +586,28 @@ Halley::loadNamespaceFrom<fs::NSFileType::SharedLib>(llvm::StringRef nsName,
                                                      llvm::StringRef path) {
   (void)nsName;
   (void)path;
+  //   switch (magic) {
+  // case llvm::file_magic::elf_shared_object:
+  // case llvm::file_magic::macho_dynamically_linked_shared_lib: {
+  //   // TODO: On first reference to LibPath this should create a JITDylib
+  //   // with a generator and add it to JD's links-against list. Subsquent
+  //   // references should use the JITDylib created on the first
+  //   // reference.
+  //   auto g = llvm::EPCDynamicLibrarySearchGenerator::Load(session, path);
+  //   if (!g)
+  //     return g.takeError();
+  //   jd.addGenerator(std::move(*g));
+  //   break;
+  // }
+  // case llvm::file_magic::archive:
+  // case llvm::file_magic::macho_universal_binary: {
+  // }
+  // default:
+  //   // This file isn't a recognized library kind.
+  //   LibFound = false;
+  //   break;
+  // }
+
   return NotImplemented("loadNamespaceFrom<shared>");
 };
 
@@ -555,16 +632,16 @@ llvm::Error Halley::loadNamespaceFrom(fs::NSFileType type_,
 llvm::Error Halley::loadNamespace(std::string &nsName) {
   for (auto &path : ctx->getLoadPaths()) {
     std::string nsFileName = fs::namespaceToPath(nsName);
-    (void)path;
     for (int i = 0; i <= (int)fs::NSFileType::SharedLib; i++) {
-      if (fs::exists(nsFileName + fs::extensionFor((fs::NSFileType)i))) {
-        // fs::NSFileType type_ = ;
-        return loadNamespaceFrom((fs::NSFileType)i, nsName,
-                                 nsFileName +
-                                     fs::extensionFor((fs::NSFileType)i));
+
+      auto file = fs::join(path, nsFileName +
+                                     fs::extensionFor(*ctx, (fs::NSFileType)i));
+      if (fs::exists(file)) {
+        return loadNamespaceFrom((fs::NSFileType)i, nsName, file);
       }
     }
   }
+
   return llvm::Error::success();
 };
 

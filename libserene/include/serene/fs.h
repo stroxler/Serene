@@ -29,6 +29,10 @@
 
 #define MAX_PATH_SLOTS 256
 
+namespace serene {
+class SereneContext;
+}; // namespace serene
+
 namespace serene::fs {
 
 enum class NSFileType {
@@ -40,7 +44,7 @@ enum class NSFileType {
   SharedLib
 };
 
-std::string extensionFor(NSFileType t);
+std::string extensionFor(SereneContext &ctx, NSFileType t);
 /// Converts the given namespace name `nsName` to the file name
 /// for that name space. E.g, `some.random.ns` will be translated
 /// to `some_random_ns`.

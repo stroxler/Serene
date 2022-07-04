@@ -131,7 +131,7 @@ class SERENE_EXPORT Halley {
   // /// Returns the number of registered `JITDylib` for the given \p ns.
   size_t getNumberOfJITDylibs(types::Namespace &ns);
 
-  types::Namespace &createNamespace(const char *name);
+  types::Namespace &makeNamespace(const char *name);
 
 public:
   Halley(std::unique_ptr<SereneContext> ctx,
@@ -152,7 +152,8 @@ public:
 
   /// Return a pointer to the most registered JITDylib of the given \p ns
   ////name
-  llvm::orc::JITDylib *getLatestJITDylib(types::Namespace &ns);
+  llvm::orc::JITDylib *getLatestJITDylib(const types::Namespace &ns);
+  llvm::orc::JITDylib *getLatestJITDylib(const char *nsName);
 
   void setEngine(std::unique_ptr<llvm::orc::LLJIT> e, bool isLazy);
   /// Looks up a packed-argument function with the given sym name and returns a

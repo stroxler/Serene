@@ -22,7 +22,7 @@ if(NOT APPLE)
   set(CMAKE_INSTALL_RPATH $ORIGIN)
 endif()
 
-set(SOURCES reader.cpp)
+set(SOURCES serene.core.cpp)
 add_library(core STATIC
   ${SOURCES})
 

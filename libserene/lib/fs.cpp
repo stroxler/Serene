@@ -18,12 +18,15 @@
 
 #include "serene/fs.h"
 
+#include "serene/context.h"
+
 namespace serene::fs {
 
-std::string extensionFor(NSFileType t) {
-  // TODO: Create a mapping from OS type and NSFileTypes and
+std::string extensionFor(SereneContext &ctx, NSFileType t) {
+  // TODO: [fs] Create a mapping from OS type and NSFileTypes and
   // append the appropriate extension to the path. For now
   // only few that we need are enough.
+  (void)ctx;
   switch (t) {
   case NSFileType::Source:
     return ".srn";
@@ -33,6 +36,10 @@ std::string extensionFor(NSFileType t) {
   case NSFileType::StaticLib:
     return ".a";
     break;
+  case NSFileType::SharedLib:
+    return ".so";
+    break;
+
   default:
     // TODO: This is temporary, remove this when created
     // the mapping
@@ -75,5 +82,4 @@ std::string join(llvm::StringRef path1, llvm::StringRef path2) {
   llvm::sys::path::native(path);
   return std::string(path);
 };
-
 }; // namespace serene::fs
