@@ -18,7 +18,8 @@
 
 #include "serene/jit/halley.h"
 
-#include "serene/context.h"     // for Seren...
+#include "serene/context.h" // for Seren...
+#include "serene/fs.h"
 #include "serene/options.h"     // for Options
 #include "serene/types/types.h" // for Names...
 
@@ -68,6 +69,16 @@
 namespace serene {
 
 namespace jit {
+
+// TODO: [error] Replace this function when we implemented
+// the error subsystem with the official implementation
+llvm::Error tempError(SereneContext &ctx, llvm::Twine s) {
+  (void)ctx;
+  return llvm::make_error<llvm::StringError>(
+      std::make_error_code(std::errc::executable_format_error),
+      "[Error]: " + s);
+};
+// /TODO
 
 void ObjectCache::notifyObjectCompiled(const llvm::Module *m,
                                        llvm::MemoryBufferRef objBuffer) {
@@ -413,19 +424,21 @@ llvm::Error Halley::createEmptyNS(const char *name) {
 };
 
 MaybeEnginePtr Halley::lookup(const char *nsName, const char *sym) {
-  assert(sym && "'sym' is null: lookup");
-  assert(sym && "'nsName' is null: lookup");
+  assert(sym != nullptr && "'sym' is null: lookup");
+  assert(nsName != nullptr && "'nsName' is null: lookup");
 
   llvm::StringRef s{sym};
+  llvm::StringRef ns{nsName};
+
+  std::string fqsym = (ns + "/" + s).str();
+
   auto *dylib = jitDylibs[nsName].back();
 
   if (dylib == nullptr) {
-    std::string h = ("No dylib " + s).str();
-    return llvm::make_error<llvm::StringError>(
-        std::make_error_code(std::errc::executable_format_error), h);
+    return tempError(*ctx, "No dylib " + s);
   }
 
-  auto expectedSymbol = engine->lookup(*dylib, s);
+  auto expectedSymbol = engine->lookup(*dylib, fqsym);
 
   // JIT lookup may return an Error referring to strings stored internally by
   // the JIT. If the Error outlives the ExecutionEngine, it would want have a
@@ -434,8 +447,7 @@ MaybeEnginePtr Halley::lookup(const char *nsName, const char *sym) {
   // string before returning. Alternatively, ORC JIT should consider copying
   // the string into the error message.
   if (!expectedSymbol) {
-    return llvm::make_error<llvm::StringError>(
-        std::make_error_code(std::errc::executable_format_error), "No symbol");
+    return expectedSymbol.takeError();
   }
 
   auto rawFPtr = *expectedSymbol;
@@ -443,9 +455,7 @@ MaybeEnginePtr Halley::lookup(const char *nsName, const char *sym) {
   auto fptr = reinterpret_cast<void *(*)()>(&rawFPtr);
 
   if (fptr == nullptr) {
-    return llvm::make_error<llvm::StringError>(
-        std::make_error_code(std::errc::executable_format_error),
-        "Lookup function is null!");
+    return tempError(*ctx, "Lookup function is null!");
   }
 
   return fptr;
@@ -484,91 +494,98 @@ llvm::Error NotImplemented(llvm::StringRef s) {
       "Not Implemented: " + s);
 };
 
-// TODO: [error] Replace this function when we implemented
-// the error subsystem with the official implementation
-llvm::Error tempError(SereneContext &ctx, llvm::Twine s) {
-  (void)ctx;
-  return llvm::make_error<llvm::StringError>(
-      std::make_error_code(std::errc::executable_format_error),
-      "[Error]: " + s);
-};
-// /TODO
-
 template <>
-llvm::Error
-Halley::loadNamespaceFrom<fs::NSFileType::Source>(llvm::StringRef nsName,
-                                                  llvm::StringRef path) {
-  (void)nsName;
-  (void)path;
-  return NotImplemented("loadNamespaceFrom<source>");
+MaybeDylibPtr
+Halley::loadNamespaceFrom<fs::NSFileType::Source>(NSLoadRequest &req) {
+  (void)req;
+  return nullptr;
 };
 
 template <>
-llvm::Error
-Halley::loadNamespaceFrom<fs::NSFileType::TextIR>(llvm::StringRef nsName,
-                                                  llvm::StringRef path) {
-  (void)nsName;
-  (void)path;
-
-  return NotImplemented("loadNamespaceFrom<TextIR>");
+MaybeDylibPtr
+Halley::loadNamespaceFrom<fs::NSFileType::TextIR>(NSLoadRequest &req) {
+  (void)req;
+  return nullptr;
 };
 
 template <>
-llvm::Error
-Halley::loadNamespaceFrom<fs::NSFileType::BinaryIR>(llvm::StringRef nsName,
-                                                    llvm::StringRef path) {
-  (void)nsName;
-  (void)path;
-  return NotImplemented("loadNamespaceFrom<binary>");
+MaybeDylibPtr
+Halley::loadNamespaceFrom<fs::NSFileType::BinaryIR>(NSLoadRequest &req) {
+  (void)req;
+  return nullptr;
 };
 
 template <>
-llvm::Error
-Halley::loadNamespaceFrom<fs::NSFileType::ObjectFile>(llvm::StringRef nsName,
-                                                      llvm::StringRef path) {
-  (void)nsName;
-  (void)path;
-  return NotImplemented("loadNamespaceFrom<object>");
+MaybeDylibPtr
+Halley::loadNamespaceFrom<fs::NSFileType::ObjectFile>(NSLoadRequest &req) {
+
+  auto file = fs::join(req.path, req.nsToFileName + ".o");
+
+  if (!fs::exists(file)) {
+    // Can't locate any object file, skit to the next loader
+    llvm::outs() << "file: " << file << "\n";
+    return nullptr;
+  }
+
+  auto err = createEmptyNS(req.nsName.str().c_str());
+  if (err) {
+    return err;
+  }
+
+  auto *jd = getLatestJITDylib(req.nsName.str().c_str());
+  assert(jd != nullptr && "'jd' must not be null since we just created it.");
+
+  auto buf = llvm::errorOrToExpected(llvm::MemoryBuffer::getFile(file));
+  if (!buf) {
+    return buf.takeError();
+  }
+
+  err = engine->getObjLinkingLayer().add(*jd, std::move(*buf));
+
+  if (err) {
+    return err;
+  }
+
+  llvm::outs() << "ok\n";
+  return jd;
 };
 
 template <>
-llvm::Error
-Halley::loadNamespaceFrom<fs::NSFileType::StaticLib>(llvm::StringRef nsName,
-                                                     llvm::StringRef path) {
-  (void)nsName;
-  (void)path;
+MaybeDylibPtr
+Halley::loadNamespaceFrom<fs::NSFileType::StaticLib>(NSLoadRequest &req) {
+
   // Skip missing or non-regular paths.
-  if (llvm::sys::fs::get_file_type(path) !=
+  if (llvm::sys::fs::get_file_type(req.path) !=
       llvm::sys::fs::file_type::regular_file) {
-    return tempError(*ctx, "Not a regular file: " + path);
+    return tempError(*ctx, "Not a regular file: " + req.path);
   }
 
   llvm::file_magic magic;
-  if (auto ec = llvm::identify_magic(path, magic)) {
+  if (auto ec = llvm::identify_magic(req.path, magic)) {
     // If there was an error loading the file then skip it.
     return tempError(*ctx,
-                     ec.message() + "\nFile Identification Erorr: " + path);
+                     ec.message() + "\nFile Identification Erorr: " + req.path);
   }
 
   if (magic != llvm::file_magic::archive ||
       magic != llvm::file_magic::macho_universal_binary) {
-    return tempError(*ctx, "Not a static lib: " + path);
+    return tempError(*ctx, "Not a static lib: " + req.path);
   }
 
-  auto err = createEmptyNS(nsName.str().c_str());
+  auto err = createEmptyNS(req.nsName.str().c_str());
   if (err) {
     return err;
   }
 
   auto &session = engine->getExecutionSession();
-  auto *jd      = getLatestJITDylib(nsName.str().c_str());
+  auto *jd      = getLatestJITDylib(req.nsName.str().c_str());
   assert(jd == nullptr && "'jd' must not be null since we just created it.");
 
   // TODO: Handle hidden static libs as well look at the addLibrary/AddArchive
   // in llvm-jitlink
 
   auto generator = llvm::orc::StaticLibraryDefinitionGenerator::Load(
-      engine->getObjLinkingLayer(), path.str().c_str(),
+      engine->getObjLinkingLayer(), req.path.str().c_str(),
       session.getExecutorProcessControl().getTargetTriple(),
       std::move(llvm::orc::getObjectFileInterface));
 
@@ -577,15 +594,13 @@ Halley::loadNamespaceFrom<fs::NSFileType::StaticLib>(llvm::StringRef nsName,
   }
 
   jd->addGenerator(std::move(*generator));
-  return llvm::Error::success();
+  return jd;
 };
 
 template <>
-llvm::Error
-Halley::loadNamespaceFrom<fs::NSFileType::SharedLib>(llvm::StringRef nsName,
-                                                     llvm::StringRef path) {
-  (void)nsName;
-  (void)path;
+MaybeDylibPtr
+Halley::loadNamespaceFrom<fs::NSFileType::SharedLib>(NSLoadRequest &req) {
+  (void)req;
   //   switch (magic) {
   // case llvm::file_magic::elf_shared_object:
   // case llvm::file_magic::macho_dynamically_linked_shared_lib: {
@@ -611,38 +626,46 @@ Halley::loadNamespaceFrom<fs::NSFileType::SharedLib>(llvm::StringRef nsName,
   return NotImplemented("loadNamespaceFrom<shared>");
 };
 
-llvm::Error Halley::loadNamespaceFrom(fs::NSFileType type_,
-                                      llvm::StringRef nsName,
-                                      llvm::StringRef path) {
+MaybeDylibPtr Halley::loadNamespaceFrom(fs::NSFileType type_,
+                                        NSLoadRequest &req) {
   switch (type_) {
   case fs::NSFileType::Source:
-    return loadNamespaceFrom<fs::NSFileType::Source>(nsName, path);
+    return loadNamespaceFrom<fs::NSFileType::Source>(req);
   case fs::NSFileType::TextIR:
-    return loadNamespaceFrom<fs::NSFileType::TextIR>(nsName, path);
+    return loadNamespaceFrom<fs::NSFileType::TextIR>(req);
   case fs::NSFileType::BinaryIR:
-    return loadNamespaceFrom<fs::NSFileType::BinaryIR>(nsName, path);
+    return loadNamespaceFrom<fs::NSFileType::BinaryIR>(req);
   case fs::NSFileType::ObjectFile:
-    return loadNamespaceFrom<fs::NSFileType::ObjectFile>(nsName, path);
+    return loadNamespaceFrom<fs::NSFileType::ObjectFile>(req);
   case fs::NSFileType::StaticLib:
   case fs::NSFileType::SharedLib:
-    return loadNamespaceFrom<fs::NSFileType::StaticLib>(nsName, path);
+    return loadNamespaceFrom<fs::NSFileType::StaticLib>(req);
   };
 };
 
-llvm::Error Halley::loadNamespace(std::string &nsName) {
-  for (auto &path : ctx->getLoadPaths()) {
-    std::string nsFileName = fs::namespaceToPath(nsName);
-    for (int i = 0; i <= (int)fs::NSFileType::SharedLib; i++) {
+MaybeDylibPtr Halley::loadNamespace(std::string &nsName) {
+  if (ctx->getLoadPaths().empty()) {
+    return tempError(*ctx, "Load paths should not be empty");
+  }
 
-      auto file = fs::join(path, nsFileName +
-                                     fs::extensionFor(*ctx, (fs::NSFileType)i));
-      if (fs::exists(file)) {
-        return loadNamespaceFrom((fs::NSFileType)i, nsName, file);
+  for (auto &path : ctx->getLoadPaths()) {
+    auto nsFileName = fs::namespaceToPath(nsName);
+    NSLoadRequest req{nsName, path, nsFileName};
+
+    for (auto type_ : {fs::NSFileType::Source, fs::NSFileType::ObjectFile}) {
+      auto maybeJDptr = loadNamespaceFrom(type_, req);
+
+      if (!maybeJDptr) {
+        return maybeJDptr.takeError();
+      }
+
+      if (*maybeJDptr != nullptr) {
+        return *maybeJDptr;
       }
     }
   }
 
-  return llvm::Error::success();
+  return tempError(*ctx, "Can't find namespace: " + nsName);
 };
 
 llvm::Error Halley::initialize() {

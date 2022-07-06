@@ -48,7 +48,7 @@ std::string extensionFor(SereneContext &ctx, NSFileType t);
 /// Converts the given namespace name `nsName` to the file name
 /// for that name space. E.g, `some.random.ns` will be translated
 /// to `some_random_ns`.
-std::string namespaceToPath(std::string &nsName);
+std::string namespaceToPath(const llvm::StringRef nsName);
 
 /// Return a boolean indicating whether or not the given path exists.
 bool exists(llvm::StringRef path);

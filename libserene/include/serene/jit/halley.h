@@ -74,7 +74,8 @@ using Engine         = Halley;
 using EnginePtr      = std::unique_ptr<Engine>;
 using MaybeEngine    = llvm::Expected<EnginePtr>;
 using MaybeEnginePtr = llvm::Expected<void *(*)()>;
-
+using DylibPtr       = llvm::orc::JITDylib *;
+using MaybeDylibPtr  = llvm::Expected<DylibPtr>;
 /// A simple object cache following Lang's LLJITWithObjectCache example and
 /// MLIR's SimpelObjectCache.
 class ObjectCache : public llvm::ObjectCache {
@@ -133,6 +134,24 @@ class SERENE_EXPORT Halley {
 
   types::Namespace &makeNamespace(const char *name);
 
+  // ==========================================================================
+  // Loading namespaces from different sources like source files, objectfiles
+  // etc
+  // ==========================================================================
+  struct NSLoadRequest {
+    llvm::StringRef nsName;
+    llvm::StringRef path;
+    std::string &nsToFileName;
+  };
+
+  /// This function loads the namespace by the given `nsName` from the file
+  /// in the given `path`. It assumes that the `path` exists.
+  MaybeDylibPtr loadNamespaceFrom(fs::NSFileType type_, NSLoadRequest &req);
+
+  template <fs::NSFileType fileType>
+  MaybeDylibPtr loadNamespaceFrom(NSLoadRequest &req);
+  // ==========================================================================
+
 public:
   Halley(std::unique_ptr<SereneContext> ctx,
          llvm::orc::JITTargetMachineBuilder &&jtmb, llvm::DataLayout &&dl);
@@ -140,7 +159,7 @@ public:
   /// Initialize the engine by loading required libraries and shared libs
   /// like the `serene.core` and other namespaces
   llvm::Error initialize();
-  llvm::Error loadNamespace(std::string &nsName);
+  MaybeDylibPtr loadNamespace(std::string &nsName);
 
   static MaybeEngine make(std::unique_ptr<SereneContext> sereneCtxPtr,
                           llvm::orc::JITTargetMachineBuilder &&jtmb);
@@ -201,14 +220,6 @@ public:
 
   llvm::Error loadModule(const char *nsName, const char *file);
   void dumpToObjectFile(llvm::StringRef filename);
-
-  /// This function loads the namespace by the given `nsName` from the file
-  /// in the given `path`. It assumes that the `path` exists.
-  llvm::Error loadNamespaceFrom(fs::NSFileType type_, llvm::StringRef nsName,
-                                llvm::StringRef path);
-
-  template <fs::NSFileType fileType>
-  llvm::Error loadNamespaceFrom(llvm::StringRef nsName, llvm::StringRef path);
 };
 
 MaybeEngine makeHalleyJIT(std::unique_ptr<SereneContext> ctx);

@@ -50,11 +50,13 @@ std::string extensionFor(SereneContext &ctx, NSFileType t) {
 /// Converts the given namespace name `nsName` to the file name
 /// for that name space. E.g, `some.random.ns` will be translated
 /// to `some_random_ns`.
-std::string namespaceToPath(std::string &nsName) {
-  std::replace(nsName.begin(), nsName.end(), '.', '/');
+std::string namespaceToPath(const llvm::StringRef nsName) {
+  // TODO: [fs][perf] This function is not efficient. Fix it
+  std::string nsNameCopy = nsName.str();
+  std::replace(nsNameCopy.begin(), nsNameCopy.end(), '.', '/');
 
   llvm::SmallString<MAX_PATH_SLOTS> path;
-  path.append(nsName);
+  path.append(nsNameCopy);
   llvm::sys::path::native(path);
 
   return std::string(path);

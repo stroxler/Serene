@@ -291,27 +291,37 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  err = engine->loadModule("some.ns", "/home/lxsameer/test.ll");
+  // err = engine->loadModule("some.ns", "/home/lxsameer/test.ll");
 
-  if (err) {
-    llvm::errs() << "Error: " << err << "'\n";
+  // if (err) {
+  //   llvm::errs() << "Error: " << err << "'\n";
+  //   return 1;
+  // }
+
+  std::string core = "serene.core";
+  auto maybeJD     = engine->loadNamespace(core);
+  if (!maybeJD) {
+    llvm::errs() << "Error: " << maybeJD.takeError() << "'\n";
     return 1;
   }
 
-  auto bt = engine->lookup("some.ns", "blah");
+  auto bt = engine->lookup("serene.core", "compile");
 
   if (!bt) {
     llvm::errs() << "Error: " << bt.takeError() << "'\n";
     return 1;
   }
+
   auto c    = *bt;
   void *res = c();
 
   (void)res;
+
   // // TODO: handle the outputDir by not forcing it. it should be
   // //       default to the current working dir
   // if (outputDir == "-") {
-  //   llvm::errs() << "Error: The build directory is not set. Did you forget to
+  //   llvm::errs() << "Error: The build directory is not set. Did you
+  //   forget to
   //   "
   //                   "use '-b'?\n";
   //   return 1;
