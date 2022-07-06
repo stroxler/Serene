@@ -16,12 +16,5 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "serene/core/reader.h"
-
-#include "serene/types/types.h"
-
-namespace serene {
-
-int reader() { return 0; };
-
-} // namespace serene
+#include "compiler.cpp.inc"
+#include "reader.cpp.inc"

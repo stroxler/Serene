@@ -16,14 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SERENE_CORE_READER_H
-#define SERENE_CORE_READER_H
-
-#include "serene/export.h"
+#include "serene/core/core.h"
+#include "serene/types/types.h"
 
 namespace serene {
-extern "C" int SERENE_EXPORT reader() asm("serene.core/reader");
-int example() { return 1 + 2; }
+
+int read() { return 0; };
 
 } // namespace serene
-#endif

@@ -1,4 +1,4 @@
-/*
+/* -*- C++ -*-
  * Serene Programming Language
  *
  * Copyright (c) 2019-2022 Sameer Rahmani <lxsameer@gnu.org>
@@ -16,11 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "serene/core/reader.h"
-#include "serene/types/types.h"
+#ifndef SERENE_CORE_CORE_H
+#define SERENE_CORE_CORE_H
+
+#include "serene/export.h"
 
 namespace serene {
-
-int compile() { return 0; };
+extern "C" int SERENE_EXPORT read() asm("serene.core/read");
+extern "C" int SERENE_EXPORT compile() asm("serene.core/compile");
 
 } // namespace serene
+#endif
