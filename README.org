@@ -17,6 +17,7 @@ Setup the githook and install dependencies using the following commands:
     - doxygen (If you want to build the docs as well)
     - Valgrind
     - CCache (If you want faster builds specially with the LLVM)
+    - Boehm GC v8.2.0
 
 ** LLVM Installation
 
@@ -86,6 +87,19 @@ In order to build for development (Debug mode) just use =./builder build= to set
 the project once and then you can just use =./builder compile= to build the changed files only.
 
 Check out the =builder= script for more subcommands and details.
+
+* How to Debug
+Since we're using the Boehm GC, in order to use a debugger we need to turn off some of the signal
+handlers that the debugger sets. In order to run the debugger (by default lldb) with ~serenec~
+just use the ~lldb-run~ subcommand of the builder script. In the debugger, after setting the
+break point on the ~main~ function (~b main~) then use the following commands on:
+
+  #+BEGIN_SRC bash
+   process handle -p yes -s no -n no SIGPWR
+   process handle -p yes -s no -n no SIGXCPU
+   process handle -p yes -s no -n no SIGSEGV
+  #+END_SRC bash
+
 
 * Cheatsheets
   - [[https://github.com/muqsitnawaz/modern-cpp-cheatsheet][Modern C++ Cheatsheet]]
