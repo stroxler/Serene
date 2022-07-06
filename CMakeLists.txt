@@ -114,7 +114,6 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 
     $<$<CONFIG:RELEASE>:-O3>
     $<$<CONFIG:RELEASE>:-fmerge-all-constants>
-    $<$<CONFIG:RELEASE>:-flto=thin>
     $<$<CONFIG:DEBUG>:-shared-libsan>
     )
 
@@ -125,7 +124,6 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     $<$<CONFIG:DEBUG>:-shared-libsan>
     $<$<CONFIG:RELEASE>:-fsanitize-address-globals-dead-stripping>
     $<$<CONFIG:DEBUG>:-fsanitize=address>
-    $<$<CONFIG:RELEASE>:-flto=thin>
     $<$<CONFIG:RELEASE>:-s>
     # Do not link against shared libraries
     #--static
