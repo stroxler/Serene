@@ -1,0 +1,11 @@
+FROM rg.fr-par.scw.cloud/serene/llvm:latest
+
+WORKDIR /app
+# For CI
+COPY .pre-commit-config.yaml .
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends git python3 python3-pip && \
+    pip3 install pre-commit && \
+    git init . && \
+    pre-commit autoupdate && \
+    rm -fv /app/.pre-commit-config.yaml
