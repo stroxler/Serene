@@ -112,9 +112,9 @@ function main() {
             shellcheck \
             zlib1g-dev
 
-    # install_llvm
-    # install_iwuy
-    # install_boehm
+    install_llvm
+    install_iwuy
+    install_boehm
     popd
 
     info "Enabling passwordless sudo"

@@ -88,8 +88,8 @@ function mount_serene {
 
     mkdir -p "$serene_dir"
 
-    info "Mounting Serene's dir into '/serene'"
-    mountpoint -q "$serene_dir" || sudo mount --bind "$project_root" "$serene_dir"
+    info "Mounting Serene's dir into '/serene' in read-only mode"
+    mountpoint -q "$serene_dir" || sudo mount --rbind -o ro "$project_root" "$serene_dir"
 }
 
 function mount_trees() {
@@ -99,9 +99,11 @@ function mount_trees() {
     mount_serene "$rootfs" "$project_root"
 
     info "Mounting the 'tmpfs' at '$rootfs/tmp'"
+    mkdir -p "$rootfs/tmp"
     mountpoint -q "$rootfs/tmp" || sudo mount -t tmpfs tmpfs "$rootfs/tmp"
 
     info "Mounting 'dev' at '$rootfs/dev'"
+    mkdir -p "$rootfs/dev"
     mountpoint -q "$rootfs/dev" || sudo mount --bind /dev "$rootfs/dev"
 }
 
@@ -110,13 +112,13 @@ function unmount_trees() {
     local rootfs="$1"
 
     info "Unmounting the 'serene' from '$rootfs/serene'"
-    mountpoint -q "$rootfs/serene" && sudo umount "$rootfs/serene"
+    sudo umount "$rootfs/serene" &> /dev/null || true
 
     info "Unmounting the 'tmpfs' from '$rootfs/tmp'"
-    mountpoint -q "$rootfs/tmp" && sudo umount "$rootfs/tmp"
+    sudo umount "$rootfs/tmp" &> /dev/null || true
 
     info "Unmounting 'dev' from '$rootfs/dev'"
-    mountpoint -q "$rootfs/dev" && sudo umount "$rootfs/dev"
+    sudo umount "$rootfs/dev" &> /dev/null || true
 }
 
 function init_devfs {
@@ -126,13 +128,19 @@ function init_devfs {
     local create_user
 
     create_group="groupadd -f -g$(id -g) $(whoami)"
-    create_user="adduser --uid $(id -u) --gid $(id -g) $(whoami) || true"
+    create_user="adduser -q --disabled-password --gecos '' --uid $(id -u) --gid $(id -g) $(whoami) || true"
 
-    mount_serene "$rootfs" "$project_root"
+    mkdir -p "$rootfs/proc"
+    mount_trees "$rootfs" "$project_root"
 
-    as_root "$rootfs" bash -c "$create_group"
-    as_root "$rootfs" bash -c "$create_user"
-    as_root "$rootfs" bash -c "adduser $(whoami) sudo || true"
+    info "Creating group '$(whoami)' with ID '$(id -g)'..."
+    as_root "$rootfs" bash --login -c "$create_group"
+
+    info "Creating user '$(whoami)' with ID '$(id -u)'..."
+    as_root "$rootfs" bash --login -c "$create_user"
+
+    info "Make '$(whoami)' a sudoer"
+    as_root "$rootfs" bash --login -c "adduser $(whoami) sudo || true"
 }
 
 function create_debian_rootfs() {
@@ -142,8 +150,8 @@ function create_debian_rootfs() {
     docker pull debian:sid-slim
 
     info "Spinning up the container"
-    docker stop devfs || true
-    docker rm devfs || true
+    docker stop devfs &> /dev/null || true
+    docker rm devfs &> /dev/null || true
     docker run --name devfs -d debian:sid-slim
     sleep 2
 
@@ -151,8 +159,8 @@ function create_debian_rootfs() {
     docker export -o "$to/rootfs.tar" devfs
 
     info "Tearing down the container"
-    docker stop devfs
-    docker rm devfs
+    docker stop devfs &> /dev/null
+    docker rm devfs &> /dev/null
 }
 
 function create_and_initialize_devfs_image() {
@@ -160,7 +168,9 @@ function create_and_initialize_devfs_image() {
     local project_root="$2"
     local llvm_version="$3"
     local rootfs
+    local version
 
+    version=$(git describe)
     rootfs="$to/rootfs/"
 
     if [ ! -f "$to/rootfs.tar" ]; then
@@ -180,8 +190,49 @@ function create_and_initialize_devfs_image() {
     #as_root "$rootfs" bash
 
     as_root "$rootfs" bash -c "echo '$llvm_version' > /etc/llvm_version"
+    as_root "$rootfs" bash -c "echo 'export LANG=C.UTF-8' >> /etc/bash.bashrc"
     as_root "$rootfs" bash -c "echo 'export LANG=C.UTF-8' >> /etc/profile"
     as_root "$rootfs" bash /serene/scripts/devfs_container_setup.sh
 
     unmount_trees "$rootfs"
+
+    info "Creating the tarball (It will take a few minutes)"
+    sudo tar c -C "$rootfs" "." | lzma -c -9 -T "$(nproc)" > "$to/fs.$version.tar.xz"
+
+    info "Removing the exporter tarball"
+    rm -fv "$to/rootfs.tar"
+}
+
+function sync_devfs_image() {
+    local where="$1"
+    local version
+
+    version=$(git describe)
+
+    yes_or_no "Upload images '$where/fs.$version.tar.xz'?" && \
+    info "Uploading image '$where/fs.$version.tar.xz'" && \
+    rsync -vlc --progress \
+          "$where/fs.$version.tar.xz" \
+          core.lxsameer.com:/home/www/public/dl.serene/devfs/
+}
+
+function mark_devfs_image_as_latest() {
+    local to="$1"
+    local version
+    local remote_cmd
+
+    version=$(git describe)
+    info "Marking images 'fs.$version.tar.xz' as latest"
+    remote_cmd="rm -f /home/www/public/dl.serene/devfs/fs.latest.tar.xz && ln -s /home/www/public/dl.serene/devfs/fs.$version.tar.xz /home/www/public/dl.serene/devfs/fs.latest.tar.xz"
+
+    # shellcheck disable=SC2029
+    ssh core.lxsameer.com "$remote_cmd"
+}
+
+function unmount_and_destroy_devfs() {
+    local rootfs="$1"
+
+    unmount_trees "$rootfs"
+
+    yes_or_no "Is it correct? 'sudo rm -rfv $rootfs'?" && sudo rm -rfv "$rootfs"
 }

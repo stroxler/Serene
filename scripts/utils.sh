@@ -44,3 +44,13 @@ function warn() {
         echo -e "[\033[01;33mWARN\033[00m]: $*"
     fi
 }
+
+function yes_or_no {
+    while true; do
+        read -rp "$* [y/n]: " yn
+        case $yn in
+            [Yy]*) return 0  ;;
+            [Nn]*) echo "Aborted" ; return  1 ;;
+        esac
+    done
+}

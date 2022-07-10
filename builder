@@ -351,7 +351,7 @@ function setup-dev() { ## Setup the container like env to build/develop Serene (
     else
         info "RootFS is missing."
         if [ ! -f "$fs_tarball" ]; then
-            download_devfs "$SERENE_FS_REPO/fs.latest.tar.xz" "$fs_tarball"
+            download_devfs "$SERENE_FS_REPO" "$fs_tarball"
         else
             info "FS tarball exists at '$fs_tarball'"
         fi
@@ -360,6 +360,36 @@ function setup-dev() { ## Setup the container like env to build/develop Serene (
     fi
 
     init_devfs "$rootfs" "$ME"
+
+    info "The 'devfs' setup is finished!"
+    echo
+    echo "===================================================================="
+    echo "DO NOT MANUALLY REMOVE THE DIRECTORY!!!"
+    echo "Instead use the builder command 'destroy-devfs' ro remove it"
+    echo "===================================================================="
+}
+
+function push_devfs_imagse() { ## Push the created devfs image to the "registry" (air quote)
+    # shellcheck source=/dev/null
+    source .env
+
+    local image_dir
+
+    image_dir="$DEV_FS_DIR/image"
+
+    sync_devfs_image "$image_dir"
+    mark_devfs_image_as_latest "$image_dir"
+}
+
+function destroy-devfs() { ## Destroy the 'devfs' by unmounting the volumes and deleting the files
+    # shellcheck source=/dev/null
+    source .env
+
+    local rootfs
+    rootfs="$DEV_FS_DIR/fs"
+
+    yes_or_no "Do you really want to remove the 'devfs'?" && \
+        unmount_and_destroy_devfs "$rootfs"
 }
 
 function devfs_root_shell() { ## Get a bash shell as root on the devfs
