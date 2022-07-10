@@ -299,7 +299,7 @@ int main(int argc, char *argv[]) {
   // }
 
   std::string core = "serene.core";
-  auto maybeJD     = engine->loadNamespace(core);
+  auto maybeJD = engine->loadNamespace(core);
   if (!maybeJD) {
     llvm::errs() << "Error: " << maybeJD.takeError() << "'\n";
     return 1;
@@ -312,7 +312,7 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  auto c    = *bt;
+  auto c = *bt;
   void *res = c();
 
   (void)res;

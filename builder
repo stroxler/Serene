@@ -46,7 +46,8 @@ set -e
 # -----------------------------------------------------------------------------
 
 command=$1
-VERSION="0.6.0"
+VERSION="0.7.0"
+LLVM_VERSION="15"
 
 # Serene subprojects. We use this array to run common tasks on all the projects
 # like running the test cases
@@ -76,13 +77,19 @@ CMAKEARGS_DEBUG=("-DCMAKE_BUILD_TYPE=Debug")
 CMAKEARGS=("-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
            "-DSERENE_CCACHE_DIR=$HOME/.ccache")
 
+# shellcheck source=scripts/utils.sh
+source "$ME/scripts/utils.sh"
+
+# shellcheck source=scripts/containers.sh
+source "$ME/scripts/containers.sh"
+
+# shellcheck source=scripts/devfs.sh
+source "$ME/scripts/devfs.sh"
+
+
 # -----------------------------------------------------------------------------
 # Helper functions
 # -----------------------------------------------------------------------------
-function fn-names() {
-    grep -E '^function [0-9a-zA-Z_-]+\(\) \{ ## .*$$' "$0" | sed 's/^function \([a-zA-Z0-9_-]*\)() { ## \(.*\)/\1/'
-}
-
 
 function gen_precompile_header_index() {
      {
@@ -115,28 +122,6 @@ function build-gen() {
     popd_build
 }
 
-
-function info() {
-    if [ "$1" ]
-    then
-        echo -e "[\033[01;32mINFO\033[00m]: $*"
-    fi
-}
-
-function error() {
-    if [ "$1" ]
-    then
-        echo -e "[\033[01;31mERR\033[00m]: $*"
-    fi
-}
-
-function warn() {
-    if [ "$1" ]
-    then
-        echo -e "[\033[01;33mWARN\033[00m]: $*"
-    fi
-}
-
 # -----------------------------------------------------------------------------
 # Subcomaands
 # -----------------------------------------------------------------------------
@@ -153,10 +138,34 @@ function build() { ## Builds the project by regenerating the build scripts
     build-gen "$@"
     pushed_build
 
-    cpus=$(grep ^cpu\\scores /proc/cpuinfo | uniq |  awk '{print $4}')
+    cpus=$(nproc)
     cmake --build . -j "$cpus"
 
     popd_build
+}
+
+function build-container() { ## Builds the project in handmade container (Linux only)
+    # shellcheck source=/dev/null
+    source .env
+    local uid
+    local gid
+
+    # uid=$(id -u)
+    # gid=$(id -g)
+    #         --map-user="$uid" \
+    #         --map-group="$gid" \
+
+    unshare --user \
+            -w "/app" \
+            --uts --net --ipc \
+            --pid --fork \
+            -c \
+            --kill-child \
+            --cgroup \
+            --mount \
+            --mount-proc \
+            --root="$DEVFS" \
+            /bin/bash
 }
 
 function build-20() { ## Builds the project using C++20 (will regenerate the build)
@@ -245,32 +254,28 @@ function build-tests() { ## Generates and build the project including the test c
     popd_build
 }
 
-function build-llvm-image-arm64() { ## Build the LLVM image that we use to build Serene's image (on ARM64)
+function build-llvm-image() { ## Build thh LLVM images of Serene for all platforms
     # shellcheck source=/dev/null
     source .env
-    docker buildx build --platform linux/arm64 --builder multiarch --load \
-           -f "$ME/resources/docker/llvm/Dockerfile" \
-           -t "$REGISTRY/llvm:$1-$2" \
-           --build-arg VERSION="$1" \
-           .
+    if [ "$1" ]; then
+        cleanup_builder || setup_builder
+        podman login "$REGISTRY" -u "$SERENE_REGISTERY_USER" -p "$SERENE_REGISTERY_PASS"
+        build_llvm "$1" "$ME"
+        build_ci "$1" "$ME"
+        cleanup_builder
+    else
+        error "Pass the llvm version as input"
+    fi
 }
 
-function build-llvm-image() { ## Build the LLVM image that we use to build Serene's image
+function push-images() { ## Pushes all the related image to the registery
     # shellcheck source=/dev/null
     source .env
-    docker buildx build \
-           -f "$ME/resources/docker/llvm/Dockerfile" \
-           -t "$REGISTRY/llvm:$1-$2" \
-           --build-arg VERSION="$1" \
-           .
-}
-
-function push-llvm-image() { ## Pushes the LLVM image to the registery
-    # shellcheck source=/dev/null
-    source .env
-
-    docker login "$REGISTRY" -u "$SERENE_REGISTERY_USER" -p "$SERENE_REGISTERY_PASS"
-    docker push "$REGISTRY/llvm:$1"
+    if [ "$1" ]; then
+        push_images "$1" "$ME"
+    else
+        error "Pass the llvm version as input"
+    fi
 }
 
 function build-serene-image-arm64() { ## Build the Serene docker image for the current HEAD (on ARM64)
@@ -294,16 +299,6 @@ function build-serene-image() { ## Build the Serene docker image for the current
            .
 }
 
-function build-serene-image-arm64() { ## Build the Serene docker image for the current HEAD (on ARM64)
-    # shellcheck source=/dev/null
-    source .env
-
-    docker buildx build --platform linux/arm64 --builder multiarch --load \
-           -f "$ME/resources/docker/serene/Dockerfile" \
-           -t "$REGISTRY/serene:$VERSION-$(git rev-parse HEAD)" \
-           .
-}
-
 function release-serene-image() { ## Build and push the Serene docker image for the current HEAD in Release mode
     # shellcheck source=/dev/null
     source .env
@@ -316,6 +311,17 @@ function release-serene-image() { ## Build and push the Serene docker image for 
     docker push "$REGISTRY/serene:$VERSION"
 }
 
+function create-devfs-image() { ## Create the devfs images locally (requires sudo)
+    # shellcheck source=/dev/null
+    source .env
+
+    local output_dir
+
+    output_dir="$DEV_FS_DIR/image"
+    mkdir -p "$output_dir"
+
+    create_and_initialize_devfs_image "$output_dir" "$ME" "$LLVM_VERSION"
+}
 
 function setup() { ## Setup the working directory and make it ready for development
     if command -v python3 >/dev/null 2>&1; then
@@ -326,6 +332,64 @@ function setup() { ## Setup the working directory and make it ready for developm
     fi
     # rm -rfv "$ME/.git/hooks/pre-commit"
     # ln -s "$ME/scripts/pre-commit" "$ME/.git/hooks/pre-commit"
+}
+
+function setup-dev() { ## Setup the container like env to build/develop Serene (requires sudo access)
+    # shellcheck source=/dev/null
+    source .env
+
+    local fs_tarball
+    local rootfs
+
+    fs_tarball="$DEV_FS_DIR/fs.tar.xz"
+    rootfs="$DEV_FS_DIR/fs"
+
+    mkdir -p "$DEV_FS_DIR"
+
+    if [[ -f "$rootfs/etc/shadow" ]]; then
+       info "RootFS already exits. Skipping..."
+    else
+        info "RootFS is missing."
+        if [ ! -f "$fs_tarball" ]; then
+            download_devfs "$SERENE_FS_REPO/fs.latest.tar.xz" "$fs_tarball"
+        else
+            info "FS tarball exists at '$fs_tarball'"
+        fi
+
+        extract_devfs "$fs_tarball" "$rootfs"
+    fi
+
+    init_devfs "$rootfs" "$ME"
+}
+
+function devfs_root_shell() { ## Get a bash shell as root on the devfs
+    # shellcheck source=/dev/null
+    source .env
+
+    local rootfs
+
+    rootfs="$DEV_FS_DIR/fs"
+
+    if [[ -f "$rootfs/etc/shadow" ]]; then
+        as_root "$rootfs" bash
+    else
+        error "DevFS does not exist run './builder setup-dev' first"
+    fi
+}
+
+function devfs_shell() { ## Get a bash shell on the devfs
+    # shellcheck source=/dev/null
+    source .env
+
+    local rootfs
+
+    rootfs="$DEV_FS_DIR/fs"
+
+    if [[ -f "$rootfs/etc/shadow" ]]; then
+        rootless "$rootfs" bash
+    else
+        error "DevFS does not exist run './builder setup-dev' first"
+    fi
 }
 
 function scan-build() { ## Runs the `scan-build` utility to analyze the build process

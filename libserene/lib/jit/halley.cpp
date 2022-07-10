@@ -221,7 +221,7 @@ void Halley::setEngine(std::unique_ptr<llvm::orc::LLJIT> e, bool isLazy) {
   // Later on we might use different classes of JIT which might need some
   // work for lazyness
   (void)ctx;
-  engine       = std::move(e);
+  engine = std::move(e);
   this->isLazy = isLazy;
 };
 
@@ -394,8 +394,8 @@ types::Namespace &Halley::makeNamespace(const char *name) {
   // randomly build instances here and there that causes unsafe memory
   assert(name && "name is nullptr: createNamespace");
   const auto &nsName = getInternalString(name);
-  auto *ns           = (types::Namespace *)GC_MALLOC(sizeof(types::Namespace));
-  ns->name           = &nsName;
+  auto *ns = (types::Namespace *)GC_MALLOC(sizeof(types::Namespace));
+  ns->name = &nsName;
 
   nsStorage.push_back(ns);
   return *ns;
@@ -405,7 +405,7 @@ types::Namespace &Halley::makeNamespace(const char *name) {
 llvm::Error Halley::createEmptyNS(const char *name) {
   assert(name && "name is nullptr: createEmptyNS");
   // TODO: Look up the Namespace first.
-  auto &ns         = makeNamespace(name);
+  auto &ns = makeNamespace(name);
   auto numOfDylibs = getNumberOfJITDylibs(ns) + 1;
 
   HALLEY_LOG(
@@ -578,7 +578,7 @@ Halley::loadNamespaceFrom<fs::NSFileType::StaticLib>(NSLoadRequest &req) {
   }
 
   auto &session = engine->getExecutionSession();
-  auto *jd      = getLatestJITDylib(req.nsName.str().c_str());
+  auto *jd = getLatestJITDylib(req.nsName.str().c_str());
   assert(jd == nullptr && "'jd' must not be null since we just created it.");
 
   // TODO: Handle hidden static libs as well look at the addLibrary/AddArchive

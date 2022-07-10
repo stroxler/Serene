@@ -33,7 +33,7 @@
 #include <vector>     // for vector
 
 #define DEFAULT_NS_NAME "serene.user"
-#define INTERNAL_NS     "serene.internal"
+#define INTERNAL_NS "serene.internal"
 
 namespace serene {
 class SereneContext;
@@ -62,8 +62,7 @@ SERENE_EXPORT void terminate(SereneContext &ctx, int exitCode);
 class SERENE_EXPORT SereneContext {
 
 public:
-  template <typename T>
-  using CurrentNSFn = std::function<T()>;
+  template <typename T> using CurrentNSFn = std::function<T()>;
 
   /// The set of options to change the compilers behaivoirs
   Options opts;
