@@ -80,9 +80,6 @@ CMAKEARGS=("-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
 # shellcheck source=scripts/utils.sh
 source "$ME/scripts/utils.sh"
 
-# shellcheck source=scripts/containers.sh
-source "$ME/scripts/containers.sh"
-
 # shellcheck source=scripts/devfs.sh
 source "$ME/scripts/devfs.sh"
 
@@ -142,30 +139,6 @@ function build() { ## Builds the project by regenerating the build scripts
     cmake --build . -j "$cpus"
 
     popd_build
-}
-
-function build-container() { ## Builds the project in handmade container (Linux only)
-    # shellcheck source=/dev/null
-    source .env
-    local uid
-    local gid
-
-    # uid=$(id -u)
-    # gid=$(id -g)
-    #         --map-user="$uid" \
-    #         --map-group="$gid" \
-
-    unshare --user \
-            -w "/app" \
-            --uts --net --ipc \
-            --pid --fork \
-            -c \
-            --kill-child \
-            --cgroup \
-            --mount \
-            --mount-proc \
-            --root="$DEVFS" \
-            /bin/bash
 }
 
 function build-20() { ## Builds the project using C++20 (will regenerate the build)

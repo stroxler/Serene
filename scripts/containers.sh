@@ -168,8 +168,8 @@ function build_llvm_multiarch() {
     local ROOT="$2"
 
     info "Building the multiarch llvm images for:"
-    info "VERSION: $LLVM_VERSION | Platforms: $PLATFORMS"
-    docker buildx build --platform  "$PLATFORMS" \
+    info "VERSION: $LLVM_VERSION | Platforms: ${PLATFORMS[*]}"
+    docker buildx build --platform  "${PLATFORMS[@]}" \
            --builder "$BUILDER_NAME" --push \
            -f "$ROOT/resources/docker/llvm/Dockerfile" \
            -t "$REGISTRY/$IMAGE_NAME:${LLVM_VERSION}-$(git describe)" \
