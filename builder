@@ -365,6 +365,16 @@ function destroy-devfs() { ## Destroy the 'devfs' by unmounting the volumes and 
         unmount_and_destroy_devfs "$rootfs"
 }
 
+function build-in-devfs() { ## Destroy the 'devfs' by unmounting the volumes and deleting the files
+    # shellcheck source=/dev/null
+    source .env
+
+    local rootfs
+    rootfs="$DEV_FS_DIR/fs"
+
+    rootless "$rootfs" ./builder build
+}
+
 function devfs_root_shell() { ## Get a bash shell as root on the devfs
     # shellcheck source=/dev/null
     source .env
