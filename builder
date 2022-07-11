@@ -77,10 +77,10 @@ CMAKEARGS_DEBUG=("-DCMAKE_BUILD_TYPE=Debug")
 CMAKEARGS=("-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
            "-DSERENE_CCACHE_DIR=$HOME/.ccache")
 
-# shellcheck source=scripts/utils.sh
+# shellcheck source=./scripts/utils.sh
 source "$ME/scripts/utils.sh"
 
-# shellcheck source=scripts/devfs.sh
+# shellcheck source=./scripts/devfs.sh
 source "$ME/scripts/devfs.sh"
 
 

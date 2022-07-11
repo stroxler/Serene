@@ -51,6 +51,20 @@
 - If ~def~ is not a top level expression, it will create an ~undef~ global binding which
   will be set to the ~<VALUE>~ when the execution flow reaches the ~def~ itself.
 
+* Libraries
+In terms of static and dynamic libraries, If the library is a Serene library
+meaning that it is designed to only work with serene (we will see how in a bit), then
+whatever namespaces that it contains will be added to the compiler and all those
+namespaces will be map to the library (all the namespaces will point to the same JITDylib).
+
+But if the library is a generic static or dynamic library a namespace with the same
+name as the library minus the suffix will be added to the compiler, for example ~libssh.so~
+will be mapped to ~libssh~ namespace.
+** Static
+
+** Dynamic
+
+** Object
 * Unsorted
 ** Eval
 Evaluating any form using =eval= will add the form to the namespace containing the
