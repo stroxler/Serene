@@ -46,6 +46,15 @@ set_target_properties(serene PROPERTIES
   # LTO support
   INTERPROCEDURAL_OPTIMIZATION TRUE)
 
+target_compile_options(serene
+  PRIVATE
+  $<$<CONFIG:DEBUG>:-static-libsan>)
+
+target_link_options(serene
+  PRIVATE
+  $<$<CONFIG:DEBUG>:-shared-libsan>)
+
+
 if(SERENE_ENABLE_TIDY)
   set_target_properties(serene PROPERTIES CXX_CLANG_TIDY ${CLANG_TIDY_PATH})
 endif()

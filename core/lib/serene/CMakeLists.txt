@@ -23,7 +23,7 @@ if(NOT APPLE)
 endif()
 
 set(SOURCES core.cpp)
-add_library(core OBJECT
+add_library(core STATIC
   ${SOURCES})
 
 #add_custom_target(serene.core)
@@ -44,6 +44,12 @@ set_target_properties(core PROPERTIES
   # LTO support
   INTERPROCEDURAL_OPTIMIZATION FALSE)
 
+target_compile_options(core PUBLIC -fsanitize=address -static-libsan --static)
+target_link_options(core PUBLIC -fsanitize=address -static-libsan --static)
+
+get_target_property(MFLAGS core COMPILE_OPTIONS)
+message(STATUS "------ ${MFLAGS}")
+
 if(SERENE_ENABLE_TIDY)
   set_target_properties(core PROPERTIES CXX_CLANG_TIDY ${CLANG_TIDY_PATH})
 endif()
@@ -62,6 +68,5 @@ target_include_directories(core PUBLIC "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
 include(GenerateExportHeader)
 
 generate_export_header(core EXPORT_FILE_NAME ${PROJECT_BINARY_DIR}/include/serene/core/export.h)
-
 
 target_link_libraries(core PRIVATE)

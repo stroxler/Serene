@@ -25,6 +25,14 @@ set_target_properties(serenec PROPERTIES
   # LTO support
   INTERPROCEDURAL_OPTIMIZATION TRUE)
 
+target_compile_options(serenec
+  PRIVATE
+  $<$<CONFIG:DEBUG>:-static-libsan>)
+
+target_link_options(serenec
+  PRIVATE
+  $<$<CONFIG:DEBUG>:-shared-libsan>)
+
 add_dependencies(serenec Serene::core)
 
 if(SERENE_ENABLE_TIDY)

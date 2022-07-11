@@ -114,14 +114,12 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 
     $<$<CONFIG:RELEASE>:-O3>
     $<$<CONFIG:RELEASE>:-fmerge-all-constants>
-    $<$<CONFIG:DEBUG>:-shared-libsan>
     )
 
   add_link_options(
     # We enforce the lld linker
     -fuse-ld=lld
     -Wl,-gc-sections
-    $<$<CONFIG:DEBUG>:-shared-libsan>
     $<$<CONFIG:RELEASE>:-fsanitize-address-globals-dead-stripping>
     $<$<CONFIG:DEBUG>:-fsanitize=address>
     $<$<CONFIG:RELEASE>:-s>
