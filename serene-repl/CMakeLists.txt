@@ -42,6 +42,18 @@ target_link_libraries(serene-repl
   Serene::lib
 )
 
+target_compile_options(serene-repl
+  PRIVATE
+  $<$<CONFIG:DEBUG>:-fsanitize=address>
+  $<$<CONFIG:DEBUG>:-static-libsan>
+  )
+
+target_link_options(serene-repl
+  PRIVATE
+  $<$<CONFIG:DEBUG>:-fsanitize=address>
+  $<$<CONFIG:DEBUG>:-static-libsan>
+  )
+
 target_include_directories(serene-repl PRIVATE ${PROJECT_BINARY_DIR})
 target_include_directories(serene-repl PRIVATE ${INCLUDE_DIR})
 

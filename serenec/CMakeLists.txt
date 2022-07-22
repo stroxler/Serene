@@ -27,11 +27,15 @@ set_target_properties(serenec PROPERTIES
 
 target_compile_options(serenec
   PRIVATE
-  $<$<CONFIG:DEBUG>:-static-libsan>)
+  $<$<CONFIG:DEBUG>:-fsanitize=address>
+  $<$<CONFIG:DEBUG>:-static-libsan>
+  )
 
 target_link_options(serenec
   PRIVATE
-  $<$<CONFIG:DEBUG>:-shared-libsan>)
+  $<$<CONFIG:DEBUG>:-fsanitize=address>
+  $<$<CONFIG:DEBUG>:-static-libsan>
+  )
 
 add_dependencies(serenec Serene::core)
 

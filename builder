@@ -156,8 +156,8 @@ function build-tidy() { ## Builds the project using clang-tidy (It takes longer 
 function build-release() { ## Builds the project in "Release" mode
     clean
     pushed_build
-    cmake -G Ninja -DCMAKE_BUILD_TYPE=Release "$ROOT_DIR"
-    cmake --build .
+    cmake -G Ninja -DCMAKE_BUILD_TYPE=Release "${CMAKEARGS[@]}" "$ROOT_DIR"
+    cmake --build . --config Release
     popd_build
 }
 
@@ -180,18 +180,15 @@ function clean() { ## Cleans up the source dir and removes the build
 }
 
 function run() { ## Runs `serenec` and passes all the given aruguments to it
-    LD_PRELOAD=$(clang -print-file-name=libclang_rt.asan-x86_64.so) \
-              "$BUILD_DIR"/serenec/serenec "$@"
+    "$BUILD_DIR"/serenec/serenec "$@"
 }
 
 function lldb-run() { ## Runs `serenec` under lldb
-    LD_PRELOAD=$(clang -print-file-name=libclang_rt.asan-x86_64.so) \
-              lldb -- "$BUILD_DIR"/serenec/serenec "$@"
+    lldb -- "$BUILD_DIR"/serenec/serenec "$@"
 }
 
 function repl() { ## Runs `serene-repl` and passes all the given aruguments to it
-    LD_PRELOAD=$(clang -print-file-name=libclang_rt.asan-x86_64.so) \
-              "$BUILD_DIR"/serene-repl/serene-repl "$@"
+    "$BUILD_DIR"/serene-repl/serene-repl "$@"
 }
 
 function memcheck-serene() { ## Runs `valgrind` to check `serenec` birany
@@ -209,13 +206,11 @@ function tests() { ## Runs all the test cases
             local test_file="$BUILD_DIR/$proj/tests/${proj}Tests"
 
             if [[ -f "$test_file" ]]; then
-                LD_PRELOAD=$(clang -print-file-name=libclang_rt.asan-x86_64.so) \
-                          eval "$test_file ${*:2}"
+                eval "$test_file ${*:2}"
             fi
         done
     else
-        LD_PRELOAD=$(clang -print-file-name=libclang_rt.asan-x86_64.so) \
-                  eval "$BUILD_DIR/$1/tests/$1Tests ${*:2}"
+        eval "$BUILD_DIR/$1/tests/$1Tests ${*:2}"
     fi
 }
 
@@ -303,8 +298,6 @@ function setup() { ## Setup the working directory and make it ready for developm
     else
         error "Python is required to setup pre-commit"
     fi
-    # rm -rfv "$ME/.git/hooks/pre-commit"
-    # ln -s "$ME/scripts/pre-commit" "$ME/.git/hooks/pre-commit"
 }
 
 function setup-dev() { ## Setup the container like env to build/develop Serene (requires sudo access)

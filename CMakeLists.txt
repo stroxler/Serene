@@ -110,7 +110,6 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 
     $<$<CONFIG:DEBUG>:-fno-omit-frame-pointer>
     $<$<CONFIG:RELEASE>:-fomit-frame-pointer>
-    $<$<CONFIG:DEBUG>:-fsanitize=address>
 
     $<$<CONFIG:RELEASE>:-O3>
     $<$<CONFIG:RELEASE>:-fmerge-all-constants>
@@ -120,8 +119,6 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     # We enforce the lld linker
     -fuse-ld=lld
     -Wl,-gc-sections
-    $<$<CONFIG:RELEASE>:-fsanitize-address-globals-dead-stripping>
-    $<$<CONFIG:DEBUG>:-fsanitize=address>
     $<$<CONFIG:RELEASE>:-s>
     # Do not link against shared libraries
     #--static

@@ -47,34 +47,14 @@ set_target_properties(serene PROPERTIES
   INTERPROCEDURAL_OPTIMIZATION TRUE)
 
 target_compile_options(serene
-  PRIVATE
-  $<$<CONFIG:DEBUG>:-static-libsan>)
+  PRIVATE)
 
 target_link_options(serene
-  PRIVATE
-  $<$<CONFIG:DEBUG>:-shared-libsan>)
-
+  PRIVATE)
 
 if(SERENE_ENABLE_TIDY)
   set_target_properties(serene PROPERTIES CXX_CLANG_TIDY ${CLANG_TIDY_PATH})
 endif()
-
-# Do we need to build serene as a shared lib? default is "yes"
-if(SERENE_SHARED_LIB)
-
-  # We need to use libsan as a shared lib on debug mode. The
-  # target executable has to be built with `-fsanitize=address`
-  # as well and it has to run with:
-  # LD_PRELOAD=$(clang -print-file-name=libclang_rt.asan-x86_64.so)
-  target_compile_options(serene PRIVATE
-    $<$<CONFIG:DEBUG>:-shared-libsan>
-    )
-  target_link_options(
-    serene PRIVATE
-    $<$<CONFIG:DEBUG>:-shared-libsan>
-    )
-endif()
-
 
 if (CPP_20_SUPPORT)
   target_compile_features(serene PUBLIC cxx_std_20)

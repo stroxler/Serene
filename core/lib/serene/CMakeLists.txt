@@ -23,7 +23,7 @@ if(NOT APPLE)
 endif()
 
 set(SOURCES core.cpp)
-add_library(core STATIC
+add_library(core OBJECT
   ${SOURCES})
 
 #add_custom_target(serene.core)
@@ -41,14 +41,12 @@ set_target_properties(core PROPERTIES
   LINK_WHAT_YOU_USE TRUE
   CXX_INCLUDE_WHAT_YOU_USE "${iwyu_path}"
   C_INCLUDE_WHAT_YOU_USE "${iwyu_path}"
-  # LTO support
+  # LTO support we need the actual object file
+  # LTO will export them to llvm IR
   INTERPROCEDURAL_OPTIMIZATION FALSE)
 
-target_compile_options(core PUBLIC -fsanitize=address -static-libsan --static)
-target_link_options(core PUBLIC -fsanitize=address -static-libsan --static)
-
-get_target_property(MFLAGS core COMPILE_OPTIONS)
-message(STATUS "------ ${MFLAGS}")
+target_compile_options(core PRIVATE --static)
+target_link_options(core PRIVATE --static)
 
 if(SERENE_ENABLE_TIDY)
   set_target_properties(core PROPERTIES CXX_CLANG_TIDY ${CLANG_TIDY_PATH})
