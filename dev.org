@@ -131,7 +131,22 @@ leave the rest untouched
 it would be nice for the JIT to add instrumentation to the compiled
 functions and detect hot functions similar to how javascript jits do it
 and recompile those functions with more optimization passes
-
+* Conversations
+** Solutions to link other ~libc~ rather than the default
+From my discassion with ~lhames~
+#+BEGIN_QUOTE
+I can think of a few approaches with different trade-offs:
+- Link your whole JIT (including LLVM) against musl rather than the default -- JIT'd
+  code uses the desired libc, there's only one libc in the JIT'd process, but the
+  cost is high (perhaps prohibitive, depending on your constraints)
+- JIT out-of-process -- JIT (including LLVM) uses default libc and is compiled only once,
+  executor links the (alternative) desired libc at compile time and must be compiled each
+  time that you want to change it -- JIT'd code uses the desired libc, there's only one libc
+  in the JIT'd process, but the config is involved (requires a cross-process setup)
+- JIT in process, link desired libc via JIT -- Easy to set up, but now you've got two
+  libcs in the process. I've never tested that config. It might just work, it might
+  fail at link or runtime in weird ways.
+#+END_QUOTE
 * TODOs
 ** Strings
 *** TODO How to concat to strings in a functional and immutable way?
