@@ -23,9 +23,9 @@
 
 namespace serene {
 
-int compile() {
-  printf("Here\n");
-  return 0;
+extern "C" int SERENE_EXPORT compile() {
+  printf("compile11\n");
+  return 2;
 };
 
 } // namespace serene

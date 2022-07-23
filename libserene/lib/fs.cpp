@@ -20,6 +20,8 @@
 
 #include "serene/context.h"
 
+#include <llvm/BinaryFormat/Magic.h>
+
 namespace serene::fs {
 
 std::string extensionFor(SereneContext &ctx, NSFileType t) {
@@ -50,7 +52,7 @@ std::string extensionFor(SereneContext &ctx, NSFileType t) {
 /// Converts the given namespace name `nsName` to the file name
 /// for that name space. E.g, `some.random.ns` will be translated
 /// to `some_random_ns`.
-std::string namespaceToPath(const llvm::StringRef nsName) {
+std::string namespaceToPath(llvm::StringRef nsName) {
   // TODO: [fs][perf] This function is not efficient. Fix it
   std::string nsNameCopy = nsName.str();
   std::replace(nsNameCopy.begin(), nsNameCopy.end(), '.', '/');
@@ -60,6 +62,30 @@ std::string namespaceToPath(const llvm::StringRef nsName) {
   llvm::sys::path::native(path);
 
   return std::string(path);
+};
+
+bool isStaticLib(llvm::StringRef path) {
+  llvm::file_magic magic;
+  // llvm::identify_magic returns an error code on failure
+  if (llvm::identify_magic(path, magic)) {
+    // If there was an error loading the file then skip it.
+    return false;
+  }
+
+  return (magic == llvm::file_magic::archive ||
+          magic == llvm::file_magic::macho_universal_binary);
+};
+
+bool isSharedLib(llvm::StringRef path) {
+  llvm::file_magic magic;
+  // llvm::identify_magic returns an error code on failure
+  if (llvm::identify_magic(path, magic)) {
+    // If there was an error loading the file then skip it.
+    return false;
+  }
+
+  return (magic == llvm::file_magic::macho_dynamically_linked_shared_lib ||
+          magic == llvm::file_magic::elf_shared_object);
 };
 
 /// Return a boolean indicating whether or not the given path exists.

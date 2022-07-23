@@ -30,15 +30,17 @@
 #include <llvm/ADT/Triple.h>   // for Triple
 #include <llvm/ADT/iterator.h> // for itera...
 #include <llvm/BinaryFormat/Magic.h>
-#include <llvm/ExecutionEngine/JITEventListener.h>            // for JITEv...
-#include <llvm/ExecutionEngine/Orc/CompileUtils.h>            // for TMOwn...
-#include <llvm/ExecutionEngine/Orc/Core.h>                    // for Execu...
-#include <llvm/ExecutionEngine/Orc/DebugUtils.h>              // for opera...
+#include <llvm/ExecutionEngine/JITEventListener.h> // for JITEv...
+#include <llvm/ExecutionEngine/Orc/CompileUtils.h> // for TMOwn...
+#include <llvm/ExecutionEngine/Orc/Core.h>         // for Execu...
+#include <llvm/ExecutionEngine/Orc/DebugUtils.h>   // for opera...
+#include <llvm/ExecutionEngine/Orc/EPCDynamicLibrarySearchGenerator.h>
 #include <llvm/ExecutionEngine/Orc/ExecutionUtils.h>          // for Dynam...
 #include <llvm/ExecutionEngine/Orc/IRCompileLayer.h>          // for IRCom...
 #include <llvm/ExecutionEngine/Orc/JITTargetMachineBuilder.h> // for JITTa...
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>                   // for LLJIT...
 #include <llvm/ExecutionEngine/Orc/ObjectFileInterface.h>
+#include <llvm/ExecutionEngine/Orc/ObjectLinkingLayer.h>
 #include <llvm/ExecutionEngine/Orc/RTDyldObjectLinkingLayer.h> // for RTDyl...
 #include <llvm/ExecutionEngine/Orc/ThreadSafeModule.h>         // for Threa...
 #include <llvm/ExecutionEngine/SectionMemoryManager.h>         // for Secti...
@@ -277,32 +279,10 @@ MaybeEngine Halley::make(std::unique_ptr<SereneContext> sereneCtxPtr,
     // exported symbol visibility.
     // cf llvm/lib/ExecutionEngine/Orc/LLJIT.cpp
     // LLJIT::createObjectLinkingLayer
-
     if (sereneCtx.triple.isOSBinFormatCOFF()) {
       objectLayer->setOverrideObjectFlagsWithResponsibilityFlags(true);
       objectLayer->setAutoClaimResponsibilityForObjectSymbols(true);
     }
-
-    // Resolve symbols from shared libraries.
-    // for (auto libPath : sharedLibPaths) {
-    //   auto mb = llvm::MemoryBuffer::getFile(libPath);
-    //   if (!mb) {
-    //     llvm::errs() << "Failed to create MemoryBuffer for: " << libPath
-    //                  << "\nError: " << mb.getError().message() << "\n";
-    //     continue;
-    //   }
-    //   auto &JD    = session.createBareJITDylib(std::string(libPath));
-    //   auto loaded = llvm::orc::DynamicLibrarySearchGenerator::Load(
-    //       libPath.data(), dataLayout.getGlobalPrefix());
-    //   if (!loaded) {
-    //     llvm::errs() << "Could not load " << libPath << ":\n  "
-    //                  << loaded.takeError() << "\n";
-    //     continue;
-    //   }
-
-    //   JD.addGenerator(std::move(*loaded));
-    //   cantFail(objectLayer->add(JD, std::move(mb.get())));
-    // }
 
     return objectLayer;
   };
@@ -326,6 +306,10 @@ MaybeEngine Halley::make(std::unique_ptr<SereneContext> sereneCtxPtr,
         std::move(*targetMachine), jitEngine->cache.get());
   };
 
+  // TODO: [jit] This is not a proper way to handle both engines.
+  // Create two different classes for different execution modes
+  // (`lazy` vs `eager`) with the same interface and use them
+  // where appropriate.
   if (sereneCtx.opts.JITLazy) {
     // Setup a LLLazyJIT instance to the times that latency is important
     // for example in a REPL. This way
@@ -335,8 +319,8 @@ MaybeEngine Halley::make(std::unique_ptr<SereneContext> sereneCtxPtr,
                      .setCompileFunctionCreator(compileFunctionCreator)
                      .setObjectLinkingLayerCreator(objectLinkingLayerCreator)
                      .create());
-    jitEngine->setEngine(std::move(jit), true);
 
+    jitEngine->setEngine(std::move(jit), sereneCtx.opts.JITLazy);
   } else {
     // Setup a LLJIT instance for the times that performance is important
     // and we want to compile everything as soon as possible. For instance
@@ -346,9 +330,9 @@ MaybeEngine Halley::make(std::unique_ptr<SereneContext> sereneCtxPtr,
                      .setCompileFunctionCreator(compileFunctionCreator)
                      .setObjectLinkingLayerCreator(objectLinkingLayerCreator)
                      .create());
-
-    jitEngine->setEngine(std::move(jit), false);
+    jitEngine->setEngine(std::move(jit), sereneCtx.opts.JITLazy);
   }
+  // /TODO
 
   jitEngine->engine->getIRCompileLayer().setNotifyCompiled(
       [&](llvm::orc::MaterializationResponsibility &r,
@@ -360,11 +344,9 @@ MaybeEngine Halley::make(std::unique_ptr<SereneContext> sereneCtxPtr,
         });
       });
 
-  // Resolve symbols that are statically linked in the current process.
-  llvm::orc::JITDylib &mainJD = jitEngine->engine->getMainJITDylib();
-  mainJD.addGenerator(
-      cantFail(llvm::orc::DynamicLibrarySearchGenerator::GetForCurrentProcess(
-          jitEngine->dl.getGlobalPrefix())));
+  if (auto err = jitEngine->createCurrentProcessJD()) {
+    return err;
+  }
 
   return MaybeEngine(std::move(jitEngine));
 };
@@ -423,7 +405,7 @@ llvm::Error Halley::createEmptyNS(const char *name) {
   return llvm::Error::success();
 };
 
-MaybeEnginePtr Halley::lookup(const char *nsName, const char *sym) {
+MaybeJitAddress Halley::lookup(const char *nsName, const char *sym) {
   assert(sym != nullptr && "'sym' is null: lookup");
   assert(nsName != nullptr && "'nsName' is null: lookup");
 
@@ -432,12 +414,14 @@ MaybeEnginePtr Halley::lookup(const char *nsName, const char *sym) {
 
   std::string fqsym = (ns + "/" + s).str();
 
+  HALLEY_LOG("Looking up symbol: " << fqsym);
   auto *dylib = jitDylibs[nsName].back();
 
   if (dylib == nullptr) {
     return tempError(*ctx, "No dylib " + s);
   }
 
+  HALLEY_LOG("Looking in dylib: " << (void *)dylib);
   auto expectedSymbol = engine->lookup(*dylib, fqsym);
 
   // JIT lookup may return an Error referring to strings stored internally by
@@ -450,14 +434,16 @@ MaybeEnginePtr Halley::lookup(const char *nsName, const char *sym) {
     return expectedSymbol.takeError();
   }
 
-  auto rawFPtr = *expectedSymbol;
+  auto rawFPtr = expectedSymbol->getAddress();
+
   // NOLINTNEXTLINE(performance-no-int-to-ptr)
-  auto fptr = reinterpret_cast<void *(*)()>(&rawFPtr);
+  auto fptr = reinterpret_cast<void *(*)()>(rawFPtr);
 
   if (fptr == nullptr) {
     return tempError(*ctx, "Lookup function is null!");
   }
 
+  HALLEY_LOG("Found symbol '" << fqsym << "' at " << (void *)fptr);
   return fptr;
 };
 
@@ -523,7 +509,7 @@ Halley::loadNamespaceFrom<fs::NSFileType::ObjectFile>(NSLoadRequest &req) {
 
   if (!fs::exists(file)) {
     // Can't locate any object file, skit to the next loader
-    llvm::outs() << "file: " << file << "\n";
+    HALLEY_LOG("File does not exist: " << file << "\n");
     return nullptr;
   }
 
@@ -660,6 +646,16 @@ MaybeDylibPtr Halley::loadNamespace(std::string &nsName) {
       }
 
       if (*maybeJDptr != nullptr) {
+        auto *processJD = engine->getExecutionSession().getJITDylibByName(
+            MAIN_PROCESS_JD_NAME);
+
+        if (processJD == nullptr) {
+          // TODO: [jit] Panic here
+          return tempError(*ctx, "Can't find the main process JD");
+          // /TODO
+        }
+
+        (*maybeJDptr)->addToLinkOrder(*processJD);
         return *maybeJDptr;
       }
     }
@@ -668,8 +664,167 @@ MaybeDylibPtr Halley::loadNamespace(std::string &nsName) {
   return tempError(*ctx, "Can't find namespace: " + nsName);
 };
 
-llvm::Error Halley::initialize() {
-  (void)ctx;
+MaybeDylibPtr Halley::loadStaticLibrary(const std::string &name) {
+  if (ctx->getLoadPaths().empty()) {
+    return tempError(*ctx, "Load paths should not be empty");
+  }
+
+  for (auto &path : ctx->getLoadPaths()) {
+    auto file = fs::join(path, name + ".a");
+
+    if (!fs::exists(file)) {
+      continue;
+    }
+
+    if (!fs::isStaticLib(file)) {
+      return tempError(*ctx, "Not a static lib: " + file);
+    }
+
+    auto *objectLayer = &engine->getObjLinkingLayer();
+
+    auto generator = llvm::orc::StaticLibraryDefinitionGenerator::Load(
+        *objectLayer, file.c_str(),
+        engine->getExecutionSession()
+            .getExecutorProcessControl()
+            .getTargetTriple(),
+        std::move(llvm::orc::getObjectFileInterface));
+
+    if (!generator) {
+      return generator.takeError();
+    }
+
+    auto jd = engine->createJITDylib(llvm::formatv("{0}#{1}", name, 0));
+
+    if (!jd) {
+      return jd.takeError();
+    }
+
+    jd->addGenerator(std::move(*generator));
+
+    std::vector<llvm::StringRef> nsNames = {name};
+
+    auto definition = engine->lookup(*jd, "__serene_namespaces");
+
+    if (!definition) {
+      HALLEY_LOG("Library '" << name << "' is not a Serene lib.");
+      // We just want to ignore the error
+      llvm::consumeError(definition.takeError());
+    } else {
+      HALLEY_LOG("Library '" << name << "' is a Serene lib.");
+      // TODO: call the __serene_namespaces and set nsNames to
+      // the list of namespaces that it returns
+      (void)*definition;
+    }
+
+    for (auto &nsName : nsNames) {
+      auto ns = makeNamespace(nsName.str().c_str());
+      pushJITDylib(ns, &(*jd));
+    }
+
+    return &jd.get();
+  }
+
+  return tempError(*ctx, "Can't find static lib: " + name);
+};
+
+MaybeDylibPtr Halley::loadSharedLibFile(llvm::StringRef name,
+                                        llvm::StringRef path) {
+  if (!fs::isSharedLib(path)) {
+    return tempError(*ctx, "Not a shared lib: " + path);
+  }
+
+  auto generator = llvm::orc::EPCDynamicLibrarySearchGenerator::Load(
+      engine->getExecutionSession(), path.str().c_str());
+
+  if (!generator) {
+    return generator.takeError();
+  }
+
+  auto jd = engine->createJITDylib(llvm::formatv("{0}#{1}", name, 0));
+
+  if (!jd) {
+    return jd.takeError();
+  }
+
+  jd->addGenerator(std::move(*generator));
+
+  return &jd.get();
+};
+
+MaybeDylibPtr Halley::loadSharedLibrary(const std::string &name) {
+  if (ctx->getLoadPaths().empty()) {
+    return tempError(*ctx, "Load paths should not be empty");
+  }
+
+  for (auto &path : ctx->getLoadPaths()) {
+    auto file = fs::join(path, name + ".so");
+
+    if (!fs::exists(file)) {
+      continue;
+    }
+
+    auto maybeJD = loadSharedLibFile(name, file);
+    if (!maybeJD) {
+      return maybeJD.takeError();
+    }
+
+    auto *jd     = *maybeJD;
+    auto nsNames = getContainedNamespaces(name, jd);
+
+    for (const auto *nsName : nsNames) {
+      auto ns = makeNamespace(nsName);
+      pushJITDylib(ns, jd);
+    }
+
+    return jd;
+  }
+
+  return tempError(*ctx, "Can't find the dynamic lib: " + name);
+};
+
+std::vector<const char *> Halley::getContainedNamespaces(llvm::StringRef name,
+                                                         DylibPtr jd) {
+
+  std::vector<const char *> nsNames = {name.str().c_str()};
+  auto definition = engine->lookup(*jd, "__serene_namespaces");
+
+  if (!definition) {
+    HALLEY_LOG("Library is not a Serene lib.");
+    // We just want to ignore the error
+    llvm::consumeError(definition.takeError());
+  }
+  HALLEY_LOG("Library is a Serene lib.");
+  // TODO: call the __serene_namespaces and set nsNames to
+  // the list of namespaces that it returns
+
+  return nsNames;
+};
+
+llvm::Error Halley::createCurrentProcessJD() {
+
+  auto &es           = engine->getExecutionSession();
+  auto *processJDPtr = es.getJITDylibByName(MAIN_PROCESS_JD_NAME);
+
+  if (processJDPtr != nullptr) {
+    // We already created the JITDylib for the current process
+    return llvm::Error::success();
+  }
+
+  auto processJD = es.createJITDylib(MAIN_PROCESS_JD_NAME);
+
+  if (!processJD) {
+    return processJD.takeError();
+  }
+
+  auto generator =
+      llvm::orc::DynamicLibrarySearchGenerator::GetForCurrentProcess(
+          engine->getDataLayout().getGlobalPrefix());
+
+  if (!generator) {
+    return generator.takeError();
+  }
+
+  processJD->addGenerator(std::move(*generator));
   return llvm::Error::success();
 };
 

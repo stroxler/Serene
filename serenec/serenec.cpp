@@ -299,9 +299,9 @@ int main(int argc, char *argv[]) {
   // }
 
   std::string core = "serene.core";
-  auto maybeJD     = engine->loadNamespace(core);
-  if (!maybeJD) {
-    llvm::errs() << "Error: " << maybeJD.takeError() << "'\n";
+  auto maybeCore   = engine->loadNamespace(core);
+  if (!maybeCore) {
+    llvm::errs() << "Error: " << maybeCore.takeError() << "'\n";
     return 1;
   }
 
@@ -312,9 +312,18 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  auto c    = *bt;
-  void *res = c();
+  if (*bt == nullptr) {
+    llvm::errs() << "Error: nullptr?\n";
+    return 1;
+  }
+  auto *c = *bt;
 
+  void *res = c();
+  // for (int i = 0; i <= 10; i++) {
+  //   printf(">> %02x", *(c + i));
+  // }
+  printf("Res >> %p\n", res);
+  llvm::outs() << "Res: " << *((int *)res) << "\n";
   (void)res;
 
   // // TODO: handle the outputDir by not forcing it. it should be
