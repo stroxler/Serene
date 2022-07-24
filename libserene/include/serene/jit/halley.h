@@ -31,9 +31,18 @@
 // to make sure that we did not load it already. If we did just
 // use the existing `JITDylib` for it.
 
-//
 // TODO: [jit] Use Bare JITDylibs for the static and dynamic libs.
 // Hint: Look at `createBareJITDylib` on the `ExecutionSession`
+
+// TODO: [jit] Create a generator class that generates symbols
+// from Serene's code and add them to the JitDylib of a namespace
+// instead of having multiple jitDylibs per NS
+
+// TODO: [jit] Create a another overload of the `lookup` function
+// than returns a pointer to the symbol. This new functions will
+// be used to call those core functions that we already know the
+// signature and we don't want to wrap them. For examples functions
+// in the `serene.core` namespace
 
 #ifndef SERENE_JIT_HALLEY_H
 #define SERENE_JIT_HALLEY_H
@@ -87,7 +96,8 @@ class Halley;
 using Engine             = Halley;
 using EnginePtr          = std::unique_ptr<Engine>;
 using MaybeEngine        = llvm::Expected<EnginePtr>;
-using MaybeJitAddress    = llvm::Expected<void *(*)()>;
+using JitWrappedAddress  = void (*)(void **);
+using MaybeJitAddress    = llvm::Expected<JitWrappedAddress>;
 using Dylib              = llvm::orc::JITDylib;
 using DylibPtr           = Dylib *;
 using MaybeDylibPtr      = llvm::Expected<DylibPtr>;
@@ -185,7 +195,7 @@ public:
   /// the namespace from file even if it exists already.
   MaybeDylibPtr loadNamespace(std::string &nsName);
 
-  // TODO: Move all the loader related functions to a Loader class
+  // TODO: [jit] Move all the loader related functions to a Loader class
   /// Load the shared library in the given `path` to the given JITDylib
   /// `jd` via the give ExecutionSession `es`.
   /// This function assumes that the shared lib exists.
@@ -210,46 +220,14 @@ public:
   void setEngine(std::unique_ptr<llvm::orc::LLJIT> e, bool isLazy);
   /// Looks up a packed-argument function with the given sym name and returns a
   /// pointer to it. Propagates errors in case of failure.
-  MaybeJitAddress lookup(const char *nsName, const char *sym);
+  MaybeJitAddress lookup(const char *nsName, const char *sym) const;
   MaybeJitAddress lookup(const types::Symbol &sym) const;
 
   /// Invokes the function with the given name passing it the list of opaque
   /// pointers to the actual arguments.
-  // llvm::Error
-  // invokePacked(llvm::StringRef name,
-  //              llvm::MutableArrayRef<void *> args = llvm::None) const;
-
-  /// Trait that defines how a given type is passed to the JIT code. This
-  /// defaults to passing the address but can be specialized.
-  template <typename T>
-  struct Argument {
-    static void pack(llvm::SmallVectorImpl<void *> &args, T &val) {
-      args.push_back(&val);
-    }
-  };
-
-  /// Tag to wrap an output parameter when invoking a jitted function.
-  template <typename T>
-  struct FnResult {
-    explicit FnResult(T &result) : value(result) {}
-    T &value;
-  };
-
-  /// Helper function to wrap an output operand when using
-  /// ExecutionEngine::invoke.
-  template <typename T>
-  static FnResult<T> result(T &t) {
-    return FnResult<T>(t);
-  }
-
-  // Specialization for output parameter: their address is forwarded directly to
-  // the native code.
-  template <typename T>
-  struct Argument<FnResult<T>> {
-    static void pack(llvm::SmallVectorImpl<void *> &args, FnResult<T> &result) {
-      args.push_back(&result.value);
-    }
-  };
+  llvm::Error
+  invokePacked(const types::Symbol &name,
+               llvm::MutableArrayRef<void *> args = llvm::None) const;
 
   llvm::Error loadModule(const char *nsName, const char *file);
   void dumpToObjectFile(llvm::StringRef filename);

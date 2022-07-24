@@ -98,6 +98,7 @@ ObjectCache::getObject(const llvm::Module *m) {
                " in cache. Compiling.");
     return nullptr;
   }
+
   HALLEY_LOG("Object for " + m->getModuleIdentifier() + " loaded from cache.");
   return llvm::MemoryBuffer::getMemBuffer(i->second->getMemBufferRef());
 }
@@ -405,7 +406,11 @@ llvm::Error Halley::createEmptyNS(const char *name) {
   return llvm::Error::success();
 };
 
-MaybeJitAddress Halley::lookup(const char *nsName, const char *sym) {
+MaybeJitAddress Halley::lookup(const types::Symbol &sym) const {
+  return lookup(sym.ns->data, sym.name->data);
+}
+
+MaybeJitAddress Halley::lookup(const char *nsName, const char *sym) const {
   assert(sym != nullptr && "'sym' is null: lookup");
   assert(nsName != nullptr && "'nsName' is null: lookup");
 
@@ -415,7 +420,7 @@ MaybeJitAddress Halley::lookup(const char *nsName, const char *sym) {
   std::string fqsym = (ns + "/" + s).str();
 
   HALLEY_LOG("Looking up symbol: " << fqsym);
-  auto *dylib = jitDylibs[nsName].back();
+  auto *dylib = const_cast<Halley *>(this)->jitDylibs[nsName].back();
 
   if (dylib == nullptr) {
     return tempError(*ctx, "No dylib " + s);
@@ -437,7 +442,7 @@ MaybeJitAddress Halley::lookup(const char *nsName, const char *sym) {
   auto rawFPtr = expectedSymbol->getAddress();
 
   // NOLINTNEXTLINE(performance-no-int-to-ptr)
-  auto fptr = reinterpret_cast<void *(*)()>(rawFPtr);
+  auto fptr = reinterpret_cast<JitWrappedAddress>(rawFPtr);
 
   if (fptr == nullptr) {
     return tempError(*ctx, "Lookup function is null!");
@@ -532,7 +537,6 @@ Halley::loadNamespaceFrom<fs::NSFileType::ObjectFile>(NSLoadRequest &req) {
     return err;
   }
 
-  llvm::outs() << "ok\n";
   return jd;
 };
 
@@ -827,6 +831,19 @@ llvm::Error Halley::createCurrentProcessJD() {
   processJD->addGenerator(std::move(*generator));
   return llvm::Error::success();
 };
+
+llvm::Error Halley::invokePacked(const types::Symbol &name,
+                                 llvm::MutableArrayRef<void *> args) const {
+  auto expectedFPtr = lookup(name);
+  if (!expectedFPtr) {
+    return expectedFPtr.takeError();
+  }
+
+  auto *fptr = *expectedFPtr;
+  (*fptr)(args.data());
+
+  return llvm::Error::success();
+}
 
 MaybeEngine makeHalleyJIT(std::unique_ptr<SereneContext> ctx) {
   llvm::orc::JITTargetMachineBuilder jtmb(ctx->triple);

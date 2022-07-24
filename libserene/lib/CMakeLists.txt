@@ -27,7 +27,8 @@ add_library(serene
   context.cpp
   fs.cpp
 
-  jit/halley.cpp)
+  jit/halley.cpp
+  jit/packer.cpp)
 
 # Create an ALIAS target. This way if we mess up the name
 # there will be an cmake error inseat of a linker error which is harder

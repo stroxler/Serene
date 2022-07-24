@@ -12,6 +12,10 @@
 
 #define MAX_PATH_SLOTS 256
 
+#define COMMON_ARGS_COUNT 6
+
+#define PACKED_FUNCTION_NAME_PREFIX "__serene_"
+
 // Should we build the support for MLIR CL OPTIONS?
 #cmakedefine SERENE_WITH_MLIR_CL_OPTION
 

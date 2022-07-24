@@ -318,13 +318,14 @@ int main(int argc, char *argv[]) {
   }
   auto *c = *bt;
 
-  void *res = c();
-  // for (int i = 0; i <= 10; i++) {
-  //   printf(">> %02x", *(c + i));
-  // }
-  printf("Res >> %p\n", res);
-  llvm::outs() << "Res: " << *((int *)res) << "\n";
-  (void)res;
+  (void)c;
+  // void *res = c();
+  // // for (int i = 0; i <= 10; i++) {
+  // //   printf(">> %02x", *(c + i));
+  // // }
+  // printf("Res >> %p\n", res);
+  // llvm::outs() << "Res: " << *((int *)res) << "\n";
+  // (void)res;
 
   // // TODO: handle the outputDir by not forcing it. it should be
   // //       default to the current working dir
