@@ -439,10 +439,7 @@ MaybeJitAddress Halley::lookup(const char *nsName, const char *sym) const {
     return expectedSymbol.takeError();
   }
 
-  auto rawFPtr = expectedSymbol->getAddress();
-
-  // NOLINTNEXTLINE(performance-no-int-to-ptr)
-  auto fptr = reinterpret_cast<JitWrappedAddress>(rawFPtr);
+  auto fptr = expectedSymbol->toPtr<JitWrappedAddress>();
 
   if (fptr == nullptr) {
     return tempError(*ctx, "Lookup function is null!");

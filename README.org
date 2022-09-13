@@ -17,13 +17,13 @@ Setup the githook and install dependencies using the following commands:
     - doxygen (If you want to build the docs as well)
     - Valgrind
     - CCache (If you want faster builds specially with the LLVM)
-    - Boehm GC v8.2.0
+    - Boehm GC v8.2.0 (has to be built statically and with ~-fPIC~)
 
 ** LLVM Installation
 
   *Important Note*: We're trying to keep Serene up to date with the LLVM release cycle till we get
   to our first release. So we use the development version of the LLVM. Currently we are using
-  =14.0.6= branch as our reference.
+  =7240436c94bd02762a723a2e3551528d16c8efdb= commit as our reference.
 
   MLIR is a part of the [[https://llvm.org][LLVM]] project and in order to build it we need to build the LLVM itself as well.
   Here is a quick guide to build the latest version of the LLVM and MLIR.
