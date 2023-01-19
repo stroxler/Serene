@@ -47,7 +47,7 @@ set -e
 
 command=$1
 VERSION="0.7.0"
-LLVM_VERSION="15"
+LLVM_VERSION="11"
 
 # Serene subprojects. We use this array to run common tasks on all the projects
 # like running the test cases
