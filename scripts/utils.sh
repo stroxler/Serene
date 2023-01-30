@@ -54,3 +54,19 @@ function yes_or_no {
         esac
     done
 }
+
+
+function pushed_build() {
+    mkdir -p "$BUILD_DIR"
+    pushd "$BUILD_DIR" > /dev/null || return
+}
+
+
+function popd_build() {
+    popd > /dev/null || return
+}
+
+
+function setup_builder() {
+    mkdir -p "$BUILDER_CACHE_DIR/packages"
+}

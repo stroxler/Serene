@@ -47,11 +47,30 @@ set -e
 
 command=$1
 VERSION="0.7.0"
+
+# Builder configuration
+BUILDER_CACHE_DIR="$HOME/.serene_builder/"
+export BUILDER_CACHE_DIR
+
+# The URL of the package repository. It's just a repository compatible
+# with gitea api.
+PACKAGE_REPOSITORY="${SERENE_PACKAGE_REPOSITORY:-https://beta.devheroes.codes}"
+
+# A hashmap of dependecies that the builder script Should pull down and setup.
+#
+# The versions are just the return value of `git describe` for each dependency.
+declare -a DEPENDENCIES=(
+    "llvm@llvmorg-17-init-401-g024115ab1482"
+    "bdwgc@v8.2.2-35-g2b342c41ae5e"
+)
+
+
 LLVM_VERSION="11"
 
 # Serene subprojects. We use this array to run common tasks on all the projects
 # like running the test cases
 PROJECTS=(libserene serenec serene-repl serene-tblgen)
+
 
 CC=$(which clang)
 CXX=$(which clang++)
@@ -81,6 +100,9 @@ CMAKEARGS=("-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
 source "$ME/scripts/utils.sh"
 
 # shellcheck source=./scripts/devfs.sh
+source "$ME/scripts/deps.sh"
+
+# shellcheck source=./scripts/devfs.sh
 source "$ME/scripts/devfs.sh"
 
 
@@ -100,17 +122,6 @@ function gen_precompile_header_index() {
 }
 
 
-function pushed_build() {
-    mkdir -p "$BUILD_DIR"
-    pushd "$BUILD_DIR" > /dev/null || return
-}
-
-
-function popd_build() {
-    popd > /dev/null || return
-}
-
-
 function build-gen() {
     pushed_build
     info "Running: "
@@ -122,6 +133,24 @@ function build-gen() {
 # -----------------------------------------------------------------------------
 # Subcomaands
 # -----------------------------------------------------------------------------
+function download_deps() { ## Download all the dependencies
+    setup_builder
+
+    local pkg
+    local version
+
+    for dep in "${DEPENDENCIES[@]}"; do
+
+        pkg=$(echo "$dep" | cut -d '@' -f 1)
+        version=$(echo "$dep" | cut -d '@' -f 2)
+
+        #get_package -n "$pkg" -v "$version" -r "$PACKAGE_REPOSITORY"
+        get_package "$pkg" "$version" "$PACKAGE_REPOSITORY"
+        unpack_package "$pkg" "$version"
+    done
+}
+
+
 function compile() { ## Compiles the project using the generated build scripts
     pushed_build
     cmake --build .
