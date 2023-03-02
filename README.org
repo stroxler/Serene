@@ -1,5 +1,10 @@
 * Serene lang
+
+Serene language (from [[https://www.youtube.com/watch?v=Ij4LswX1tZU&list=PLlONLmJCfHTo9WYfsoQvwjsa5ZB6hjOG5][how to build a compiler]]).
+Originally hosted on devheroes, which was discontinued - this is my github mirror.
+
  Build Status: [[https://drone.devheroes.codes/api/badges/Serene/Serene/status.svg]]
+
 
 ** Setup development environment
 Setup the githook and install dependencies using the following commands:
