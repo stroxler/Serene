@@ -1,7 +1,10 @@
 * Serene lang
 
 Serene language (from [[https://www.youtube.com/watch?v=Ij4LswX1tZU&list=PLlONLmJCfHTo9WYfsoQvwjsa5ZB6hjOG5][how to build a compiler]]).
-Originally hosted on devheroes, which was discontinued - this is my github mirror.
+Originally hosted on devheroes, which as of February 2023 had a warning that
+it would be discontinued - this is my github mirror.
+
+The original repo is at https://devheroes.codes/Serene/Serene and does still seem to be up.
 
  Build Status: [[https://drone.devheroes.codes/api/badges/Serene/Serene/status.svg]]
 
